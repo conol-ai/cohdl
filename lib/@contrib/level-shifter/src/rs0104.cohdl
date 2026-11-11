@@ -78,7 +78,8 @@ pub part LS_RS0104: RS0104[TSSOP14] {
 
 #[doc("docs/rs0104.pdf")]
 pub part LS_RS0104_QFN14: RS0104[QFN14] {
-    primary { mfr: "Run-IC", mpn: "RS0104YTQF14", footprint: QFN14N50P350X350_1EP200X150 }
+    primary { mfr: "Run-IC", mpn: "RS0104YTQF14", footprint: QFN14N50P350X350_1EP200X150,
+              supplier lcsc "C5372421" rotate 270 }
 }
 
 #[doc("docs/rs0104.pdf")]

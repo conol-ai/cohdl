@@ -261,12 +261,12 @@
   {
    "pn": "C15008",
    "mpn": "CL31A107MQHNNNE",
-   "reason": "no library part: its Yageo primary is unconfirmed"
+   "reason": "tolerance M, the library pairs K"
   },
   {
    "pn": "C15525",
    "mpn": "CL05A106MQ5NUNC",
-   "reason": "no library part: its Yageo primary is unconfirmed"
+   "reason": "tolerance M, the library pairs K"
   },
   {
    "pn": "C15849",
@@ -276,7 +276,7 @@
   {
    "pn": "C16780",
    "mpn": "CL21A476MQYNNNE",
-   "reason": "no library part: its Yageo primary is unconfirmed"
+   "reason": "tolerance M, the library pairs K"
   },
   {
    "pn": "C23733",
@@ -311,7 +311,7 @@
   {
    "pn": "C45783",
    "mpn": "CL21A226MAQNNNE",
-   "reason": "no library part: its Yageo primary is unconfirmed"
+   "reason": "tolerance M, the library pairs K"
   },
   {
    "pn": "C46653",
@@ -326,12 +326,12 @@
   {
    "pn": "C59461",
    "mpn": "CL10A226MQ8NRNC",
-   "reason": "no library part: its Yageo primary is unconfirmed"
+   "reason": "tolerance M, the library pairs K"
   },
   {
    "pn": "C96123",
    "mpn": "CL31A476MPHNNNE",
-   "reason": "no library part: its Yageo primary is unconfirmed"
+   "reason": "tolerance M, the library pairs K"
   },
   {
    "pn": "C96446",

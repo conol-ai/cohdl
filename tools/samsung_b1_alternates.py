@@ -15,8 +15,11 @@ already offers (the same key as samsung_cl.json: size, rated volts,
 dielectric, farads) with the tolerance the library pairs with that dielectric
 (C0G J = +/-5%, X7R and X5R K = +/-10%). Each one is a real, stocked part:
 its JLCPCB page was confirmed in the B1 run. gen_passive.py adds it as an
-alternate; a part whose combination the library does not offer is listed
-under "unmatched" and left for new parts (plan W4).
+alternate. The others are listed under "unmatched" with one reason each,
+checked in this order: "not decoded"; the wrong tolerance for its dielectric
+(never an alternate, whatever the combination); a combination whose Yageo
+primary Yageo will not confirm, so the library emits no part for it; a
+combination the library does not offer (left for new parts, plan W4).
 """
 
 from __future__ import annotations
@@ -79,8 +82,11 @@ def build() -> dict:
         point = (size, float(volts), diel, f"{float(farads):.6g}")
         key = offered.get(point)
         if key is None or tol != TOLERANCE[diel]:
-            reason = ("no library part: its Yageo primary is unconfirmed" if point in withdrawn
-                      else "no library part" if key is None else f"tolerance {tol}, the library pairs {TOLERANCE[diel]}")
+            # Tolerance first: a number with the wrong tolerance is never an alternate,
+            # whether or not the library offers (or would offer) its combination.
+            reason = (f"tolerance {tol}, the library pairs {TOLERANCE[diel]}" if tol != TOLERANCE[diel]
+                      else "no library part: its Yageo primary is unconfirmed" if point in withdrawn
+                      else "no library part")
             unmatched.append({"pn": page["c"], "mpn": page["mpn"], "reason": reason})
             continue
         if key in parts:

@@ -11,6 +11,9 @@ regenerated or optimized.
 | `jst-xh.pdf` | `CONN_BAT_2P` = JST `S2B-XH-A(LF)(SN)` (LCSC C157931) | JST XH series, 2.5 mm pitch wire-to-board connector | <https://www.jst-mfg.com/product/pdf/eng/eXH.pdf> | `9426b136902f11900825077535e5c65032b7fbc31ffb59c5e9e1f463bb20fb90` |
 | `yzp0048-20048-04025-03.pdf` | `CONN_MAG_4P` = Xinyangze `YZP0048-20048-04025-03` (LCSC C5126845) | Xinyangze product spec 2022-08-08: 4-pin magnetic pogo, 1 A, 3.1 mm working height | <https://www.lcsc.com/product-detail/C5126845.html> | `d2c26de7b1294bc46f5294b357ab1d7b9584fca8ca2aef185b156c550e0cdb34` |
 
+`jst-xh.evidence.md` gives the page reference in `jst-xh.pdf` for every
+value the `CONN_BAT_2P` land uses.
+
 `CONN_MIC_2P`, `CONN_DEBUG_4P`, `CONN_SPK_2P` remain generic (2-pin mic
 module terminal, 4-pin 1.27 mm debug port, 2-pin speaker terminal) — no
 manufacturer documents stored.

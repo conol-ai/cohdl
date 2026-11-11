@@ -21,7 +21,8 @@
 // The SOT-89 tab is the centre lead's own frame (pin 2), so its land is a
 // second placement of pad 2; the SOT-223 tab is a fourth terminal on the
 // opposite edge, so it is pad 4 and a device maps it explicitly (for
-// example AMS1117's `VOUT: 2, 4`). See docs/README.md.
+// example AMS1117's `VOUT: 2, 4`). The rule is LIBRARY.md's (section 4);
+// see docs/README.md.
 //
 // Names follow RFC-021's checked template SOT{pins}P{pitch}X{bodyX}X{bodyY}N.
 // The checker reads the pins as the distinct pad numbers and the pitch as
@@ -195,7 +196,12 @@ pub pad P_SOT4P230X651X351N_TAB {
 
 // Name digits from the primary page-7 outline (millimetre values): body
 // length 6.30-6.71mm, nominal 6.505, rounded half up to 6.51; body width
-// 3.30-3.71mm, nominal 3.505, rounded half up to 3.51. Four distinct pad
+// 3.30-3.71mm, nominal 3.505, rounded half up to 3.51. Those millimetre
+// values are AMS's conversions of an inch drawing (0.248-0.264 and
+// 0.130-0.146in), so 651/351 are a rounding artefact of its inch
+// midpoints, not a different body: the JEDEC / typical nominal (Diodes'
+// typical D 6.50 x E 3.50mm) would give 650/350. The name was published
+// as SOT4P230X651X351N in sot 0.1.0 and is permanent. Four distinct pad
 // numbers (the tab is pad 4); pitch 2.30mm between pads 1-2 and 2-3.
 #[doc("docs/README.md")]
 pub footprint SOT4P230X651X351N {

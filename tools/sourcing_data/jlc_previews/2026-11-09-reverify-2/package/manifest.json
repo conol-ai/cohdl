@@ -1,0 +1,140 @@
+{
+  "name": "pr78_101_reverify_2",
+  "dependencies": {
+    "std": "0.3.0",
+    "@contrib/level-shifter": "0.2.0",
+    "flash": "0.3.0"
+  },
+  "rows": [
+    {
+      "name": "Cand_1",
+      "footprint": "contrib_level_shifter::QFN14N50P350X350_1EP200X150",
+      "part": "contrib_level_shifter::RS0104[QFN14]",
+      "pn": "C5372421",
+      "mfr": "Run-IC",
+      "mpn": "RS0104YTQF14",
+      "pins": [
+        "GND",
+        "VCCA",
+        "VCCB",
+        "OE",
+        "A1",
+        "A2",
+        "A3",
+        "A4",
+        "B1",
+        "B2",
+        "B3",
+        "B4",
+        "NC6",
+        "NC9",
+        "EPAD"
+      ],
+      "width_mm": 14,
+      "height_mm": 14,
+      "covers_rotation": true,
+      "placements": [
+        {
+          "at_mm": [
+            10,
+            10
+          ],
+          "rotate": 0,
+          "side": "top"
+        },
+        {
+          "at_mm": [
+            26,
+            10
+          ],
+          "rotate": 37,
+          "side": "top"
+        },
+        {
+          "at_mm": [
+            10,
+            26
+          ],
+          "rotate": 0,
+          "side": "bottom"
+        },
+        {
+          "at_mm": [
+            26,
+            26
+          ],
+          "rotate": 37,
+          "side": "bottom"
+        }
+      ],
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 270
+      },
+      "note": "Candidate supplier rotation 270 for re-verification; not a binding."
+    },
+    {
+      "name": "Cand_2",
+      "footprint": "flash::FP_W25Q32RV_XSON8_2X3",
+      "part": "flash::W25Q32",
+      "pn": "C32246052",
+      "mfr": "Winbond",
+      "mpn": "W25Q32RVXHJQ",
+      "pins": [
+        "GND",
+        "VCC",
+        "CS",
+        "IO1",
+        "IO2",
+        "IO0",
+        "CLK",
+        "IO3",
+        "EP"
+      ],
+      "width_mm": 14,
+      "height_mm": 14,
+      "covers_rotation": true,
+      "placements": [
+        {
+          "at_mm": [
+            45,
+            10
+          ],
+          "rotate": 0,
+          "side": "top"
+        },
+        {
+          "at_mm": [
+            61,
+            10
+          ],
+          "rotate": 37,
+          "side": "top"
+        },
+        {
+          "at_mm": [
+            45,
+            26
+          ],
+          "rotate": 0,
+          "side": "bottom"
+        },
+        {
+          "at_mm": [
+            61,
+            26
+          ],
+          "rotate": 37,
+          "side": "bottom"
+        }
+      ],
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 270
+      },
+      "note": "Candidate supplier rotation 270 for re-verification; not a binding."
+    }
+  ]
+}

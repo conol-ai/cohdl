@@ -1,0 +1,9 @@
+Designator,Mid X,Mid Y,Layer,Rotation
+U1,12.0000mm,28.0000mm,Top,270
+U2,28.0000mm,28.0000mm,Top,307
+U3,12.0000mm,12.0000mm,Bottom,270
+U4,28.0000mm,12.0000mm,Bottom,233
+U5,47.0000mm,28.0000mm,Top,270
+U6,63.0000mm,28.0000mm,Top,307
+U7,47.0000mm,12.0000mm,Bottom,270
+U8,63.0000mm,12.0000mm,Bottom,233

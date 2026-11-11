@@ -1,0 +1,581 @@
+{
+ "extra_reach_mm": 0.8,
+ "rows": {
+  "U1": {
+   "side": "top",
+   "kicad_angle": 0.0,
+   "fpid": "do214-DIOM5336X265N",
+   "reach_mm": 3.82,
+   "max_dark_radius_mm": 3.62,
+   "rect_mm": [
+    4.5,
+    3.49
+   ],
+   "rect_edges_vs_land_deg_mod90": 0.0,
+   "extent_along_land_mm": 4.5,
+   "extent_across_land_mm": 3.49,
+   "long_side_is_along_land": true,
+   "principal_axis_vs_land_deg_mod180": -0.3,
+   "elongation": 1.292,
+   "centre_offset_mm": 0.036,
+   "centre_offset_along_across_mm": [
+    0.023,
+    -0.027
+   ],
+   "box_midpoint_offset_along_across_mm": [
+    0.02,
+    -0.022
+   ],
+   "dark_px": 11277,
+   "dark_area_mm2": 14.87,
+   "largest_component_share": 0.9976,
+   "median_body_bgr": [
+    71,
+    71,
+    71
+   ],
+   "offset_limit_mm": 0.25,
+   "angle_tol_deg": 10.0
+  },
+  "U2": {
+   "side": "top",
+   "kicad_angle": 37.0,
+   "fpid": "do214-DIOM5336X265N",
+   "reach_mm": 3.82,
+   "max_dark_radius_mm": 3.59,
+   "rect_mm": [
+    4.5,
+    3.49
+   ],
+   "rect_edges_vs_land_deg_mod90": 0.1,
+   "extent_along_land_mm": 4.5,
+   "extent_across_land_mm": 3.5,
+   "long_side_is_along_land": true,
+   "principal_axis_vs_land_deg_mod180": 0.3,
+   "elongation": 1.287,
+   "centre_offset_mm": 0.029,
+   "centre_offset_along_across_mm": [
+    0.021,
+    -0.019
+   ],
+   "box_midpoint_offset_along_across_mm": [
+    0.011,
+    -0.012
+   ],
+   "dark_px": 10999,
+   "dark_area_mm2": 14.51,
+   "largest_component_share": 0.9968,
+   "median_body_bgr": [
+    71,
+    71,
+    71
+   ],
+   "offset_limit_mm": 0.25,
+   "angle_tol_deg": 10.0
+  },
+  "U3": {
+   "side": "bottom",
+   "kicad_angle": 180.0,
+   "fpid": "do214-DIOM5336X265N",
+   "reach_mm": 3.82,
+   "max_dark_radius_mm": 2.85,
+   "rect_mm": [
+    4.49,
+    3.49
+   ],
+   "rect_edges_vs_land_deg_mod90": -0.8,
+   "extent_along_land_mm": 4.5,
+   "extent_across_land_mm": 3.49,
+   "long_side_is_along_land": true,
+   "principal_axis_vs_land_deg_mod180": -0.2,
+   "elongation": 1.285,
+   "centre_offset_mm": 0.033,
+   "centre_offset_along_across_mm": [
+    0.032,
+    0.009
+   ],
+   "box_midpoint_offset_along_across_mm": [
+    0.028,
+    0.008
+   ],
+   "dark_px": 11000,
+   "dark_area_mm2": 14.51,
+   "largest_component_share": 1.0,
+   "median_body_bgr": [
+    71,
+    71,
+    71
+   ],
+   "offset_limit_mm": 0.25,
+   "angle_tol_deg": 10.0
+  },
+  "U4": {
+   "side": "bottom",
+   "kicad_angle": -143.0,
+   "fpid": "do214-DIOM5336X265N",
+   "reach_mm": 3.82,
+   "max_dark_radius_mm": 2.86,
+   "rect_mm": [
+    4.48,
+    3.5
+   ],
+   "rect_edges_vs_land_deg_mod90": 0.3,
+   "extent_along_land_mm": 4.48,
+   "extent_across_land_mm": 3.5,
+   "long_side_is_along_land": true,
+   "principal_axis_vs_land_deg_mod180": 0.0,
+   "elongation": 1.282,
+   "centre_offset_mm": 0.021,
+   "centre_offset_along_across_mm": [
+    0.016,
+    0.013
+   ],
+   "box_midpoint_offset_along_across_mm": [
+    0.007,
+    0.009
+   ],
+   "dark_px": 11019,
+   "dark_area_mm2": 14.53,
+   "largest_component_share": 0.9991,
+   "median_body_bgr": [
+    71,
+    71,
+    71
+   ],
+   "offset_limit_mm": 0.25,
+   "angle_tol_deg": 10.0
+  },
+  "U5": {
+   "side": "top",
+   "kicad_angle": 0.0,
+   "fpid": "do214-DIOM7959X261N",
+   "reach_mm": 4.85,
+   "max_dark_radius_mm": 4.84,
+   "rect_mm": [
+    6.84,
+    5.75
+   ],
+   "rect_edges_vs_land_deg_mod90": -0.4,
+   "extent_along_land_mm": 6.83,
+   "extent_across_land_mm": 5.77,
+   "long_side_is_along_land": true,
+   "principal_axis_vs_land_deg_mod180": -0.1,
+   "elongation": 1.189,
+   "centre_offset_mm": 0.004,
+   "centre_offset_along_across_mm": [
+    -0.002,
+    -0.004
+   ],
+   "box_midpoint_offset_along_across_mm": [
+    -0.002,
+    -0.004
+   ],
+   "dark_px": 29205,
+   "dark_area_mm2": 38.52,
+   "largest_component_share": 0.9918,
+   "median_body_bgr": [
+    71,
+    71,
+    71
+   ],
+   "offset_limit_mm": 0.25,
+   "angle_tol_deg": 10.0
+  },
+  "U6": {
+   "side": "top",
+   "kicad_angle": 37.0,
+   "fpid": "do214-DIOM7959X261N",
+   "reach_mm": 4.85,
+   "max_dark_radius_mm": 4.85,
+   "rect_mm": [
+    6.8,
+    5.77
+   ],
+   "rect_edges_vs_land_deg_mod90": 0.1,
+   "extent_along_land_mm": 6.81,
+   "extent_across_land_mm": 5.77,
+   "long_side_is_along_land": true,
+   "principal_axis_vs_land_deg_mod180": -0.1,
+   "elongation": 1.178,
+   "centre_offset_mm": 0.027,
+   "centre_offset_along_across_mm": [
+    0.026,
+    -0.008
+   ],
+   "box_midpoint_offset_along_across_mm": [
+    0.026,
+    -0.006
+   ],
+   "dark_px": 29180,
+   "dark_area_mm2": 38.49,
+   "largest_component_share": 0.9958,
+   "median_body_bgr": [
+    71,
+    71,
+    71
+   ],
+   "offset_limit_mm": 0.25,
+   "angle_tol_deg": 10.0
+  },
+  "U7": {
+   "side": "bottom",
+   "kicad_angle": 180.0,
+   "fpid": "do214-DIOM7959X261N",
+   "reach_mm": 4.85,
+   "max_dark_radius_mm": 4.82,
+   "rect_mm": [
+    6.81,
+    5.78
+   ],
+   "rect_edges_vs_land_deg_mod90": -0.4,
+   "extent_along_land_mm": 6.83,
+   "extent_across_land_mm": 5.81,
+   "long_side_is_along_land": true,
+   "principal_axis_vs_land_deg_mod180": -0.1,
+   "elongation": 1.178,
+   "centre_offset_mm": 0.007,
+   "centre_offset_along_across_mm": [
+    -0.002,
+    0.006
+   ],
+   "box_midpoint_offset_along_across_mm": [
+    -0.014,
+    0.008
+   ],
+   "dark_px": 29514,
+   "dark_area_mm2": 38.92,
+   "largest_component_share": 1.0,
+   "median_body_bgr": [
+    71,
+    71,
+    71
+   ],
+   "offset_limit_mm": 0.25,
+   "angle_tol_deg": 10.0
+  },
+  "U8": {
+   "side": "bottom",
+   "kicad_angle": -143.0,
+   "fpid": "do214-DIOM7959X261N",
+   "reach_mm": 4.85,
+   "max_dark_radius_mm": 4.46,
+   "rect_mm": [
+    6.79,
+    5.77
+   ],
+   "rect_edges_vs_land_deg_mod90": 0.1,
+   "extent_along_land_mm": 6.79,
+   "extent_across_land_mm": 5.77,
+   "long_side_is_along_land": true,
+   "principal_axis_vs_land_deg_mod180": -0.2,
+   "elongation": 1.178,
+   "centre_offset_mm": 0.008,
+   "centre_offset_along_across_mm": [
+    -0.005,
+    0.006
+   ],
+   "box_midpoint_offset_along_across_mm": [
+    -0.003,
+    0.006
+   ],
+   "dark_px": 29039,
+   "dark_area_mm2": 38.29,
+   "largest_component_share": 0.9955,
+   "median_body_bgr": [
+    71,
+    71,
+    71
+   ],
+   "offset_limit_mm": 0.25,
+   "angle_tol_deg": 10.0
+  },
+  "U29": {
+   "side": "top",
+   "kicad_angle": 0.0,
+   "fpid": "sod-SODFL3818X120N",
+   "reach_mm": 2.83,
+   "max_dark_radius_mm": 2.24,
+   "rect_mm": [
+    2.69,
+    1.74
+   ],
+   "rect_edges_vs_land_deg_mod90": 0.0,
+   "extent_along_land_mm": 2.69,
+   "extent_across_land_mm": 1.74,
+   "long_side_is_along_land": true,
+   "principal_axis_vs_land_deg_mod180": -0.1,
+   "elongation": 1.542,
+   "centre_offset_mm": 0.049,
+   "centre_offset_along_across_mm": [
+    0.016,
+    -0.046
+   ],
+   "box_midpoint_offset_along_across_mm": [
+    0.035,
+    -0.071
+   ],
+   "dark_px": 2564,
+   "dark_area_mm2": 3.38,
+   "largest_component_share": 0.9743,
+   "median_body_bgr": [
+    82,
+    84,
+    83
+   ],
+   "offset_limit_mm": 0.25,
+   "angle_tol_deg": 10.0
+  },
+  "U30": {
+   "side": "top",
+   "kicad_angle": 37.0,
+   "fpid": "sod-SODFL3818X120N",
+   "reach_mm": 2.83,
+   "max_dark_radius_mm": 2.3,
+   "rect_mm": [
+    2.7,
+    1.75
+   ],
+   "rect_edges_vs_land_deg_mod90": -0.4,
+   "extent_along_land_mm": 2.7,
+   "extent_across_land_mm": 1.75,
+   "long_side_is_along_land": true,
+   "principal_axis_vs_land_deg_mod180": 0.4,
+   "elongation": 1.541,
+   "centre_offset_mm": 0.044,
+   "centre_offset_along_across_mm": [
+    0.039,
+    -0.02
+   ],
+   "box_midpoint_offset_along_across_mm": [
+    0.039,
+    -0.032
+   ],
+   "dark_px": 2628,
+   "dark_area_mm2": 3.47,
+   "largest_component_share": 0.9235,
+   "median_body_bgr": [
+    82,
+    84,
+    83
+   ],
+   "offset_limit_mm": 0.25,
+   "angle_tol_deg": 10.0
+  },
+  "U31": {
+   "side": "bottom",
+   "kicad_angle": 180.0,
+   "fpid": "sod-SODFL3818X120N",
+   "reach_mm": 2.83,
+   "max_dark_radius_mm": 1.57,
+   "rect_mm": [
+    2.65,
+    1.63
+   ],
+   "rect_edges_vs_land_deg_mod90": 0.0,
+   "extent_along_land_mm": 2.65,
+   "extent_across_land_mm": 1.63,
+   "long_side_is_along_land": true,
+   "principal_axis_vs_land_deg_mod180": -1.0,
+   "elongation": 1.622,
+   "centre_offset_mm": 0.04,
+   "centre_offset_along_across_mm": [
+    -0.017,
+    0.036
+   ],
+   "box_midpoint_offset_along_across_mm": [
+    0.004,
+    0.039
+   ],
+   "dark_px": 2599,
+   "dark_area_mm2": 3.43,
+   "largest_component_share": 1.0,
+   "median_body_bgr": [
+    84,
+    86,
+    85
+   ],
+   "offset_limit_mm": 0.25,
+   "angle_tol_deg": 10.0
+  },
+  "U32": {
+   "side": "bottom",
+   "kicad_angle": -143.0,
+   "fpid": "sod-SODFL3818X120N",
+   "reach_mm": 2.83,
+   "max_dark_radius_mm": 1.55,
+   "rect_mm": [
+    2.67,
+    1.67
+   ],
+   "rect_edges_vs_land_deg_mod90": 0.1,
+   "extent_along_land_mm": 2.67,
+   "extent_across_land_mm": 1.67,
+   "long_side_is_along_land": true,
+   "principal_axis_vs_land_deg_mod180": -0.1,
+   "elongation": 1.6,
+   "centre_offset_mm": 0.023,
+   "centre_offset_along_across_mm": [
+    -0.006,
+    0.022
+   ],
+   "box_midpoint_offset_along_across_mm": [
+    -0.006,
+    0.02
+   ],
+   "dark_px": 2509,
+   "dark_area_mm2": 3.31,
+   "largest_component_share": 0.9597,
+   "median_body_bgr": [
+    83,
+    84,
+    84
+   ],
+   "offset_limit_mm": 0.25,
+   "angle_tol_deg": 10.0
+  },
+  "U53": {
+   "side": "top",
+   "kicad_angle": 0.0,
+   "fpid": "do214-DIOM5026X241N",
+   "reach_mm": 3.6,
+   "max_dark_radius_mm": 2.56,
+   "rect_mm": [
+    4.25,
+    2.54
+   ],
+   "rect_edges_vs_land_deg_mod90": 0.0,
+   "extent_along_land_mm": 4.25,
+   "extent_across_land_mm": 2.54,
+   "long_side_is_along_land": true,
+   "principal_axis_vs_land_deg_mod180": 0.2,
+   "elongation": 1.672,
+   "centre_offset_mm": 0.127,
+   "centre_offset_along_across_mm": [
+    -0.124,
+    -0.027
+   ],
+   "box_midpoint_offset_along_across_mm": [
+    -0.014,
+    -0.022
+   ],
+   "dark_px": 5819,
+   "dark_area_mm2": 7.68,
+   "largest_component_share": 0.9746,
+   "median_body_bgr": [
+    83,
+    84,
+    83
+   ],
+   "offset_limit_mm": 0.25,
+   "angle_tol_deg": 10.0
+  },
+  "U54": {
+   "side": "top",
+   "kicad_angle": 37.0,
+   "fpid": "do214-DIOM5026X241N",
+   "reach_mm": 3.6,
+   "max_dark_radius_mm": 3.34,
+   "rect_mm": [
+    4.28,
+    2.54
+   ],
+   "rect_edges_vs_land_deg_mod90": -0.0,
+   "extent_along_land_mm": 4.28,
+   "extent_across_land_mm": 2.54,
+   "long_side_is_along_land": true,
+   "principal_axis_vs_land_deg_mod180": -0.4,
+   "elongation": 1.685,
+   "centre_offset_mm": 0.085,
+   "centre_offset_along_across_mm": [
+    -0.076,
+    -0.038
+   ],
+   "box_midpoint_offset_along_across_mm": [
+    0.004,
+    -0.028
+   ],
+   "dark_px": 5965,
+   "dark_area_mm2": 7.87,
+   "largest_component_share": 0.9816,
+   "median_body_bgr": [
+    84,
+    85,
+    84
+   ],
+   "offset_limit_mm": 0.25,
+   "angle_tol_deg": 10.0
+  },
+  "U55": {
+   "side": "bottom",
+   "kicad_angle": 180.0,
+   "fpid": "do214-DIOM5026X241N",
+   "reach_mm": 3.6,
+   "max_dark_radius_mm": 2.55,
+   "rect_mm": [
+    4.28,
+    2.51
+   ],
+   "rect_edges_vs_land_deg_mod90": 0.0,
+   "extent_along_land_mm": 4.28,
+   "extent_across_land_mm": 2.51,
+   "long_side_is_along_land": true,
+   "principal_axis_vs_land_deg_mod180": 0.5,
+   "elongation": 1.71,
+   "centre_offset_mm": 0.089,
+   "centre_offset_along_across_mm": [
+    -0.082,
+    0.033
+   ],
+   "box_midpoint_offset_along_across_mm": [
+    0.035,
+    0.026
+   ],
+   "dark_px": 5783,
+   "dark_area_mm2": 7.63,
+   "largest_component_share": 0.9692,
+   "median_body_bgr": [
+    83,
+    84,
+    83
+   ],
+   "offset_limit_mm": 0.25,
+   "angle_tol_deg": 10.0
+  },
+  "U56": {
+   "side": "bottom",
+   "kicad_angle": -143.0,
+   "fpid": "do214-DIOM5026X241N",
+   "reach_mm": 3.6,
+   "max_dark_radius_mm": 2.58,
+   "rect_mm": [
+    4.26,
+    2.55
+   ],
+   "rect_edges_vs_land_deg_mod90": 0.1,
+   "extent_along_land_mm": 4.27,
+   "extent_across_land_mm": 2.55,
+   "long_side_is_along_land": true,
+   "principal_axis_vs_land_deg_mod180": -0.3,
+   "elongation": 1.673,
+   "centre_offset_mm": 0.089,
+   "centre_offset_along_across_mm": [
+    -0.087,
+    0.018
+   ],
+   "box_midpoint_offset_along_across_mm": [
+    0.021,
+    0.017
+   ],
+   "dark_px": 5781,
+   "dark_area_mm2": 7.62,
+   "largest_component_share": 0.9747,
+   "median_body_bgr": [
+    83,
+    84,
+    83
+   ],
+   "offset_limit_mm": 0.25,
+   "angle_tol_deg": 10.0
+  }
+ }
+}

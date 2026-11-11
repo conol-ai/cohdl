@@ -1,0 +1,738 @@
+{
+  "name": "pr78_101_frame_preview",
+  "dependencies": {
+    "std": "0.3.0",
+    "sod": "0.1.0",
+    "sot": "0.1.0",
+    "do214": "0.1.0",
+    "flash": "0.3.0",
+    "@contrib/level-shifter": "0.2.0"
+  },
+  "rows": [
+    {
+      "name": "Land_1",
+      "footprint": "sod::SOD3716X135N",
+      "part": "ReviewDevice1",
+      "pn": "C19077402",
+      "mfr": "hongjiacheng",
+      "mpn": "BZT52C5V6",
+      "pins": [
+        "P1",
+        "P2"
+      ],
+      "width_mm": 14,
+      "height_mm": 14,
+      "covers_rotation": true,
+      "placements": [
+        {
+          "at_mm": [
+            10,
+            10
+          ],
+          "rotate": 0,
+          "side": "top"
+        },
+        {
+          "at_mm": [
+            26,
+            10
+          ],
+          "rotate": 37,
+          "side": "top"
+        },
+        {
+          "at_mm": [
+            10,
+            26
+          ],
+          "rotate": 0,
+          "side": "bottom"
+        },
+        {
+          "at_mm": [
+            26,
+            26
+          ],
+          "rotate": 37,
+          "side": "bottom"
+        }
+      ],
+      "note": "Review-only neutral frame probe; not a published binding."
+    },
+    {
+      "name": "Land_2",
+      "footprint": "sod::SOD2613X110N",
+      "part": "ReviewDevice2",
+      "pn": "C7420331",
+      "mfr": "hongjiacheng",
+      "mpn": "B5819WS",
+      "pins": [
+        "P1",
+        "P2"
+      ],
+      "width_mm": 14,
+      "height_mm": 14,
+      "covers_rotation": true,
+      "placements": [
+        {
+          "at_mm": [
+            45,
+            10
+          ],
+          "rotate": 0,
+          "side": "top"
+        },
+        {
+          "at_mm": [
+            61,
+            10
+          ],
+          "rotate": 37,
+          "side": "top"
+        },
+        {
+          "at_mm": [
+            45,
+            26
+          ],
+          "rotate": 0,
+          "side": "bottom"
+        },
+        {
+          "at_mm": [
+            61,
+            26
+          ],
+          "rotate": 37,
+          "side": "bottom"
+        }
+      ],
+      "note": "Review-only neutral frame probe; not a published binding."
+    },
+    {
+      "name": "Land_3",
+      "footprint": "sod::SODFL3818X120N",
+      "part": "ReviewDevice3",
+      "pn": "C19077510",
+      "mfr": "hongjiacheng",
+      "mpn": "SMF15CA",
+      "pins": [
+        "P1",
+        "P2"
+      ],
+      "width_mm": 14,
+      "height_mm": 14,
+      "covers_rotation": true,
+      "placements": [
+        {
+          "at_mm": [
+            80,
+            10
+          ],
+          "rotate": 0,
+          "side": "top"
+        },
+        {
+          "at_mm": [
+            96,
+            10
+          ],
+          "rotate": 37,
+          "side": "top"
+        },
+        {
+          "at_mm": [
+            80,
+            26
+          ],
+          "rotate": 0,
+          "side": "bottom"
+        },
+        {
+          "at_mm": [
+            96,
+            26
+          ],
+          "rotate": 37,
+          "side": "bottom"
+        }
+      ],
+      "note": "Review-only neutral frame probe; not a published binding."
+    },
+    {
+      "name": "Land_4",
+      "footprint": "sod::SOD1608X70N",
+      "part": "ReviewDevice4",
+      "pn": "C7420320",
+      "mfr": "hongjiacheng",
+      "mpn": "1N4148WT",
+      "pins": [
+        "P1",
+        "P2"
+      ],
+      "width_mm": 14,
+      "height_mm": 14,
+      "covers_rotation": true,
+      "placements": [
+        {
+          "at_mm": [
+            115,
+            10
+          ],
+          "rotate": 0,
+          "side": "top"
+        },
+        {
+          "at_mm": [
+            131,
+            10
+          ],
+          "rotate": 37,
+          "side": "top"
+        },
+        {
+          "at_mm": [
+            115,
+            26
+          ],
+          "rotate": 0,
+          "side": "bottom"
+        },
+        {
+          "at_mm": [
+            131,
+            26
+          ],
+          "rotate": 37,
+          "side": "bottom"
+        }
+      ],
+      "note": "Review-only neutral frame probe; not a published binding."
+    },
+    {
+      "name": "Land_5",
+      "footprint": "sot::SOT3P190X290X130N",
+      "part": "ReviewDevice5",
+      "pn": "C7420357",
+      "mfr": "hongjiacheng",
+      "mpn": "MMBT5551",
+      "pins": [
+        "P1",
+        "P2",
+        "P3"
+      ],
+      "width_mm": 14,
+      "height_mm": 14,
+      "covers_rotation": true,
+      "placements": [
+        {
+          "at_mm": [
+            10,
+            45
+          ],
+          "rotate": 0,
+          "side": "top"
+        },
+        {
+          "at_mm": [
+            26,
+            45
+          ],
+          "rotate": 37,
+          "side": "top"
+        },
+        {
+          "at_mm": [
+            10,
+            61
+          ],
+          "rotate": 0,
+          "side": "bottom"
+        },
+        {
+          "at_mm": [
+            26,
+            61
+          ],
+          "rotate": 37,
+          "side": "bottom"
+        }
+      ],
+      "note": "Review-only neutral frame probe; not a published binding."
+    },
+    {
+      "name": "Land_6",
+      "footprint": "sot::SOT3P150X450X250N",
+      "part": "ReviewDevice6",
+      "pn": "C20069128",
+      "mfr": "hongjiacheng",
+      "mpn": "D882",
+      "pins": [
+        "P1",
+        "P2",
+        "P3"
+      ],
+      "width_mm": 14,
+      "height_mm": 14,
+      "covers_rotation": true,
+      "placements": [
+        {
+          "at_mm": [
+            45,
+            45
+          ],
+          "rotate": 0,
+          "side": "top"
+        },
+        {
+          "at_mm": [
+            61,
+            45
+          ],
+          "rotate": 37,
+          "side": "top"
+        },
+        {
+          "at_mm": [
+            45,
+            61
+          ],
+          "rotate": 0,
+          "side": "bottom"
+        },
+        {
+          "at_mm": [
+            61,
+            61
+          ],
+          "rotate": 37,
+          "side": "bottom"
+        }
+      ],
+      "note": "Review-only neutral frame probe; not a published binding."
+    },
+    {
+      "name": "Land_7",
+      "footprint": "sot::SOT3P130X200X125N",
+      "part": "ReviewDevice7",
+      "pn": "C7420322",
+      "mfr": "hongjiacheng",
+      "mpn": "2N7002W",
+      "pins": [
+        "P1",
+        "P2",
+        "P3"
+      ],
+      "width_mm": 14,
+      "height_mm": 14,
+      "covers_rotation": true,
+      "placements": [
+        {
+          "at_mm": [
+            80,
+            45
+          ],
+          "rotate": 0,
+          "side": "top"
+        },
+        {
+          "at_mm": [
+            96,
+            45
+          ],
+          "rotate": 37,
+          "side": "top"
+        },
+        {
+          "at_mm": [
+            80,
+            61
+          ],
+          "rotate": 0,
+          "side": "bottom"
+        },
+        {
+          "at_mm": [
+            96,
+            61
+          ],
+          "rotate": 37,
+          "side": "bottom"
+        }
+      ],
+      "note": "Review-only neutral frame probe; not a published binding."
+    },
+    {
+      "name": "Land_8",
+      "footprint": "sot::SOT4P230X651X351N",
+      "part": "ReviewDevice8",
+      "pn": "C6186",
+      "mfr": "Advanced Monolithic Systems",
+      "mpn": "AMS1117-3.3",
+      "pins": [
+        "P1",
+        "P2",
+        "P3",
+        "P4"
+      ],
+      "width_mm": 14,
+      "height_mm": 14,
+      "covers_rotation": true,
+      "placements": [
+        {
+          "at_mm": [
+            115,
+            45
+          ],
+          "rotate": 0,
+          "side": "top"
+        },
+        {
+          "at_mm": [
+            131,
+            45
+          ],
+          "rotate": 37,
+          "side": "top"
+        },
+        {
+          "at_mm": [
+            115,
+            61
+          ],
+          "rotate": 0,
+          "side": "bottom"
+        },
+        {
+          "at_mm": [
+            131,
+            61
+          ],
+          "rotate": 37,
+          "side": "bottom"
+        }
+      ],
+      "note": "Review-only neutral frame probe; not a published binding."
+    },
+    {
+      "name": "Land_9",
+      "footprint": "do214::DIOM5026X241N",
+      "part": "ReviewDevice9",
+      "pn": "C7420365",
+      "mfr": "hongjiacheng",
+      "mpn": "SS34",
+      "pins": [
+        "P1",
+        "P2"
+      ],
+      "width_mm": 14,
+      "height_mm": 14,
+      "covers_rotation": true,
+      "placements": [
+        {
+          "at_mm": [
+            10,
+            80
+          ],
+          "rotate": 0,
+          "side": "top"
+        },
+        {
+          "at_mm": [
+            26,
+            80
+          ],
+          "rotate": 37,
+          "side": "top"
+        },
+        {
+          "at_mm": [
+            10,
+            96
+          ],
+          "rotate": 0,
+          "side": "bottom"
+        },
+        {
+          "at_mm": [
+            26,
+            96
+          ],
+          "rotate": 37,
+          "side": "bottom"
+        }
+      ],
+      "note": "Review-only neutral frame probe; not a published binding."
+    },
+    {
+      "name": "Land_10",
+      "footprint": "do214::DIOM5336X265N",
+      "part": "ReviewDevice10",
+      "pn": "C19077561",
+      "mfr": "hongjiacheng",
+      "mpn": "SMBJ6.0CA",
+      "pins": [
+        "P1",
+        "P2"
+      ],
+      "width_mm": 14,
+      "height_mm": 14,
+      "covers_rotation": true,
+      "placements": [
+        {
+          "at_mm": [
+            45,
+            80
+          ],
+          "rotate": 0,
+          "side": "top"
+        },
+        {
+          "at_mm": [
+            61,
+            80
+          ],
+          "rotate": 37,
+          "side": "top"
+        },
+        {
+          "at_mm": [
+            45,
+            96
+          ],
+          "rotate": 0,
+          "side": "bottom"
+        },
+        {
+          "at_mm": [
+            61,
+            96
+          ],
+          "rotate": 37,
+          "side": "bottom"
+        }
+      ],
+      "note": "Review-only neutral frame probe; not a published binding."
+    },
+    {
+      "name": "Land_11",
+      "footprint": "do214::DIOM7959X261N",
+      "part": "ReviewDevice11",
+      "pn": "C19077609",
+      "mfr": "hongjiacheng",
+      "mpn": "SMCJ36CA",
+      "pins": [
+        "P1",
+        "P2"
+      ],
+      "width_mm": 14,
+      "height_mm": 14,
+      "covers_rotation": true,
+      "placements": [
+        {
+          "at_mm": [
+            80,
+            80
+          ],
+          "rotate": 0,
+          "side": "top"
+        },
+        {
+          "at_mm": [
+            96,
+            80
+          ],
+          "rotate": 37,
+          "side": "top"
+        },
+        {
+          "at_mm": [
+            80,
+            96
+          ],
+          "rotate": 0,
+          "side": "bottom"
+        },
+        {
+          "at_mm": [
+            96,
+            96
+          ],
+          "rotate": 37,
+          "side": "bottom"
+        }
+      ],
+      "note": "Review-only neutral frame probe; not a published binding."
+    },
+    {
+      "name": "Land_12",
+      "footprint": "do214::FP_DO221AC_SMAF",
+      "part": "ReviewDevice12",
+      "pn": "C18199202",
+      "mfr": "hongjiacheng",
+      "mpn": "SS24F",
+      "pins": [
+        "P1",
+        "P2"
+      ],
+      "width_mm": 14,
+      "height_mm": 14,
+      "covers_rotation": true,
+      "placements": [
+        {
+          "at_mm": [
+            115,
+            80
+          ],
+          "rotate": 0,
+          "side": "top"
+        },
+        {
+          "at_mm": [
+            131,
+            80
+          ],
+          "rotate": 37,
+          "side": "top"
+        },
+        {
+          "at_mm": [
+            115,
+            96
+          ],
+          "rotate": 0,
+          "side": "bottom"
+        },
+        {
+          "at_mm": [
+            131,
+            96
+          ],
+          "rotate": 37,
+          "side": "bottom"
+        }
+      ],
+      "note": "Review-only neutral frame probe; not a published binding."
+    },
+    {
+      "name": "Land_13",
+      "footprint": "flash::FP_W25Q32RV_XSON8_2X3",
+      "part": "flash::W25Q32",
+      "pn": "C32246052",
+      "mfr": "Winbond",
+      "mpn": "W25Q32RVXHJQ",
+      "pins": [
+        "GND",
+        "VCC",
+        "CS",
+        "IO1",
+        "IO2",
+        "IO0",
+        "CLK",
+        "IO3",
+        "EP"
+      ],
+      "width_mm": 14,
+      "height_mm": 14,
+      "covers_rotation": true,
+      "placements": [
+        {
+          "at_mm": [
+            10,
+            115
+          ],
+          "rotate": 0,
+          "side": "top"
+        },
+        {
+          "at_mm": [
+            26,
+            115
+          ],
+          "rotate": 37,
+          "side": "top"
+        },
+        {
+          "at_mm": [
+            10,
+            131
+          ],
+          "rotate": 0,
+          "side": "bottom"
+        },
+        {
+          "at_mm": [
+            26,
+            131
+          ],
+          "rotate": 37,
+          "side": "bottom"
+        }
+      ],
+      "note": "Review-only neutral frame probe; not a published binding."
+    },
+    {
+      "name": "Land_14",
+      "footprint": "contrib_level_shifter::QFN14N50P350X350_1EP200X150",
+      "part": "contrib_level_shifter::RS0104[QFN14]",
+      "pn": "C5372421",
+      "mfr": "Run-IC",
+      "mpn": "RS0104YTQF14",
+      "pins": [
+        "GND",
+        "VCCA",
+        "VCCB",
+        "OE",
+        "A1",
+        "A2",
+        "A3",
+        "A4",
+        "B1",
+        "B2",
+        "B3",
+        "B4",
+        "NC6",
+        "NC9",
+        "EPAD"
+      ],
+      "width_mm": 14,
+      "height_mm": 14,
+      "covers_rotation": true,
+      "placements": [
+        {
+          "at_mm": [
+            45,
+            115
+          ],
+          "rotate": 0,
+          "side": "top"
+        },
+        {
+          "at_mm": [
+            61,
+            115
+          ],
+          "rotate": 37,
+          "side": "top"
+        },
+        {
+          "at_mm": [
+            45,
+            131
+          ],
+          "rotate": 0,
+          "side": "bottom"
+        },
+        {
+          "at_mm": [
+            61,
+            131
+          ],
+          "rotate": 37,
+          "side": "bottom"
+        }
+      ],
+      "note": "Review-only neutral frame probe; not a published binding."
+    }
+  ]
+}

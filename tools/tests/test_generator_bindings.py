@@ -368,19 +368,103 @@ class CommittedTablesTests(unittest.TestCase):
                 )
                 self.assertEqual(result.returncode, 0, result.stderr + result.stdout)
 
+    # Every archive under jlc_previews/*/frames.json, with the row ids it must hold.
+    # A new archive has to be listed here, so its rows are checked, not just found.
+    ARCHIVED = {
+        "2026-11-07-w3-pilot-0402": None,  # 88 w3p- rows, checked by count and prefix
+        "2026-11-08-probe": [
+            "probe-diom5336x265n-c19077561",
+            "probe-diom7959x261n-c19077609",
+            "probe-sodfl3818x120n-c19077510",
+        ],
+        "2026-11-08-reverify": [
+            "rv1-sod2613x110n-c7420331",
+            "rv1-diom5026x241n-c7420365",
+            "rv1-sod1608x70n-c7420320",
+        ],
+    }
+
+    def test_archived_reverify_diode_rows_have_no_library_part(self):
+        # The 2026-11-08 diode rows are archived because no library source lists their
+        # part numbers. When a part is added (W4), this fails: adopt the row then,
+        # re-keyed to the package version the part ships in.
+        archive = self.DATA / "jlc_previews" / "2026-11-08-reverify" / "frames.json"
+        rows = json.loads(archive.read_text(encoding="utf-8"))["rows"]
+        self.assertEqual(
+            sorted((row["package"], row["footprint"], row["pn"]) for row in rows),
+            [
+                ("do214", "DIOM5026X241N", "C7420365"),
+                ("sod", "SOD1608X70N", "C7420320"),
+                ("sod", "SOD2613X110N", "C7420331"),
+            ],
+        )
+        sources = sorted((ROOT / "lib").rglob("*.cohdl"))
+        self.assertGreater(len(sources), 100)
+        for row in rows:
+            self.assertEqual(row["mapping"]["rotate_deg"], 180, row["id"])
+            self.assertEqual(row["package_version"], "0.1.0", row["id"])
+            needle = f'"{row["pn"]}"'
+            listed = [
+                str(source.relative_to(ROOT))
+                for source in sources
+                if needle in source.read_text(encoding="utf-8")
+            ]
+            self.assertEqual(listed, [], row["id"])
+
+    def test_archived_probe_tvs_rows_have_no_library_part(self):
+        # The 2026-11-08 probe's bidirectional TVS rows are archived for the same
+        # reason: no library source lists their part numbers. They were read by the
+        # body only, on a board built with zero correction, so each row is rotate 0
+        # with no offset. When a part is added (W4), this fails: adopt the row then,
+        # re-keyed to the package version the part ships in.
+        archive = self.DATA / "jlc_previews" / "2026-11-08-probe" / "frames.json"
+        rows = json.loads(archive.read_text(encoding="utf-8"))["rows"]
+        self.assertEqual(
+            sorted((row["package"], row["footprint"], row["pn"]) for row in rows),
+            [
+                ("do214", "DIOM5336X265N", "C19077561"),
+                ("do214", "DIOM7959X261N", "C19077609"),
+                ("sod", "SODFL3818X120N", "C19077510"),
+            ],
+        )
+        sources = sorted((ROOT / "lib").rglob("*.cohdl"))
+        self.assertGreater(len(sources), 100)
+        zero = {"dx_mm": 0, "dy_mm": 0, "rotate_deg": 0}
+        for row in rows:
+            self.assertEqual(row["mapping"], zero, row["id"])
+            self.assertEqual(row["measured"], zero, row["id"])
+            self.assertIsNone(row["exception"], row["id"])
+            self.assertEqual(row["package_version"], "0.1.0", row["id"])
+            self.assertIn("body only", row["evidence"]["note"], row["id"])
+            needle = f'"{row["pn"]}"'
+            listed = [
+                str(source.relative_to(ROOT))
+                for source in sources
+                if needle in source.read_text(encoding="utf-8")
+            ]
+            self.assertEqual(listed, [], row["id"])
+
     def test_archived_preview_rows_stay_out_of_the_bound_table(self):
         frames = json.loads((self.DATA / "jlc_frames.json").read_text(encoding="utf-8"))["rows"]
         bound_ids = {row["id"] for row in frames}
         cited = {row["evidence"]["record"] for row in frames if row["evidence"] is not None}
         archives = sorted((self.DATA / "jlc_previews").glob("*/frames.json"))
-        # Not vacuous: the W3 pilot record keeps its 88 rows archived.
-        pilot = self.DATA / "jlc_previews" / "2026-11-07-w3-pilot-0402" / "frames.json"
-        self.assertIn(pilot, archives)
+        # Not vacuous: exactly the known archives exist, each with its expected rows.
+        self.assertEqual([archive.parent.name for archive in archives], sorted(self.ARCHIVED))
         for archive in archives:
             with self.subTest(archive=str(archive.relative_to(ROOT))):
-                rows = json.loads(archive.read_text(encoding="utf-8"))["rows"]
-                if archive == pilot:
+                document = json.loads(archive.read_text(encoding="utf-8"))
+                self.assertEqual(set(document), {"schema_version", "status", "note", "rows"})
+                self.assertEqual(document["status"], "archived")
+                rows = document["rows"]
+                ids = [row["id"] for row in rows]
+                expected = self.ARCHIVED[archive.parent.name]
+                if expected is None:
                     self.assertEqual(len(rows), 88)
+                    self.assertTrue(all(row_id.startswith("w3p-") for row_id in ids))
+                else:
+                    self.assertEqual(ids, expected)
+                self.assertEqual(len(set(ids)), len(ids))
                 record = str((archive.parent / "README.md").relative_to(ROOT))
                 for row in rows:
                     self.assertEqual(set(row), FRAME_FIELDS, row["id"])

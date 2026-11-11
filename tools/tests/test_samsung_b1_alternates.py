@@ -37,6 +37,21 @@ class SamsungB1AlternatesTests(unittest.TestCase):
         for row in table["unmatched"]:
             self.assertNotIn(f'"{row["mpn"]}"', text)
 
+    def test_a_wrong_tolerance_is_the_reason_whatever_the_combination(self):
+        # Review of #83: six +/-20 % numbers were reported under "Yageo primary
+        # unconfirmed" by first-match precedence, overstating that bucket by six.
+        table = json.loads(sb.OUT.read_text(encoding="utf-8"))
+        for row in table["unmatched"]:
+            decoded = sb.decode(row["mpn"])
+            if decoded is not None and decoded[4] != sb.TOLERANCE[decoded[2]]:
+                with self.subTest(mpn=row["mpn"]):
+                    self.assertTrue(row["reason"].startswith("tolerance "), row["reason"])
+        reasons = [row["reason"] for row in table["unmatched"]]
+        self.assertEqual(reasons.count("no library part: its Yageo primary is unconfirmed"), 10)
+        self.assertEqual(sum(r.startswith("tolerance ") for r in reasons), 9)
+        self.assertEqual(reasons.count("no library part"), 8)
+        self.assertEqual(reasons.count("not decoded"), 1)
+
 
 if __name__ == "__main__":
     unittest.main()

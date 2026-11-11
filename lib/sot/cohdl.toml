@@ -1,6 +1,6 @@
 [package]
 name = "sot"
-version = "0.1.0"
+version = "0.1.1"
 license = "MIT"
 description = "Audited SOT-23, SOT-323, SOT-89 and SOT-223 land patterns, authored on the assembler's frame."
 repository = "https://github.com/conol-ai/cohdl"

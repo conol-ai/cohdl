@@ -43,7 +43,9 @@ is rejected by `tests/library/package_families.rs` for every SOT land here.
 ## Tab numbering
 
 Rule: **a tab that is one piece of metal with a lead takes that lead's
-number; a tab that is a separate terminal takes the next number.**
+number; a tab that is a separate terminal takes the next number.** The rule
+was agreed in the #101 review and is written in `LIBRARY.md` section 4, so
+later tabbed lands (DPAK, SOT-89-5) follow it.
 
 - **SOT-89-3: the tab is a second placement of pad 2.** The Diodes bottom
   view and the Hongjiacheng outline both show the tab and the centre lead as
@@ -63,7 +65,10 @@ number; a tab that is a separate terminal takes the next number.**
 
 `tests/library/package_families.rs` checks that renumbering either tab
 against this rule fails RFC-021's pin-count check (E809), and the wave-3
-fixture consumer binds a regulator with `VOUT: 2, 4`. This is open question 4.
+fixture consumer binds a regulator with `VOUT: 2, 4`. That guard works
+through the footprint *name*: E809 compares the name's pin count (`SOT3`,
+`SOT4`) with the distinct pad numbers, so renaming a footprint (or changing
+its pin count together with the tab) removes it. See open question 4.
 
 ## Lands
 
@@ -98,7 +103,13 @@ centre spacing between distinct pad numbers:
   1.80-2.20 and E 1.15-1.35, nominal 2.00 and 1.25.
 - SOT-223: pins 1-2 at 2.30 mm, so `P230`; four pad numbers, so `SOT4`. Body
   digits: AMS body length 6.30-6.71 and width 3.30-3.71 mm, nominal 6.505
-  and 3.505, rounded half up to 6.51 and 3.51 (open question 5).
+  and 3.505, rounded half up to 6.51 and 3.51 (open question 5). **Where
+  651/351 come from:** AMS draws the outline in inches (0.248-0.264 x
+  0.130-0.146 in) and prints millimetre conversions beside them, so 651/351
+  are a rounding artefact of AMS's inch midpoints, not a different body.
+  The JEDEC / typical nominal, Diodes' typical D 6.50 x E 3.50 mm, would
+  give `650X350`. The name was published as `sot::SOT4P230X651X351N` in
+  sot 0.1.0 and is now permanent; the geometry does not depend on it.
 
 ## Sources
 
@@ -233,28 +244,39 @@ For SOT-23-3 these lands are not moved or changed:
    `@contrib/ldo`). *Recommendation:* keep them (3c plan option (a)) until
    re-exports exist; bind new SOT-23-3 parts to `sot::SOT3P190X290X130N`.
 3. **Frame confirmation.** The frame is copied from `FP_JSCJ_SOT23`'s
-   measured frame, not measured on this footprint. The wave-1 frame board
-   must read it before the first publish (Tony's sign-off). The SOT-89,
+   measured frame, not measured on this footprint. sot 0.1.0 was published
+   (2026-11-09) without that reading, so this is an open item on a published
+   package: the frame remains unconfirmed until the wave-1 frame board reads
+   it. The SOT-89,
    SOT-323 and SOT-223 frames apply the same turn by analogy (lead row at
    +x, tab at -x); the 3c plan suggested authoring SOT-89 and SOT-223 in the
    datasheet's own top view instead. *Recommendation:* keep one rule for the
    whole family, and let the wave-3 frame board (C9634 JSCJ D882, C20069128,
-   C7420322, C6186/C6187 AMS1117) read it; rotate a land before the first
-   publish only if every model reads the same non-zero angle.
-4. **Tab numbering.** SOT-89 tab = second placement of pad 2; SOT-223 tab =
-   pad 4 (rule above). This fixes the pin maps the discretes and ICs
+   C7420322, C6186/C6187 AMS1117) read it; rotate a land only if every
+   model reads the same non-zero angle. Those frames are unconfirmed too,
+   and a change to pad numbering or rotation would be a breaking change
+   needing a new minor version.
+4. **Tab numbering.** *Settled in the #101 review: the rule is adopted and
+   written into `LIBRARY.md` section 4.* SOT-89 tab = second placement of
+   pad 2 (verified on the Diodes bottom view); SOT-223 tab = pad 4 (rule
+   above). This fixes the pin maps the discretes and ICs
    batches write: D882 and HT75xx/78L05 bind their centre pin as `2` only,
-   AMS1117 binds `VOUT: 2, 4`. *Recommendation:* adopt the rule. The
+   AMS1117 binds `VOUT: 2, 4`. The
    alternative for SOT-223 (tab as a second pad 2, KiCad's `TabPin2` style)
    would make the land `SOT3` and silently tie the tab to pin 2 for every
    vendor, including any whose tab is not pin 2; numbering it 4 keeps that
    decision in each device's pin map, where E807 enforces it.
-5. **SOT-223 name digits.** Following the wave-1/2 rule (primary midpoint,
-   rounded half up) gives `SOT4P230X651X351N`; AMS's controlling inch
-   midpoints give 6.50 x 3.51 mm, and Diodes' typical values (and the 3c
-   plan's placeholder) give `SOT4P230X650X350N`. *Recommendation:* settle
-   with question 1 before the first publish; a later rename is a breaking
-   path change.
+5. **SOT-223 name digits.** *Settled: the published name stays.* The
+   wave-1/2 rule (primary midpoint, rounded half up) gives
+   `SOT4P230X651X351N` from AMS's millimetre column 6.30-6.71 x
+   3.30-3.71 mm. Those digits are an artefact of rounding AMS's wide inch
+   tolerances (0.248-0.264 x 0.130-0.146 in), not a different body; the
+   JEDEC / typical nominal (Diodes' D 6.50 x E 3.50 mm, the midpoints of
+   6.45-6.55 and 3.45-3.55 mm, and the 3c plan's placeholder) would give
+   `SOT4P230X650X350N`. The #101 review recommended that name, but sot
+   0.1.0 was published to registry.cohdl.org as `SOT4P230X651X351N`, and a
+   published footprint path is permanent, so the name is fixed. Read the
+   `651X351` digits as the AMS-derived name of a standard SOT-223 land.
 6. **SOT-89 primary land.** The Hongjiacheng D882 land cannot be placed on
    its outline, so the Diodes land is used. *Recommendation:* accept the
    Diodes land; when D882 and the other SOT-89 series are bound, check the

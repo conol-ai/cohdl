@@ -17,8 +17,8 @@ hash = "sha256:0d6c8f2cb8f0b26c8d482a303de223483e0e7e2cd886bccf889e7f26419f836e"
 
 [[package]]
 name = "diode"
-version = "0.1.0"
-hash = "sha256:ea1d68d2aa41dd4e415775fc04c6b8a45f0f3b6cf8d3b9064eb0db5e07fbc272"
+version = "0.1.1"
+hash = "sha256:fb008f4540ab035f26d2757828b90f0dc254ad71461411256f9de7339f366765"
 
 [[package]]
 name = "esd"

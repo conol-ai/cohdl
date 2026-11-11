@@ -9,7 +9,15 @@ tree, under the rule in ``sourcing/w3_rule.py``. The tool then:
   current ``passive`` version, if it is not there yet: the row from the archived
   ``frames.json`` of the preview record that judged it, with its id, mapping and
   evidence unchanged;
-- writes RECORD, a group record (``docs/library-supplier-w3-sampling.md`` §3.3);
+- writes RECORD, a group record (``docs/library-supplier-w3-sampling.md`` §3.3).
+  Each sample carries the reading the rule judges it by: the method its body was
+  read by, its angle, raw offset, the view's median and the residual, and what
+  that median is made of (the view, its drawn bodies, and how many are not the
+  group's). A sample placed more than once has one reading per copy: the first,
+  on the earliest record, is the sample's own, and the rest are listed under
+  ``other_copies``. Every copy must be within the rule, or the group would not be
+  ``sampled``. The group also states how many members were judged and its
+  not-drawn share;
 - writes one ``sampled`` row for every other member with stock on its
   confirmed page, not listed as not drawn on a preview, and with no row of
   its own under the group's key.
@@ -33,8 +41,8 @@ ROOT = w3_groups.ROOT
 FRAMES = w3_groups.DATA / "jlc_frames.json"
 LAND = ("lib/passive/src/footprints.cohdl", "lib/passive/src/pads.cohdl")
 # A sample's reading as the group record carries it (``w3_rule.sample_reading``).
-READING = ("angle_deg", "offset_limit_mm", "raw_offset_xy_mm", "raw_offset_mm", "bias_xy_mm",
-           "residual_offset_mm")
+READING = ("body_method", "angle_deg", "offset_limit_mm", "raw_offset_xy_mm", "raw_offset_mm", "bias_xy_mm",
+           "residual_offset_mm", "bias_view", "bias_bodies", "bias_other_bodies")
 
 
 def group_id(g: dict) -> str:
@@ -66,6 +74,8 @@ def build(record_path: str, key: tuple[str, str, str, str]) -> tuple[dict, dict]
            if r["supplier"] == "lcsc" and r.get("evidence") is not None}
     ids = {r["id"] for r in rows}
 
+    # Every copy of every judged member, to carry the copies beyond a sample's first.
+    judged = w3_groups.judged_members()
     samples = []
     for passed in g["passed"]:
         pn = passed["pn"]
@@ -81,11 +91,27 @@ def build(record_path: str, key: tuple[str, str, str, str]) -> tuple[dict, dict]
                 raise SystemExit(f"w3_record.py: archived row for {pn} cannot be adopted")
             rows.append(row)
             own[k], ids = row, ids | {row["id"]}
-        samples.append({"pn": pn, "row": row["id"], **{field: passed[field] for field in READING}})
+        sample = {"pn": pn, "row": row["id"], **{field: passed[field] for field in READING}}
+        copies = []
+        for c in judged[(g["footprint"], pn)]:
+            made = g["views"][c["view"]]
+            copies.append({"ref": c["ref"], **dict(c["reading"] or {}, bias_view=c["view"], bias_bodies=made["bodies"],
+                                                   bias_other_bodies=made["other_bodies"])})
+        bad = [c["ref"] for c in copies
+               if set(c) != {"ref", *READING} or not (w3_rule.sample_ok(c) and w3_rule.bias_supported(c))]
+        if bad or not copies or {field: copies[0][field] for field in READING} != {
+                field: sample[field] for field in READING}:
+            raise SystemExit(f"w3_record.py: sample {pn} is not within the rule at every copy ({', '.join(bad)})")
+        sample["copies"] = len(copies)
+        if copies[1:]:
+            sample["other_copies"] = copies[1:]
+        samples.append(sample)
 
     members = sorted(m[0] for m in g["member_rows"])
     zero_stock = sorted(m[0] for m in g["member_rows"] if m[5] <= 0)
     not_drawn = sorted(n["pn"] for n in g["not_drawn"])
+    if not w3_rule.views_consistent(samples) or g["not_drawn_excess"] or g["bias_unsupported"]:
+        raise SystemExit(f"w3_record.py: group {key} does not hold the rule's conditions on its views")
     pages = next(name for name in report["sources"] if name.startswith("lcsc_backfill/"))
     record = {
         "schema_version": 1,
@@ -98,6 +124,9 @@ def build(record_path: str, key: tuple[str, str, str, str]) -> tuple[dict, dict]
             "status": "active",
             "land": {path: w3_groups._sha256(ROOT / path) for path in LAND},
             "members": members, "zero_stock": zero_stock, "not_drawn": not_drawn,
+            # Part numbers judged on a preview, and the share of them not drawn
+            # (of max(judged, required), ``w3_rule.not_drawn_excess``).
+            "judged": g["judged"], "not_drawn_share": g["not_drawn_share"],
             "samples": sorted(samples, key=lambda s: s["pn"]),
         }],
     }

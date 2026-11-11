@@ -99,3 +99,9 @@ The W3 rule (`docs/library-supplier-w3-sampling.md`) counts this board's chip ro
 - `board.json` and `c2_frame_board_3-lcsc-bom.csv`: from that rebuild.
 - `remeasure-2026-11-10.json`: `measure_preview.py measure` run again on `top.png` and `bottom.png` with them. It equals `measurements.json` row for row, apart from each body's added `offset_xy_mm`.
 - `w3.json`: what `tools/w3_groups.py` reads from this record. It holds the files above, `checks.json`, and the SHA-256 of the land files. The land files are byte for byte those at `ad83a40`.
+
+## Addendum, 2026-11-11: read again with `measure_preview.py` method 2
+
+Everything above is the record as made; its chip body readings are by what is now called method 1, which read each part's white reference text together with its model (`../2026-11-11-board-4/README.md`). `remeasure-2026-11-11-method-2.json` (SHA-256 `feb3a0e23542dadeaa5fbbcfdf91eb2d6482b36bd3dadf55194348a4fed9110e`) is `measure_preview.py measure --method 2 board.json top.bmp bottom.bmp` on the same exports: the drawn model alone. `w3-readings.json` names it for `tools/w3_groups.py`. `measurements.json` and `remeasure-2026-11-10.json` are unchanged and still reproduce with `measure --method 1`.
+
+By method 2, 50 of the 51 drawn chip bodies pass the body check. R4 (C138161, `CHIP_0201`, bottom, −143°) does not: 0.099 mm against 0.080, where method 1 read 0.070 mm; its model is drawn off centre along its pads. C877226's four `CHIP_2010` copies read 0.031–0.068 mm where method 1 read 0.171–0.206. The three 0805 Yageo `CC` models (C11, C12, C13) read 0.114–0.148 mm toward one pad, as drawn. View medians: top (−0.021, +0.026) mm, bottom (−0.041, +0.013) mm. Whether W3 reads bodies this way is a proposal for Tony (`docs/library-supplier-w3-sampling.md` §6).

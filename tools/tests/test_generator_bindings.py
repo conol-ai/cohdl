@@ -497,14 +497,45 @@ class CommittedTablesTests(unittest.TestCase):
                 self.assertEqual(result.returncode, 0, result.stderr)
 
 
+    def test_the_0402_yageo_rc_record_holds_the_combined_rule_at_every_copy(self):
+        from sourcing import w3_rule
+        record = json.loads((self.DATA / "w3_records/2026-11-10-chip0402-yageo-rc.json").read_text(encoding="utf-8"))
+        self.assertEqual(record["rule"], w3_rule.RULE)
+        self.assertEqual((record["rule"]["version"], record["rule"]["body_method"]), ("w3-2026-11-12", 2))
+        (group,) = record["groups"]
+        samples = group["samples"]
+        self.assertEqual((len(group["members"]), len(samples), len(group["zero_stock"]), group["not_drawn"],
+                          group["judged"], group["not_drawn_share"]), (969, 49, 122, [], 49, 0.0))
+        # Every sample's own reading is by method 2 on a view other groups fill ...
+        self.assertTrue(all(s["body_method"] == 2 and w3_rule.sample_ok(s) and w3_rule.bias_supported(s)
+                            for s in samples))
+        self.assertTrue(w3_rule.views_consistent(samples))
+        self.assertEqual({(s["bias_view"].split("/")[-2], s["bias_bodies"], s["bias_other_bodies"]) for s in samples},
+                         {("2026-11-07-w3-pilot-0402", 89, 45), ("2026-11-05-c2-board-3", 39, 34)})
+        # ... and so is every further copy: board 4 placed three of them ten more times each.
+        further = {s["pn"]: s["other_copies"] for s in samples if "other_copies" in s}
+        self.assertEqual({pn: len(copies) for pn, copies in further.items()},
+                         {"C138033": 10, "C185445": 10, "C60491": 10})
+        self.assertEqual(sum(s["copies"] for s in samples), 79)
+        copies = [c for group_copies in further.values() for c in group_copies]
+        self.assertTrue(all("2026-11-11-board-4" in c["bias_view"] and c["body_method"] == 2
+                            and w3_rule.sample_ok(c) and w3_rule.bias_supported(c) for c in copies))
+        every = samples + copies
+        self.assertEqual((max(c["raw_offset_mm"] for c in every), max(c["residual_offset_mm"] for c in every),
+                          max(abs(c["angle_deg"]) for c in every)), (0.053, 0.041, 5.5))
+        # A method 1 reading of the same sample (0.121 mm raw as first recorded) is not one under this rule.
+        self.assertFalse(w3_rule.sample_ok({k: v for k, v in samples[0].items() if k != "body_method"}))
+
+
 class SampledEvidenceTests(unittest.TestCase):
     """The generator accepts a W3 inferred row only when every check of its group
     record holds: the same counterexamples ``tests/library/supplier.rs`` rejects."""
 
     FIXTURE = ROOT / "tests" / "fixtures" / "library-ci" / "s-sampled"
     CASES = ("rule", "paused", "scope", "key", "land", "member", "zero-stock", "sample", "few",
-             "own-evidence", "reading", "offset", "raw", "arithmetic", "not-drawn", "mapping",
-             "two-kinds", "field")
+             "own-evidence", "reading", "offset", "raw", "arithmetic", "method", "not-drawn", "mapping",
+             "two-kinds", "field", "bias-bodies", "bias-share", "bias-view", "bias-own",
+             "not-drawn-share")
 
     def inferred(self, frames: str) -> bool:
         rows = json.loads((self.FIXTURE / frames).read_text(encoding="utf-8"))["rows"]

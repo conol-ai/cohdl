@@ -1,0 +1,6419 @@
+[
+ {
+  "ref": "C1",
+  "side": "top",
+  "kicad_angle": 0.0,
+  "pad1": [
+   -0.825,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 1556,
+   "model_px": 1354,
+   "fill": 2.047,
+   "delta_mod_180": 0.1,
+   "offset_mm": 0.019,
+   "offset_xy_mm": [
+    -0.01,
+    -0.016
+   ],
+   "offset_limit_mm": 0.206,
+   "size_mm": [
+    1.57,
+    0.93
+   ],
+   "elongation": 1.89
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "C2",
+  "side": "top",
+  "kicad_angle": 37.0,
+  "pad1": [
+   -0.659,
+   0.496
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 1549,
+   "model_px": 1348,
+   "fill": 2.037,
+   "delta_mod_180": -0.7,
+   "offset_mm": 0.013,
+   "offset_xy_mm": [
+    -0.0,
+    -0.013
+   ],
+   "offset_limit_mm": 0.206,
+   "size_mm": [
+    1.66,
+    0.94
+   ],
+   "elongation": 1.95
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "C3",
+  "side": "bottom",
+  "kicad_angle": 180.0,
+  "pad1": [
+   0.825,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 1338,
+   "model_px": 1174,
+   "fill": 1.774,
+   "delta_mod_180": 0.1,
+   "offset_mm": 0.03,
+   "offset_xy_mm": [
+    -0.028,
+    -0.012
+   ],
+   "offset_limit_mm": 0.206,
+   "size_mm": [
+    1.54,
+    0.74
+   ],
+   "elongation": 2.04
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "C4",
+  "side": "bottom",
+  "kicad_angle": -143.0,
+  "pad1": [
+   0.659,
+   -0.496
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 1246,
+   "model_px": 1166,
+   "fill": 1.762,
+   "delta_mod_180": -0.3,
+   "offset_mm": 0.02,
+   "offset_xy_mm": [
+    -0.019,
+    -0.006
+   ],
+   "offset_limit_mm": 0.206,
+   "size_mm": [
+    1.55,
+    0.79
+   ],
+   "elongation": 2.03
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "C5",
+  "side": "top",
+  "kicad_angle": 0.0,
+  "pad1": [
+   -0.51,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 595,
+   "model_px": 576,
+   "fill": 2.278,
+   "delta_mod_180": 1.6,
+   "offset_mm": 0.026,
+   "offset_xy_mm": [
+    -0.024,
+    -0.01
+   ],
+   "offset_limit_mm": 0.127,
+   "size_mm": [
+    0.99,
+    0.61
+   ],
+   "elongation": 1.79
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "C6",
+  "side": "top",
+  "kicad_angle": 37.0,
+  "pad1": [
+   -0.407,
+   0.307
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 594,
+   "model_px": 549,
+   "fill": 2.171,
+   "delta_mod_180": -1.1,
+   "offset_mm": 0.012,
+   "offset_xy_mm": [
+    0.004,
+    -0.011
+   ],
+   "offset_limit_mm": 0.128,
+   "size_mm": [
+    1.03,
+    0.64
+   ],
+   "elongation": 1.82
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "C7",
+  "side": "bottom",
+  "kicad_angle": 180.0,
+  "pad1": [
+   0.51,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 466,
+   "model_px": 431,
+   "fill": 1.705,
+   "delta_mod_180": -0.5,
+   "offset_mm": 0.019,
+   "offset_xy_mm": [
+    -0.01,
+    -0.016
+   ],
+   "offset_limit_mm": 0.127,
+   "size_mm": [
+    0.99,
+    0.42
+   ],
+   "elongation": 2.23
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "C8",
+  "side": "bottom",
+  "kicad_angle": -143.0,
+  "pad1": [
+   0.407,
+   -0.307
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 467,
+   "model_px": 434,
+   "fill": 1.717,
+   "delta_mod_180": -0.1,
+   "offset_mm": 0.02,
+   "offset_xy_mm": [
+    -0.017,
+    -0.011
+   ],
+   "offset_limit_mm": 0.128,
+   "size_mm": [
+    0.96,
+    0.49
+   ],
+   "elongation": 2.02
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "C9",
+  "side": "top",
+  "kicad_angle": 0.0,
+  "pad1": [
+   -0.51,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 551,
+   "model_px": 557,
+   "fill": 2.203,
+   "delta_mod_180": 2.9,
+   "offset_mm": 0.016,
+   "offset_xy_mm": [
+    0.004,
+    -0.015
+   ],
+   "offset_limit_mm": 0.127,
+   "size_mm": [
+    0.99,
+    0.61
+   ],
+   "elongation": 1.81
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "C10",
+  "side": "top",
+  "kicad_angle": 37.0,
+  "pad1": [
+   -0.407,
+   0.307
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 636,
+   "model_px": 536,
+   "fill": 2.12,
+   "delta_mod_180": -0.4,
+   "offset_mm": 0.019,
+   "offset_xy_mm": [
+    0.004,
+    -0.019
+   ],
+   "offset_limit_mm": 0.128,
+   "size_mm": [
+    1.03,
+    0.64
+   ],
+   "elongation": 1.87
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "C11",
+  "side": "bottom",
+  "kicad_angle": 180.0,
+  "pad1": [
+   0.51,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 491,
+   "model_px": 418,
+   "fill": 1.653,
+   "delta_mod_180": 0.3,
+   "offset_mm": 0.036,
+   "offset_xy_mm": [
+    -0.031,
+    -0.017
+   ],
+   "offset_limit_mm": 0.127,
+   "size_mm": [
+    0.96,
+    0.42
+   ],
+   "elongation": 2.17
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "C12",
+  "side": "bottom",
+  "kicad_angle": -143.0,
+  "pad1": [
+   0.407,
+   -0.307
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 543,
+   "model_px": 445,
+   "fill": 1.76,
+   "delta_mod_180": -0.3,
+   "offset_mm": 0.02,
+   "offset_xy_mm": [
+    -0.019,
+    -0.008
+   ],
+   "offset_limit_mm": 0.128,
+   "size_mm": [
+    0.96,
+    0.5
+   ],
+   "elongation": 1.96
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "C13",
+  "side": "top",
+  "kicad_angle": 0.0,
+  "pad1": [
+   -0.825,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 1506,
+   "model_px": 1404,
+   "fill": 2.122,
+   "delta_mod_180": -0.3,
+   "offset_mm": 0.016,
+   "offset_xy_mm": [
+    0.011,
+    -0.012
+   ],
+   "offset_limit_mm": 0.206,
+   "size_mm": [
+    1.64,
+    0.93
+   ],
+   "elongation": 1.97
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "C14",
+  "side": "top",
+  "kicad_angle": 37.0,
+  "pad1": [
+   -0.659,
+   0.496
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 1488,
+   "model_px": 1371,
+   "fill": 2.072,
+   "delta_mod_180": -1.2,
+   "offset_mm": 0.04,
+   "offset_xy_mm": [
+    0.026,
+    -0.03
+   ],
+   "offset_limit_mm": 0.206,
+   "size_mm": [
+    1.72,
+    0.93
+   ],
+   "elongation": 1.96
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "C15",
+  "side": "bottom",
+  "kicad_angle": 180.0,
+  "pad1": [
+   0.825,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 1282,
+   "model_px": 1171,
+   "fill": 1.77,
+   "delta_mod_180": 0.2,
+   "offset_mm": 0.009,
+   "offset_xy_mm": [
+    -0.0,
+    -0.009
+   ],
+   "offset_limit_mm": 0.206,
+   "size_mm": [
+    1.54,
+    0.74
+   ],
+   "elongation": 2.04
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "C16",
+  "side": "bottom",
+  "kicad_angle": -143.0,
+  "pad1": [
+   0.659,
+   -0.496
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 1309,
+   "model_px": 1165,
+   "fill": 1.761,
+   "delta_mod_180": 0.5,
+   "offset_mm": 0.022,
+   "offset_xy_mm": [
+    0.006,
+    -0.021
+   ],
+   "offset_limit_mm": 0.206,
+   "size_mm": [
+    1.56,
+    0.79
+   ],
+   "elongation": 2.02
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "C17",
+  "side": "top",
+  "kicad_angle": 0.0,
+  "pad1": [
+   -0.51,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 604,
+   "model_px": 564,
+   "fill": 2.231,
+   "delta_mod_180": -1.9,
+   "offset_mm": 0.012,
+   "offset_xy_mm": [
+    0.008,
+    -0.009
+   ],
+   "offset_limit_mm": 0.127,
+   "size_mm": [
+    0.99,
+    0.61
+   ],
+   "elongation": 1.82
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "C18",
+  "side": "top",
+  "kicad_angle": 37.0,
+  "pad1": [
+   -0.407,
+   0.307
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 641,
+   "model_px": 561,
+   "fill": 2.219,
+   "delta_mod_180": -0.3,
+   "offset_mm": 0.019,
+   "offset_xy_mm": [
+    -0.004,
+    -0.019
+   ],
+   "offset_limit_mm": 0.128,
+   "size_mm": [
+    1.07,
+    0.64
+   ],
+   "elongation": 1.86
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "C19",
+  "side": "bottom",
+  "kicad_angle": 180.0,
+  "pad1": [
+   0.51,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 484,
+   "model_px": 416,
+   "fill": 1.645,
+   "delta_mod_180": 0.8,
+   "offset_mm": 0.026,
+   "offset_xy_mm": [
+    -0.021,
+    -0.015
+   ],
+   "offset_limit_mm": 0.127,
+   "size_mm": [
+    0.93,
+    0.42
+   ],
+   "elongation": 2.14
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "C20",
+  "side": "bottom",
+  "kicad_angle": -143.0,
+  "pad1": [
+   0.407,
+   -0.307
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 555,
+   "model_px": 443,
+   "fill": 1.752,
+   "delta_mod_180": -1.2,
+   "offset_mm": 0.018,
+   "offset_xy_mm": [
+    -0.014,
+    -0.011
+   ],
+   "offset_limit_mm": 0.128,
+   "size_mm": [
+    0.97,
+    0.49
+   ],
+   "elongation": 2.0
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "C21",
+  "side": "top",
+  "kicad_angle": 0.0,
+  "pad1": [
+   -0.51,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 628,
+   "model_px": 548,
+   "fill": 2.167,
+   "delta_mod_180": -0.4,
+   "offset_mm": 0.008,
+   "offset_xy_mm": [
+    0.005,
+    -0.006
+   ],
+   "offset_limit_mm": 0.127,
+   "size_mm": [
+    0.93,
+    0.61
+   ],
+   "elongation": 1.71
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "C22",
+  "side": "top",
+  "kicad_angle": 37.0,
+  "pad1": [
+   -0.407,
+   0.307
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 630,
+   "model_px": 543,
+   "fill": 2.148,
+   "delta_mod_180": -2.9,
+   "offset_mm": 0.015,
+   "offset_xy_mm": [
+    -0.015,
+    0.001
+   ],
+   "offset_limit_mm": 0.128,
+   "size_mm": [
+    1.05,
+    0.63
+   ],
+   "elongation": 1.91
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "C23",
+  "side": "bottom",
+  "kicad_angle": 180.0,
+  "pad1": [
+   0.51,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 490,
+   "model_px": 414,
+   "fill": 1.637,
+   "delta_mod_180": 0.4,
+   "offset_mm": 0.016,
+   "offset_xy_mm": [
+    -0.001,
+    -0.016
+   ],
+   "offset_limit_mm": 0.127,
+   "size_mm": [
+    0.93,
+    0.42
+   ],
+   "elongation": 2.14
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "C24",
+  "side": "bottom",
+  "kicad_angle": -143.0,
+  "pad1": [
+   0.407,
+   -0.307
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 556,
+   "model_px": 441,
+   "fill": 1.744,
+   "delta_mod_180": -0.2,
+   "offset_mm": 0.019,
+   "offset_xy_mm": [
+    -0.017,
+    -0.007
+   ],
+   "offset_limit_mm": 0.128,
+   "size_mm": [
+    0.98,
+    0.48
+   ],
+   "elongation": 2.06
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "C25",
+  "side": "top",
+  "kicad_angle": 0.0,
+  "pad1": [
+   -0.825,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 1507,
+   "model_px": 1340,
+   "fill": 2.025,
+   "delta_mod_180": -0.0,
+   "offset_mm": 0.015,
+   "offset_xy_mm": [
+    -0.006,
+    -0.014
+   ],
+   "offset_limit_mm": 0.206,
+   "size_mm": [
+    1.57,
+    0.93
+   ],
+   "elongation": 1.91
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "C26",
+  "side": "top",
+  "kicad_angle": 37.0,
+  "pad1": [
+   -0.659,
+   0.496
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 1505,
+   "model_px": 1341,
+   "fill": 2.027,
+   "delta_mod_180": 0.4,
+   "offset_mm": 0.024,
+   "offset_xy_mm": [
+    0.014,
+    -0.02
+   ],
+   "offset_limit_mm": 0.206,
+   "size_mm": [
+    1.62,
+    0.93
+   ],
+   "elongation": 1.92
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "C27",
+  "side": "bottom",
+  "kicad_angle": 180.0,
+  "pad1": [
+   0.825,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 1331,
+   "model_px": 1195,
+   "fill": 1.806,
+   "delta_mod_180": 0.0,
+   "offset_mm": 0.01,
+   "offset_xy_mm": [
+    -0.006,
+    -0.008
+   ],
+   "offset_limit_mm": 0.206,
+   "size_mm": [
+    1.57,
+    0.74
+   ],
+   "elongation": 2.08
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "C28",
+  "side": "bottom",
+  "kicad_angle": -143.0,
+  "pad1": [
+   0.659,
+   -0.496
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 1318,
+   "model_px": 1156,
+   "fill": 1.747,
+   "delta_mod_180": -0.5,
+   "offset_mm": 0.01,
+   "offset_xy_mm": [
+    -0.004,
+    -0.009
+   ],
+   "offset_limit_mm": 0.206,
+   "size_mm": [
+    1.55,
+    0.79
+   ],
+   "elongation": 1.99
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "C29",
+  "side": "top",
+  "kicad_angle": 0.0,
+  "pad1": [
+   -0.51,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 652,
+   "model_px": 532,
+   "fill": 2.104,
+   "delta_mod_180": 0.4,
+   "offset_mm": 0.024,
+   "offset_xy_mm": [
+    0.021,
+    -0.012
+   ],
+   "offset_limit_mm": 0.127,
+   "size_mm": [
+    0.99,
+    0.61
+   ],
+   "elongation": 1.85
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "C30",
+  "side": "top",
+  "kicad_angle": 90.0,
+  "pad1": [
+   0.0,
+   0.51
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 644,
+   "model_px": 564,
+   "fill": 2.231,
+   "delta_mod_180": -0.3,
+   "offset_mm": 0.025,
+   "offset_xy_mm": [
+    -0.007,
+    -0.024
+   ],
+   "offset_limit_mm": 0.127,
+   "size_mm": [
+    0.99,
+    0.61
+   ],
+   "elongation": 1.86
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "C31",
+  "side": "top",
+  "kicad_angle": 180.0,
+  "pad1": [
+   0.51,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 679,
+   "model_px": 553,
+   "fill": 2.187,
+   "delta_mod_180": -0.3,
+   "offset_mm": 0.018,
+   "offset_xy_mm": [
+    0.012,
+    -0.013
+   ],
+   "offset_limit_mm": 0.127,
+   "size_mm": [
+    0.99,
+    0.61
+   ],
+   "elongation": 1.89
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "C32",
+  "side": "top",
+  "kicad_angle": -90.0,
+  "pad1": [
+   0.0,
+   -0.51
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 679,
+   "model_px": 534,
+   "fill": 2.112,
+   "delta_mod_180": 6.3,
+   "offset_mm": 0.004,
+   "offset_xy_mm": [
+    0.0,
+    -0.004
+   ],
+   "offset_limit_mm": 0.127,
+   "size_mm": [
+    0.99,
+    0.67
+   ],
+   "elongation": 1.9
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "C33",
+  "side": "top",
+  "kicad_angle": 37.0,
+  "pad1": [
+   -0.407,
+   0.307
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 622,
+   "model_px": 558,
+   "fill": 2.207,
+   "delta_mod_180": 0.8,
+   "offset_mm": 0.011,
+   "offset_xy_mm": [
+    0.011,
+    0.002
+   ],
+   "offset_limit_mm": 0.128,
+   "size_mm": [
+    1.1,
+    0.65
+   ],
+   "elongation": 1.89
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "C34",
+  "side": "bottom",
+  "kicad_angle": 180.0,
+  "pad1": [
+   0.51,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 552,
+   "model_px": 474,
+   "fill": 1.875,
+   "delta_mod_180": -0.3,
+   "offset_mm": 0.004,
+   "offset_xy_mm": [
+    -0.002,
+    -0.003
+   ],
+   "offset_limit_mm": 0.127,
+   "size_mm": [
+    0.93,
+    0.48
+   ],
+   "elongation": 1.89
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "C35",
+  "side": "bottom",
+  "kicad_angle": -90.0,
+  "pad1": [
+   0.0,
+   -0.51
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 546,
+   "model_px": 467,
+   "fill": 1.847,
+   "delta_mod_180": 1.2,
+   "offset_mm": 0.018,
+   "offset_xy_mm": [
+    -0.018,
+    -0.004
+   ],
+   "offset_limit_mm": 0.127,
+   "size_mm": [
+    0.96,
+    0.48
+   ],
+   "elongation": 1.92
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "C36",
+  "side": "bottom",
+  "kicad_angle": 0.0,
+  "pad1": [
+   -0.51,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 583,
+   "model_px": 476,
+   "fill": 1.883,
+   "delta_mod_180": -0.1,
+   "offset_mm": 0.022,
+   "offset_xy_mm": [
+    -0.022,
+    -0.002
+   ],
+   "offset_limit_mm": 0.127,
+   "size_mm": [
+    0.93,
+    0.48
+   ],
+   "elongation": 1.89
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "C37",
+  "side": "bottom",
+  "kicad_angle": 90.0,
+  "pad1": [
+   0.0,
+   0.51
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 555,
+   "model_px": 420,
+   "fill": 1.661,
+   "delta_mod_180": -1.1,
+   "offset_mm": 0.003,
+   "offset_xy_mm": [
+    -0.001,
+    0.002
+   ],
+   "offset_limit_mm": 0.127,
+   "size_mm": [
+    0.99,
+    0.42
+   ],
+   "elongation": 2.17
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "C38",
+  "side": "bottom",
+  "kicad_angle": -143.0,
+  "pad1": [
+   0.407,
+   -0.307
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 495,
+   "model_px": 418,
+   "fill": 1.653,
+   "delta_mod_180": 1.1,
+   "offset_mm": 0.009,
+   "offset_xy_mm": [
+    -0.004,
+    -0.008
+   ],
+   "offset_limit_mm": 0.128,
+   "size_mm": [
+    0.94,
+    0.49
+   ],
+   "elongation": 2.0
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "C39",
+  "side": "top",
+  "kicad_angle": 0.0,
+  "pad1": [
+   -0.51,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 624,
+   "model_px": 520,
+   "fill": 2.057,
+   "delta_mod_180": -2.5,
+   "offset_mm": 0.009,
+   "offset_xy_mm": [
+    0.003,
+    -0.008
+   ],
+   "offset_limit_mm": 0.127,
+   "size_mm": [
+    0.99,
+    0.67
+   ],
+   "elongation": 1.84
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "C40",
+  "side": "top",
+  "kicad_angle": 90.0,
+  "pad1": [
+   0.0,
+   0.51
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 533,
+   "model_px": 520,
+   "fill": 2.057,
+   "delta_mod_180": -1.9,
+   "offset_mm": 0.006,
+   "offset_xy_mm": [
+    0.005,
+    -0.003
+   ],
+   "offset_limit_mm": 0.128,
+   "size_mm": [
+    0.99,
+    0.61
+   ],
+   "elongation": 1.81
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "C41",
+  "side": "top",
+  "kicad_angle": 180.0,
+  "pad1": [
+   0.51,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 546,
+   "model_px": 540,
+   "fill": 2.136,
+   "delta_mod_180": -1.7,
+   "offset_mm": 0.012,
+   "offset_xy_mm": [
+    -0.009,
+    -0.009
+   ],
+   "offset_limit_mm": 0.127,
+   "size_mm": [
+    1.06,
+    0.67
+   ],
+   "elongation": 1.97
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "C42",
+  "side": "top",
+  "kicad_angle": -90.0,
+  "pad1": [
+   0.0,
+   -0.51
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 539,
+   "model_px": 505,
+   "fill": 1.997,
+   "delta_mod_180": -1.6,
+   "offset_mm": 0.017,
+   "offset_xy_mm": [
+    0.005,
+    -0.016
+   ],
+   "offset_limit_mm": 0.128,
+   "size_mm": [
+    0.99,
+    0.67
+   ],
+   "elongation": 1.84
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "C43",
+  "side": "top",
+  "kicad_angle": 37.0,
+  "pad1": [
+   -0.407,
+   0.307
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 553,
+   "model_px": 567,
+   "fill": 2.243,
+   "delta_mod_180": -2.8,
+   "offset_mm": 0.008,
+   "offset_xy_mm": [
+    -0.004,
+    -0.006
+   ],
+   "offset_limit_mm": 0.128,
+   "size_mm": [
+    1.08,
+    0.65
+   ],
+   "elongation": 1.9
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "C44",
+  "side": "bottom",
+  "kicad_angle": 180.0,
+  "pad1": [
+   0.51,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 467,
+   "model_px": 459,
+   "fill": 1.815,
+   "delta_mod_180": -1.9,
+   "offset_mm": 0.016,
+   "offset_xy_mm": [
+    -0.001,
+    -0.016
+   ],
+   "offset_limit_mm": 0.127,
+   "size_mm": [
+    0.93,
+    0.48
+   ],
+   "elongation": 1.89
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "C45",
+  "side": "bottom",
+  "kicad_angle": -90.0,
+  "pad1": [
+   0.0,
+   -0.51
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 494,
+   "model_px": 483,
+   "fill": 1.91,
+   "delta_mod_180": 0.3,
+   "offset_mm": 0.016,
+   "offset_xy_mm": [
+    -0.015,
+    -0.004
+   ],
+   "offset_limit_mm": 0.128,
+   "size_mm": [
+    0.96,
+    0.48
+   ],
+   "elongation": 1.94
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "C46",
+  "side": "bottom",
+  "kicad_angle": 0.0,
+  "pad1": [
+   -0.51,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 494,
+   "model_px": 456,
+   "fill": 1.804,
+   "delta_mod_180": 1.3,
+   "offset_mm": 0.024,
+   "offset_xy_mm": [
+    -0.02,
+    -0.015
+   ],
+   "offset_limit_mm": 0.127,
+   "size_mm": [
+    0.93,
+    0.48
+   ],
+   "elongation": 1.9
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "C47",
+  "side": "bottom",
+  "kicad_angle": 90.0,
+  "pad1": [
+   0.0,
+   0.51
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 475,
+   "model_px": 433,
+   "fill": 1.713,
+   "delta_mod_180": 0.4,
+   "offset_mm": 0.008,
+   "offset_xy_mm": [
+    0.0,
+    -0.008
+   ],
+   "offset_limit_mm": 0.128,
+   "size_mm": [
+    0.99,
+    0.42
+   ],
+   "elongation": 2.23
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "C48",
+  "side": "bottom",
+  "kicad_angle": -143.0,
+  "pad1": [
+   0.407,
+   -0.307
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 437,
+   "model_px": 429,
+   "fill": 1.697,
+   "delta_mod_180": 2.3,
+   "offset_mm": 0.014,
+   "offset_xy_mm": [
+    -0.011,
+    -0.009
+   ],
+   "offset_limit_mm": 0.128,
+   "size_mm": [
+    0.96,
+    0.49
+   ],
+   "elongation": 2.04
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "C49",
+  "side": "top",
+  "kicad_angle": 0.0,
+  "pad1": [
+   -0.51,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 555,
+   "model_px": 565,
+   "fill": 2.235,
+   "delta_mod_180": 1.0,
+   "offset_mm": 0.019,
+   "offset_xy_mm": [
+    -0.011,
+    -0.015
+   ],
+   "offset_limit_mm": 0.128,
+   "size_mm": [
+    1.03,
+    0.61
+   ],
+   "elongation": 1.88
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "C50",
+  "side": "top",
+  "kicad_angle": 37.0,
+  "pad1": [
+   -0.407,
+   0.307
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 618,
+   "model_px": 580,
+   "fill": 2.294,
+   "delta_mod_180": -2.9,
+   "offset_mm": 0.024,
+   "offset_xy_mm": [
+    0.007,
+    -0.023
+   ],
+   "offset_limit_mm": 0.128,
+   "size_mm": [
+    1.16,
+    0.63
+   ],
+   "elongation": 1.96
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "C51",
+  "side": "bottom",
+  "kicad_angle": 180.0,
+  "pad1": [
+   0.51,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 528,
+   "model_px": 453,
+   "fill": 1.792,
+   "delta_mod_180": -2.9,
+   "offset_mm": 0.035,
+   "offset_xy_mm": [
+    -0.029,
+    -0.019
+   ],
+   "offset_limit_mm": 0.128,
+   "size_mm": [
+    0.99,
+    0.48
+   ],
+   "elongation": 2.02
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "C52",
+  "side": "bottom",
+  "kicad_angle": -143.0,
+  "pad1": [
+   0.407,
+   -0.307
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 498,
+   "model_px": 427,
+   "fill": 1.689,
+   "delta_mod_180": -1.2,
+   "offset_mm": 0.02,
+   "offset_xy_mm": [
+    -0.019,
+    -0.006
+   ],
+   "offset_limit_mm": 0.128,
+   "size_mm": [
+    0.94,
+    0.48
+   ],
+   "elongation": 2.02
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "C53",
+  "side": "top",
+  "kicad_angle": 0.0,
+  "pad1": [
+   -0.51,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 602,
+   "model_px": 569,
+   "fill": 2.25,
+   "delta_mod_180": -1.4,
+   "offset_mm": 0.033,
+   "offset_xy_mm": [
+    0.032,
+    -0.01
+   ],
+   "offset_limit_mm": 0.128,
+   "size_mm": [
+    0.99,
+    0.61
+   ],
+   "elongation": 1.82
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "C54",
+  "side": "top",
+  "kicad_angle": 37.0,
+  "pad1": [
+   -0.407,
+   0.307
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 602,
+   "model_px": 548,
+   "fill": 2.167,
+   "delta_mod_180": -3.4,
+   "offset_mm": 0.019,
+   "offset_xy_mm": [
+    0.018,
+    -0.007
+   ],
+   "offset_limit_mm": 0.128,
+   "size_mm": [
+    1.06,
+    0.64
+   ],
+   "elongation": 1.84
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "C55",
+  "side": "bottom",
+  "kicad_angle": 180.0,
+  "pad1": [
+   0.51,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 483,
+   "model_px": 418,
+   "fill": 1.653,
+   "delta_mod_180": 0.2,
+   "offset_mm": 0.018,
+   "offset_xy_mm": [
+    0.007,
+    -0.016
+   ],
+   "offset_limit_mm": 0.128,
+   "size_mm": [
+    0.93,
+    0.42
+   ],
+   "elongation": 2.14
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "C56",
+  "side": "bottom",
+  "kicad_angle": -143.0,
+  "pad1": [
+   0.407,
+   -0.307
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 523,
+   "model_px": 438,
+   "fill": 1.732,
+   "delta_mod_180": -0.8,
+   "offset_mm": 0.007,
+   "offset_xy_mm": [
+    -0.001,
+    -0.007
+   ],
+   "offset_limit_mm": 0.128,
+   "size_mm": [
+    0.95,
+    0.49
+   ],
+   "elongation": 2.0
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "L1",
+  "side": "top",
+  "kicad_angle": 0.0,
+  "pad1": [
+   -0.95,
+   0.0
+  ],
+  "dots": []
+ },
+ {
+  "ref": "L2",
+  "side": "top",
+  "kicad_angle": 37.0,
+  "pad1": [
+   -0.759,
+   0.572
+  ],
+  "dots": []
+ },
+ {
+  "ref": "L3",
+  "side": "bottom",
+  "kicad_angle": 180.0,
+  "pad1": [
+   0.95,
+   0.0
+  ],
+  "dots": []
+ },
+ {
+  "ref": "L4",
+  "side": "bottom",
+  "kicad_angle": -143.0,
+  "pad1": [
+   0.759,
+   -0.572
+  ],
+  "dots": []
+ },
+ {
+  "ref": "L5",
+  "side": "top",
+  "kicad_angle": 0.0,
+  "pad1": [
+   -0.7,
+   0.0
+  ],
+  "dots": []
+ },
+ {
+  "ref": "L6",
+  "side": "top",
+  "kicad_angle": 37.0,
+  "pad1": [
+   -0.559,
+   0.421
+  ],
+  "dots": []
+ },
+ {
+  "ref": "L7",
+  "side": "bottom",
+  "kicad_angle": 180.0,
+  "pad1": [
+   0.7,
+   0.0
+  ],
+  "dots": []
+ },
+ {
+  "ref": "L8",
+  "side": "bottom",
+  "kicad_angle": -143.0,
+  "pad1": [
+   0.559,
+   -0.421
+  ],
+  "dots": []
+ },
+ {
+  "ref": "R1",
+  "side": "top",
+  "kicad_angle": 0.0,
+  "pad1": [
+   -0.51,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 581,
+   "model_px": 530,
+   "fill": 2.096,
+   "delta_mod_180": 0.2,
+   "offset_mm": 0.011,
+   "offset_xy_mm": [
+    0.005,
+    -0.009
+   ],
+   "offset_limit_mm": 0.128,
+   "size_mm": [
+    0.99,
+    0.67
+   ],
+   "elongation": 1.93
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R2",
+  "side": "top",
+  "kicad_angle": 90.0,
+  "pad1": [
+   0.0,
+   0.51
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 593,
+   "model_px": 535,
+   "fill": 2.116,
+   "delta_mod_180": -4.4,
+   "offset_mm": 0.013,
+   "offset_xy_mm": [
+    -0.01,
+    -0.008
+   ],
+   "offset_limit_mm": 0.128,
+   "size_mm": [
+    1.06,
+    0.67
+   ],
+   "elongation": 1.87
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R3",
+  "side": "top",
+  "kicad_angle": 180.0,
+  "pad1": [
+   0.51,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 637,
+   "model_px": 541,
+   "fill": 2.14,
+   "delta_mod_180": -3.4,
+   "offset_mm": 0.019,
+   "offset_xy_mm": [
+    -0.004,
+    -0.019
+   ],
+   "offset_limit_mm": 0.128,
+   "size_mm": [
+    0.99,
+    0.67
+   ],
+   "elongation": 1.86
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R4",
+  "side": "top",
+  "kicad_angle": -90.0,
+  "pad1": [
+   0.0,
+   -0.51
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 574,
+   "model_px": 563,
+   "fill": 2.227,
+   "delta_mod_180": -4.3,
+   "offset_mm": 0.021,
+   "offset_xy_mm": [
+    0.004,
+    -0.021
+   ],
+   "offset_limit_mm": 0.128,
+   "size_mm": [
+    1.06,
+    0.61
+   ],
+   "elongation": 1.9
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R5",
+  "side": "top",
+  "kicad_angle": 37.0,
+  "pad1": [
+   -0.407,
+   0.307
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 596,
+   "model_px": 580,
+   "fill": 2.294,
+   "delta_mod_180": -2.9,
+   "offset_mm": 0.039,
+   "offset_xy_mm": [
+    0.026,
+    -0.03
+   ],
+   "offset_limit_mm": 0.128,
+   "size_mm": [
+    1.14,
+    0.66
+   ],
+   "elongation": 1.89
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R6",
+  "side": "bottom",
+  "kicad_angle": 180.0,
+  "pad1": [
+   0.51,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 455,
+   "model_px": 423,
+   "fill": 1.673,
+   "delta_mod_180": 1.4,
+   "offset_mm": 0.02,
+   "offset_xy_mm": [
+    -0.02,
+    0.003
+   ],
+   "offset_limit_mm": 0.128,
+   "size_mm": [
+    0.93,
+    0.45
+   ],
+   "elongation": 2.11
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R7",
+  "side": "bottom",
+  "kicad_angle": -90.0,
+  "pad1": [
+   0.0,
+   -0.51
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 440,
+   "model_px": 418,
+   "fill": 1.653,
+   "delta_mod_180": 0.0,
+   "offset_mm": 0.001,
+   "offset_xy_mm": [
+    -0.001,
+    -0.0
+   ],
+   "offset_limit_mm": 0.128,
+   "size_mm": [
+    0.96,
+    0.42
+   ],
+   "elongation": 2.2
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R8",
+  "side": "bottom",
+  "kicad_angle": 0.0,
+  "pad1": [
+   -0.51,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 546,
+   "model_px": 417,
+   "fill": 1.649,
+   "delta_mod_180": -0.1,
+   "offset_mm": 0.013,
+   "offset_xy_mm": [
+    -0.013,
+    -0.001
+   ],
+   "offset_limit_mm": 0.128,
+   "size_mm": [
+    0.93,
+    0.45
+   ],
+   "elongation": 2.07
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R9",
+  "side": "bottom",
+  "kicad_angle": 90.0,
+  "pad1": [
+   0.0,
+   0.51
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 538,
+   "model_px": 407,
+   "fill": 1.61,
+   "delta_mod_180": -2.4,
+   "offset_mm": 0.02,
+   "offset_xy_mm": [
+    -0.013,
+    -0.015
+   ],
+   "offset_limit_mm": 0.128,
+   "size_mm": [
+    0.96,
+    0.42
+   ],
+   "elongation": 2.21
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R10",
+  "side": "bottom",
+  "kicad_angle": -143.0,
+  "pad1": [
+   0.407,
+   -0.307
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 524,
+   "model_px": 430,
+   "fill": 1.701,
+   "delta_mod_180": 1.1,
+   "offset_mm": 0.021,
+   "offset_xy_mm": [
+    -0.008,
+    -0.02
+   ],
+   "offset_limit_mm": 0.128,
+   "size_mm": [
+    0.96,
+    0.49
+   ],
+   "elongation": 2.08
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R11",
+  "side": "top",
+  "kicad_angle": 0.0,
+  "pad1": [
+   -0.51,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 665,
+   "model_px": 546,
+   "fill": 2.16,
+   "delta_mod_180": 2.4,
+   "offset_mm": 0.038,
+   "offset_xy_mm": [
+    -0.037,
+    -0.01
+   ],
+   "offset_limit_mm": 0.128,
+   "size_mm": [
+    0.99,
+    0.67
+   ],
+   "elongation": 1.9
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R12",
+  "side": "top",
+  "kicad_angle": 90.0,
+  "pad1": [
+   0.0,
+   0.51
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 605,
+   "model_px": 524,
+   "fill": 2.073,
+   "delta_mod_180": 2.4,
+   "offset_mm": 0.021,
+   "offset_xy_mm": [
+    0.001,
+    -0.021
+   ],
+   "offset_limit_mm": 0.128,
+   "size_mm": [
+    1.03,
+    0.61
+   ],
+   "elongation": 1.84
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R13",
+  "side": "top",
+  "kicad_angle": 180.0,
+  "pad1": [
+   0.51,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 603,
+   "model_px": 510,
+   "fill": 2.017,
+   "delta_mod_180": -0.6,
+   "offset_mm": 0.007,
+   "offset_xy_mm": [
+    -0.005,
+    -0.005
+   ],
+   "offset_limit_mm": 0.128,
+   "size_mm": [
+    0.99,
+    0.64
+   ],
+   "elongation": 1.87
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R14",
+  "side": "top",
+  "kicad_angle": -90.0,
+  "pad1": [
+   0.0,
+   -0.51
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 590,
+   "model_px": 536,
+   "fill": 2.12,
+   "delta_mod_180": 2.8,
+   "offset_mm": 0.011,
+   "offset_xy_mm": [
+    -0.009,
+    0.006
+   ],
+   "offset_limit_mm": 0.128,
+   "size_mm": [
+    0.99,
+    0.61
+   ],
+   "elongation": 1.83
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R15",
+  "side": "top",
+  "kicad_angle": 37.0,
+  "pad1": [
+   -0.407,
+   0.307
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 653,
+   "model_px": 561,
+   "fill": 2.219,
+   "delta_mod_180": -5.5,
+   "offset_mm": 0.011,
+   "offset_xy_mm": [
+    -0.01,
+    -0.004
+   ],
+   "offset_limit_mm": 0.128,
+   "size_mm": [
+    1.21,
+    0.65
+   ],
+   "elongation": 1.98
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R16",
+  "side": "bottom",
+  "kicad_angle": 180.0,
+  "pad1": [
+   0.51,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 555,
+   "model_px": 452,
+   "fill": 1.788,
+   "delta_mod_180": -2.1,
+   "offset_mm": 0.023,
+   "offset_xy_mm": [
+    -0.022,
+    -0.007
+   ],
+   "offset_limit_mm": 0.128,
+   "size_mm": [
+    0.99,
+    0.48
+   ],
+   "elongation": 2.08
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R17",
+  "side": "bottom",
+  "kicad_angle": -90.0,
+  "pad1": [
+   0.0,
+   -0.51
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 513,
+   "model_px": 425,
+   "fill": 1.681,
+   "delta_mod_180": -0.3,
+   "offset_mm": 0.023,
+   "offset_xy_mm": [
+    -0.023,
+    0.001
+   ],
+   "offset_limit_mm": 0.128,
+   "size_mm": [
+    0.96,
+    0.42
+   ],
+   "elongation": 2.18
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R18",
+  "side": "bottom",
+  "kicad_angle": 0.0,
+  "pad1": [
+   -0.51,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 499,
+   "model_px": 441,
+   "fill": 1.744,
+   "delta_mod_180": -1.3,
+   "offset_mm": 0.014,
+   "offset_xy_mm": [
+    0.012,
+    -0.007
+   ],
+   "offset_limit_mm": 0.128,
+   "size_mm": [
+    0.93,
+    0.48
+   ],
+   "elongation": 1.99
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R19",
+  "side": "bottom",
+  "kicad_angle": 90.0,
+  "pad1": [
+   0.0,
+   0.51
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 499,
+   "model_px": 443,
+   "fill": 1.752,
+   "delta_mod_180": -0.5,
+   "offset_mm": 0.038,
+   "offset_xy_mm": [
+    -0.037,
+    -0.002
+   ],
+   "offset_limit_mm": 0.128,
+   "size_mm": [
+    0.96,
+    0.45
+   ],
+   "elongation": 2.13
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R20",
+  "side": "bottom",
+  "kicad_angle": -143.0,
+  "pad1": [
+   0.407,
+   -0.307
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 523,
+   "model_px": 421,
+   "fill": 1.665,
+   "delta_mod_180": 0.8,
+   "offset_mm": 0.02,
+   "offset_xy_mm": [
+    -0.016,
+    -0.012
+   ],
+   "offset_limit_mm": 0.128,
+   "size_mm": [
+    0.94,
+    0.48
+   ],
+   "elongation": 2.03
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R21",
+  "side": "top",
+  "kicad_angle": 0.0,
+  "pad1": [
+   -0.51,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 654,
+   "model_px": 519,
+   "fill": 2.053,
+   "delta_mod_180": 1.8,
+   "offset_mm": 0.02,
+   "offset_xy_mm": [
+    -0.011,
+    -0.016
+   ],
+   "offset_limit_mm": 0.127,
+   "size_mm": [
+    0.99,
+    0.61
+   ],
+   "elongation": 1.96
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R22",
+  "side": "top",
+  "kicad_angle": 90.0,
+  "pad1": [
+   0.0,
+   0.51
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 610,
+   "model_px": 525,
+   "fill": 2.076,
+   "delta_mod_180": 0.1,
+   "offset_mm": 0.031,
+   "offset_xy_mm": [
+    -0.001,
+    -0.031
+   ],
+   "offset_limit_mm": 0.128,
+   "size_mm": [
+    1.03,
+    0.61
+   ],
+   "elongation": 1.84
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R23",
+  "side": "top",
+  "kicad_angle": 180.0,
+  "pad1": [
+   0.51,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 645,
+   "model_px": 566,
+   "fill": 2.239,
+   "delta_mod_180": -0.7,
+   "offset_mm": 0.009,
+   "offset_xy_mm": [
+    0.001,
+    -0.009
+   ],
+   "offset_limit_mm": 0.128,
+   "size_mm": [
+    1.06,
+    0.64
+   ],
+   "elongation": 2.01
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R24",
+  "side": "top",
+  "kicad_angle": -90.0,
+  "pad1": [
+   0.0,
+   -0.51
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 642,
+   "model_px": 538,
+   "fill": 2.128,
+   "delta_mod_180": -1.2,
+   "offset_mm": 0.018,
+   "offset_xy_mm": [
+    0.008,
+    -0.016
+   ],
+   "offset_limit_mm": 0.128,
+   "size_mm": [
+    1.06,
+    0.61
+   ],
+   "elongation": 1.85
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R25",
+  "side": "top",
+  "kicad_angle": 37.0,
+  "pad1": [
+   -0.407,
+   0.307
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 637,
+   "model_px": 554,
+   "fill": 2.191,
+   "delta_mod_180": 3.4,
+   "offset_mm": 0.014,
+   "offset_xy_mm": [
+    0.005,
+    -0.013
+   ],
+   "offset_limit_mm": 0.128,
+   "size_mm": [
+    1.18,
+    0.65
+   ],
+   "elongation": 1.88
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R26",
+  "side": "bottom",
+  "kicad_angle": 180.0,
+  "pad1": [
+   0.51,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 537,
+   "model_px": 422,
+   "fill": 1.669,
+   "delta_mod_180": 0.1,
+   "offset_mm": 0.023,
+   "offset_xy_mm": [
+    -0.022,
+    0.005
+   ],
+   "offset_limit_mm": 0.127,
+   "size_mm": [
+    0.96,
+    0.45
+   ],
+   "elongation": 2.11
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R27",
+  "side": "bottom",
+  "kicad_angle": -90.0,
+  "pad1": [
+   0.0,
+   -0.51
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 505,
+   "model_px": 417,
+   "fill": 1.649,
+   "delta_mod_180": -0.6,
+   "offset_mm": 0.02,
+   "offset_xy_mm": [
+    -0.019,
+    0.006
+   ],
+   "offset_limit_mm": 0.128,
+   "size_mm": [
+    0.93,
+    0.42
+   ],
+   "elongation": 2.17
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R28",
+  "side": "bottom",
+  "kicad_angle": 0.0,
+  "pad1": [
+   -0.51,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 532,
+   "model_px": 428,
+   "fill": 1.693,
+   "delta_mod_180": 0.3,
+   "offset_mm": 0.005,
+   "offset_xy_mm": [
+    -0.0,
+    0.005
+   ],
+   "offset_limit_mm": 0.128,
+   "size_mm": [
+    0.93,
+    0.45
+   ],
+   "elongation": 2.11
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R29",
+  "side": "bottom",
+  "kicad_angle": 90.0,
+  "pad1": [
+   0.0,
+   0.51
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 541,
+   "model_px": 428,
+   "fill": 1.693,
+   "delta_mod_180": 0.0,
+   "offset_mm": 0.02,
+   "offset_xy_mm": [
+    0.02,
+    -0.001
+   ],
+   "offset_limit_mm": 0.128,
+   "size_mm": [
+    0.96,
+    0.45
+   ],
+   "elongation": 2.11
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R30",
+  "side": "bottom",
+  "kicad_angle": -143.0,
+  "pad1": [
+   0.407,
+   -0.307
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 522,
+   "model_px": 433,
+   "fill": 1.713,
+   "delta_mod_180": -0.9,
+   "offset_mm": 0.016,
+   "offset_xy_mm": [
+    -0.006,
+    -0.015
+   ],
+   "offset_limit_mm": 0.128,
+   "size_mm": [
+    0.96,
+    0.49
+   ],
+   "elongation": 2.01
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R31",
+  "side": "top",
+  "kicad_angle": 0.0,
+  "pad1": [
+   -2.312,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 13270,
+   "model_px": 12132,
+   "fill": 2.334,
+   "delta_mod_180": -0.1,
+   "offset_mm": 0.017,
+   "offset_xy_mm": [
+    -0.017,
+    -0.0
+   ],
+   "offset_limit_mm": 0.25,
+   "size_mm": [
+    4.97,
+    2.53
+   ],
+   "elongation": 2.02
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R32",
+  "side": "top",
+  "kicad_angle": 90.0,
+  "pad1": [
+   0.0,
+   2.312
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 13489,
+   "model_px": 12170,
+   "fill": 2.341,
+   "delta_mod_180": 0.1,
+   "offset_mm": 0.017,
+   "offset_xy_mm": [
+    -0.008,
+    0.015
+   ],
+   "offset_limit_mm": 0.25,
+   "size_mm": [
+    4.97,
+    2.6
+   ],
+   "elongation": 2.02
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R33",
+  "side": "top",
+  "kicad_angle": 180.0,
+  "pad1": [
+   2.312,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 13490,
+   "model_px": 12124,
+   "fill": 2.332,
+   "delta_mod_180": -0.1,
+   "offset_mm": 0.01,
+   "offset_xy_mm": [
+    -0.009,
+    0.005
+   ],
+   "offset_limit_mm": 0.25,
+   "size_mm": [
+    4.97,
+    2.57
+   ],
+   "elongation": 2.02
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R34",
+  "side": "top",
+  "kicad_angle": -90.0,
+  "pad1": [
+   0.0,
+   -2.312
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 13575,
+   "model_px": 12196,
+   "fill": 2.346,
+   "delta_mod_180": 0.1,
+   "offset_mm": 0.013,
+   "offset_xy_mm": [
+    0.006,
+    0.011
+   ],
+   "offset_limit_mm": 0.25,
+   "size_mm": [
+    4.97,
+    2.6
+   ],
+   "elongation": 2.02
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R35",
+  "side": "top",
+  "kicad_angle": 37.0,
+  "pad1": [
+   -1.847,
+   1.392
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 13530,
+   "model_px": 12228,
+   "fill": 2.352,
+   "delta_mod_180": -0.2,
+   "offset_mm": 0.012,
+   "offset_xy_mm": [
+    0.01,
+    -0.007
+   ],
+   "offset_limit_mm": 0.25,
+   "size_mm": [
+    4.99,
+    2.57
+   ],
+   "elongation": 2.03
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R36",
+  "side": "bottom",
+  "kicad_angle": 180.0,
+  "pad1": [
+   2.312,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 13091,
+   "model_px": 11813,
+   "fill": 2.272,
+   "delta_mod_180": 0.0,
+   "offset_mm": 0.027,
+   "offset_xy_mm": [
+    -0.021,
+    0.017
+   ],
+   "offset_limit_mm": 0.25,
+   "size_mm": [
+    4.97,
+    2.41
+   ],
+   "elongation": 2.05
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R37",
+  "side": "bottom",
+  "kicad_angle": -90.0,
+  "pad1": [
+   0.0,
+   -2.312
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 13056,
+   "model_px": 11968,
+   "fill": 2.302,
+   "delta_mod_180": -0.3,
+   "offset_mm": 0.035,
+   "offset_xy_mm": [
+    -0.016,
+    -0.032
+   ],
+   "offset_limit_mm": 0.25,
+   "size_mm": [
+    4.94,
+    2.57
+   ],
+   "elongation": 2.0
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R38",
+  "side": "bottom",
+  "kicad_angle": 0.0,
+  "pad1": [
+   -2.312,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 13109,
+   "model_px": 11744,
+   "fill": 2.259,
+   "delta_mod_180": -0.0,
+   "offset_mm": 0.027,
+   "offset_xy_mm": [
+    -0.021,
+    0.018
+   ],
+   "offset_limit_mm": 0.25,
+   "size_mm": [
+    4.94,
+    2.41
+   ],
+   "elongation": 2.04
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R39",
+  "side": "bottom",
+  "kicad_angle": 90.0,
+  "pad1": [
+   0.0,
+   2.312
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 13195,
+   "model_px": 12017,
+   "fill": 2.312,
+   "delta_mod_180": -0.2,
+   "offset_mm": 0.031,
+   "offset_xy_mm": [
+    -0.003,
+    -0.031
+   ],
+   "offset_limit_mm": 0.25,
+   "size_mm": [
+    4.94,
+    2.57
+   ],
+   "elongation": 2.0
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R40",
+  "side": "bottom",
+  "kicad_angle": -143.0,
+  "pad1": [
+   1.847,
+   -1.392
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 13136,
+   "model_px": 11733,
+   "fill": 2.257,
+   "delta_mod_180": 0.0,
+   "offset_mm": 0.02,
+   "offset_xy_mm": [
+    -0.02,
+    0.003
+   ],
+   "offset_limit_mm": 0.25,
+   "size_mm": [
+    4.91,
+    2.43
+   ],
+   "elongation": 2.03
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R41",
+  "side": "top",
+  "kicad_angle": 0.0,
+  "pad1": [
+   -0.51,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 535,
+   "model_px": 547,
+   "fill": 2.163,
+   "delta_mod_180": 0.2,
+   "offset_mm": 0.02,
+   "offset_xy_mm": [
+    -0.018,
+    -0.009
+   ],
+   "offset_limit_mm": 0.128,
+   "size_mm": [
+    0.99,
+    0.61
+   ],
+   "elongation": 1.9
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R42",
+  "side": "top",
+  "kicad_angle": 90.0,
+  "pad1": [
+   0.0,
+   0.51
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 584,
+   "model_px": 558,
+   "fill": 2.207,
+   "delta_mod_180": 0.6,
+   "offset_mm": 0.026,
+   "offset_xy_mm": [
+    0.004,
+    -0.026
+   ],
+   "offset_limit_mm": 0.127,
+   "size_mm": [
+    0.99,
+    0.61
+   ],
+   "elongation": 1.87
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R43",
+  "side": "top",
+  "kicad_angle": 180.0,
+  "pad1": [
+   0.51,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 578,
+   "model_px": 514,
+   "fill": 2.033,
+   "delta_mod_180": 1.5,
+   "offset_mm": 0.015,
+   "offset_xy_mm": [
+    0.013,
+    -0.007
+   ],
+   "offset_limit_mm": 0.128,
+   "size_mm": [
+    0.99,
+    0.61
+   ],
+   "elongation": 1.87
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R44",
+  "side": "top",
+  "kicad_angle": -90.0,
+  "pad1": [
+   0.0,
+   -0.51
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 598,
+   "model_px": 558,
+   "fill": 2.207,
+   "delta_mod_180": -0.7,
+   "offset_mm": 0.027,
+   "offset_xy_mm": [
+    -0.006,
+    -0.027
+   ],
+   "offset_limit_mm": 0.127,
+   "size_mm": [
+    0.99,
+    0.61
+   ],
+   "elongation": 1.86
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R45",
+  "side": "top",
+  "kicad_angle": 37.0,
+  "pad1": [
+   -0.407,
+   0.307
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 558,
+   "model_px": 545,
+   "fill": 2.156,
+   "delta_mod_180": -1.9,
+   "offset_mm": 0.001,
+   "offset_xy_mm": [
+    0.001,
+    -0.0
+   ],
+   "offset_limit_mm": 0.128,
+   "size_mm": [
+    1.08,
+    0.65
+   ],
+   "elongation": 1.89
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R46",
+  "side": "bottom",
+  "kicad_angle": 180.0,
+  "pad1": [
+   0.51,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 443,
+   "model_px": 429,
+   "fill": 1.697,
+   "delta_mod_180": -0.0,
+   "offset_mm": 0.053,
+   "offset_xy_mm": [
+    -0.05,
+    -0.019
+   ],
+   "offset_limit_mm": 0.128,
+   "size_mm": [
+    0.96,
+    0.48
+   ],
+   "elongation": 2.15
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R47",
+  "side": "bottom",
+  "kicad_angle": -90.0,
+  "pad1": [
+   0.0,
+   -0.51
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 411,
+   "model_px": 407,
+   "fill": 1.61,
+   "delta_mod_180": -0.8,
+   "offset_mm": 0.018,
+   "offset_xy_mm": [
+    -0.017,
+    -0.005
+   ],
+   "offset_limit_mm": 0.127,
+   "size_mm": [
+    0.96,
+    0.42
+   ],
+   "elongation": 2.19
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R48",
+  "side": "bottom",
+  "kicad_angle": 0.0,
+  "pad1": [
+   -0.51,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 472,
+   "model_px": 436,
+   "fill": 1.724,
+   "delta_mod_180": -1.0,
+   "offset_mm": 0.023,
+   "offset_xy_mm": [
+    -0.009,
+    -0.021
+   ],
+   "offset_limit_mm": 0.128,
+   "size_mm": [
+    0.93,
+    0.48
+   ],
+   "elongation": 2.04
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R49",
+  "side": "bottom",
+  "kicad_angle": 90.0,
+  "pad1": [
+   0.0,
+   0.51
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 478,
+   "model_px": 433,
+   "fill": 1.713,
+   "delta_mod_180": -1.0,
+   "offset_mm": 0.038,
+   "offset_xy_mm": [
+    -0.038,
+    -0.006
+   ],
+   "offset_limit_mm": 0.127,
+   "size_mm": [
+    0.96,
+    0.45
+   ],
+   "elongation": 2.09
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R50",
+  "side": "bottom",
+  "kicad_angle": -143.0,
+  "pad1": [
+   0.407,
+   -0.307
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 488,
+   "model_px": 415,
+   "fill": 1.641,
+   "delta_mod_180": -0.8,
+   "offset_mm": 0.011,
+   "offset_xy_mm": [
+    -0.011,
+    -0.004
+   ],
+   "offset_limit_mm": 0.128,
+   "size_mm": [
+    0.94,
+    0.47
+   ],
+   "elongation": 2.08
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R51",
+  "side": "top",
+  "kicad_angle": 0.0,
+  "pad1": [
+   -0.51,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 610,
+   "model_px": 552,
+   "fill": 2.183,
+   "delta_mod_180": 0.3,
+   "offset_mm": 0.015,
+   "offset_xy_mm": [
+    0.009,
+    -0.012
+   ],
+   "offset_limit_mm": 0.128,
+   "size_mm": [
+    0.99,
+    0.61
+   ],
+   "elongation": 1.9
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R52",
+  "side": "top",
+  "kicad_angle": 90.0,
+  "pad1": [
+   0.0,
+   0.51
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 607,
+   "model_px": 530,
+   "fill": 2.096,
+   "delta_mod_180": 1.1,
+   "offset_mm": 0.03,
+   "offset_xy_mm": [
+    0.008,
+    -0.029
+   ],
+   "offset_limit_mm": 0.127,
+   "size_mm": [
+    0.99,
+    0.61
+   ],
+   "elongation": 1.97
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R53",
+  "side": "top",
+  "kicad_angle": 180.0,
+  "pad1": [
+   0.51,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 630,
+   "model_px": 546,
+   "fill": 2.16,
+   "delta_mod_180": 0.2,
+   "offset_mm": 0.019,
+   "offset_xy_mm": [
+    -0.015,
+    -0.012
+   ],
+   "offset_limit_mm": 0.128,
+   "size_mm": [
+    1.03,
+    0.61
+   ],
+   "elongation": 1.9
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R54",
+  "side": "top",
+  "kicad_angle": -90.0,
+  "pad1": [
+   0.0,
+   -0.51
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 592,
+   "model_px": 547,
+   "fill": 2.163,
+   "delta_mod_180": -0.9,
+   "offset_mm": 0.018,
+   "offset_xy_mm": [
+    -0.001,
+    -0.018
+   ],
+   "offset_limit_mm": 0.127,
+   "size_mm": [
+    0.99,
+    0.61
+   ],
+   "elongation": 1.89
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R55",
+  "side": "top",
+  "kicad_angle": 37.0,
+  "pad1": [
+   -0.407,
+   0.307
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 607,
+   "model_px": 550,
+   "fill": 2.175,
+   "delta_mod_180": 0.5,
+   "offset_mm": 0.021,
+   "offset_xy_mm": [
+    -0.019,
+    0.01
+   ],
+   "offset_limit_mm": 0.128,
+   "size_mm": [
+    1.1,
+    0.63
+   ],
+   "elongation": 1.92
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R56",
+  "side": "bottom",
+  "kicad_angle": 180.0,
+  "pad1": [
+   0.51,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 515,
+   "model_px": 428,
+   "fill": 1.693,
+   "delta_mod_180": 1.6,
+   "offset_mm": 0.026,
+   "offset_xy_mm": [
+    -0.011,
+    -0.023
+   ],
+   "offset_limit_mm": 0.128,
+   "size_mm": [
+    0.93,
+    0.48
+   ],
+   "elongation": 2.11
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R57",
+  "side": "bottom",
+  "kicad_angle": -90.0,
+  "pad1": [
+   0.0,
+   -0.51
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 484,
+   "model_px": 407,
+   "fill": 1.61,
+   "delta_mod_180": -0.4,
+   "offset_mm": 0.006,
+   "offset_xy_mm": [
+    -0.0,
+    0.006
+   ],
+   "offset_limit_mm": 0.127,
+   "size_mm": [
+    0.93,
+    0.42
+   ],
+   "elongation": 2.11
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R58",
+  "side": "bottom",
+  "kicad_angle": 0.0,
+  "pad1": [
+   -0.51,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 504,
+   "model_px": 416,
+   "fill": 1.645,
+   "delta_mod_180": 0.6,
+   "offset_mm": 0.026,
+   "offset_xy_mm": [
+    -0.005,
+    -0.026
+   ],
+   "offset_limit_mm": 0.128,
+   "size_mm": [
+    0.93,
+    0.48
+   ],
+   "elongation": 2.05
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R59",
+  "side": "bottom",
+  "kicad_angle": 90.0,
+  "pad1": [
+   0.0,
+   0.51
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 493,
+   "model_px": 396,
+   "fill": 1.566,
+   "delta_mod_180": -2.1,
+   "offset_mm": 0.017,
+   "offset_xy_mm": [
+    -0.016,
+    0.005
+   ],
+   "offset_limit_mm": 0.127,
+   "size_mm": [
+    0.9,
+    0.45
+   ],
+   "elongation": 2.07
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R60",
+  "side": "bottom",
+  "kicad_angle": -143.0,
+  "pad1": [
+   0.407,
+   -0.307
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 495,
+   "model_px": 424,
+   "fill": 1.677,
+   "delta_mod_180": -0.5,
+   "offset_mm": 0.004,
+   "offset_xy_mm": [
+    -0.001,
+    -0.003
+   ],
+   "offset_limit_mm": 0.128,
+   "size_mm": [
+    0.96,
+    0.48
+   ],
+   "elongation": 2.1
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R61",
+  "side": "top",
+  "kicad_angle": 0.0,
+  "pad1": [
+   -0.32,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 220,
+   "model_px": 220,
+   "fill": 2.21,
+   "delta_mod_180": -0.0,
+   "offset_mm": 0.025,
+   "offset_xy_mm": [
+    -0.01,
+    -0.022
+   ],
+   "offset_limit_mm": 0.08,
+   "size_mm": [
+    0.67,
+    0.35
+   ],
+   "elongation": 1.88
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R62",
+  "side": "top",
+  "kicad_angle": 90.0,
+  "pad1": [
+   0.0,
+   0.32
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 192,
+   "model_px": 216,
+   "fill": 2.17,
+   "delta_mod_180": 0.0,
+   "offset_mm": 0.031,
+   "offset_xy_mm": [
+    0.021,
+    -0.023
+   ],
+   "offset_limit_mm": 0.08,
+   "size_mm": [
+    0.61,
+    0.35
+   ],
+   "elongation": 1.87
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R63",
+  "side": "top",
+  "kicad_angle": 180.0,
+  "pad1": [
+   0.32,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 261,
+   "model_px": 220,
+   "fill": 2.21,
+   "delta_mod_180": -0.0,
+   "offset_mm": 0.03,
+   "offset_xy_mm": [
+    -0.02,
+    -0.022
+   ],
+   "offset_limit_mm": 0.08,
+   "size_mm": [
+    0.67,
+    0.35
+   ],
+   "elongation": 1.88
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R64",
+  "side": "top",
+  "kicad_angle": -90.0,
+  "pad1": [
+   0.0,
+   -0.32
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 206,
+   "model_px": 212,
+   "fill": 2.13,
+   "delta_mod_180": 0.0,
+   "offset_mm": 0.021,
+   "offset_xy_mm": [
+    0.011,
+    -0.017
+   ],
+   "offset_limit_mm": 0.08,
+   "size_mm": [
+    0.61,
+    0.35
+   ],
+   "elongation": 1.83
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R65",
+  "side": "top",
+  "kicad_angle": 37.0,
+  "pad1": [
+   -0.256,
+   0.193
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 213,
+   "model_px": 198,
+   "fill": 1.989,
+   "delta_mod_180": 0.2,
+   "offset_mm": 0.009,
+   "offset_xy_mm": [
+    -0.005,
+    0.007
+   ],
+   "offset_limit_mm": 0.08,
+   "size_mm": [
+    0.62,
+    0.42
+   ],
+   "elongation": 1.71
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R66",
+  "side": "bottom",
+  "kicad_angle": 180.0,
+  "pad1": [
+   0.32,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 144,
+   "model_px": 132,
+   "fill": 1.326,
+   "delta_mod_180": -0.8,
+   "offset_mm": 0.016,
+   "offset_xy_mm": [
+    -0.014,
+    0.008
+   ],
+   "offset_limit_mm": 0.08,
+   "size_mm": [
+    0.55,
+    0.22
+   ],
+   "elongation": 2.11
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R67",
+  "side": "bottom",
+  "kicad_angle": -90.0,
+  "pad1": [
+   0.0,
+   -0.32
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 154,
+   "model_px": 136,
+   "fill": 1.366,
+   "delta_mod_180": 0.8,
+   "offset_mm": 0.012,
+   "offset_xy_mm": [
+    0.012,
+    0.002
+   ],
+   "offset_limit_mm": 0.08,
+   "size_mm": [
+    0.55,
+    0.26
+   ],
+   "elongation": 2.1
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R68",
+  "side": "bottom",
+  "kicad_angle": 0.0,
+  "pad1": [
+   -0.32,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 164,
+   "model_px": 133,
+   "fill": 1.336,
+   "delta_mod_180": -0.1,
+   "offset_mm": 0.017,
+   "offset_xy_mm": [
+    -0.014,
+    0.01
+   ],
+   "offset_limit_mm": 0.08,
+   "size_mm": [
+    0.55,
+    0.22
+   ],
+   "elongation": 2.13
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R69",
+  "side": "bottom",
+  "kicad_angle": 90.0,
+  "pad1": [
+   0.0,
+   0.32
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 176,
+   "model_px": 134,
+   "fill": 1.346,
+   "delta_mod_180": 1.1,
+   "offset_mm": 0.015,
+   "offset_xy_mm": [
+    0.01,
+    -0.012
+   ],
+   "offset_limit_mm": 0.08,
+   "size_mm": [
+    0.55,
+    0.22
+   ],
+   "elongation": 2.2
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R70",
+  "side": "bottom",
+  "kicad_angle": -143.0,
+  "pad1": [
+   0.256,
+   -0.193
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 130,
+   "model_px": 135,
+   "fill": 1.356,
+   "delta_mod_180": 1.8,
+   "offset_mm": 0.012,
+   "offset_xy_mm": [
+    -0.008,
+    -0.009
+   ],
+   "offset_limit_mm": 0.08,
+   "size_mm": [
+    0.56,
+    0.29
+   ],
+   "elongation": 2.09
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R71",
+  "side": "top",
+  "kicad_angle": 0.0,
+  "pad1": [
+   -2.962,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 20784,
+   "model_px": 19773,
+   "fill": 2.318,
+   "delta_mod_180": -0.0,
+   "offset_mm": 0.021,
+   "offset_xy_mm": [
+    0.017,
+    0.012
+   ],
+   "offset_limit_mm": 0.25,
+   "size_mm": [
+    6.32,
+    3.27
+   ],
+   "elongation": 2.0
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R72",
+  "side": "top",
+  "kicad_angle": 90.0,
+  "pad1": [
+   0.0,
+   2.963
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 20802,
+   "model_px": 19738,
+   "fill": 2.314,
+   "delta_mod_180": 0.2,
+   "offset_mm": 0.021,
+   "offset_xy_mm": [
+    0.019,
+    0.009
+   ],
+   "offset_limit_mm": 0.25,
+   "size_mm": [
+    6.32,
+    3.27
+   ],
+   "elongation": 2.0
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R73",
+  "side": "top",
+  "kicad_angle": 180.0,
+  "pad1": [
+   2.963,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 20651,
+   "model_px": 19554,
+   "fill": 2.292,
+   "delta_mod_180": -0.0,
+   "offset_mm": 0.01,
+   "offset_xy_mm": [
+    -0.001,
+    0.01
+   ],
+   "offset_limit_mm": 0.25,
+   "size_mm": [
+    6.25,
+    3.27
+   ],
+   "elongation": 1.98
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R74",
+  "side": "top",
+  "kicad_angle": -90.0,
+  "pad1": [
+   0.0,
+   -2.962
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 20451,
+   "model_px": 19636,
+   "fill": 2.302,
+   "delta_mod_180": 0.0,
+   "offset_mm": 0.03,
+   "offset_xy_mm": [
+    0.027,
+    0.014
+   ],
+   "offset_limit_mm": 0.25,
+   "size_mm": [
+    6.32,
+    3.24
+   ],
+   "elongation": 2.01
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R75",
+  "side": "top",
+  "kicad_angle": 37.0,
+  "pad1": [
+   -2.366,
+   1.783
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 20837,
+   "model_px": 19621,
+   "fill": 2.3,
+   "delta_mod_180": 0.0,
+   "offset_mm": 0.01,
+   "offset_xy_mm": [
+    0.01,
+    -0.003
+   ],
+   "offset_limit_mm": 0.25,
+   "size_mm": [
+    6.27,
+    3.23
+   ],
+   "elongation": 2.0
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R76",
+  "side": "bottom",
+  "kicad_angle": 180.0,
+  "pad1": [
+   2.962,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 20475,
+   "model_px": 19172,
+   "fill": 2.247,
+   "delta_mod_180": -0.0,
+   "offset_mm": 0.025,
+   "offset_xy_mm": [
+    -0.016,
+    0.02
+   ],
+   "offset_limit_mm": 0.25,
+   "size_mm": [
+    6.25,
+    3.11
+   ],
+   "elongation": 2.0
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R77",
+  "side": "bottom",
+  "kicad_angle": -90.0,
+  "pad1": [
+   0.0,
+   -2.962
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 20536,
+   "model_px": 19670,
+   "fill": 2.306,
+   "delta_mod_180": 0.0,
+   "offset_mm": 0.021,
+   "offset_xy_mm": [
+    -0.01,
+    -0.019
+   ],
+   "offset_limit_mm": 0.25,
+   "size_mm": [
+    6.22,
+    3.18
+   ],
+   "elongation": 1.94
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R78",
+  "side": "bottom",
+  "kicad_angle": 0.0,
+  "pad1": [
+   -2.962,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 20551,
+   "model_px": 19140,
+   "fill": 2.244,
+   "delta_mod_180": 0.0,
+   "offset_mm": 0.019,
+   "offset_xy_mm": [
+    -0.002,
+    0.019
+   ],
+   "offset_limit_mm": 0.25,
+   "size_mm": [
+    6.25,
+    3.11
+   ],
+   "elongation": 2.0
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R79",
+  "side": "bottom",
+  "kicad_angle": 90.0,
+  "pad1": [
+   0.0,
+   2.963
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 20411,
+   "model_px": 19404,
+   "fill": 2.274,
+   "delta_mod_180": 0.2,
+   "offset_mm": 0.031,
+   "offset_xy_mm": [
+    -0.019,
+    -0.025
+   ],
+   "offset_limit_mm": 0.25,
+   "size_mm": [
+    6.25,
+    3.18
+   ],
+   "elongation": 1.97
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R80",
+  "side": "bottom",
+  "kicad_angle": -143.0,
+  "pad1": [
+   2.366,
+   -1.783
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 20757,
+   "model_px": 19123,
+   "fill": 2.242,
+   "delta_mod_180": 0.1,
+   "offset_mm": 0.005,
+   "offset_xy_mm": [
+    -0.005,
+    -0.002
+   ],
+   "offset_limit_mm": 0.25,
+   "size_mm": [
+    6.19,
+    3.14
+   ],
+   "elongation": 1.98
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R81",
+  "side": "top",
+  "kicad_angle": 0.0,
+  "pad1": [
+   -1.462,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 8336,
+   "model_px": 7958,
+   "fill": 3.828,
+   "delta_mod_180": -0.1,
+   "offset_mm": 0.015,
+   "offset_xy_mm": [
+    -0.01,
+    -0.011
+   ],
+   "offset_limit_mm": 0.25,
+   "size_mm": [
+    3.18,
+    2.6
+   ],
+   "elongation": 1.26
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R82",
+  "side": "top",
+  "kicad_angle": 0.0,
+  "pad1": [
+   -0.51,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 615,
+   "model_px": 550,
+   "fill": 2.175,
+   "delta_mod_180": -2.0,
+   "offset_mm": 0.017,
+   "offset_xy_mm": [
+    -0.016,
+    -0.004
+   ],
+   "offset_limit_mm": 0.128,
+   "size_mm": [
+    1.03,
+    0.67
+   ],
+   "elongation": 1.9
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R83",
+  "side": "top",
+  "kicad_angle": 0.0,
+  "pad1": [
+   -1.462,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 8536,
+   "model_px": 8044,
+   "fill": 3.869,
+   "delta_mod_180": -0.0,
+   "offset_mm": 0.019,
+   "offset_xy_mm": [
+    -0.011,
+    -0.015
+   ],
+   "offset_limit_mm": 0.25,
+   "size_mm": [
+    3.18,
+    2.6
+   ],
+   "elongation": 1.24
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R84",
+  "side": "top",
+  "kicad_angle": 0.0,
+  "pad1": [
+   -1.463,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 8387,
+   "model_px": 7968,
+   "fill": 3.832,
+   "delta_mod_180": -0.0,
+   "offset_mm": 0.018,
+   "offset_xy_mm": [
+    0.014,
+    -0.011
+   ],
+   "offset_limit_mm": 0.25,
+   "size_mm": [
+    3.18,
+    2.6
+   ],
+   "elongation": 1.26
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R85",
+  "side": "top",
+  "kicad_angle": 0.0,
+  "pad1": [
+   -1.462,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 8522,
+   "model_px": 8044,
+   "fill": 3.869,
+   "delta_mod_180": 0.0,
+   "offset_mm": 0.018,
+   "offset_xy_mm": [
+    0.01,
+    -0.015
+   ],
+   "offset_limit_mm": 0.25,
+   "size_mm": [
+    3.18,
+    2.6
+   ],
+   "elongation": 1.24
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R86",
+  "side": "top",
+  "kicad_angle": 0.0,
+  "pad1": [
+   -1.462,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 8224,
+   "model_px": 7950,
+   "fill": 3.824,
+   "delta_mod_180": 0.1,
+   "offset_mm": 0.034,
+   "offset_xy_mm": [
+    0.032,
+    -0.011
+   ],
+   "offset_limit_mm": 0.25,
+   "size_mm": [
+    3.18,
+    2.6
+   ],
+   "elongation": 1.26
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R87",
+  "side": "top",
+  "kicad_angle": 0.0,
+  "pad1": [
+   -1.462,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 8294,
+   "model_px": 7970,
+   "fill": 3.833,
+   "delta_mod_180": 0.1,
+   "offset_mm": 0.015,
+   "offset_xy_mm": [
+    -0.011,
+    -0.01
+   ],
+   "offset_limit_mm": 0.25,
+   "size_mm": [
+    3.18,
+    2.6
+   ],
+   "elongation": 1.26
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R88",
+  "side": "top",
+  "kicad_angle": 0.0,
+  "pad1": [
+   -1.463,
+   0.0
+  ],
+  "dots": [],
+  "drawn": false
+ },
+ {
+  "ref": "R89",
+  "side": "top",
+  "kicad_angle": 0.0,
+  "pad1": [
+   -0.51,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 609,
+   "model_px": 548,
+   "fill": 2.167,
+   "delta_mod_180": 0.5,
+   "offset_mm": 0.018,
+   "offset_xy_mm": [
+    0.017,
+    -0.007
+   ],
+   "offset_limit_mm": 0.128,
+   "size_mm": [
+    0.99,
+    0.67
+   ],
+   "elongation": 1.86
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R90",
+  "side": "top",
+  "kicad_angle": 0.0,
+  "pad1": [
+   -1.462,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 8430,
+   "model_px": 7992,
+   "fill": 3.844,
+   "delta_mod_180": -0.2,
+   "offset_mm": 0.017,
+   "offset_xy_mm": [
+    0.012,
+    -0.012
+   ],
+   "offset_limit_mm": 0.25,
+   "size_mm": [
+    3.18,
+    2.6
+   ],
+   "elongation": 1.26
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R91",
+  "side": "top",
+  "kicad_angle": 0.0,
+  "pad1": [
+   -1.462,
+   0.0
+  ],
+  "dots": [],
+  "drawn": false
+ },
+ {
+  "ref": "R92",
+  "side": "top",
+  "kicad_angle": 0.0,
+  "pad1": [
+   -1.462,
+   0.0
+  ],
+  "dots": [],
+  "drawn": false
+ },
+ {
+  "ref": "R93",
+  "side": "top",
+  "kicad_angle": 0.0,
+  "pad1": [
+   -1.462,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 8397,
+   "model_px": 8052,
+   "fill": 3.873,
+   "delta_mod_180": -0.3,
+   "offset_mm": 0.018,
+   "offset_xy_mm": [
+    0.01,
+    -0.015
+   ],
+   "offset_limit_mm": 0.25,
+   "size_mm": [
+    3.18,
+    2.6
+   ],
+   "elongation": 1.24
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R94",
+  "side": "top",
+  "kicad_angle": 0.0,
+  "pad1": [
+   -0.51,
+   0.0
+  ],
+  "dots": [],
+  "drawn": false
+ },
+ {
+  "ref": "R95",
+  "side": "top",
+  "kicad_angle": 0.0,
+  "pad1": [
+   -1.462,
+   0.0
+  ],
+  "dots": [],
+  "drawn": false
+ },
+ {
+  "ref": "R96",
+  "side": "top",
+  "kicad_angle": 0.0,
+  "pad1": [
+   -1.463,
+   0.0
+  ],
+  "dots": [],
+  "drawn": false
+ },
+ {
+  "ref": "R97",
+  "side": "top",
+  "kicad_angle": 0.0,
+  "pad1": [
+   -1.463,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 8256,
+   "model_px": 7984,
+   "fill": 3.84,
+   "delta_mod_180": 0.7,
+   "offset_mm": 0.018,
+   "offset_xy_mm": [
+    0.016,
+    -0.008
+   ],
+   "offset_limit_mm": 0.25,
+   "size_mm": [
+    3.18,
+    2.6
+   ],
+   "elongation": 1.26
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R98",
+  "side": "top",
+  "kicad_angle": 0.0,
+  "pad1": [
+   -1.463,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 8327,
+   "model_px": 7976,
+   "fill": 3.836,
+   "delta_mod_180": -0.2,
+   "offset_mm": 0.035,
+   "offset_xy_mm": [
+    0.033,
+    -0.011
+   ],
+   "offset_limit_mm": 0.25,
+   "size_mm": [
+    3.18,
+    2.6
+   ],
+   "elongation": 1.26
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R99",
+  "side": "top",
+  "kicad_angle": 0.0,
+  "pad1": [
+   -1.462,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 8333,
+   "model_px": 8012,
+   "fill": 3.853,
+   "delta_mod_180": 0.2,
+   "offset_mm": 0.018,
+   "offset_xy_mm": [
+    -0.011,
+    -0.014
+   ],
+   "offset_limit_mm": 0.25,
+   "size_mm": [
+    3.18,
+    2.6
+   ],
+   "elongation": 1.24
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R100",
+  "side": "top",
+  "kicad_angle": 0.0,
+  "pad1": [
+   -1.463,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 8254,
+   "model_px": 7984,
+   "fill": 3.84,
+   "delta_mod_180": 0.3,
+   "offset_mm": 0.011,
+   "offset_xy_mm": [
+    -0.007,
+    -0.009
+   ],
+   "offset_limit_mm": 0.25,
+   "size_mm": [
+    3.18,
+    2.6
+   ],
+   "elongation": 1.26
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R101",
+  "side": "top",
+  "kicad_angle": 0.0,
+  "pad1": [
+   -1.463,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 8489,
+   "model_px": 7988,
+   "fill": 3.842,
+   "delta_mod_180": 0.1,
+   "offset_mm": 0.017,
+   "offset_xy_mm": [
+    0.013,
+    -0.012
+   ],
+   "offset_limit_mm": 0.25,
+   "size_mm": [
+    3.18,
+    2.6
+   ],
+   "elongation": 1.26
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R102",
+  "side": "top",
+  "kicad_angle": 0.0,
+  "pad1": [
+   -1.462,
+   0.0
+  ],
+  "dots": [],
+  "drawn": false
+ },
+ {
+  "ref": "R103",
+  "side": "top",
+  "kicad_angle": 0.0,
+  "pad1": [
+   -0.51,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 567,
+   "model_px": 550,
+   "fill": 2.175,
+   "delta_mod_180": -1.6,
+   "offset_mm": 0.013,
+   "offset_xy_mm": [
+    -0.011,
+    -0.006
+   ],
+   "offset_limit_mm": 0.127,
+   "size_mm": [
+    0.99,
+    0.67
+   ],
+   "elongation": 1.85
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R104",
+  "side": "top",
+  "kicad_angle": 0.0,
+  "pad1": [
+   -1.462,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 8548,
+   "model_px": 8048,
+   "fill": 3.871,
+   "delta_mod_180": -0.1,
+   "offset_mm": 0.017,
+   "offset_xy_mm": [
+    -0.014,
+    -0.009
+   ],
+   "offset_limit_mm": 0.25,
+   "size_mm": [
+    3.18,
+    2.6
+   ],
+   "elongation": 1.24
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R105",
+  "side": "top",
+  "kicad_angle": 0.0,
+  "pad1": [
+   -1.462,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 8568,
+   "model_px": 8064,
+   "fill": 3.878,
+   "delta_mod_180": -0.0,
+   "offset_mm": 0.013,
+   "offset_xy_mm": [
+    0.01,
+    -0.009
+   ],
+   "offset_limit_mm": 0.25,
+   "size_mm": [
+    3.18,
+    2.6
+   ],
+   "elongation": 1.24
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R106",
+  "side": "top",
+  "kicad_angle": 0.0,
+  "pad1": [
+   -1.463,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 8504,
+   "model_px": 8230,
+   "fill": 3.958,
+   "delta_mod_180": 0.2,
+   "offset_mm": 0.012,
+   "offset_xy_mm": [
+    -0.002,
+    -0.012
+   ],
+   "offset_limit_mm": 0.25,
+   "size_mm": [
+    3.24,
+    2.6
+   ],
+   "elongation": 1.26
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R107",
+  "side": "top",
+  "kicad_angle": 0.0,
+  "pad1": [
+   -1.462,
+   0.0
+  ],
+  "dots": [],
+  "drawn": false
+ },
+ {
+  "ref": "R108",
+  "side": "top",
+  "kicad_angle": 0.0,
+  "pad1": [
+   -0.51,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 568,
+   "model_px": 540,
+   "fill": 2.136,
+   "delta_mod_180": -0.8,
+   "offset_mm": 0.024,
+   "offset_xy_mm": [
+    0.013,
+    -0.02
+   ],
+   "offset_limit_mm": 0.128,
+   "size_mm": [
+    0.99,
+    0.61
+   ],
+   "elongation": 1.91
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R109",
+  "side": "top",
+  "kicad_angle": 0.0,
+  "pad1": [
+   -1.462,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 8493,
+   "model_px": 8092,
+   "fill": 3.892,
+   "delta_mod_180": 0.5,
+   "offset_mm": 0.012,
+   "offset_xy_mm": [
+    -0.005,
+    -0.011
+   ],
+   "offset_limit_mm": 0.25,
+   "size_mm": [
+    3.18,
+    2.6
+   ],
+   "elongation": 1.24
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R110",
+  "side": "top",
+  "kicad_angle": 0.0,
+  "pad1": [
+   -1.463,
+   0.0
+  ],
+  "dots": [],
+  "drawn": false
+ },
+ {
+  "ref": "R111",
+  "side": "top",
+  "kicad_angle": 0.0,
+  "pad1": [
+   -1.462,
+   0.0
+  ],
+  "dots": [],
+  "drawn": false
+ },
+ {
+  "ref": "R112",
+  "side": "top",
+  "kicad_angle": 0.0,
+  "pad1": [
+   -1.463,
+   0.0
+  ],
+  "dots": [],
+  "drawn": false
+ },
+ {
+  "ref": "R113",
+  "side": "top",
+  "kicad_angle": 0.0,
+  "pad1": [
+   -1.463,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 8394,
+   "model_px": 8100,
+   "fill": 3.896,
+   "delta_mod_180": -1.2,
+   "offset_mm": 0.032,
+   "offset_xy_mm": [
+    0.03,
+    -0.011
+   ],
+   "offset_limit_mm": 0.25,
+   "size_mm": [
+    3.18,
+    2.6
+   ],
+   "elongation": 1.24
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R114",
+  "side": "top",
+  "kicad_angle": 0.0,
+  "pad1": [
+   -0.51,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 599,
+   "model_px": 514,
+   "fill": 2.033,
+   "delta_mod_180": -2.1,
+   "offset_mm": 0.017,
+   "offset_xy_mm": [
+    -0.017,
+    -0.001
+   ],
+   "offset_limit_mm": 0.127,
+   "size_mm": [
+    1.06,
+    0.64
+   ],
+   "elongation": 1.94
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R115",
+  "side": "top",
+  "kicad_angle": 0.0,
+  "pad1": [
+   -1.463,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 8320,
+   "model_px": 8032,
+   "fill": 3.863,
+   "delta_mod_180": -0.1,
+   "offset_mm": 0.036,
+   "offset_xy_mm": [
+    0.033,
+    -0.015
+   ],
+   "offset_limit_mm": 0.25,
+   "size_mm": [
+    3.18,
+    2.6
+   ],
+   "elongation": 1.24
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R116",
+  "side": "top",
+  "kicad_angle": 0.0,
+  "pad1": [
+   -1.462,
+   0.0
+  ],
+  "dots": [],
+  "drawn": false
+ },
+ {
+  "ref": "R117",
+  "side": "top",
+  "kicad_angle": 0.0,
+  "pad1": [
+   -1.462,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 8574,
+   "model_px": 8054,
+   "fill": 3.874,
+   "delta_mod_180": -0.1,
+   "offset_mm": 0.012,
+   "offset_xy_mm": [
+    0.009,
+    -0.009
+   ],
+   "offset_limit_mm": 0.25,
+   "size_mm": [
+    3.18,
+    2.6
+   ],
+   "elongation": 1.24
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R118",
+  "side": "top",
+  "kicad_angle": 0.0,
+  "pad1": [
+   -1.462,
+   0.0
+  ],
+  "dots": [],
+  "drawn": false
+ },
+ {
+  "ref": "R119",
+  "side": "top",
+  "kicad_angle": 0.0,
+  "pad1": [
+   -1.462,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 8363,
+   "model_px": 8056,
+   "fill": 3.875,
+   "delta_mod_180": 0.1,
+   "offset_mm": 0.018,
+   "offset_xy_mm": [
+    -0.011,
+    -0.013
+   ],
+   "offset_limit_mm": 0.25,
+   "size_mm": [
+    3.18,
+    2.6
+   ],
+   "elongation": 1.24
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R120",
+  "side": "top",
+  "kicad_angle": 0.0,
+  "pad1": [
+   -1.462,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 8607,
+   "model_px": 8040,
+   "fill": 3.867,
+   "delta_mod_180": 0.1,
+   "offset_mm": 0.021,
+   "offset_xy_mm": [
+    0.014,
+    -0.015
+   ],
+   "offset_limit_mm": 0.25,
+   "size_mm": [
+    3.18,
+    2.6
+   ],
+   "elongation": 1.24
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R121",
+  "side": "top",
+  "kicad_angle": 0.0,
+  "pad1": [
+   -0.51,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 565,
+   "model_px": 520,
+   "fill": 2.057,
+   "delta_mod_180": -0.4,
+   "offset_mm": 0.017,
+   "offset_xy_mm": [
+    -0.009,
+    -0.014
+   ],
+   "offset_limit_mm": 0.127,
+   "size_mm": [
+    0.99,
+    0.61
+   ],
+   "elongation": 1.98
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R122",
+  "side": "top",
+  "kicad_angle": 0.0,
+  "pad1": [
+   -1.463,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 8402,
+   "model_px": 8082,
+   "fill": 3.887,
+   "delta_mod_180": 0.9,
+   "offset_mm": 0.017,
+   "offset_xy_mm": [
+    -0.009,
+    -0.014
+   ],
+   "offset_limit_mm": 0.25,
+   "size_mm": [
+    3.18,
+    2.6
+   ],
+   "elongation": 1.24
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R123",
+  "side": "top",
+  "kicad_angle": 0.0,
+  "pad1": [
+   -1.463,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 8532,
+   "model_px": 8092,
+   "fill": 3.892,
+   "delta_mod_180": 1.0,
+   "offset_mm": 0.014,
+   "offset_xy_mm": [
+    0.007,
+    -0.012
+   ],
+   "offset_limit_mm": 0.25,
+   "size_mm": [
+    3.18,
+    2.6
+   ],
+   "elongation": 1.24
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R124",
+  "side": "top",
+  "kicad_angle": 0.0,
+  "pad1": [
+   -1.463,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 8377,
+   "model_px": 8050,
+   "fill": 3.872,
+   "delta_mod_180": -0.5,
+   "offset_mm": 0.03,
+   "offset_xy_mm": [
+    0.029,
+    -0.005
+   ],
+   "offset_limit_mm": 0.25,
+   "size_mm": [
+    3.18,
+    2.6
+   ],
+   "elongation": 1.24
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R125",
+  "side": "top",
+  "kicad_angle": 0.0,
+  "pad1": [
+   -1.462,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 8403,
+   "model_px": 8082,
+   "fill": 3.887,
+   "delta_mod_180": -0.1,
+   "offset_mm": 0.014,
+   "offset_xy_mm": [
+    -0.009,
+    -0.011
+   ],
+   "offset_limit_mm": 0.25,
+   "size_mm": [
+    3.18,
+    2.6
+   ],
+   "elongation": 1.24
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R126",
+  "side": "top",
+  "kicad_angle": 0.0,
+  "pad1": [
+   -0.51,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 581,
+   "model_px": 520,
+   "fill": 2.057,
+   "delta_mod_180": -0.4,
+   "offset_mm": 0.016,
+   "offset_xy_mm": [
+    0.01,
+    -0.013
+   ],
+   "offset_limit_mm": 0.127,
+   "size_mm": [
+    0.99,
+    0.55
+   ],
+   "elongation": 2.01
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R127",
+  "side": "top",
+  "kicad_angle": 0.0,
+  "pad1": [
+   -1.462,
+   0.0
+  ],
+  "dots": [],
+  "drawn": false
+ },
+ {
+  "ref": "R128",
+  "side": "top",
+  "kicad_angle": 0.0,
+  "pad1": [
+   -1.462,
+   0.0
+  ],
+  "dots": [],
+  "drawn": false
+ },
+ {
+  "ref": "R129",
+  "side": "top",
+  "kicad_angle": 0.0,
+  "pad1": [
+   -1.462,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 8487,
+   "model_px": 8056,
+   "fill": 3.875,
+   "delta_mod_180": -0.1,
+   "offset_mm": 0.035,
+   "offset_xy_mm": [
+    0.033,
+    -0.011
+   ],
+   "offset_limit_mm": 0.25,
+   "size_mm": [
+    3.18,
+    2.6
+   ],
+   "elongation": 1.24
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R130",
+  "side": "top",
+  "kicad_angle": 0.0,
+  "pad1": [
+   -1.462,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 8571,
+   "model_px": 8098,
+   "fill": 3.895,
+   "delta_mod_180": -0.1,
+   "offset_mm": 0.012,
+   "offset_xy_mm": [
+    -0.012,
+    0.003
+   ],
+   "offset_limit_mm": 0.25,
+   "size_mm": [
+    3.18,
+    2.6
+   ],
+   "elongation": 1.23
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R131",
+  "side": "top",
+  "kicad_angle": 0.0,
+  "pad1": [
+   -0.51,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 589,
+   "model_px": 510,
+   "fill": 2.017,
+   "delta_mod_180": 1.2,
+   "offset_mm": 0.007,
+   "offset_xy_mm": [
+    0.005,
+    -0.005
+   ],
+   "offset_limit_mm": 0.127,
+   "size_mm": [
+    1.06,
+    0.58
+   ],
+   "elongation": 1.95
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R132",
+  "side": "top",
+  "kicad_angle": 0.0,
+  "pad1": [
+   -0.51,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 556,
+   "model_px": 546,
+   "fill": 2.16,
+   "delta_mod_180": 0.2,
+   "offset_mm": 0.025,
+   "offset_xy_mm": [
+    0.018,
+    -0.017
+   ],
+   "offset_limit_mm": 0.127,
+   "size_mm": [
+    0.99,
+    0.61
+   ],
+   "elongation": 1.88
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R133",
+  "side": "top",
+  "kicad_angle": 37.0,
+  "pad1": [
+   -0.407,
+   0.307
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 590,
+   "model_px": 540,
+   "fill": 2.136,
+   "delta_mod_180": -0.3,
+   "offset_mm": 0.032,
+   "offset_xy_mm": [
+    0.025,
+    -0.02
+   ],
+   "offset_limit_mm": 0.128,
+   "size_mm": [
+    1.05,
+    0.65
+   ],
+   "elongation": 1.88
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R134",
+  "side": "bottom",
+  "kicad_angle": 180.0,
+  "pad1": [
+   0.51,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 468,
+   "model_px": 421,
+   "fill": 1.665,
+   "delta_mod_180": 0.2,
+   "offset_mm": 0.021,
+   "offset_xy_mm": [
+    -0.014,
+    -0.016
+   ],
+   "offset_limit_mm": 0.127,
+   "size_mm": [
+    0.93,
+    0.42
+   ],
+   "elongation": 2.14
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R135",
+  "side": "bottom",
+  "kicad_angle": -143.0,
+  "pad1": [
+   0.407,
+   -0.307
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 483,
+   "model_px": 420,
+   "fill": 1.661,
+   "delta_mod_180": -0.4,
+   "offset_mm": 0.015,
+   "offset_xy_mm": [
+    -0.006,
+    -0.013
+   ],
+   "offset_limit_mm": 0.128,
+   "size_mm": [
+    0.96,
+    0.48
+   ],
+   "elongation": 2.12
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R136",
+  "side": "top",
+  "kicad_angle": 0.0,
+  "pad1": [
+   -0.51,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 553,
+   "model_px": 545,
+   "fill": 2.156,
+   "delta_mod_180": -0.8,
+   "offset_mm": 0.019,
+   "offset_xy_mm": [
+    0.009,
+    -0.016
+   ],
+   "offset_limit_mm": 0.127,
+   "size_mm": [
+    0.99,
+    0.61
+   ],
+   "elongation": 1.86
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R137",
+  "side": "top",
+  "kicad_angle": 37.0,
+  "pad1": [
+   -0.407,
+   0.307
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 594,
+   "model_px": 547,
+   "fill": 2.163,
+   "delta_mod_180": -1.2,
+   "offset_mm": 0.007,
+   "offset_xy_mm": [
+    0.002,
+    -0.006
+   ],
+   "offset_limit_mm": 0.128,
+   "size_mm": [
+    1.08,
+    0.65
+   ],
+   "elongation": 1.87
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R138",
+  "side": "bottom",
+  "kicad_angle": 180.0,
+  "pad1": [
+   0.51,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 462,
+   "model_px": 411,
+   "fill": 1.626,
+   "delta_mod_180": 0.2,
+   "offset_mm": 0.022,
+   "offset_xy_mm": [
+    -0.02,
+    -0.011
+   ],
+   "offset_limit_mm": 0.127,
+   "size_mm": [
+    0.93,
+    0.45
+   ],
+   "elongation": 2.17
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R139",
+  "side": "bottom",
+  "kicad_angle": -143.0,
+  "pad1": [
+   0.407,
+   -0.307
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 485,
+   "model_px": 417,
+   "fill": 1.649,
+   "delta_mod_180": 0.8,
+   "offset_mm": 0.014,
+   "offset_xy_mm": [
+    -0.004,
+    -0.013
+   ],
+   "offset_limit_mm": 0.128,
+   "size_mm": [
+    0.97,
+    0.48
+   ],
+   "elongation": 2.16
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R140",
+  "side": "top",
+  "kicad_angle": 0.0,
+  "pad1": [
+   -0.51,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 520,
+   "model_px": 549,
+   "fill": 2.171,
+   "delta_mod_180": 1.6,
+   "offset_mm": 0.009,
+   "offset_xy_mm": [
+    -0.001,
+    -0.009
+   ],
+   "offset_limit_mm": 0.127,
+   "size_mm": [
+    0.99,
+    0.61
+   ],
+   "elongation": 1.85
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R141",
+  "side": "top",
+  "kicad_angle": 37.0,
+  "pad1": [
+   -0.407,
+   0.307
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 548,
+   "model_px": 531,
+   "fill": 2.1,
+   "delta_mod_180": -3.2,
+   "offset_mm": 0.003,
+   "offset_xy_mm": [
+    -0.001,
+    -0.003
+   ],
+   "offset_limit_mm": 0.128,
+   "size_mm": [
+    1.06,
+    0.63
+   ],
+   "elongation": 1.94
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R142",
+  "side": "bottom",
+  "kicad_angle": 180.0,
+  "pad1": [
+   0.51,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 425,
+   "model_px": 410,
+   "fill": 1.622,
+   "delta_mod_180": -1.7,
+   "offset_mm": 0.02,
+   "offset_xy_mm": [
+    -0.005,
+    -0.02
+   ],
+   "offset_limit_mm": 0.127,
+   "size_mm": [
+    0.99,
+    0.42
+   ],
+   "elongation": 2.24
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R143",
+  "side": "bottom",
+  "kicad_angle": -143.0,
+  "pad1": [
+   0.407,
+   -0.307
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 449,
+   "model_px": 419,
+   "fill": 1.657,
+   "delta_mod_180": -0.2,
+   "offset_mm": 0.013,
+   "offset_xy_mm": [
+    -0.01,
+    -0.008
+   ],
+   "offset_limit_mm": 0.128,
+   "size_mm": [
+    0.97,
+    0.48
+   ],
+   "elongation": 2.16
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R144",
+  "side": "top",
+  "kicad_angle": 0.0,
+  "pad1": [
+   -0.51,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 521,
+   "model_px": 514,
+   "fill": 2.033,
+   "delta_mod_180": 0.6,
+   "offset_mm": 0.012,
+   "offset_xy_mm": [
+    0.004,
+    -0.011
+   ],
+   "offset_limit_mm": 0.127,
+   "size_mm": [
+    0.93,
+    0.61
+   ],
+   "elongation": 1.75
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R145",
+  "side": "top",
+  "kicad_angle": 37.0,
+  "pad1": [
+   -0.407,
+   0.307
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 555,
+   "model_px": 535,
+   "fill": 2.116,
+   "delta_mod_180": -0.7,
+   "offset_mm": 0.028,
+   "offset_xy_mm": [
+    0.019,
+    -0.021
+   ],
+   "offset_limit_mm": 0.128,
+   "size_mm": [
+    1.07,
+    0.64
+   ],
+   "elongation": 1.89
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R146",
+  "side": "bottom",
+  "kicad_angle": 180.0,
+  "pad1": [
+   0.51,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 437,
+   "model_px": 412,
+   "fill": 1.63,
+   "delta_mod_180": 0.1,
+   "offset_mm": 0.017,
+   "offset_xy_mm": [
+    0.002,
+    -0.017
+   ],
+   "offset_limit_mm": 0.127,
+   "size_mm": [
+    0.93,
+    0.42
+   ],
+   "elongation": 2.18
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R147",
+  "side": "bottom",
+  "kicad_angle": -143.0,
+  "pad1": [
+   0.407,
+   -0.307
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 464,
+   "model_px": 432,
+   "fill": 1.709,
+   "delta_mod_180": 0.7,
+   "offset_mm": 0.014,
+   "offset_xy_mm": [
+    -0.003,
+    -0.014
+   ],
+   "offset_limit_mm": 0.128,
+   "size_mm": [
+    0.96,
+    0.48
+   ],
+   "elongation": 2.08
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R148",
+  "side": "top",
+  "kicad_angle": 0.0,
+  "pad1": [
+   -0.51,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 530,
+   "model_px": 556,
+   "fill": 2.199,
+   "delta_mod_180": -1.6,
+   "offset_mm": 0.022,
+   "offset_xy_mm": [
+    -0.012,
+    -0.018
+   ],
+   "offset_limit_mm": 0.127,
+   "size_mm": [
+    1.03,
+    0.61
+   ],
+   "elongation": 1.86
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R149",
+  "side": "top",
+  "kicad_angle": 37.0,
+  "pad1": [
+   -0.407,
+   0.307
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 563,
+   "model_px": 537,
+   "fill": 2.124,
+   "delta_mod_180": 1.2,
+   "offset_mm": 0.017,
+   "offset_xy_mm": [
+    0.009,
+    -0.015
+   ],
+   "offset_limit_mm": 0.128,
+   "size_mm": [
+    1.04,
+    0.64
+   ],
+   "elongation": 1.91
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R150",
+  "side": "bottom",
+  "kicad_angle": 180.0,
+  "pad1": [
+   0.51,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 437,
+   "model_px": 395,
+   "fill": 1.562,
+   "delta_mod_180": -1.1,
+   "offset_mm": 0.017,
+   "offset_xy_mm": [
+    -0.003,
+    -0.016
+   ],
+   "offset_limit_mm": 0.127,
+   "size_mm": [
+    0.96,
+    0.42
+   ],
+   "elongation": 2.11
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R151",
+  "side": "bottom",
+  "kicad_angle": -143.0,
+  "pad1": [
+   0.407,
+   -0.307
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 475,
+   "model_px": 407,
+   "fill": 1.61,
+   "delta_mod_180": -0.8,
+   "offset_mm": 0.019,
+   "offset_xy_mm": [
+    0.012,
+    -0.015
+   ],
+   "offset_limit_mm": 0.128,
+   "size_mm": [
+    0.95,
+    0.47
+   ],
+   "elongation": 2.08
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R152",
+  "side": "top",
+  "kicad_angle": 0.0,
+  "pad1": [
+   -0.51,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 550,
+   "model_px": 560,
+   "fill": 2.215,
+   "delta_mod_180": 0.2,
+   "offset_mm": 0.022,
+   "offset_xy_mm": [
+    0.019,
+    -0.012
+   ],
+   "offset_limit_mm": 0.127,
+   "size_mm": [
+    0.99,
+    0.61
+   ],
+   "elongation": 1.86
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R153",
+  "side": "top",
+  "kicad_angle": 37.0,
+  "pad1": [
+   -0.407,
+   0.307
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 592,
+   "model_px": 548,
+   "fill": 2.167,
+   "delta_mod_180": 0.7,
+   "offset_mm": 0.029,
+   "offset_xy_mm": [
+    0.023,
+    -0.018
+   ],
+   "offset_limit_mm": 0.128,
+   "size_mm": [
+    1.06,
+    0.64
+   ],
+   "elongation": 1.89
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R154",
+  "side": "bottom",
+  "kicad_angle": 180.0,
+  "pad1": [
+   0.51,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 452,
+   "model_px": 412,
+   "fill": 1.63,
+   "delta_mod_180": 0.0,
+   "offset_mm": 0.02,
+   "offset_xy_mm": [
+    -0.014,
+    -0.014
+   ],
+   "offset_limit_mm": 0.127,
+   "size_mm": [
+    0.93,
+    0.42
+   ],
+   "elongation": 2.17
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R155",
+  "side": "bottom",
+  "kicad_angle": -143.0,
+  "pad1": [
+   0.407,
+   -0.307
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 489,
+   "model_px": 431,
+   "fill": 1.705,
+   "delta_mod_180": -0.1,
+   "offset_mm": 0.013,
+   "offset_xy_mm": [
+    -0.004,
+    -0.013
+   ],
+   "offset_limit_mm": 0.128,
+   "size_mm": [
+    0.96,
+    0.49
+   ],
+   "elongation": 2.05
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R156",
+  "side": "top",
+  "kicad_angle": 0.0,
+  "pad1": [
+   -0.51,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 573,
+   "model_px": 558,
+   "fill": 2.207,
+   "delta_mod_180": -0.8,
+   "offset_mm": 0.017,
+   "offset_xy_mm": [
+    -0.01,
+    -0.014
+   ],
+   "offset_limit_mm": 0.127,
+   "size_mm": [
+    0.99,
+    0.61
+   ],
+   "elongation": 1.83
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R157",
+  "side": "top",
+  "kicad_angle": 37.0,
+  "pad1": [
+   -0.407,
+   0.307
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 604,
+   "model_px": 534,
+   "fill": 2.112,
+   "delta_mod_180": 2.4,
+   "offset_mm": 0.014,
+   "offset_xy_mm": [
+    0.013,
+    -0.005
+   ],
+   "offset_limit_mm": 0.128,
+   "size_mm": [
+    1.06,
+    0.64
+   ],
+   "elongation": 1.96
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R158",
+  "side": "bottom",
+  "kicad_angle": 180.0,
+  "pad1": [
+   0.51,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 441,
+   "model_px": 406,
+   "fill": 1.606,
+   "delta_mod_180": -0.3,
+   "offset_mm": 0.022,
+   "offset_xy_mm": [
+    -0.002,
+    -0.022
+   ],
+   "offset_limit_mm": 0.127,
+   "size_mm": [
+    0.96,
+    0.42
+   ],
+   "elongation": 2.2
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R159",
+  "side": "bottom",
+  "kicad_angle": -143.0,
+  "pad1": [
+   0.407,
+   -0.307
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 450,
+   "model_px": 394,
+   "fill": 1.558,
+   "delta_mod_180": -2.3,
+   "offset_mm": 0.016,
+   "offset_xy_mm": [
+    0.004,
+    -0.015
+   ],
+   "offset_limit_mm": 0.128,
+   "size_mm": [
+    0.94,
+    0.48
+   ],
+   "elongation": 2.09
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R160",
+  "side": "top",
+  "kicad_angle": 0.0,
+  "pad1": [
+   -0.51,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 564,
+   "model_px": 561,
+   "fill": 2.219,
+   "delta_mod_180": -0.2,
+   "offset_mm": 0.042,
+   "offset_xy_mm": [
+    0.04,
+    -0.014
+   ],
+   "offset_limit_mm": 0.127,
+   "size_mm": [
+    0.99,
+    0.61
+   ],
+   "elongation": 1.84
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R161",
+  "side": "top",
+  "kicad_angle": 37.0,
+  "pad1": [
+   -0.407,
+   0.307
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 561,
+   "model_px": 542,
+   "fill": 2.144,
+   "delta_mod_180": 2.0,
+   "offset_mm": 0.012,
+   "offset_xy_mm": [
+    0.009,
+    -0.008
+   ],
+   "offset_limit_mm": 0.128,
+   "size_mm": [
+    1.05,
+    0.64
+   ],
+   "elongation": 1.89
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R162",
+  "side": "bottom",
+  "kicad_angle": 180.0,
+  "pad1": [
+   0.51,
+   0.0
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 447,
+   "model_px": 417,
+   "fill": 1.649,
+   "delta_mod_180": 0.6,
+   "offset_mm": 0.02,
+   "offset_xy_mm": [
+    0.011,
+    -0.017
+   ],
+   "offset_limit_mm": 0.127,
+   "size_mm": [
+    0.93,
+    0.42
+   ],
+   "elongation": 2.15
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "R163",
+  "side": "bottom",
+  "kicad_angle": -143.0,
+  "pad1": [
+   0.407,
+   -0.307
+  ],
+  "dots": [],
+  "body": {
+   "method": 2,
+   "window_px": 465,
+   "model_px": 420,
+   "fill": 1.661,
+   "delta_mod_180": -0.1,
+   "offset_mm": 0.015,
+   "offset_xy_mm": [
+    0.002,
+    -0.015
+   ],
+   "offset_limit_mm": 0.128,
+   "size_mm": [
+    0.96,
+    0.49
+   ],
+   "elongation": 2.07
+  },
+  "body_ok": true
+ },
+ {
+  "ref": "U1",
+  "side": "top",
+  "kicad_angle": 0.0,
+  "pad1": [
+   -2.175,
+   -0.975
+  ],
+  "dots": [
+   [
+    -0.99,
+    2.82
+   ]
+  ],
+  "delta_ccw_from_top": 94.8
+ },
+ {
+  "ref": "U2",
+  "side": "top",
+  "kicad_angle": 37.0,
+  "pad1": [
+   -2.324,
+   0.53
+  ],
+  "dots": [
+   [
+    0.92,
+    2.82
+   ]
+  ],
+  "delta_ccw_from_top": 95.2
+ },
+ {
+  "ref": "U3",
+  "side": "bottom",
+  "kicad_angle": 180.0,
+  "pad1": [
+   2.175,
+   -0.975
+  ],
+  "dots": [
+   [
+    0.97,
+    2.82
+   ]
+  ],
+  "delta_ccw_from_top": 264.9
+ },
+ {
+  "ref": "U4",
+  "side": "bottom",
+  "kicad_angle": -143.0,
+  "pad1": [
+   1.15,
+   -2.088
+  ],
+  "dots": [
+   [
+    2.49,
+    1.65
+   ]
+  ],
+  "delta_ccw_from_top": 265.3
+ },
+ {
+  "ref": "U5",
+  "side": "top",
+  "kicad_angle": 0.0,
+  "pad1": [
+   -1.15,
+   -0.95
+  ],
+  "dots": [
+   [
+    -0.93,
+    1.65
+   ]
+  ],
+  "delta_ccw_from_top": 100.1
+ },
+ {
+  "ref": "U6",
+  "side": "top",
+  "kicad_angle": 37.0,
+  "pad1": [
+   -1.49,
+   -0.067
+  ],
+  "dots": [
+   [
+    0.27,
+    1.87
+   ]
+  ],
+  "delta_ccw_from_top": 100.8
+ },
+ {
+  "ref": "U7",
+  "side": "bottom",
+  "kicad_angle": 180.0,
+  "pad1": [
+   1.15,
+   -0.95
+  ],
+  "dots": [
+   [
+    0.92,
+    1.65
+   ]
+  ],
+  "delta_ccw_from_top": 259.7
+ },
+ {
+  "ref": "U8",
+  "side": "bottom",
+  "kicad_angle": -143.0,
+  "pad1": [
+   0.347,
+   -1.451
+  ],
+  "dots": [
+   [
+    1.76,
+    0.76
+   ]
+  ],
+  "delta_ccw_from_top": 259.9
+ },
+ {
+  "ref": "U9",
+  "side": "top",
+  "kicad_angle": 0.0,
+  "pad1": [
+   -1.3,
+   -0.95
+  ],
+  "dots": [
+   [
+    1.41,
+    0.92
+   ]
+  ],
+  "delta_ccw_from_top": 183.0
+ },
+ {
+  "ref": "U10",
+  "side": "top",
+  "kicad_angle": 37.0,
+  "pad1": [
+   -1.61,
+   0.024
+  ],
+  "dots": [
+   [
+    1.69,
+    -0.11
+   ]
+  ],
+  "delta_ccw_from_top": 183.0
+ },
+ {
+  "ref": "U11",
+  "side": "bottom",
+  "kicad_angle": 180.0,
+  "pad1": [
+   1.3,
+   -0.95
+  ],
+  "dots": [
+   [
+    -1.38,
+    0.92
+   ]
+  ],
+  "delta_ccw_from_top": 177.4
+ },
+ {
+  "ref": "U12",
+  "side": "bottom",
+  "kicad_angle": -143.0,
+  "pad1": [
+   0.467,
+   -1.541
+  ],
+  "dots": [
+   [
+    -0.53,
+    1.56
+   ]
+  ],
+  "delta_ccw_from_top": 178.2
+ },
+ {
+  "ref": "U13",
+  "side": "top",
+  "kicad_angle": 0.0,
+  "pad1": [
+   -1.905,
+   3.587
+  ],
+  "dots": [
+   [
+    -1.93,
+    4.3
+   ]
+  ],
+  "delta_ccw_from_top": 3.8
+ },
+ {
+  "ref": "U14",
+  "side": "top",
+  "kicad_angle": 37.0,
+  "pad1": [
+   0.638,
+   4.012
+  ],
+  "dots": [
+   [
+    1.08,
+    4.58
+   ]
+  ],
+  "delta_ccw_from_top": 4.2
+ },
+ {
+  "ref": "U15",
+  "side": "bottom",
+  "kicad_angle": 180.0,
+  "pad1": [
+   1.905,
+   3.587
+  ],
+  "dots": [
+   [
+    1.9,
+    4.32
+   ]
+  ],
+  "delta_ccw_from_top": 355.8
+ },
+ {
+  "ref": "U16",
+  "side": "bottom",
+  "kicad_angle": -143.0,
+  "pad1": [
+   3.68,
+   1.719
+  ],
+  "dots": [
+   [
+    4.13,
+    2.3
+   ]
+  ],
+  "delta_ccw_from_top": 355.9
+ }
+]

@@ -6,6 +6,6 @@ description = "ESD protection devices with verified land patterns."
 repository = "https://github.com/conol-ai/cohdl"
 
 [dependencies]
-do214 = "0.1.1"
-sod = "0.1.1"
+do214 = "0.1.2"
+sod = "0.1.3"
 std = "0.3.0"

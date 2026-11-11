@@ -59,7 +59,7 @@ redistributed here.
 ## Hongjiacheng TVS parts (esd 0.1.3)
 
 Three Zhuhai Hongjiacheng bidirectional TVS diodes, each on a land of the
-`do214` or `sod` package (both 0.1.1). This package gains those two
+`do214` or `sod` package (`do214` 0.1.2, `sod` 0.1.3). This package gains those two
 dependencies; no land of its own changes, and `ESD_H5VL10B` keeps its binding.
 Both `esd` frame rows now name 0.1.3.
 

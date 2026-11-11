@@ -32,7 +32,7 @@ here.
 ## Hongjiacheng parts (diode 0.1.2)
 
 Three Zhuhai Hongjiacheng diodes, each on a land of the `sod` or `do214`
-package (both 0.1.1). This package gains those two dependencies; no land of
+package (`sod` 0.1.3, `do214` 0.1.2). This package gains those two dependencies; no land of
 its own changes.
 
 | Part | MPN | Land | Ratings used (datasheet page) |

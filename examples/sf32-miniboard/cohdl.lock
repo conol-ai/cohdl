@@ -37,13 +37,13 @@ hash = "sha256:3526c39b3a6f4c96225411a4178d72b41e74d9759073a5fc26aacb09c9601724"
 
 [[package]]
 name = "do214"
-version = "0.1.1"
-hash = "sha256:37959b42e242875e465e8df99e1a5e2caaa20885089642c6a2536810c437752b"
+version = "0.1.2"
+hash = "sha256:1ac499520e982ddd2e9ab77f45749543b3831bc6270c8e131b60b7d9f50a1e66"
 
 [[package]]
 name = "esd"
 version = "0.1.3"
-hash = "sha256:bc4cd88d43cf39a80c43ab55e0bcad9216568c1f569de298fbed513b11c21f63"
+hash = "sha256:34062b82edd70861281e4838c25be5514df3cdc7e819b6e8938f4d980791d092"
 
 [[package]]
 name = "flash"
@@ -77,8 +77,8 @@ hash = "sha256:602a7a2ada6975f4056d9b250a0a6b692b1a7e236257cc5e27f542e8eb82ec9f"
 
 [[package]]
 name = "sod"
-version = "0.1.1"
-hash = "sha256:31ad444097048d629fc7768c89ca82b2c2e41a8666d7779404707ab7bb4887c6"
+version = "0.1.3"
+hash = "sha256:7fc8b739cca45bb62bcb53bf9837f2ede336252565c4e1cb808acfb92d802629"
 
 [[package]]
 name = "soic"

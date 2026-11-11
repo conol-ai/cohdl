@@ -2,13 +2,13 @@
 
 [[package]]
 name = "do214"
-version = "0.1.1"
-hash = "sha256:37959b42e242875e465e8df99e1a5e2caaa20885089642c6a2536810c437752b"
+version = "0.1.2"
+hash = "sha256:1ac499520e982ddd2e9ab77f45749543b3831bc6270c8e131b60b7d9f50a1e66"
 
 [[package]]
 name = "sod"
-version = "0.1.1"
-hash = "sha256:31ad444097048d629fc7768c89ca82b2c2e41a8666d7779404707ab7bb4887c6"
+version = "0.1.3"
+hash = "sha256:7fc8b739cca45bb62bcb53bf9837f2ede336252565c4e1cb808acfb92d802629"
 
 [[package]]
 name = "std"

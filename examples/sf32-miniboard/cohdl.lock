@@ -17,8 +17,8 @@ hash = "sha256:450faea5d5f75829cd104017dba816a34474b1961b0d6d9f4271f8a197653f98"
 
 [[package]]
 name = "@contrib/level-shifter"
-version = "0.2.0"
-hash = "sha256:4e1b1fb52f326a22a7d2c259ff11611f24f2137f96921fa0be33f2829226dfde"
+version = "0.2.1"
+hash = "sha256:abc29137f34ad32f49b52c10a8c5b517a4fdd539b35873c0467df08b496de62c"
 
 [[package]]
 name = "@richtek/dcdc"
@@ -42,8 +42,8 @@ hash = "sha256:6195444ed69f363bdc42663e34b9e9c97f0335034ea0dd763573422a4c2595f6"
 
 [[package]]
 name = "flash"
-version = "0.3.0"
-hash = "sha256:7883811053fe1440f0f338c63ea65f6916c5cfaeb421b6309cab15051f6f4c0c"
+version = "0.3.1"
+hash = "sha256:09f5c34710bd70d8c866646c424f980fa09e6873d34ed538543a0c58d15f74bf"
 
 [[package]]
 name = "load-switch"

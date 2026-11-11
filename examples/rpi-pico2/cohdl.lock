@@ -27,8 +27,8 @@ hash = "sha256:6195444ed69f363bdc42663e34b9e9c97f0335034ea0dd763573422a4c2595f6"
 
 [[package]]
 name = "flash"
-version = "0.3.0"
-hash = "sha256:7883811053fe1440f0f338c63ea65f6916c5cfaeb421b6309cab15051f6f4c0c"
+version = "0.3.1"
+hash = "sha256:09f5c34710bd70d8c866646c424f980fa09e6873d34ed538543a0c58d15f74bf"
 
 [[package]]
 name = "led"

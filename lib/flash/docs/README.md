@@ -99,3 +99,11 @@ evidence yet. `flash` no longer depends on `qfn`;
 ## LCSC binding (flash 0.3.0)
 
 `FLASH_W25Q128JVSIQ` binds its primary to LCSC C97521 with a zero map: `supplier lcsc "C97521"`. The part number is in `tools/sourcing_data/lcsc_map.json` since the B2 full run. Its land belongs to `soic` (`soic::SOIC8P127X790X216N`), so its frame row `c2b1-soic8_208-c97521` names `soic` 0.3.0, the version that moved that land onto the assembler's frame (see "Footprint frame change in 0.2.0" above), and it is unchanged. The row cites C2 frame board 1 (`tools/sourcing_data/jlc_previews/2026-10-30-c2-board-1/`). The binding is added in 0.3.0 together with the W25Q32 land correction above; it changes no land.
+
+## LCSC binding for W25Q32 (flash 0.3.1)
+
+`FLASH_W25Q32` binds its primary to LCSC C32246052 with a quarter-turn map: `supplier lcsc "C32246052" rotate 270`. The part number is in `tools/sourcing_data/lcsc_map.json` (alias rule, 2026-11-07).
+
+- **Why a map.** The assembler draws its model for C32246052 2.0 mm wide and 3.0 mm tall, with the pin 1 dimple at our pad 4 corner. The datasheet's top view (Rev E, PDF pages 6 and 78) and `FP_W25Q32RV_XSON8_2X3` are 3.0 mm wide and 2.0 mm tall with pin 1 top-left. A mirror cannot swap width and height; a quarter turn counter-clockwise explains both, so the model is a quarter turn from the land. The land follows the manufacturer and stays where it is; the binding carries the turn.
+- **Evidence.** The frame row `rv2-fpw25q32rvxson82x3-c32246052` cites the second re-verify board (`tools/sourcing_data/jlc_previews/2026-11-09-reverify-2/`). With `rotate 270` applied, on all four copies (top and bottom, 0° and 37°) the drawn body is 2.97–3.00 × 1.96–1.98 mm, its long axis lies within 0.4° of the pad 1 to pad 8 axis, it is centred within 0.042 mm, and its pin 1 dimple sits 0.28–0.29 mm from pad 1 (pad 2: 0.42–0.44 mm). The reading rests on the body outline and the dimple, not on the pin 1 mark's angle: XSON is leadless, so the model's terminals do not show.
+- **What changes in output.** No land changed from 0.3.0. A plain `build` writes the same BOM and CPL; the netlist gains the part's `LCSC` field. `--supplier lcsc` writes the turn into the LCSC CPL.

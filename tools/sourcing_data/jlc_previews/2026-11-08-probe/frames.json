@@ -1,0 +1,85 @@
+{
+  "schema_version": 1,
+  "status": "archived",
+  "note": "Archived candidate rows from the 2026-11-08 probe preview, not active bindings. No generator reads this file; tools/sourcing/bindings.py reads only tools/sourcing_data/jlc_frames.json. The three rows are bidirectional TVS parts read by the body only, on a board built with zero correction, so each row records the mapping as applied (rotate 0, no offset). No library part lists these part numbers, so the rows have nothing to bind. They were read against the sod and do214 0.1.0 lands; PR #102 moves both packages to 0.1.1, so adopting a row means re-keying its package_version to the version the new part ships in, after checking that version's land copper is the copper read here (see README.md). The SMC row (C19077609) was read with a wider window than the stock body script; its evidence note and the README say why.",
+  "rows": [
+    {
+      "id": "probe-diom5336x265n-c19077561",
+      "package": "do214",
+      "package_version": "0.1.0",
+      "footprint": "DIOM5336X265N",
+      "supplier": "lcsc",
+      "pn": "C19077561",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-08",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-08-probe/README.md",
+        "note": "SMBJ6.0CA, read by the body only (bidirectional TVS rule): on all four copies (U1-U4: top and bottom, 0 and 37 deg) the drawn body's long axis lies within 0.2 deg of the pad 1 to pad 2 axis mod 180 and its centre within 0.033 mm of the footprint origin (limit 0.25 mm); body 4.48-4.49 x 3.49-3.50 mm against the datasheet's 4.25-4.85 x 3.30-3.94 mm (body.json, stock body_axes.py reach). The probe board was built with zero correction, so this is a reading of the mapping as applied, rotate 0, with no candidate tested against it. The preview draws a generic rectangular body with no band, mark or part text, so the reading shows alignment and centring only, not the part's identity, and the orientation is known mod 180 only (a bidirectional TVS has no polarity). A mirrored model on the bottom side would look the same for this symmetric two-terminal body and would place the same. No library part lists this part number yet, so this row binds nothing"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "probe-diom7959x261n-c19077609",
+      "package": "do214",
+      "package_version": "0.1.0",
+      "footprint": "DIOM7959X261N",
+      "supplier": "lcsc",
+      "pn": "C19077609",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-08",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-08-probe/README.md",
+        "note": "SMCJ36CA, read by the body only (bidirectional TVS rule): on all four copies (U5-U8: top and bottom, 0 and 37 deg) the drawn body's long axis lies within 0.2 deg of the pad 1 to pad 2 axis mod 180, its edges within 0.4 deg mod 90, and its centre within 0.027 mm of the footprint origin (limit 0.25 mm); body 6.79-6.84 x 5.75-5.78 mm against the datasheet's 6.60-7.11 x 5.59-6.22 mm. Caveat: these come from body-wide.json (tvs_body_wide.py, reach 0.8 mm wider than body_axes.py), because the stock reach of 4.05 mm clips the body corners at 4.46 mm and the body's elongation, 1.18-1.19, is under the 1.2 that body_axes.py requires before it gives a long axis; the stock run (body.json) gives edges within 0.4 deg and centre within 0.020 mm but no long axis. The probe board was built with zero correction, so this is a reading of the mapping as applied, rotate 0, with no candidate tested against it. The preview draws a generic rectangular body with no band, mark or part text, so the reading shows alignment and centring only, not the part's identity, and the orientation is known mod 180 only (a bidirectional TVS has no polarity). A mirrored model on the bottom side would look the same for this symmetric two-terminal body and would place the same. No library part lists this part number yet, so this row binds nothing"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "probe-sodfl3818x120n-c19077510",
+      "package": "sod",
+      "package_version": "0.1.0",
+      "footprint": "SODFL3818X120N",
+      "supplier": "lcsc",
+      "pn": "C19077510",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-08",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-08-probe/README.md",
+        "note": "SMF15CA, read by the body only (bidirectional TVS rule): on all four copies (U29-U32: top and bottom, 0 and 37 deg) the drawn body's long axis lies within 1.0 deg of the pad 1 to pad 2 axis mod 180 and its centre within 0.045 mm of the footprint origin (limit 0.25 mm); body 2.65-2.69 x 1.63-1.74 mm against the datasheet's 2.55-2.85 x 1.60-1.90 mm (body.json, stock body_axes.py reach). The probe board was built with zero correction, so this is a reading of the mapping as applied, rotate 0, with no candidate tested against it. The preview draws a generic rectangular body with no band, mark or part text, so the reading shows alignment and centring only, not the part's identity, and the orientation is known mod 180 only (a bidirectional TVS has no polarity). A mirrored model on the bottom side would look the same for this symmetric two-terminal body and would place the same. No library part lists this part number yet, so this row binds nothing"
+      },
+      "evidence_ref": null
+    }
+  ]
+}

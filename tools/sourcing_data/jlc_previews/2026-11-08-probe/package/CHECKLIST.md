@@ -1,0 +1,62 @@
+# JLC frame alignment checklist
+
+Check every row against the JLC preview before ordering. Angles are CoHDL authoring angles; KiCad's bottom encoding is shown separately.
+
+| Ref | LCSC PN | Side | Authoring angle | KiCad angle | Expected pin 1 direction |
+|---|---|---|---:|---:|---|
+| U1 | C19077561 | top | 0 | 0 | verify supplier pad 1 against source footprint |
+| U2 | C19077561 | top | 37 | 37 | verify supplier pad 1 against source footprint |
+| U3 | C19077561 | bottom | 0 | 180 | verify supplier pad 1 against source footprint |
+| U4 | C19077561 | bottom | 37 | -143 | verify supplier pad 1 against source footprint |
+| U5 | C19077609 | top | 0 | 0 | verify supplier pad 1 against source footprint |
+| U6 | C19077609 | top | 37 | 37 | verify supplier pad 1 against source footprint |
+| U7 | C19077609 | bottom | 0 | 180 | verify supplier pad 1 against source footprint |
+| U8 | C19077609 | bottom | 37 | -143 | verify supplier pad 1 against source footprint |
+| U9 | C18199202 | top | 0 | 0 | verify supplier pad 1 against source footprint |
+| U10 | C18199202 | top | 37 | 37 | verify supplier pad 1 against source footprint |
+| U11 | C18199202 | bottom | 0 | 180 | verify supplier pad 1 against source footprint |
+| U12 | C18199202 | bottom | 37 | -143 | verify supplier pad 1 against source footprint |
+| U13 | C32246052 | top | 0 | 0 | verify supplier pad 1 against source footprint |
+| U14 | C32246052 | top | 37 | 37 | verify supplier pad 1 against source footprint |
+| U15 | C32246052 | bottom | 0 | 180 | verify supplier pad 1 against source footprint |
+| U16 | C32246052 | bottom | 37 | -143 | verify supplier pad 1 against source footprint |
+| U17 | C5372421 | top | 0 | 0 | verify supplier pad 1 against source footprint |
+| U18 | C5372421 | top | 37 | 37 | verify supplier pad 1 against source footprint |
+| U19 | C5372421 | bottom | 0 | 180 | verify supplier pad 1 against source footprint |
+| U20 | C5372421 | bottom | 37 | -143 | verify supplier pad 1 against source footprint |
+| U21 | C19077402 | top | 0 | 0 | verify supplier pad 1 against source footprint |
+| U22 | C19077402 | top | 37 | 37 | verify supplier pad 1 against source footprint |
+| U23 | C19077402 | bottom | 0 | 180 | verify supplier pad 1 against source footprint |
+| U24 | C19077402 | bottom | 37 | -143 | verify supplier pad 1 against source footprint |
+| U25 | C7420331 | top | 0 | 0 | verify supplier pad 1 against source footprint |
+| U26 | C7420331 | top | 37 | 37 | verify supplier pad 1 against source footprint |
+| U27 | C7420331 | bottom | 0 | 180 | verify supplier pad 1 against source footprint |
+| U28 | C7420331 | bottom | 37 | -143 | verify supplier pad 1 against source footprint |
+| U29 | C19077510 | top | 0 | 0 | verify supplier pad 1 against source footprint |
+| U30 | C19077510 | top | 37 | 37 | verify supplier pad 1 against source footprint |
+| U31 | C19077510 | bottom | 0 | 180 | verify supplier pad 1 against source footprint |
+| U32 | C19077510 | bottom | 37 | -143 | verify supplier pad 1 against source footprint |
+| U33 | C7420320 | top | 0 | 0 | verify supplier pad 1 against source footprint |
+| U34 | C7420320 | top | 37 | 37 | verify supplier pad 1 against source footprint |
+| U35 | C7420320 | bottom | 0 | 180 | verify supplier pad 1 against source footprint |
+| U36 | C7420320 | bottom | 37 | -143 | verify supplier pad 1 against source footprint |
+| U37 | C7420357 | top | 0 | 0 | verify supplier pad 1 against source footprint |
+| U38 | C7420357 | top | 37 | 37 | verify supplier pad 1 against source footprint |
+| U39 | C7420357 | bottom | 0 | 180 | verify supplier pad 1 against source footprint |
+| U40 | C7420357 | bottom | 37 | -143 | verify supplier pad 1 against source footprint |
+| U41 | C20069128 | top | 0 | 0 | verify supplier pad 1 against source footprint |
+| U42 | C20069128 | top | 37 | 37 | verify supplier pad 1 against source footprint |
+| U43 | C20069128 | bottom | 0 | 180 | verify supplier pad 1 against source footprint |
+| U44 | C20069128 | bottom | 37 | -143 | verify supplier pad 1 against source footprint |
+| U45 | C7420322 | top | 0 | 0 | verify supplier pad 1 against source footprint |
+| U46 | C7420322 | top | 37 | 37 | verify supplier pad 1 against source footprint |
+| U47 | C7420322 | bottom | 0 | 180 | verify supplier pad 1 against source footprint |
+| U48 | C7420322 | bottom | 37 | -143 | verify supplier pad 1 against source footprint |
+| U49 | C6186 | top | 0 | 0 | verify supplier pad 1 against source footprint |
+| U50 | C6186 | top | 37 | 37 | verify supplier pad 1 against source footprint |
+| U51 | C6186 | bottom | 0 | 180 | verify supplier pad 1 against source footprint |
+| U52 | C6186 | bottom | 37 | -143 | verify supplier pad 1 against source footprint |
+| U53 | C7420365 | top | 0 | 0 | verify supplier pad 1 against source footprint |
+| U54 | C7420365 | top | 37 | 37 | verify supplier pad 1 against source footprint |
+| U55 | C7420365 | bottom | 0 | 180 | verify supplier pad 1 against source footprint |
+| U56 | C7420365 | bottom | 37 | -143 | verify supplier pad 1 against source footprint |

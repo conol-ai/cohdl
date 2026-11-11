@@ -21,7 +21,9 @@ AppleScript ``execute javascript``:
    exports of the top and the bottom land in the run directory. Each instance of
    the side (``board.json``) needs its own evidence: a pin 1 mark, or, for a
    non-polar chip part (``measure_preview.is_chip``), its drawn body along its
-   pads, mod 180, and centred on them. While any instance lacks it, the export
+   pads, mod 180, and centred on them, read from the drawn model alone
+   (``measure_preview.body``, method 2: silkscreen beside the part is not part
+   of the reading). While any instance lacks it, the export
    is taken again. After the last attempt, an instance whose model is not drawn
    is "unverified", and a drawn one without its evidence is for "manual review";
    neither passes. ``preview/checks.json`` records each instance's verdict.

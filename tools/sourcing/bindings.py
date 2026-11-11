@@ -106,7 +106,8 @@ def _zero(row: dict[str, Any]) -> bool:
 
 
 def _sampled(row: dict[str, Any], rows_by_id: dict[str, dict[str, Any]], root: Path) -> bool:
-    """A row inferred under the W3 rule: every check of the group record holds."""
+    """A row inferred under the W3 rule: every check of the group record holds.
+    ``w3_sample_ok`` includes that each sample was read by the rule's body method."""
     sampled = row[SAMPLED_FIELD]
     if not isinstance(sampled, dict) or set(sampled) != {"group", "record", "note"}:
         return False

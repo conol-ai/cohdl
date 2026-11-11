@@ -30,6 +30,15 @@ the same. A judged member passes when every copy's body is drawn and within the
 rule's sample limits: its angle, its raw offset, and its offset once its view's
 median is taken off (board_bias).
 
+The rule names the method a chip body is read by (``body_method``,
+``frame_boards/measure_preview.py``). A record's ``w3.json`` names its method 1
+readings, the only kind there was when the first records were made; readings by
+a later method are a new dated file beside them, named by the record's
+``w3-readings.json``. A record with no readings by the rule's method is not
+judged, and a reading that names another method stops the build. Under a method
+other than 1 a drawn chip body's status is the reading's own ``body_ok``, not the
+run's ``checks.json``, which was made with method 1.
+
 A member whose model a preview did not draw (and that no copy fails otherwise)
 is ``not_drawn``: it is not a passed sample and is never inferred, and by itself
 it does not pause its group. A group is ``paused`` when any member fails
@@ -65,6 +74,7 @@ ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "tools/sourcing_data"
 PASSIVE = ROOT / "lib/passive"
 PREVIEWS = DATA / "jlc_previews"
+BOARDS = ROOT / "tools/frame_boards"
 TYPES = tuple(w3_rule.RULE["types"])
 MIN_SAMPLE = w3_rule.RULE["min_sample"]
 FRACTION = w3_rule.RULE["fraction"]
@@ -83,13 +93,42 @@ def preview_inputs() -> dict[Path, dict]:
             for path in sorted(PREVIEWS.glob("*/w3.json"))}
 
 
+def board_inputs() -> dict[Path, dict]:
+    """Each frame board's own ``w3.json``, by path: the samples a run of that board
+    found short at the BOM step before any preview of it was recorded. Such a run
+    took no placement preview, so it has no record under ``jlc_previews`` and gives
+    no reading; the board's directory keeps the dated fact until a record does."""
+    return {path: json.loads(path.read_text(encoding="utf-8"))
+            for path in sorted(BOARDS.glob("*/w3.json"))}
+
+
+READINGS = "w3-readings.json"
+
+
+def readings_file(record: Path, meta: dict, method: int | None = None) -> list[str]:
+    """The files of RECORD that give its chip body readings by METHOD (the rule's by
+    default), as names within the record; empty when it has none. Method 1 is
+    ``w3.json``'s own ``measurements``; a later one is listed in READINGS."""
+    method = w3_rule.RULE["body_method"] if method is None else method
+    if method == 1:
+        return [meta["measurements"]]
+    index = record / READINGS
+    if not index.is_file():
+        return []
+    name = json.loads(index.read_text(encoding="utf-8"))["readings"].get(str(method))
+    return [READINGS, name] if name else []
+
+
 def short_at_preview() -> dict[str, str]:
     """Samples a preview's BOM step reported short although their page read MIN_STOCK
-    or more: the stock sold after the page was read. Each record keeps its own list.
+    or more: the stock sold after the page was read. Each record keeps its own list,
+    and so does a board whose run stopped there with no record (``board_inputs``).
     Each is replaced by the nearest eligible member, so the other samples, which that
     preview confirmed in stock, stay as they are."""
     short = {}
-    for meta in preview_inputs().values():
+    for meta in (*preview_inputs().values(), *board_inputs().values()):
+        if set(short) & set(meta["short_at_preview"]):
+            raise SystemExit("w3_groups.py: a sample is listed short at preview twice")
         short.update(meta["short_at_preview"])
     return short
 
@@ -99,9 +138,12 @@ SHORT_AT_PREVIEW = short_at_preview()
 
 def _records():
     """Each usable preview record: (README path, {ref: (footprint, pn)}, checks, readings).
-    Only records whose land files still hash as recorded count."""
+    Only records that have readings by the rule's method, and whose land files still
+    hash as recorded, count."""
+    method = w3_rule.RULE["body_method"]
     for record, meta in preview_inputs().items():
-        if meta["package"] != w3_rule.RULE["package"] or any(
+        files = readings_file(record, meta)
+        if not files or meta["package"] != w3_rule.RULE["package"] or any(
                 _sha256(ROOT / path) != digest for path, digest in meta["land"].items()):
             continue
         with (record / meta["bom"]).open(encoding="utf-8-sig", newline="") as handle:
@@ -109,7 +151,11 @@ def _records():
         refs = {ref.strip(): (row["Footprint"], row["LCSC Part #"])
                 for row in rows for ref in row["Designator"].split(",")}
         checks = json.loads((record / meta["checks"]).read_text(encoding="utf-8"))
-        readings = {m["ref"]: m for m in json.loads((record / meta["measurements"]).read_text(encoding="utf-8"))}
+        readings = {m["ref"]: m for m in json.loads((record / files[-1]).read_text(encoding="utf-8"))}
+        other = sorted(m["ref"] for m in readings.values() if "body" in m and m["body"].get("method", 1) != method)
+        if other:
+            raise SystemExit(f"w3_groups.py: {record.name}/{files[-1]} is listed as method {method} readings, "
+                             f"but {', '.join(other[:5])} {'was' if len(other) == 1 else 'were'} read another way")
         yield str((record / "README.md").relative_to(ROOT)), refs, checks, readings
 
 
@@ -119,7 +165,7 @@ def view_id(record: str, side: str) -> str:
 
 def view_bodies() -> dict[str, list[tuple[str, str]]]:
     """For each view, the (footprint, pn) of every drawn body its median is taken
-    over (a body with no BOM line is ``("", "")``)."""
+    over, read by the rule's method (a body with no BOM line is ``("", "")``)."""
     views: dict[str, list[tuple[str, str]]] = {}
     for name, refs, _, readings in _records():
         for ref, m in sorted(readings.items()):
@@ -131,14 +177,15 @@ def view_bodies() -> dict[str, list[tuple[str, str]]]:
 def judged_members() -> dict[tuple[str, str], list[dict]]:
     """Each (footprint, pn) a preview record judges, with one outcome per copy.
 
-    Only records whose land files still hash as recorded count. Each outcome is
-    {record, ref, view, status, not_drawn, reading, ok}: ``status`` is the preview
-    check's, ``not_drawn`` whether it found bare pads where the model should be,
-    and ``reading`` the rule's (angle; raw offset, the view's bias and the
+    Each outcome is {record, ref, view, status, not_drawn, reading, ok}: ``status``
+    is the preview check's (the reading's own ``body_ok`` under a method other than
+    1), ``not_drawn`` whether it found bare pads where the model should be, and
+    ``reading`` the rule's (method; angle; raw offset, the view's bias and the
     residual; limit) for a drawn body. ``build`` adds to the reading what the
     view's median is made of, which depends on the member's group.
     """
     judged: dict[tuple[str, str], list[dict]] = {}
+    method = w3_rule.RULE["body_method"]
     for name, refs, checks, readings in _records():
         bias = {}
         for side in {m["side"] for m in readings.values()}:
@@ -150,14 +197,23 @@ def judged_members() -> dict[tuple[str, str], list[dict]]:
             check, m = checks.get(ref), readings.get(ref)
             if check is None or m is None:
                 continue
-            outcome = {"record": name, "ref": ref, "view": view_id(name, m["side"]), "status": check["status"],
-                       "not_drawn": check["status"] == "unverified" and check["detail"].startswith(NOT_DRAWN),
+            status = check["status"]
+            # The run's check of a chip body was made with method 1. Under another method
+            # the reading's own body_ok says whether the body lies along its pads, centred.
+            if method != 1 and status in ("body", "manual review") and "body" in m:
+                status = "body" if m["body_ok"] else "manual review"
+            outcome = {"record": name, "ref": ref, "view": view_id(name, m["side"]), "status": status,
+                       "not_drawn": status == "unverified" and check["detail"].startswith(NOT_DRAWN),
                        "reading": None, "ok": False}
+            if outcome["not_drawn"] != (m.get("drawn") is False):
+                raise SystemExit(f"w3_groups.py: {name}: the check and the reading of {ref} "
+                                 "disagree on whether its model is drawn")
             body = m.get("body", {})
-            if check["status"] in ("body", "manual review") and "offset_xy_mm" in body:
+            if status in ("body", "manual review") and "offset_xy_mm" in body:
                 outcome["reading"] = w3_rule.sample_reading(
-                    body["delta_mod_180"], body["offset_xy_mm"], body["offset_limit_mm"], bias[m["side"]])
-                outcome["ok"] = check["status"] == "body" and w3_rule.sample_ok(outcome["reading"])
+                    body["delta_mod_180"], body["offset_xy_mm"], body["offset_limit_mm"], bias[m["side"]],
+                    body_method=body.get("method", 1))
+                outcome["ok"] = status == "body" and w3_rule.sample_ok(outcome["reading"])
             judged.setdefault((footprint, pn), []).append(outcome)
     return judged
 
@@ -342,7 +398,8 @@ def build() -> dict:
             str(pages_path.relative_to(DATA)): _sha256(pages_path),
             **{str((record / name).relative_to(DATA)): _sha256(record / name)
                for record, meta in preview_inputs().items()
-               for name in ("w3.json", meta["bom"], meta["checks"], meta["measurements"])},
+               for name in ("w3.json", meta["bom"], meta["checks"], *readings_file(record, meta))},
+            **{str(path.relative_to(ROOT / "tools")): _sha256(path) for path in board_inputs()},
         },
         "unmapped_entries": unmapped,
         "member_columns": ["pn", "mpn", "part", "entry", "category", "stock"],
@@ -375,6 +432,10 @@ def render(report: dict) -> str:
         f"within {rule['offset_residual_fraction']:g} of it once its view's median offset is taken off "
         f"(residual). Samples are chosen only among members with at least {rule['min_stock']} in "
         f"stock. Members with no stock are {'inferred' if rule['infer_zero_stock'] else 'not inferred'}.",
+        *([f"- Chip bodies are read by `measure_preview.py` method {rule['body_method']}"
+           + (": the drawn model alone, without the silkscreen beside it." if rule["body_method"] == 2 else ".")
+           + " Readings made by another method do not count, and each view's median is over readings of "
+           "this method."] if "body_method" in rule else []),
         f"- A sample whose model is not drawn is not a passed sample and does not {'by itself ' if v4 else ''}"
         f"pause its group; that part "
         f"number is {'inferred' if rule['infer_not_drawn'] else 'not inferred'}. A sample left for manual "

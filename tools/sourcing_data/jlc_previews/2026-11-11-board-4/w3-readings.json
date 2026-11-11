@@ -1,0 +1,7 @@
+{
+ "schema_version": 1,
+ "note": "Readings of this record's exports by a body-reading method later than the one w3.json names (method 1). Each is a new dated file; measurements.json and earlier re-measurements are unchanged. Method 2 reads the drawn model alone: measure_preview.py measure --method 2 on package/board.json, top.png and bottom.png (converted to BMP by sips -s format bmp), run on 2026-11-11. tools/w3_groups.py reads the file named for the method of its rule (tools/sourcing/w3_rule.py, body_method).",
+ "readings": {
+  "2": "remeasure-2026-11-11-method-2.json"
+ }
+}

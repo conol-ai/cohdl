@@ -67,14 +67,17 @@ struct SampledRow {
 /// (https://github.com/conol-ai/cohdl/pull/79#issuecomment-6734040188), with his
 /// 2026-11-10 decision that a sample not drawn does not block its group and the
 /// sample limits he accepted on 2026-11-11
-/// (https://github.com/conol-ai/cohdl/pull/104#issuecomment-6784835520). The
-/// `bias_*` and `not_drawn_*` fields are the two conditions he asked for there,
-/// with the numbers proposed in `docs/library-supplier-w3-sampling.md` §5. It must
-/// equal `RULE` in `tools/sourcing/w3_rule.py`; a group record carrying any other
-/// rule is rejected, so a record cannot loosen its own rule.
+/// (https://github.com/conol-ai/cohdl/pull/104#issuecomment-6784835520). Three
+/// things are proposed on top and await his decision
+/// (`docs/library-supplier-w3-sampling.md` §5 and §6): `body_method`, the method of
+/// `tools/frame_boards/measure_preview.py` a sample's chip body must be read by
+/// (2: the drawn model alone, without the silkscreen beside it), and the `bias_*`
+/// and `not_drawn_*` fields, the two conditions he asked for in that comment. It
+/// must equal `RULE` in `tools/sourcing/w3_rule.py`; a group record carrying any
+/// other rule is rejected, so a record cannot loosen its own rule.
 fn w3_rule() -> Value {
     serde_json::json!({
-        "version": "w3-2026-11-11",
+        "version": "w3-2026-11-12",
         "package": "passive",
         "types": ["ChipResistor", "MLCC"],
         "min_sample": 3,
@@ -84,6 +87,7 @@ fn w3_rule() -> Value {
         "offset_raw_fraction": 1.0,
         "offset_residual_fraction": 0.5,
         "offset_bias": "board_median",
+        "body_method": 2,
         "bias_min_other_bodies": 3,
         "bias_other_share_above": 0.5,
         "infer_zero_stock": false,
@@ -697,12 +701,13 @@ fn json_strings(value: &Value, field: &str) -> Option<Vec<String>> {
 /// as recorded; the row's part number is a member, not a sample and, unless the
 /// rule allows it, neither out of stock nor left undrawn on a preview; and every
 /// sample is a member with its own zero-mapping evidence row under the same key
-/// and a reading within the rule: its angle, its raw offset and its residual once
-/// the view's bias is taken off each within their limits, and the raw size and
-/// residual what its vectors give. The bias must come from a named view whose
-/// median holds enough bodies of other groups, the group's samples must describe
-/// each view alike, and the part numbers not drawn must not be more than the
-/// rule's share of the judged members (the samples and those not drawn).
+/// and a reading within the rule: made by the rule's body method, its angle, its
+/// raw offset and its residual once the view's bias is taken off each within their
+/// limits, and the raw size and residual what its vectors give. The bias must come
+/// from a named view whose median holds enough bodies of other groups, the group's
+/// samples must describe each view alike, and the part numbers not drawn must not
+/// be more than the rule's share of the judged members (the samples and those not
+/// drawn).
 fn audit_sampled(
     repo_root: &Path,
     rows: &[SampledRow],
@@ -724,6 +729,7 @@ fn audit_sampled(
     let not_drawn_max_share = number("not_drawn_max_share");
     let infer_zero_stock = rule["infer_zero_stock"].as_bool().unwrap();
     let infer_not_drawn = rule["infer_not_drawn"].as_bool().unwrap();
+    let body_method = rule["body_method"].as_u64().unwrap();
     let mut records: BTreeMap<String, Option<Value>> = BTreeMap::new();
     for row in rows {
         let context = &row.context;
@@ -958,9 +964,13 @@ fn audit_sampled(
                     errors,
                 );
             }
-            for message in
-                sample_reading_errors(sample, angle_limit, raw_fraction, residual_fraction)
-            {
+            for message in sample_reading_errors(
+                sample,
+                body_method,
+                angle_limit,
+                raw_fraction,
+                residual_fraction,
+            ) {
                 error(
                     context,
                     format!("W3 sample lcsc {sample_pn} {message}"),
@@ -1046,6 +1056,7 @@ fn audit_sampled(
 /// checks of `sample_ok` in `tools/sourcing/w3_rule.py`).
 fn sample_reading_errors(
     sample: &Value,
+    body_method: u64,
     angle_limit: f64,
     raw_fraction: f64,
     residual_fraction: f64,
@@ -1070,6 +1081,17 @@ fn sample_reading_errors(
         ];
     };
     let mut problems = Vec::new();
+    // A reading that names no method is method 1, the only one there was until 2026-11-11.
+    let read_by = match sample.get("body_method") {
+        None => Some(1),
+        Some(method) => method.as_u64(),
+    };
+    if read_by != Some(body_method) {
+        problems.push(format!(
+            "was read by body method {}; the rule's limits are for method {body_method}",
+            read_by.map_or("?".to_string(), |method| method.to_string())
+        ));
+    }
     if angle.abs() > angle_limit {
         problems.push(format!(
             "angle {angle} deg is outside the rule's {angle_limit} deg"
@@ -1511,6 +1533,10 @@ mod tests {
                 "W3 sample lcsc C_S1 raw offset 0.13 mm is above 1 of its 0.127 mm limit",
             ),
             ("arithmetic", "W3 sample lcsc C_S2 offsets do not add up"),
+            (
+                "method",
+                "W3 sample lcsc C_S2 was read by body method 1; the rule's limits are for method 2",
+            ),
             ("not-drawn", "lcsc C_S_UNDRAWN was not drawn on a preview"),
             ("mapping", "a W3 inferred row must have a zero mapping"),
             (

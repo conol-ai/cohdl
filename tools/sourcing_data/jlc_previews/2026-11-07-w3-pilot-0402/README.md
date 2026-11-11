@@ -72,3 +72,9 @@ The rule was accepted on 2026-11-09 (`docs/library-supplier-w3-sampling.md`). It
 - `board.json` and `w3_pilot_0402-lcsc-bom.csv`: the uploaded package's own files, byte for byte (SHA-256 `4968a7ee…` and `d2d9cd65…`, as in the package's `SHA256SUMS` and the table above).
 - `remeasure-2026-11-10.json`: `measure_preview.py measure board.json top.bmp - …` run again on `top.png`. It equals `measurements.json` row for row, apart from each body's added `offset_xy_mm`.
 - `w3.json`: what `tools/w3_groups.py` reads from this record. It holds the files above, `checks.json`, the SHA-256 of the land files the preview used, and the two samples short at the second package's BOM step. The land files are byte for byte those at the package's commit `e6ba33d`. That list was `SHORT_AT_PREVIEW` in `tools/w3_groups.py`; it is kept here, with the run it came from.
+
+## Addendum, 2026-11-11: read again with `measure_preview.py` method 2
+
+Everything above is the record as made; its readings are by what is now called method 1, which read each part's white reference text together with its model (`../2026-11-11-board-4/README.md`). `remeasure-2026-11-11-method-2.json` (SHA-256 `adf69a89a6a6c31bb0c261a443897ca1bdd931e17718a3cf6a38a47b16de0935`) is `measure_preview.py measure --method 2 board.json top.bmp -` on the same export: the drawn model alone. `w3-readings.json` names it for `tools/w3_groups.py`. `measurements.json` and `remeasure-2026-11-10.json` are unchanged and still reproduce with `measure --method 1`.
+
+By method 2 all 89 drawn bodies pass the body check (C7, C113781, at 10.5° by method 1, reads 1.0°). Largest offset 0.040 mm (R50) where method 1 read 0.121 mm; largest angle 2.6°; view median (+0.011, −0.010) mm where method 1 gave (+0.005, −0.077). Whether W3 reads bodies this way is a proposal for Tony (`docs/library-supplier-w3-sampling.md` §6).

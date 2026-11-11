@@ -1,12 +1,16 @@
+import io
 import json
 import sys
 import unittest
 from pathlib import Path
+from unittest import mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import datasheet_links as dl
 
-SNAPSHOT = dl.DATA / "datasheet_links/2026-11-07"
+# The committed index: the one dated directory (see the tool's docstring).
+SNAPSHOTS = sorted(p for p in (dl.DATA / "datasheet_links").iterdir() if p.is_dir())
+SNAPSHOT = SNAPSHOTS[-1]
 
 # A package README shared by several vendors' parts, like lib/connectors/docs/README.md.
 SHARED_README = [
@@ -39,12 +43,16 @@ class DatasheetLinksTests(unittest.TestCase):
     def links(self, row):
         return [self.report["links"][i][0] for i, *_ in row[6]]
 
-    def test_the_committed_index_records_its_sources(self):
+    def test_the_committed_index_is_what_the_repository_builds(self):
+        # Review of #81: without this the committed index could go stale silently.
+        self.assertEqual([p.name for p in SNAPSHOTS], [SNAPSHOT.name], "one committed index, older ones in git history")
+        # The tool's own --check, on the build setUpClass already made (a build takes about 30 s).
+        with mock.patch.object(dl, "build", return_value=self.report), \
+                mock.patch.object(sys, "stderr", io.StringIO()) as stderr:
+            self.assertEqual(dl.main(["-o", str(SNAPSHOT), "--check"]), 0, stderr.getvalue())
         committed = json.loads((SNAPSHOT / "datasheet_links.json").read_text(encoding="utf-8"))
-        self.assertEqual(committed["schema_version"], 2)
-        self.assertIn("lcsc_map.json", committed["sources"])
-        self.assertEqual(committed["identity_columns"], self.report["identity_columns"])
-        self.assertEqual((SNAPSHOT / "datasheet_links.md").read_text(encoding="utf-8"), dl.render(committed))
+        self.assertEqual(committed["schema_version"], 3)
+        self.assertEqual(committed["sources"], self.report["sources"])
 
     def test_every_library_identity_is_indexed_once(self):
         keys = [(r[0], r[1], r[2], r[3], r[4]) for r in self.report["identities"]]
@@ -75,12 +83,38 @@ class DatasheetLinksTests(unittest.TestCase):
                 self.assertEqual(label, dl.label(url, row[3]), (row[:5], url))
                 if label == "official":
                     self.assertTrue(dl._on(dl._host(url), dl.MANUFACTURER_DOMAINS[row[3]]), (row[:5], url))
+                if label == "homepage":
+                    self.assertTrue(dl._on(dl._host(url), dl.MANUFACTURER_DOMAINS[row[3]]), (row[:5], url))
+                    self.assertTrue(dl._is_homepage(url), url)
                 if match == "manufacturer":
-                    self.assertEqual(label, "official", (row[:5], url))
+                    self.assertIn(label, ("official", "homepage"), (row[:5], url))
         row = self.rows[("esd", "ESD_H5VL10B", "primary", "H5VL10B")]
         self.assertNotIn("official", row[5])
         self.assertEqual(row[8], "C7420372")
         self.assertIn("C7420372", self.report["lcsc_datasheets"])
+
+    def test_a_bare_home_page_is_not_an_official_document(self):
+        # Review of #81: 25 identities' only link naming the MPN was a vendor home page.
+        for url in ("https://www.run-ic.com", "https://www.run-ic.com/", "http://run-ic.com"):
+            self.assertEqual(dl.label(url, "Run-IC"), "homepage", url)
+        for url in ("https://www.run-ic.com/product/rs0104.pdf", "https://www.run-ic.com/?id=7"):
+            self.assertEqual(dl.label(url, "Run-IC"), "official", url)
+        self.assertEqual(dl.label("https://www.run-ic.com", "Analog Devices"), "unverified")
+        self.assertEqual(dl.label("https://www.lcsc.com", "Run-IC"), "mirror")
+        home = {"url": "https://www.run-ic.com", "doc": "d", "match": "mpn", "label": "homepage", "sha256": None}
+        mirror = dict(home, url="https://www.lcsc.com/product-detail/C1.html", label="mirror")
+        document = dict(home, url="https://www.run-ic.com/a.pdf", label="official", match="manufacturer")
+        self.assertEqual(dl.classify([home], "https://lcsc/x.pdf", True), "homepage")
+        self.assertEqual(dl.classify([home, mirror], None, False), "unverified")
+        self.assertEqual(dl.classify([home, document], None, False), "official_document")
+        # In the repository: the level shifter cites Run-IC's home page on a line naming its MPN.
+        row = self.rows[("@contrib/level-shifter", "LS_RS0104", "primary", "RS0104YQ")]
+        self.assertEqual(row[5], "homepage")
+        self.assertEqual([(self.report["links"][i][0], label) for i, _, label, _ in row[6]],
+                         [("https://www.run-ic.com", "homepage")])
+        self.assertFalse(any(r[5] == "official_mpn" and not any(
+            label == "official" and match == "mpn" for _, match, label, _ in r[6]) for r in self.report["identities"]))
+        self.assertEqual(sum(r[5] == "homepage" for r in self.report["identities"]), 25)
 
     def test_a_shared_readme_gives_a_part_only_its_own_vendors_links(self):
         # 76a5987 attached every URL of a small record to every part citing it.

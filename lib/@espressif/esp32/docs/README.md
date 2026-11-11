@@ -66,3 +66,7 @@ Octal SPI PSRAM is internal to the package. `SPICS1` and `GPIO33` through
 optional board GPIOs. `VDD_SPI` is fixed at 3.3 V for this variant. These
 variant constraints follow the comparison and flash/PSRAM pin-mapping tables
 in the stored v2.2 datasheet.
+
+## qfn 0.3.0 in 0.3.2
+
+Only the `qfn` dependency pin changed, from 0.2.1 to 0.3.0. `qfn` 0.3.0 removes `QFN48N40P600X600_1EP405X360`, which this package never used. The generated ESP32 QFN lands it takes from `qfn` are byte-identical in 0.3.0. No part, pin or land changed.

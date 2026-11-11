@@ -2,23 +2,23 @@
 
 [[package]]
 name = "@raspberrypi/mcu"
-version = "0.1.5"
-hash = "sha256:086f0270ca08c0559b5bce6cc72fda0cee915afc0d58d1bd7b7bde634520c530"
+version = "0.1.6"
+hash = "sha256:e46bdfc8842f1bc0a5f63ec74371dfcc0c90e0eae7b10ef1ba1286e0d5eb5c03"
 
 [[package]]
 name = "@richtek/dcdc"
-version = "0.1.3"
-hash = "sha256:87cb83f09c1550f8ed0d13ebf3856deb2349dd7f4d0a3f20617ebc8b072b0705"
+version = "0.1.4"
+hash = "sha256:956a9468933ef194e67ff3c1340d70ec6607ce2056c57ca3ca6e1e27774a881c"
 
 [[package]]
 name = "connectors"
-version = "0.3.0"
-hash = "sha256:0d6c8f2cb8f0b26c8d482a303de223483e0e7e2cd886bccf889e7f26419f836e"
+version = "0.3.1"
+hash = "sha256:9e34b82cb21c16072962243eb392e088e3d354c6dc61f6ae7ea874e06c6f7d4f"
 
 [[package]]
 name = "diode"
-version = "0.1.0"
-hash = "sha256:ea1d68d2aa41dd4e415775fc04c6b8a45f0f3b6cf8d3b9064eb0db5e07fbc272"
+version = "0.1.1"
+hash = "sha256:fb008f4540ab035f26d2757828b90f0dc254ad71461411256f9de7339f366765"
 
 [[package]]
 name = "esd"
@@ -52,8 +52,8 @@ hash = "sha256:d1f973fb96681c1285c3080c46b607d957e5efbf894e3ca6f5a852743e6f832e"
 
 [[package]]
 name = "qfn"
-version = "0.2.1"
-hash = "sha256:78b2d9d64ae67be3ff506db3b0416939534f8f09110ab6e4bde77c491d10464f"
+version = "0.3.0"
+hash = "sha256:602a7a2ada6975f4056d9b250a0a6b692b1a7e236257cc5e27f542e8eb82ec9f"
 
 [[package]]
 name = "soic"

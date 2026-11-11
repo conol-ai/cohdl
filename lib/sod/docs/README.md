@@ -2,7 +2,8 @@
 
 Reusable SOD land patterns for new parts (library plan W4, item 3c, waves 1
 and 2). This package ships lands only: no device, no part and no supplier
-binding. Bindings come after the JLCPCB frame preview boards. One land per
+binding. Parts live in the category packages; the first
+three on these lands are listed under "Preview readings" below. One land per
 standard outline is taken from one primary document and cross-checked against
 one tier-1 manufacturer document; when the primary gives no land, the land is
 derived from the cross-check document and says so. Each part series' own
@@ -15,10 +16,35 @@ centre. **Pad 1 is the cathode (band end) at -x**; pad 2 is the anode at +x.
 The silkscreen carries `polarity_marker cathode_pin 1 shape band` (RFC-031)
 outboard of pad 1 and the two long body edges. The assembler has read this
 orientation as 0 degrees for SOD-123 (C81598) and SOD-323 (C2128, C191023)
-parts on earlier preview boards, so the lands are authored on it; the frame
-boards still have to confirm it for these footprints before publishing. No
-SOD-123FL or SOD-523 part has been read yet. Bidirectional TVS parts
-(`...CA`, for example the SMF series) carry no band but reuse the land.
+parts on other packages' lands, so the lands are authored on it. Bidirectional
+TVS parts (`...CA`, for example the SMF series) carry no band but reuse the
+land.
+
+### Preview readings on these lands (2026-11-08)
+
+Three part numbers have been read on assembler previews of these lands. The
+readings are per part number; they do not confirm the frame for the lands as
+a whole (open question 3).
+
+| Land | Part number | Reading | Library part and candidate mapping |
+|---|---|---|---|
+| `SOD2613X110N` (SOD-323) | C7420331 B5819WS | Polarized. The assembler's model has its cathode at +x, a half turn from pad 1. With `rotate 180` applied, the model's minus sign and cathode band sat at the cathode silk bar on all four copies (read by eye; the measuring script gives no angle for a model with two marks). | `diode::SCHOTTKY_B5819WS`; candidate `rotate 180` |
+| `SOD1608X70N` (SOD-523) | C7420320 1N4148WT | Polarized; the same half turn, read the same way. | `diode::D_1N4148WT`; candidate `rotate 180` |
+| `SODFL3818X120N` (SOD-123FL) | C19077510 SMF15CA | Bidirectional TVS, read by the body only on a board with no correction: long axis within 1.0 degree of the pad axis, centre within 0.045 mm, on all four copies. This shows alignment and centring; the direction is known mod 180 only, which is enough only because the part is symmetric. | `esd::TVS_SMF15CA`; candidate zero mapping |
+
+So the two polarized parts read on these lands are both a half turn from the
+land, while other SOD-323 parts (C2128, C191023) read 0 degrees on
+`contrib_esd::FP_SOD323_2P5X1P25mm`, whose pad 1 is also at -x. The assembler's model orientation differs by part number here, so the
+half turn is a per-part candidate and the lands are not moved. No part has been
+read on `SOD3716X135N` (SOD-123). The records are
+`tools/sourcing_data/jlc_previews/2026-11-08-reverify/` and
+`tools/sourcing_data/jlc_previews/2026-11-08-probe/` in the repository.
+
+None of the three parts is bound yet. A `supplier lcsc` clause needs the part
+number in `tools/sourcing_data/lcsc_map.json`, which takes a reviewed backfill
+run over every candidate page for the MPN; those pages have not been fetched.
+Until then the candidate rows stay archived with the preview records, and the
+mappings above are candidates, not bindings.
 
 ## Lands
 
@@ -173,11 +199,15 @@ These lands are not moved or changed; both owners now exist side by side:
    land or keep it as the Diodes-specific variant. When `@contrib/esd` is
    promoted, bind GBLC05C to `sod::SOD2613X110N` only if ProTek's span range
    is met (it is not today by 0.02 mm), otherwise keep its own land.
-3. **Frame confirmation.** The -x cathode frame is inferred from other SOD
-   footprints' preview readings, not measured on these. sod 0.1.0 was
-   published (2026-11-09) without that reading, so this is an open item on a
-   published package: the frame remains unconfirmed until the wave-1 and
-   wave-2 frame boards read these lands. A change to pad numbering or
+3. **Frame confirmation.** The -x cathode frame was inferred from other SOD
+   footprints' preview readings. sod 0.1.0 was published (2026-11-09) without
+   a reading on these lands. The first readings (2026-11-08, "Preview
+   readings" above) do not confirm it: both polarized parts read a half turn
+   from the land, and the one bidirectional part cannot show direction. Two
+   part numbers are too few to move a land, since other SOD-323 part numbers
+   read 0 degrees on the same frame, so this stays an open item on a
+   published package: more polarized part numbers must be read per land
+   before the frame is called confirmed or the lands are turned. A change to pad numbering or
    rotation would be a breaking change needing a new minor version.
 4. **SOD-123FL land source and lead span.** The Hongjiacheng primary has no
    land, so `SODFL3818X120N` uses the Diodes SOD123F land, which Diodes drew

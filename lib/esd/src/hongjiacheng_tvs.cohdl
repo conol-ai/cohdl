@@ -1,0 +1,77 @@
+// Zhuhai Hongjiacheng bidirectional TVS diodes ("...CA") on the shared
+// `do214` and `sod` lands. A bidirectional TVS has no polarity: the body
+// carries no cathode band (SMCJ and SMF sheets, package-outline notes; the
+// SMBJ sheet labels the band "for uni-directional products only") and the
+// two terminals are interchangeable, so each device follows the package's
+// two-terminal protector model (IO1 / IO2, as H5VL10B and TPD1E1B04).
+//
+// These parts carry no supplier binding yet. The assembler's models for
+// their LCSC part numbers were read by the body only, aligned and centred
+// with no rotation (archived with the 2026-11-08 probe preview); a binding
+// also needs the part number in the reviewed LCSC map, which is not there
+// yet. See docs/README.md ("Hongjiacheng TVS parts").
+//
+// Ratings are for a 10/1000us pulse. Each sheet's note (3) doubles the IR
+// limit for bidirectional devices with a VR of 10V and under; that applies
+// to SMBJ6.0CA only.
+
+// ---- SMBJ6.0CA: 6.0V 600W bidirectional TVS, SMB (DO-214AA) ----
+// Datasheet "SMBJ SERIES" Rev 1.1. Page 1: PPPM 600W. Page 2, SMBJ6.0CA row
+// (marking AG): VRWM 6.0V, VBR 6.67-7.37V at IT 10mA, VC 10.3V at IPP
+// 58.25A, IR 800uA at VRWM (doubled for this bidirectional part, page 3
+// note 3).
+#[doc("docs/hongjiacheng-smbj6v0ca.evidence.md")]
+pub device SMBJ6V0CA {
+    pins {
+        required IO1: 1 [bidirectional]
+        required IO2: 2 [bidirectional]
+    }
+}
+
+impl ESD_Protector for SMBJ6V0CA {}
+
+#[doc("docs/hongjiacheng-smbj6v0ca.evidence.md")]
+pub part TVS_SMBJ6V0CA: SMBJ6V0CA {
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "SMBJ6.0CA",
+              footprint: do214::DIOM5336X265N }
+}
+
+// ---- SMCJ36CA: 36V 1500W bidirectional TVS, SMC (DO-214AB) ----
+// Datasheet "SMCJ SERIES" Rev 2.2. Page 1: PPPM 1500W. Page 3, SMCJ36CA row
+// (marking BFP): VRWM 36V, VBR 40-44.2V at IT 1mA, VC 58.1V at IPP 25.9A,
+// IR 1uA at VRWM.
+#[doc("docs/hongjiacheng-smcj36ca.evidence.md")]
+pub device SMCJ36CA {
+    pins {
+        required IO1: 1 [bidirectional]
+        required IO2: 2 [bidirectional]
+    }
+}
+
+impl ESD_Protector for SMCJ36CA {}
+
+#[doc("docs/hongjiacheng-smcj36ca.evidence.md")]
+pub part TVS_SMCJ36CA: SMCJ36CA {
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "SMCJ36CA",
+              footprint: do214::DIOM7959X261N }
+}
+
+// ---- SMF15CA: 15V 200W bidirectional TVS, SOD-123FL ----
+// Datasheet "SMF SERIES" Rev 2.2. Page 1: PPPM 200W. Page 2, SMF15CA row
+// (marking IM): VRWM 15V, VBR 16.7-18.5V at IT 1mA, VC 24.4V at IPP 8.2A,
+// IR 1uA at VRWM.
+#[doc("docs/hongjiacheng-smf15ca.evidence.md")]
+pub device SMF15CA {
+    pins {
+        required IO1: 1 [bidirectional]
+        required IO2: 2 [bidirectional]
+    }
+}
+
+impl ESD_Protector for SMF15CA {}
+
+#[doc("docs/hongjiacheng-smf15ca.evidence.md")]
+pub part TVS_SMF15CA: SMF15CA {
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "SMF15CA",
+              footprint: sod::SODFL3818X120N }
+}

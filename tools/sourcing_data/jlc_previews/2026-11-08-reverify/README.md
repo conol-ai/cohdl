@@ -82,3 +82,10 @@ The three rows were first added to `tools/sourcing_data/jlc_frames.json`, in an 
 Adopting a row is W4 discretes work: add a library part for the MPN (B5819WS, SS34 or 1N4148WT) on the same land, with `supplier lcsc "<C number>" rotate 180`, and move the row into `jlc_frames.json`.
 
 The rows were read against the `sod` and `do214` **0.1.0** lands and carry `package_version` 0.1.0. PR #102 moves both packages to 0.1.1. Its copper is unchanged; only the SOD1608X70N silkscreen and comments differ. So adoption must re-key each row's `package_version` to the version the new part ships in, after checking that version's land copper is still the copper read here.
+
+## Since 2026-11-11: library parts exist, still unbound
+
+`diode` 0.1.2 adds `SCHOTTKY_B5819WS`, `SCHOTTKY_SS34` and `D_1N4148WT` on these three lands, without a supplier clause. The rows stay archived here, and the statements above still hold: no library source lists C7420331, C7420365 or C7420320.
+
+What is missing is the map row. A binding's part number must be in `tools/sourcing_data/lcsc_map.json`, and rows reach it only through a reviewed `lcsc_backfill.py` run that reads every candidate page for the MPN. On 2026-11-11 the fetch cache held 1 or 2 of the 51 (B5819WS), 81 (SS34) and 53 (1N4148WT) candidate pages, and nothing was fetched. Once the rows are promoted, adoption is as described above: add the clause with `rotate 180`, and move each row into `jlc_frames.json` with `package_version` 0.1.1 (`sod` and `do214` 0.1.1 change no pad from 0.1.0; on these three lands only the SOD1608X70N silkscreen body lines differ).
+

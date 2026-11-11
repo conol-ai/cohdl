@@ -579,7 +579,7 @@
     {
       "id": "c2b1-sot236_esd-c85364",
       "package": "esd",
-      "package_version": "0.1.2",
+      "package_version": "0.1.3",
       "footprint": "FP_SOT_23_6",
       "supplier": "lcsc",
       "pn": "C85364",
@@ -629,7 +629,7 @@
     {
       "id": "c2b1-dfn1006-c7420372",
       "package": "esd",
-      "package_version": "0.1.2",
+      "package_version": "0.1.3",
       "footprint": "FP_Hongjiacheng_DFN1006_2L",
       "supplier": "lcsc",
       "pn": "C7420372",

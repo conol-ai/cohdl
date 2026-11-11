@@ -1,6 +1,6 @@
 # Sampled inference for chip resistors and MLCCs (W3)
 
-Status: **accepted 2026-11-09 by Tony, for the non-polar chip resistors and MLCCs of `lib/passive` only** ([decision](https://github.com/conol-ai/cohdl/pull/79#issuecomment-6734040188)). It does not apply to polar or multi-pin parts. Group bindings come from the generator under this rule, through normal PRs. On 2026-11-10 Tony decided that a sample whose model is not drawn does not block its group. The decisions set the scope and that; the numbers in §5 (sample limits, members with no stock, rechecks, whether a part number not drawn may be inferred) are proposed and **await Tony's confirmation**. [中文](library-supplier-w3-sampling.zh-CN.md)
+Status: **accepted 2026-11-09 by Tony, for the non-polar chip resistors and MLCCs of `lib/passive` only** ([decision](https://github.com/conol-ai/cohdl/pull/79#issuecomment-6734040188)). It does not apply to polar or multi-pin parts. Group bindings come from the generator under this rule, through normal PRs. On 2026-11-10 Tony decided that a sample whose model is not drawn does not block its group. The decisions set the scope and that; the numbers in §5 (sample limits, members with no stock, rechecks, whether a part number not drawn may be inferred) are proposed and **await Tony's confirmation**. §6, how a chip body is read (the rule's `body_method`), is **proposed on 2026-11-11 and awaits Tony's decision**; the readings quoted in §4 and §5 are by the earlier method. [中文](library-supplier-w3-sampling.zh-CN.md)
 
 The rule is `tools/sourcing/w3_rule.py`; `tests/library/supplier.rs` holds the same numbers and rejects a group record that carries any other rule. Sections 1–4 are the proposal as reviewed, with §3 updated to what was built.
 
@@ -170,3 +170,85 @@ This does not change any number in the rule. It is why the raw check is there: o
 | `CHIP_2512` Yageo `RC` | paused | C878096 residual up to 0.169 mm against 0.125 (raw within); C878293 not drawn |
 
 These parts keep their own bindings: a paused group only stops inference. No sample of any group fails the raw check today; the raw check changes no outcome on the current records.
+
+## 6. How a chip body is read (proposed 2026-11-11, pending Tony)
+
+**Status: proposed, not accepted.** On this branch the rule is `w3-2026-11-11-m2`: the limits of `w3-2026-11-10b` unchanged, plus one field, `body_method: 2`. Nothing is bound from it. Tony decides whether method 2 becomes the W3 reading.
+
+**The defect.** `measure_preview.py` read a chip body as every pixel within 1.5 pad half-spacings of the origin that is not board green, bare copper or marker black (method 1). That window also holds part of the part's own white reference text, which our generator puts on one side of the land and which turns with the part. So the reading was of the model and its text together. Board 4 (`jlc_previews/2026-11-11-board-4/`), the first record with one part number at five angles on both sides, shows it: of 204 drawn chip bodies, 58 read more than 10° off their pads (up to 78.5°) and offsets reach 1.54 of the per-part limit, while by eye every one lies along its pads, centred.
+
+**Method 2** (`measure_preview.body_model`) reads the drawn model alone: the pixels joined to the footprint origin.
+
+1. Board green is not the model, and neither is a pad's bare copper (copper colour in an area at least 3 px across). A thinner run of copper colour is the export's blend where the red designator meets a white terminal; it is inside the model and stays.
+2. Of the rest, the model is what is joined to the origin by a path at least 3 px wide. Text beside the model is cut off by the board between them, and text that only grazes it (a bridge 1 or 2 px wide, as on the 0201 R68 of board 4) is cut off too.
+3. The angle, the centroid and the limits are computed as before. A reading names its method (`"method": 2` in `body`); one that names none is method 1.
+
+**What does not change.** The thresholds: 10°, raw offset within 1.0 of the per-part limit, residual within 0.5 after the view's median, zero-stock and not-drawn members not inferred. The archived records: `measurements.json` and `remeasure-2026-11-10.json` are untouched and still reproduce byte for byte with `measure --method 1`. The method 2 readings are new files beside them (`remeasure-2026-11-11-method-2.json`, named by each record's `w3-readings.json`). The dated reports `2026-11-07/` and `2026-11-10/` are snapshots; the report under the proposed rule is `w3_sampling/2026-11-11-method-2/`.
+
+**What the rule requires.** `w3_groups.py` judges a record only by readings of the rule's method, takes each view's median over those readings, and stops if a file listed for the method holds another's. A group record's samples each carry `body_method`; `sourcing/bindings.py` and `tests/library/supplier.rs` reject a sample read any other way (the `method` counterexample in `tests/fixtures/library-ci/s-sampled/`). So a record made from method 1 readings cannot be checked against these limits by accident, in either direction.
+
+**On the three records** (drawn chip bodies):
+
+| Record | Bodies | Failing the body check, method 1 → 2 | Largest angle | Largest offset, share of its limit |
+|---|---:|---|---|---|
+| Board 4, 2026-11-11 | 204 | 67 → 0 | 78.5° → 6.3° | 1.54 → 0.41 (0.053 mm on `CHIP_0402`) |
+| W3 pilot, 2026-11-07 | 89 | 1 → 0 | 10.5° → 2.6° | 0.95 (0.121 mm) → 0.31 (0.040 mm) |
+| C2 board 3, 2026-11-05 | 51 | 0 → 1 (R4) | 7.9° → 5.2° | 0.88 → 1.24 (R4, 0.099 of 0.080 mm) |
+
+The view medians the residual is taken against:
+
+| View | Bodies | Method 1 | Method 2 |
+|---|---:|---|---|
+| Pilot, top | 89 | (+0.005, −0.077) mm | (+0.011, −0.010) mm |
+| Board 3, top | 39 | (−0.010, −0.025) | (−0.021, +0.026) |
+| Board 3, bottom | 12 | (−0.038, −0.011) | (−0.041, +0.013) |
+| Board 4, top | 120 | (−0.005, −0.064) | (+0.004, −0.011) |
+| Board 4, bottom | 84 | (−0.021, −0.060) | (−0.010, −0.009) |
+
+So the pilot's 0.077 mm "board bias" along −y (§5) was the reference text above each part, not the export and not the land: with the model alone it is 0.010 mm, a third of a pixel. Board 3's `CHIP_2010` "0.18 mm that turns with the part" reads 0.031–0.068 mm (0.171–0.206 by method 1). Board 3 is drawn differently from the other two (shaded models with a dark side face, which moves a centroid by a few hundredths of a millimetre), and its medians do not shrink.
+
+**Every group, three ways.** (a) is method 1 on the two records main has, the outcome on main today. (b) is method 1 with board 4's record added, what PR #111 alone gives. (c) is method 2 with all three records. Each cell: status, passed of required, then the largest raw offset and residual (each against its limit) and the largest angle over every copy of the passed samples. Groups no record has touched are left out (5 of 20, all `needs samples`).
+
+| Group (members) | (a) method 1, main today | (b) method 1 with board 4 (#111 alone) | (c) method 2 with board 4 (this PR) |
+|---|---|---|---|
+| `CHIP_0201` Yageo `RC` (741) | **paused** 0/38 (1 failed) | **paused** 0/38 (1 failed) | **paused** 0/38 (1 failed) |
+| `CHIP_0201` Yageo `CC` (117) | needs samples 2/6; raw 0.048/0.080, residual 0.040/0.040, 3.2° | needs samples 2/6; raw 0.048/0.080, residual 0.040/0.040, 3.2° | needs samples 2/6; raw 0.056/0.080, residual 0.025/0.040, 5.2° |
+| `CHIP_0402` Vishay `CRCW` (968) | needs samples 40/49 (9 not drawn); raw 0.100/0.127, residual 0.063/0.064, 7.5° | **paused** 45/49 (3 failed, 10 not drawn); raw 0.100/0.127, residual 0.063/0.064, 7.1° | needs samples 48/49 (10 not drawn); raw 0.040/0.128, residual 0.032/0.064, 4.4° |
+| `CHIP_0402` Yageo `RC` (969) | **sampled** 49/49; raw 0.121/0.128, residual 0.059/0.064, 9.9° | **paused** 46/49 (3 failed); raw 0.116/0.127, residual 0.059/0.064, 6.6° | **sampled** 49/49; raw 0.053/0.128, residual 0.041/0.064, 5.5° |
+| `CHIP_0402` Samsung `CL` (11) | needs samples 0/3 | **paused** 0/3 (1 failed) | needs samples 1/3; raw 0.035/0.127, residual 0.022/0.064, 2.9° |
+| `CHIP_0402` Yageo `CC` (199) | **paused** 8/10 (1 failed, 1 not drawn); raw 0.082/0.127, residual 0.048/0.064, 7.9° | **paused** 7/10 (5 failed, 1 not drawn); raw 0.075/0.128, residual 0.048/0.064, 7.9° | **sampled** 12/10 (1 not drawn); raw 0.056/0.128, residual 0.034/0.064, 6.3° |
+| `CHIP_0603` Yageo `RC` (969) | needs samples 4/49; raw 0.038/0.206, residual 0.020/0.103, 3.6° | needs samples 4/49; raw 0.038/0.206, residual 0.020/0.103, 3.6° | needs samples 4/49; raw 0.074/0.206, residual 0.044/0.103, 0.3° |
+| `CHIP_0603` Samsung `CL` (24) | needs samples 0/3 | **paused** 1/3 (1 failed); raw 0.110/0.206, residual 0.050/0.103, 4.1° | needs samples 2/3; raw 0.040/0.206, residual 0.029/0.103, 1.2° |
+| `CHIP_0603` Yageo `CC` (273) | needs samples 0/14 | **paused** 0/14 (1 failed) | needs samples 1/14; raw 0.030/0.206, residual 0.018/0.103, 0.7° |
+| `CHIP_0805` Yageo `RC` (969) | needs samples 5/49; raw 0.042/0.228, residual 0.052/0.114, 2.3° | needs samples 5/49; raw 0.042/0.228, residual 0.052/0.114, 2.3° | needs samples 5/49; raw 0.045/0.228, residual 0.059/0.114, 0.2° |
+| `CHIP_0805` Yageo `CC` (142) | **paused** 2/8 (2 failed); raw 0.092/0.228, residual 0.110/0.114, 2.4° | **paused** 2/8 (2 failed); raw 0.092/0.228, residual 0.110/0.114, 2.4° | **paused** 1/8 (3 failed); raw 0.058/0.228, residual 0.041/0.114, 0.2° |
+| `CHIP_1206` Yageo `RC` (967) | needs samples 4/49; raw 0.135/0.250, residual 0.121/0.125, 0.8° | needs samples 4/49; raw 0.135/0.250, residual 0.121/0.125, 0.8° | needs samples 4/49; raw 0.087/0.250, residual 0.103/0.125, 0.3° |
+| `CHIP_1210` Yageo `RC` (846) | needs samples 1/43 (1 not drawn); raw 0.057/0.250, residual 0.033/0.125, 3.3° | needs samples 29/43 (15 not drawn); raw 0.087/0.250, residual 0.045/0.125, 3.3° | needs samples 29/43 (15 not drawn); raw 0.036/0.250, residual 0.043/0.125, 1.2° |
+| `CHIP_2010` Yageo `RC` (865) | **paused** 1/44 (1 failed); raw 0.134/0.250, residual 0.107/0.125, 0.9° | **paused** 1/44 (1 failed); raw 0.134/0.250, residual 0.107/0.125, 0.9° | needs samples 2/44; raw 0.070/0.250, residual 0.036/0.125, 0.3° |
+| `CHIP_2512` Yageo `RC` (863) | **paused** 0/44 (1 failed, 1 not drawn) | **paused** 0/44 (1 failed, 1 not drawn) | needs samples 1/44 (1 not drawn); raw 0.082/0.250, residual 0.113/0.125, 0.2° |
+
+Totals (sampled / need samples / paused): (a) 1 / 14 / 5, (b) 0 / 10 / 10, (c) 2 / 16 / 2. Method 2 on main's two records alone gives 1 / 17 / 2.
+
+**Outcomes do change, and this is the part to weigh.** No threshold moved, but under method 2 more samples pass, because the text is no longer measured:
+
+- `CHIP_0402` Yageo `CC` becomes **sampled** (12 of 10): C113781, left for manual review at 10.5° by method 1, reads within 2.6°, and board 4 adds three part numbers. On main it is paused. Without board 4's record it is one sample short.
+- `CHIP_2010` and `CHIP_2512` Yageo `RC` are no longer paused (they need samples): their residuals of 0.171 and 0.169 mm against 0.125 were the text.
+- `CHIP_0402` Yageo `RC` stays sampled with board 4's record instead of pausing, and its margins widen from 0.121 of 0.128 mm raw and 9.9° to 0.053 mm and 5.5°.
+- Of 451 judged copies, 225 pass by method 1 and 340 by method 2; 116 move from fail to pass.
+
+**Method 2 can fail, and does.** One sample that passed by method 1 fails by method 2: C527206 (`CHIP_0805` Yageo `CC`, board 3 C12), residual 0.110 → 0.120 mm against 0.114. Its group was already paused by C527232 and C576985, which still fail (0.138 and 0.156 mm): board 3 draws all three 0805 `CC` models 0.11–0.15 mm toward one pad, leaving the other bare. C138161 (`CHIP_0201` Yageo `RC`, board 3 R4 at −143°) failed on the residual and now fails on the raw offset too, 0.099 mm against 0.080: its model is drawn along its pads off centre. `tools/tests/test_measure_preview.py` shows on synthetic exports that a model shifted or turned beyond the limits fails with its text beside it.
+
+**Limits of the method.**
+
+- Silkscreen that overlaps the model, or touches it along 3 px or more, is read as part of it, as is anything else drawn joined to it. The reference text is drawn in the same white as a model's terminals, so colour cannot tell them apart; only position can.
+- A model the export draws in separate pieces is read as its piece at the origin. A model with nothing drawn at the origin gives no reading, which fails.
+- At about 31 px/mm an 0201 model is about 20 × 10 px. The 3 px rule is in pixels, so a much coarser export would lose small models (no reading, which fails) and a much finer one would cut fewer grazes.
+- The red designator printed over each body is part of the reading. Board 3's shaded rendering is read as drawn.
+- Validated on three records (344 bodies, five views, two rendering styles) and synthetic tests; crops of each land class were checked by eye. Inductors and other parts are not read by it.
+- `jlc_preview.py`'s live check uses method 2 from now on. On board 4's archived exports it would pass all 67 chip instances it left for manual review (204 `body`, 16 `mark`, 15 `unverified`, 8 `manual review`: the inductors, which have no check).
+
+**With the other open PRs.**
+
+- **#111** (board 4's record): this change is stacked on it. Under method 1 its record pauses five more groups, among them the one #107 binds; under method 2 it pauses none.
+- **#107** (`CHIP_0402` Yageo `RC` group record, rule `w3-2026-11-10b`): its 49 samples were recorded by method 1 (largest raw 0.121 of 0.128 mm, residual 0.059 of 0.064, 9.9°). The same 49 by method 2, on the pilot and board 3: largest raw 0.050 mm (C93943), largest residual 0.036 mm (C137958), largest angle 2.6° (C137920); medians 0.022 mm, 0.013 mm and 0.5°. With board 4's 30 further copies of three of them: 0.053 mm, 0.041 mm and 5.5°, all 79 copies passing. If method 2 is accepted, `tools/w3_record.py` (on #107) has to read each record's method 2 readings and write `body_method` into each sample, and the record is regenerated; the bindings it carries do not change.
+- **#112** (rule `w3-2026-11-11`: other groups in the median, not-drawn share): its conditions count bodies and part numbers, which do not depend on the method, so they apply unchanged; only the residuals they sit beside change. Under both, `CHIP_1210` Yageo `RC` (15 of 44 judged not drawn, 34.1%) and `CHIP_0402` Vishay `CRCW` (10 of 58, 17.2%) exceed #112's 10% and pause; `CHIP_0402` Yageo `CC` (1 of 13, 7.7%) does not. The two changes touch the same rule dictionary and the same checkers, so whichever merges second takes a new version that carries both sets of fields. Proposed: #112 keeps `w3-2026-11-11`; this change, rebased on it, becomes the next version with #112's fields and `body_method: 2`; #107's record is regenerated under that version last.

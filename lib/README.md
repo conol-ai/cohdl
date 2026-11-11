@@ -24,8 +24,8 @@ footprints live in focused packages:
 | `csp` | `csp::KICAD_ST_WLCSP_49_DIE448` | attributed chip-scale package lands with exact populated-ball maps |
 | `soic` | `soic::SOIC8P127X790X216N` | audited SOIC and TSSOP package land patterns |
 | `sot` | `sot::SOT3P190X290X130N`, `sot::SOT3P150X450X250N`, `sot::SOT3P130X200X125N`, `sot::SOT4P230X651X351N` | reusable SOT-23/SOT-89/SOT-323/SOT-223 land patterns for new parts, on the assembler's frame (W4); the SOT-89 tab is pad 2, the SOT-223 tab is pad 4; `transistor::FP_JSCJ_SOT23` remains for existing users |
-| `sod` | `sod::SOD3716X135N`, `sod::SOD2613X110N`, `sod::SODFL3818X120N`, `sod::SOD1608X70N` | reusable SOD-123/SOD-323/SOD-123FL/SOD-523 land patterns for new parts, cathode = pad 1 at -x (W4); `diode::FP_D_SOD_123` remains for existing users, and `diode::FP_D_SOD_123W` (Nexperia CFP3) is a different body |
-| `do214` | `do214::DIOM5026X241N`, `do214::DIOM5336X265N`, `do214::DIOM7959X261N`, `do214::FP_DO221AC_SMAF` | reusable DO-214 (SMA/SMB/SMC) and SMAF land patterns for new parts, cathode = pad 1 at -x (W4) |
+| `sod` | `sod::SOD3716X135N`, `sod::SOD2613X110N`, `sod::SODFL3818X120N`, `sod::SOD1608X70N` | reusable SOD-123/SOD-323/SOD-123FL/SOD-523 land patterns for new parts (W4); `diode::FP_D_SOD_123` remains for existing users, and `diode::FP_D_SOD_123W` (Nexperia CFP3) is a different body |
+| `do214` | `do214::DIOM5026X241N`, `do214::DIOM5336X265N`, `do214::DIOM7959X261N`, `do214::FP_DO221AC_SMAF` | reusable DO-214 (SMA/SMB/SMC) and SMAF land patterns for new parts (W4) |
 | `connectors` | `connectors::headers::micro_fit_3::MOLEX_43045_0612` | general-purpose board connectors, keyed power/actuator harnesses, and headers |
 | `usb` | `usb::connectors::type_c::USB_C_HRO_TYPE_C_31_M_12` | USB connectors, including Type-C and Micro-B, and controllers |
 | `esd` | `esd::ESD_USBLC6`, `esd::ESD_H5VL10B` | ESD protection devices |
@@ -59,6 +59,14 @@ footprints live in focused packages:
 | `@wch/ch32` | `wch_ch32::MCU_CH32V003F4P6`, `wch_ch32::MCU_CH32V203C8T6` | WCH RISC-V MCU models and exact TSSOP20/LQFP48 parts with nominal generic lands; assembly qualification documented |
 | `@raspberrypi/mcu` | `raspberrypi_mcu::RP2350A_QFN60` | Raspberry Pi microcontrollers |
 | `@richtek/dcdc` | `richtek_dcdc::buck_boost::rt6150b::BUCKBOOST_RT6150B` | Richtek DC/DC converters |
+
+SOD and DO-214 diode lands (SMAF included) share one numbering convention:
+**the cathode (the band end) is pad 1, at -x**, and the anode is pad 2 at
++x, in CoHDL's board frame (+y down, top view, origin at the package centre),
+with `polarity_marker cathode_pin 1 shape band` outboard of pad 1. It is the
+convention of `diode::FP_D_SOD_123` and `diode::FP_D_SOD_123W`; every `sod`
+and `do214` land follows it, and so does a new land for these outlines.
+Bidirectional parts carry no band on the body but reuse the same land.
 
 Scoped manifest names are quoted (`"@ti/dcdc"`, `"@raspberrypi/mcu"`); their
 CoHDL package namespace is normalized (`ti_dcdc`, `raspberrypi_mcu`).

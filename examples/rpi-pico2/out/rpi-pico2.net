@@ -477,6 +477,7 @@
       (fields
         (field (name "MPN") "W25Q32RVXHJQ")
         (field (name "MFR") "Winbond")
+        (field (name "LCSC") "C32246052")
       )
       (sheetpath (names "/") (tstamps "/"))
       (tstamp "0000002F")

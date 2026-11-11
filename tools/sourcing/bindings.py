@@ -10,10 +10,13 @@ from __future__ import annotations
 
 from datetime import date
 from decimal import Decimal, InvalidOperation
+import hashlib
 import json
 from pathlib import Path, PurePosixPath
 import re
 from typing import Any
+
+from .w3_rule import RULE as W3_RULE, required as w3_required, sample_ok as w3_sample_ok
 
 
 SCHEMA_VERSION = 1
@@ -24,6 +27,8 @@ FRAME_FIELDS = {
     "id", "package", "package_version", "footprint", "supplier", "pn",
     "mapping", "measured", "exception", "evidence", "evidence_ref",
 }
+# `sampled` is optional: a row without it reads as `sampled: null`.
+SAMPLED_FIELD = "sampled"
 
 
 def _rows(path: Path) -> list[dict[str, Any]]:
@@ -78,10 +83,89 @@ def _mapping(row: dict[str, Any]) -> tuple[Decimal, Decimal, int] | None:
     return dx, dy, rotate
 
 
+def _inside(root: Path, record: Any) -> Path | None:
+    """ROOT / RECORD when RECORD names an existing file inside ROOT."""
+    if not isinstance(record, str) or not record:
+        return None
+    path = PurePosixPath(record)
+    if path.is_absolute() or ".." in path.parts:
+        return None
+    try:
+        resolved = (root / path).resolve()
+        resolved.relative_to(root.resolve())
+        return resolved if resolved.is_file() else None
+    except (OSError, ValueError):
+        return None
+
+
+def _zero(row: dict[str, Any]) -> bool:
+    mapping = _mapping(row)
+    return mapping is not None and mapping == (0, 0, 0)
+
+
+def _sampled(row: dict[str, Any], rows_by_id: dict[str, dict[str, Any]], root: Path) -> bool:
+    """A row inferred under the W3 rule: every check of the group record holds."""
+    sampled = row[SAMPLED_FIELD]
+    if not isinstance(sampled, dict) or set(sampled) != {"group", "record", "note"}:
+        return False
+    if not (isinstance(sampled["note"], str) and sampled["note"].strip()):
+        return False
+    path = _inside(root, sampled["record"])
+    if path is None:
+        return False
+    try:
+        record = json.loads(path.read_text(encoding="utf-8"))
+        if record["schema_version"] != SCHEMA_VERSION or record["rule"] != W3_RULE:
+            return False
+        groups = [g for g in record["groups"] if g["id"] == sampled["group"]]
+        if len(groups) != 1:
+            return False
+        group = groups[0]
+        if (group["status"] != "active" or group["package"] != W3_RULE["package"]
+                or group["type"] not in W3_RULE["types"]
+                or (group["package"], group["package_version"], group["footprint"])
+                != (row["package"], row["package_version"], row["footprint"])):
+            return False
+        land = group["land"]
+        if not land or not all(
+            (found := _inside(root, name)) is not None
+            and hashlib.sha256(found.read_bytes()).hexdigest() == digest
+            for name, digest in land.items()
+        ):
+            return False
+        members = set(group["members"])
+        if len(members) != len(group["members"]) or not isinstance(group["not_drawn"], list):
+            return False
+        samples = group["samples"]
+        sample_pns = {s["pn"] for s in samples}
+        if (row["pn"] not in members or row["pn"] in sample_pns
+                or (not W3_RULE["infer_zero_stock"] and row["pn"] in group["zero_stock"])
+                or (not W3_RULE["infer_not_drawn"] and row["pn"] in group["not_drawn"])):
+            return False
+        if len(sample_pns) != len(samples) or len(samples) < w3_required(len(members)):
+            return False
+        for sample in samples:
+            target = rows_by_id.get(sample["row"])
+            if (sample["pn"] not in members or target is None or target is row
+                    or target.get("evidence") is None or target.get("evidence_ref") is not None
+                    or target.get(SAMPLED_FIELD) is not None or target["pn"] != sample["pn"]
+                    or (target["package"], target["package_version"], target["footprint"])
+                    != (row["package"], row["package_version"], row["footprint"])
+                    or not _zero(target) or not _evidence(target, rows_by_id, root)
+                    or not w3_sample_ok(sample)):
+                return False
+    except (OSError, ValueError, KeyError, TypeError, AttributeError):
+        return False
+    return _zero(row)
+
+
 def _evidence(row: dict[str, Any], rows_by_id: dict[str, dict[str, Any]], root: Path) -> bool:
     evidence, reference = row.get("evidence"), row.get("evidence_ref")
-    if (evidence is None) == (reference is None):
+    sampled = row.get(SAMPLED_FIELD)
+    if [evidence, reference, sampled].count(None) != 2:
         return False
+    if sampled is not None:
+        return _sampled(row, rows_by_id, root)
     if evidence is not None:
         if not isinstance(evidence, dict) or set(evidence) - {"note"} != {"method", "date", "record"}:
             return False
@@ -91,18 +175,7 @@ def _evidence(row: dict[str, Any], rows_by_id: dict[str, dict[str, Any]], root: 
             return False
         if evidence["method"] not in {"preview", "product_page"} or not _date(evidence["date"]):
             return False
-        record = evidence["record"]
-        if not isinstance(record, str) or not record:
-            return False
-        path = PurePosixPath(record)
-        if path.is_absolute() or ".." in path.parts:
-            return False
-        try:
-            resolved = (root / path).resolve()
-            resolved.relative_to(root.resolve())
-            return resolved.is_file()
-        except (OSError, ValueError):
-            return False
+        return _inside(root, evidence["record"]) is not None
     if not isinstance(reference, dict) or set(reference) != {"row", "reason", "note"}:
         return False
     target = rows_by_id.get(reference["row"])
@@ -111,6 +184,7 @@ def _evidence(row: dict[str, Any], rows_by_id: dict[str, dict[str, Any]], root: 
         and target is not row
         and target.get("evidence") is not None
         and target.get("evidence_ref") is None
+        and target.get(SAMPLED_FIELD) is None
         and reference["reason"] in {"same_supplier_footprint", "same_preview_board"}
         and isinstance(reference["note"], str)
         and bool(reference["note"].strip())
@@ -190,7 +264,7 @@ class Bindings:
             frame_rows = []
         for row in frame_rows:
             valid = (
-                set(row) == FRAME_FIELDS
+                set(row) - {SAMPLED_FIELD} == FRAME_FIELDS
                 and _text(row, {"id", "package", "package_version", "footprint", "pn"})
                 and row["supplier"] == "lcsc"
                 and _mapping(row) is not None

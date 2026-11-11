@@ -92,3 +92,10 @@ A reading is recorded in `jlc_frames.json` only when every copy of the part numb
 **C1338995 held back.** Its `rotate 270` row would bind an `@st/stm32` part. That would change `@st/stm32` 0.3.0, which is in the current publish round. So the row is left out of `jlc_frames.json`, and the reading stays here. It is to be added with the next `@st/stm32` version.
 
 **Added in `@st/stm32` 0.3.1 (2026-11-06).** The C1338995 row is now in `jlc_frames.json` (`c2b3-kicadufbga1007x7mmlayout12x12p05mm-c1338995`, `bga` 0.2.0, `rotate 270`), and `@st/stm32` 0.3.1 binds `MCU_STM32L152VCH6` with it. The reading is still the single manual one above, so it is reviewed on its own, apart from the other bindings of that version. The same version binds the LQFP48 parts C9861 and C23922 read here, once the B2 full run put them in `lcsc_map.json`. Every `passive` frame row now names 0.2.5, which changes no land from 0.2.4.
+
+## Added 2026-11-10: inputs for the W3 rule
+
+The W3 rule (`docs/library-supplier-w3-sampling.md`) counts this board's chip rows as samples once it can judge them, and it judges offsets as vectors. Nothing above is changed. The uploaded package was not kept, so on 2026-11-10 `preview_package.py` was run again at `ad83a40`. Its BOM and CPL equal the uploaded files byte for byte (`78b06d74…`, `26fab365…` above); only the Gerber archive differs, by its timestamps. Added:
+- `board.json` and `c2_frame_board_3-lcsc-bom.csv`: from that rebuild.
+- `remeasure-2026-11-10.json`: `measure_preview.py measure` run again on `top.png` and `bottom.png` with them. It equals `measurements.json` row for row, apart from each body's added `offset_xy_mm`.
+- `w3.json`: what `tools/w3_groups.py` reads from this record. It holds the files above, `checks.json`, and the SHA-256 of the land files. The land files are byte for byte those at `ad83a40`.

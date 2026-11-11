@@ -553,6 +553,14 @@ fn mirrored_wave3_sot_lands_are_rejected() {
 /// Renumber the tab of one wave-3 land and return the package's rendered
 /// diagnostics: a tab numbered against the convention changes the distinct
 /// pad-number count, so RFC-021's name check (E809) must reject it.
+///
+/// The tab-numbering rule (LIBRARY.md section 4: a tab joined to a lead takes
+/// that lead's number, an isolated tab the next) is pinned only through the
+/// footprint *name*. E809 compares the name's pin count (`SOT3`, `SOT4`) with
+/// the distinct pad numbers, so renaming a footprint, or giving it a name
+/// outside RFC-021's checked families, removes this guard. What remains is
+/// `w4_wave3_lands_match_their_source_tables`, which pins the pad numbers
+/// only as `WAVE3` states them.
 fn renumbered_tab_diagnostics(land: &Land, from: &str, to: &str) -> String {
     let source = derive(&shipped_source(land), &[(from, to)]);
     let files = vec![("src/footprints.cohdl".to_string(), source)];

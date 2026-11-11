@@ -62,3 +62,7 @@ and UART boot, needs a crystal or an XIN clock (section 5.2.8.1, PDF p. 376),
 and the QSPI_SS comment records its BOOTSEL input role (PDF pp. 375-376).
 The application note also quotes the DVDD decoupling rule of PDF p. 442.
 No pin, pin number, type, connection obligation, part or land changed.
+
+## qfn 0.3.0 in 0.1.6
+
+Only the `qfn` dependency pin changed, from 0.2.1 to 0.3.0. `qfn` 0.3.0 removes `QFN48N40P600X600_1EP405X360`, which this package never used. `qfn::QFN60N40P700X700_1EP340X340` is byte-identical in 0.3.0. No part, pin or land changed.

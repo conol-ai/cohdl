@@ -25,3 +25,7 @@ Retrieved 2026-07-30 from Richtek.
 The functional pin table was visually checked on datasheet page 2, the
 package outline on pages 12-13, and the one-page official footprint drawing
 was rendered and inspected.
+
+## qfn 0.3.0 in 0.1.4
+
+Only the `qfn` dependency pin changed, from 0.2.1 to 0.3.0. `qfn` 0.3.0 removes `QFN48N40P600X600_1EP405X360`, which this package never used. The `qfn` lands it uses are byte-identical in 0.3.0. No part, pin or land changed.

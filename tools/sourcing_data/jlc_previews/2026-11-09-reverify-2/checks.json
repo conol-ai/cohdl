@@ -1,0 +1,42 @@
+{
+ "U1": {
+  "side": "top",
+  "status": "mark",
+  "detail": ""
+ },
+ "U2": {
+  "side": "top",
+  "status": "mark",
+  "detail": ""
+ },
+ "U3": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": ""
+ },
+ "U4": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": ""
+ },
+ "U5": {
+  "side": "top",
+  "status": "mark",
+  "detail": ""
+ },
+ "U6": {
+  "side": "top",
+  "status": "mark",
+  "detail": ""
+ },
+ "U7": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": ""
+ },
+ "U8": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": ""
+ }
+}

@@ -21,7 +21,8 @@ impl IC for W25Q32 {}
 
 #[doc("docs/w25q32rv-datasheet.pdf")]
 pub part FLASH_W25Q32: W25Q32 {
-    primary { mfr: "Winbond", mpn: "W25Q32RVXHJQ", footprint: FP_W25Q32RV_XSON8_2X3 }
+    primary { mfr: "Winbond", mpn: "W25Q32RVXHJQ", footprint: FP_W25Q32RV_XSON8_2X3,
+              supplier lcsc "C32246052" rotate 270 }
 }
 
 // Winbond W25Q32RV datasheet Revision E, 2025-11-13 (docs/w25q32rv-datasheet.pdf):

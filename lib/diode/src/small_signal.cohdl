@@ -29,6 +29,13 @@ pub pad P_SOD123_Term {
 // Diodes Incorporated specifies X1=4.05mm across the outer land edges. With
 // 0.90mm lands, the center spacing is 3.15mm, hence x=±1.575mm. Pad 1 is the
 // cathode (band), pad 2 the anode.
+//
+// The `sod` package also ships a SOD-123 land, sod::SOD3716X135N, from the
+// Hongjiacheng BZT52 sheet's one-sided limits. The copper differs: this land
+// is 0.90 x 0.95mm at ±1.575mm (4.05mm outer span); sod::SOD3716X135N is
+// 0.91 x 1.22mm at ±1.635mm (4.18mm outer span). Both are kept: this one
+// stays for existing users (D_1N4148W), and new SOD-123 parts bind to the
+// `sod` land (see lib/sod/docs/README.md).
 pub footprint FP_D_SOD_123 {
     pad 1: P_SOD123_Term at (-1.575mm, 0mm)
     pad 2: P_SOD123_Term at (1.575mm, 0mm)

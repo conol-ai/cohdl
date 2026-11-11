@@ -1,0 +1,99 @@
+{
+  "schema_version": 1,
+  "rule": {
+    "version": "w3-2026-11-10b",
+    "package": "passive",
+    "types": [
+      "ChipResistor",
+      "MLCC"
+    ],
+    "min_sample": 3,
+    "fraction": 0.05,
+    "min_stock": 30,
+    "angle_limit_deg": 10.0,
+    "offset_raw_fraction": 1.0,
+    "offset_residual_fraction": 0.5,
+    "offset_bias": "board_median",
+    "infer_zero_stock": false,
+    "infer_not_drawn": false
+  },
+  "groups": [
+    {
+      "id": "g1",
+      "package": "passive",
+      "package_version": "9.9.9",
+      "footprint": "CHIP_T",
+      "type": "ChipResistor",
+      "mfr": "Yageo",
+      "series": "RC",
+      "status": "active",
+      "land": {
+        "land.txt": "49916166609639a89f995c2312a3c9180d987563971e6d40b79403a4918db9bb"
+      },
+      "members": [
+        "C_S1",
+        "C_S2",
+        "C_S3",
+        "C_S_RULE",
+        "C_S_UNDRAWN",
+        "C_S_ZERO"
+      ],
+      "zero_stock": [
+        "C_S_ZERO"
+      ],
+      "not_drawn": [
+        "C_S_UNDRAWN"
+      ],
+      "samples": [
+        {
+          "pn": "C_S1",
+          "row": "s1",
+          "angle_deg": -3.0,
+          "offset_limit_mm": 0.127,
+          "raw_offset_xy_mm": [
+            0.0,
+            -0.13
+          ],
+          "raw_offset_mm": 0.13,
+          "bias_xy_mm": [
+            0.0,
+            -0.13
+          ],
+          "residual_offset_mm": 0.0
+        },
+        {
+          "pn": "C_S2",
+          "row": "s2",
+          "angle_deg": 9.9,
+          "offset_limit_mm": 0.127,
+          "raw_offset_xy_mm": [
+            0.0,
+            -0.13
+          ],
+          "raw_offset_mm": 0.13,
+          "bias_xy_mm": [
+            0.0,
+            -0.13
+          ],
+          "residual_offset_mm": 0.0
+        },
+        {
+          "pn": "C_S3",
+          "row": "s3",
+          "angle_deg": 1.2,
+          "offset_limit_mm": 0.127,
+          "raw_offset_xy_mm": [
+            0.0,
+            -0.13
+          ],
+          "raw_offset_mm": 0.13,
+          "bias_xy_mm": [
+            0.0,
+            -0.13
+          ],
+          "residual_offset_mm": 0.0
+        }
+      ]
+    }
+  ]
+}

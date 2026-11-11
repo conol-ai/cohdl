@@ -12,6 +12,17 @@ import w3_groups as wg
 REPORT = wg.DATA / "w3_sampling/2026-11-07"
 CURRENT = wg.DATA / "w3_sampling/2026-11-10"
 PILOT = wg.PREVIEWS / "2026-11-07-w3-pilot-0402"
+BOARD_4 = wg.PREVIEWS / "2026-11-11-board-4"
+
+
+def before_board_4():
+    """The tree as the rule saw it before board 4's preview was recorded (2026-11-11):
+    that record is not judged. Its `short_at_preview` list still applies. The tests
+    about the pilot and board 3 are about that state; `test_board_4_...` is about
+    what the record changes."""
+    real = wg.preview_inputs
+    return mock.patch.object(wg, "preview_inputs",
+                             lambda: {record: meta for record, meta in real().items() if record != BOARD_4})
 
 
 def group(report, footprint, kind, mfr, series):
@@ -23,6 +34,8 @@ class W3GroupsTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.report = wg.build()
+        with before_board_4():
+            cls.before = wg.build()
 
     def test_the_committed_report_is_consistent_with_its_recorded_sources(self):
         # Historical record: a dated snapshot, checked only against what it records.
@@ -66,7 +79,8 @@ class W3GroupsTests(unittest.TestCase):
                   for record, meta in wg.preview_inputs().items()
                   for name in ("w3.json", meta["bom"], meta["checks"], meta["measurements"])}
         inputs.update({str(path.relative_to(wg.ROOT / "tools")): wg._sha256(path) for path in wg.board_inputs()})
-        self.assertIn("frame_boards/preview-board-4/w3.json", inputs)
+        self.assertIn("jlc_previews/2026-11-11-board-4/w3.json", inputs)
+        self.assertNotIn("frame_boards/preview-board-4/w3.json", inputs)
         self.assertEqual(self.report["sources"], {
             "lib/passive": version,
             "lcsc_map.json": wg._sha256(wg.DATA / "lcsc_map.json"),
@@ -144,37 +158,37 @@ class W3GroupsTests(unittest.TestCase):
             if path == wg.DATA / "jlc_frames.json":
                 return json.dumps(frames)
             return real(path, *args, **kwargs)
-        self.assertEqual(group(self.report, "CHIP_0402", "MLCC", "Samsung", "CL")["status"], "needs_samples")
-        with mock.patch.object(Path, "read_text", read_text):
+        self.assertEqual(group(self.before, "CHIP_0402", "MLCC", "Samsung", "CL")["status"], "needs_samples")
+        with mock.patch.object(Path, "read_text", read_text), before_board_4():
             report = wg.build()
         changed = [(g["footprint"], g["mfr"], g["series"], g["anomalies"]) for g in report["groups"]
-                   if g["status"] != group(self.report, g["footprint"], g["type"], g["mfr"], g["series"])["status"]]
+                   if g["status"] != group(self.before, g["footprint"], g["type"], g["mfr"], g["series"])["status"]]
         self.assertEqual(changed, [("CHIP_0402", "Samsung", "CL", ["C1525"])])
 
     def test_the_pilot_samples_the_0402_yageo_rc_group_and_not_the_others(self):
-        rc = group(self.report, "CHIP_0402", "ChipResistor", "Yageo", "RC")
+        rc = group(self.before, "CHIP_0402", "ChipResistor", "Yageo", "RC")
         self.assertEqual((rc["status"], len(rc["passed"]), rc["required"]), ("sampled", 49, 49))
         # Every RC sample is within the raw limit too, not only after the bias is taken off.
         self.assertTrue(all(p["raw_offset_mm"] <= p["offset_limit_mm"] for p in rc["passed"]))
         # Not drawn no longer pauses CRCW: its 9 undrawn samples do not count, so it needs 9 more.
-        crcw = group(self.report, "CHIP_0402", "ChipResistor", "Vishay", "CRCW")
+        crcw = group(self.before, "CHIP_0402", "ChipResistor", "Vishay", "CRCW")
         self.assertEqual((crcw["status"], len(crcw["passed"]), crcw["failed"]), ("needs_samples", 40, []))
         self.assertEqual(len(crcw["not_drawn"]), 9)
         self.assertTrue(all(c["status"] == "unverified" for n in crcw["not_drawn"] for c in n["outcomes"]))
         self.assertEqual(crcw["more_needed"], 9)
         # CC stays paused: C113781 is left for manual review (10.5 deg), whatever C576731 is.
-        cc = group(self.report, "CHIP_0402", "MLCC", "Yageo", "CC")
+        cc = group(self.before, "CHIP_0402", "MLCC", "Yageo", "CC")
         self.assertEqual(cc["status"], "paused")
         self.assertEqual([f["pn"] for f in cc["failed"]], ["C113781"])
         self.assertEqual([n["pn"] for n in cc["not_drawn"]], ["C576731"])
 
     def test_a_group_whose_only_fault_is_an_undrawn_sample_is_not_paused(self):
         # Board 3: C874860 is not drawn at any of its four placements; C309589 passes.
-        r1210 = group(self.report, "CHIP_1210", "ChipResistor", "Yageo", "RC")
+        r1210 = group(self.before, "CHIP_1210", "ChipResistor", "Yageo", "RC")
         self.assertEqual((r1210["status"], [n["pn"] for n in r1210["not_drawn"]]), ("needs_samples", ["C874860"]))
         self.assertNotIn("C874860", r1210["sample"])
         # 2512 also has C878096 off its residual limit, so it stays paused.
-        r2512 = group(self.report, "CHIP_2512", "ChipResistor", "Yageo", "RC")
+        r2512 = group(self.before, "CHIP_2512", "ChipResistor", "Yageo", "RC")
         self.assertEqual((r2512["status"], [f["pn"] for f in r2512["failed"]]), ("paused", ["C878096"]))
 
     def pilot_with_uniform_offset(self, offset_y):
@@ -192,7 +206,7 @@ class W3GroupsTests(unittest.TestCase):
             if path == PILOT / meta["measurements"]:
                 return json.dumps(readings)
             return real(path, *args, **kwargs)
-        with mock.patch.object(Path, "read_text", read_text):
+        with mock.patch.object(Path, "read_text", read_text), before_board_4():
             return wg.build()
 
     def test_a_uniform_offset_within_the_raw_limit_passes(self):
@@ -230,7 +244,7 @@ class W3GroupsTests(unittest.TestCase):
             if path == PILOT / meta["measurements"]:
                 return json.dumps(readings)
             return real(path, *args, **kwargs)
-        with mock.patch.object(Path, "read_text", read_text):
+        with mock.patch.object(Path, "read_text", read_text), before_board_4():
             report = wg.build()
         rc = group(report, "CHIP_0402", "ChipResistor", "Yageo", "RC")
         self.assertEqual(rc["status"], "paused")
@@ -238,30 +252,80 @@ class W3GroupsTests(unittest.TestCase):
 
     def test_short_at_preview_lives_in_the_dated_record(self):
         records = {pn for meta in wg.preview_inputs().values() for pn in meta["short_at_preview"]}
-        self.assertEqual(records, {"C185414", "C185430"})
+        self.assertEqual(records, {"C185414", "C185430", "C470029", "C875102"})
         self.assertNotIn("C185414", (wg.ROOT / "tools/w3_groups.py").read_text(encoding="utf-8"))
 
-    def test_a_board_short_at_its_bom_step_keeps_the_fact_until_it_has_a_record(self):
-        # Board 4's first package (2026-11-11) stopped at the BOM step: no preview was
-        # taken, so no record exists, and the board's own w3.json carries the two numbers.
-        board = wg.BOARDS / "preview-board-4/w3.json"
-        self.assertEqual(list(wg.board_inputs()), [board])
-        short = wg.board_inputs()[board]["short_at_preview"]
+    def test_a_board_short_at_its_bom_step_hands_the_fact_to_its_preview_record(self):
+        # Board 4's first package (2026-11-11) stopped at the BOM step with no preview, so
+        # the board's own w3.json carried the two numbers. Its second package was previewed
+        # the same day; the record's w3.json holds the list now, and the board's is removed.
+        self.assertEqual(wg.board_inputs(), {})
+        self.assertFalse((wg.BOARDS / "preview-board-4/w3.json").exists())
+        record = wg.PREVIEWS / "2026-11-11-board-4"
+        self.assertEqual(list(wg.PREVIEWS.glob("*board-4*")), [record])
+        meta = wg.preview_inputs()[record]
+        short = meta["short_at_preview"]
         self.assertEqual(set(short), {"C470029", "C875102"})
-        self.assertTrue(all(why.startswith("2026-11-11 preview-board-4 ") for why in short.values()))
-        self.assertFalse(list(wg.PREVIEWS.glob("*preview-board-4*")), "the record now holds the list; remove the board's")
+        self.assertTrue(all(why.startswith("2026-11-11 preview-board-4 first package 1cd1883d ") for why in short.values()))
+        # The note says the fact is the first package's, not a reading of this record's preview.
+        self.assertIn("first package", meta["note"])
+        self.assertIn("took no placement preview", meta["note"])
+        # Neither number is on the package this record previewed.
+        bom = (record / meta["bom"]).read_text(encoding="utf-8")
+        self.assertFalse(any(pn in bom for pn in short))
         self.assertEqual(set(wg.SHORT_AT_PREVIEW), {"C185414", "C185430", "C470029", "C875102"})
         self.assertNotIn("C470029", (wg.ROOT / "tools/w3_groups.py").read_text(encoding="utf-8"))
-        # A fresh report passes over both and takes each one's nearest eligible neighbour;
-        # the committed 2026-11-10 report, a dated snapshot, still names them.
-        fresh = group(self.report, "CHIP_1210", "ChipResistor", "Yageo", "RC")["sample"]
+        # A report built before the record's readings counted passes over both and takes each
+        # one's nearest eligible neighbour (the package this record previewed); the committed
+        # 2026-11-10 report, a dated snapshot, still names them.
+        fresh = group(self.before, "CHIP_1210", "ChipResistor", "Yageo", "RC")["sample"]
         dated = group(json.loads((CURRENT / "groups.json").read_text(encoding="utf-8")),
                       "CHIP_1210", "ChipResistor", "Yageo", "RC")["sample"]
         self.assertEqual([(old, new) for old, new in zip(dated, fresh) if old != new],
                          [("C470029", "C7276637"), ("C875102", "C728392")])
         # Without the board's list the same tree chooses the dated sample.
-        with mock.patch.object(wg, "SHORT_AT_PREVIEW", {pn: wg.SHORT_AT_PREVIEW[pn] for pn in ("C185414", "C185430")}):
+        with mock.patch.object(wg, "SHORT_AT_PREVIEW", {pn: wg.SHORT_AT_PREVIEW[pn] for pn in ("C185414", "C185430")}), \
+                before_board_4():
             self.assertEqual(group(wg.build(), "CHIP_1210", "ChipResistor", "Yageo", "RC")["sample"], dated)
+
+    def test_board_4_as_the_rule_judges_its_record(self):
+        # The 2026-11-11 preview of board 4, read by measure_preview.py as the rule takes it.
+        # (The record's README shows that the readings include each part's silkscreen text;
+        # that is evidence for a decision about the reading, and changes nothing here.)
+        record = str((BOARD_4 / "README.md").relative_to(wg.ROOT))
+
+        def here(items):
+            return sorted(x["pn"] for x in items if any(c["record"] == record for c in x["outcomes"]))
+        # D, Yageo RC 1210: 42 samples, 28 passed, none failed, 14 not drawn. Not paused.
+        r1210 = group(self.report, "CHIP_1210", "ChipResistor", "Yageo", "RC")
+        self.assertEqual((r1210["status"], len(r1210["passed"]), r1210["failed"], r1210["more_needed"]),
+                         ("needs_samples", 29, [], 14))
+        self.assertEqual(sum(record in p["records"] for p in r1210["passed"]), 28)
+        self.assertEqual(len(here(r1210["not_drawn"])), 14)
+        self.assertEqual(len(r1210["not_drawn"]), 15)
+        self.assertIn("C7276637", here(r1210["not_drawn"]))  # one of the two replacements
+        # D, Vishay CRCW 0402: 9 samples, 7 passed, C482153 left for manual review, C2085363 not
+        # drawn. The two calibration numbers fail at their turned copies. Paused.
+        crcw = group(self.report, "CHIP_0402", "ChipResistor", "Vishay", "CRCW")
+        self.assertEqual((crcw["status"], len(crcw["passed"]), crcw["more_needed"]), ("paused", 45, 4))
+        self.assertEqual(here(crcw["failed"]), ["C481918", "C482097", "C482153"])
+        self.assertEqual(here(crcw["not_drawn"]), ["C2085363"])
+        self.assertEqual(len(crcw["not_drawn"]), 10)
+        # C, Yageo RC 0402: the three calibration numbers the pilot passed fail here, so the
+        # group the pilot sampled is paused while this record counts.
+        rc = group(self.report, "CHIP_0402", "ChipResistor", "Yageo", "RC")
+        self.assertEqual((rc["status"], len(rc["passed"]), rc["required"]), ("paused", 46, 49))
+        self.assertEqual(here(rc["failed"]), ["C138033", "C185445", "C60491"])
+        self.assertEqual(group(self.before, "CHIP_0402", "ChipResistor", "Yageo", "RC")["status"], "sampled")
+        # Every group this record judges, and what it is afterwards.
+        judged = {(g["footprint"], g["mfr"], g["series"]): g["status"] for g in self.report["groups"]
+                  if here(g["failed"]) or here(g["not_drawn"]) or any(record in p["records"] for p in g["passed"])}
+        self.assertEqual(judged, {
+            ("CHIP_0201", "Yageo", "RC"): "paused", ("CHIP_0402", "Vishay", "CRCW"): "paused",
+            ("CHIP_0402", "Yageo", "RC"): "paused", ("CHIP_0402", "Samsung", "CL"): "paused",
+            ("CHIP_0402", "Yageo", "CC"): "paused", ("CHIP_0603", "Samsung", "CL"): "paused",
+            ("CHIP_0603", "Yageo", "CC"): "paused", ("CHIP_1210", "Yageo", "RC"): "needs_samples",
+            ("CHIP_2010", "Yageo", "RC"): "paused", ("CHIP_2512", "Yageo", "RC"): "paused"})
 
     def test_spread_is_deterministic_and_covers_both_ends(self):
         self.assertEqual(wg.spread(list(range(10)), 3), [0, 4, 9])

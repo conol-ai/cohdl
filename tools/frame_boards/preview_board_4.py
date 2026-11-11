@@ -41,10 +41,12 @@ group in W3_GROUPS, in the report's order. The report's SHA-256 is checked
 first, so a regenerated report does not change this board silently. Each
 sample is still checked against the map, the pages and the library.
 
-A sample the assembler's BOM step found short is not placed again. Such a run
-takes no placement preview, so it has no record under jlc_previews; the dated
-fact is kept in this board's preview-board-4/w3.json (`short_at_preview`),
-which tools/w3_groups.py reads with the preview records' lists. The generator
+A sample the assembler's BOM step found short is not placed again. The dated
+fact (`short_at_preview`) is in the w3.json of this board's preview record,
+tools/sourcing_data/jlc_previews/2026-11-11-board-4, which tools/w3_groups.py
+reads with the other records' lists. (The run that found them short took no
+placement preview; until the second package's preview was recorded, the list
+was kept in this board's own preview-board-4/w3.json.) The generator
 does not pick the replacement: it rebuilds the group's eligible members from
 the report (in stock on the cached pages, not yet tried, in MPN order), checks
 that w3_groups.choose gives the report's own sample from them, and then takes
@@ -134,7 +136,7 @@ CAL = [
 CAL_ANGLES = (0, 90, 180, 270, 37)
 # The W3 report's groups this board samples whole: the report's `sample` of each.
 W3_GROUPS = ["CHIP_0402 ChipResistor Vishay CRCW", "CHIP_1210 ChipResistor Yageo RC"]
-# Samples a BOM step found short since the report: this board's own list and the records'.
+# Samples a BOM step found short since the report: the preview records' lists (this board's is in its record).
 SHORT = w3_groups.SHORT_AT_PREVIEW
 W3, REPLACES = [], {}
 for name in W3_GROUPS:

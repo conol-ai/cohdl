@@ -1,0 +1,17 @@
+{
+ "schema_version": 1,
+ "note": "Inputs tools/w3_groups.py reads from this record. package/board.json and the BOM are the uploaded package's own files (SHA-256 in package/SHA256SUMS and in README.md); measurements.json is measure_preview.py run on top.png and bottom.png with them. short_at_preview is not from this record's preview but from the same board's first package on the same day: its run stopped at the assembler's BOM step with these two samples not selected and a shortage warning, and took no placement preview. The list was kept in tools/frame_boards/preview-board-4/w3.json until this record existed, and moved here unchanged. The package previewed here replaced the two by their group's nearest eligible members (README.md).",
+ "package": "passive",
+ "package_version": "0.2.6",
+ "land": {
+  "lib/passive/src/footprints.cohdl": "e1bb40b6077130cc37f7c1d9962f9d57a15e45cbf17689d183f5f74e51e37f96",
+  "lib/passive/src/pads.cohdl": "6e9f4bdd4345a52e14a05ac241c441dd44c9a1ee8f545bcd83a890f40db9ceff"
+ },
+ "bom": "package/preview_board_4-lcsc-bom.csv",
+ "checks": "checks.json",
+ "measurements": "measurements.json",
+ "short_at_preview": {
+  "C470029": "2026-11-11 preview-board-4 first package 1cd1883d (page read 1014)",
+  "C875102": "2026-11-11 preview-board-4 first package 1cd1883d (page read 1200)"
+ }
+}

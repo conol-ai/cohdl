@@ -1,8 +1,0 @@
-{
- "schema_version": 1,
- "note": "What tools/w3_groups.py and preview_board_4.py read from this board before it has a preview record. The first package stopped at the assembler's BOM step on 2026-11-11: 82 of 84 part numbers confirmed, these two not selected, with a shortage warning. No placement preview was taken, so there is no record under tools/sourcing_data/jlc_previews/ and nothing here is a reading. When a preview of this board is recorded, this list moves into that record's w3.json and this file is removed.",
- "short_at_preview": {
-  "C470029": "2026-11-11 preview-board-4 first package 1cd1883d (page read 1014)",
-  "C875102": "2026-11-11 preview-board-4 first package 1cd1883d (page read 1200)"
- }
-}

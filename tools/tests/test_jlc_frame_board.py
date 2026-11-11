@@ -381,9 +381,12 @@ class FrameBoardTests(unittest.TestCase):
         manifest = json.loads(self.BOARD_4.read_text())
         rows = manifest["rows"]
         # D is the report's own sample of the two groups, whole and in its order, but for
-        # the two the first package's BOM step found short on 2026-11-11 (the board's w3.json).
+        # the two the first package's BOM step found short on 2026-11-11 (the w3.json of the
+        # board's preview record; the board's own w3.json is gone now that the record exists).
         sampled = ["CHIP_0402 ChipResistor Vishay CRCW", "CHIP_1210 ChipResistor Yageo RC"]
-        short = json.loads((self.BOARD_4.parent / "w3.json").read_text())["short_at_preview"]
+        self.assertFalse((self.BOARD_4.parent / "w3.json").exists())
+        short = json.loads((ROOT / "tools/sourcing_data/jlc_previews/2026-11-11-board-4/w3.json")
+                           .read_text())["short_at_preview"]
         self.assertEqual(set(short), {"C470029", "C875102"})
         replaced = {"C470029": "C7276637", "C875102": "C728392"}
         self.assertEqual([r["pn"] for r in rows if r["purpose"] == "D"],

@@ -1,8 +1,11 @@
 import contextlib
+import hashlib
+import importlib.util
 import io
 import json
 import math
 import random
+import struct
 import sys
 import tempfile
 import unittest
@@ -209,6 +212,92 @@ class CalibrationFitTests(unittest.TestCase):
             doc = json.loads((td / "out.json").read_text())
         self.assertEqual(sorted(doc["inputs_sha256"]), ["board.json", "bom.csv", "m.json"])
         self.assertEqual((len(doc["parts"]), len(doc["lands"]), len(doc["views"])), (6, 4, 2))
+
+
+RECORD = Path(__file__).resolve().parents[1] / "sourcing_data/jlc_previews/2026-11-11-board-4"
+
+
+def write_bmp(path, width, height, paint):
+    """A 24-bit BMP whose pixel (x, y), y down, is paint(x, y) as (r, g, b)."""
+    stride = (width * 3 + 3) & ~3
+    rows = []
+    for y in range(height - 1, -1, -1):
+        row = bytearray()
+        for x in range(width):
+            r, g, b = paint(x, y)
+            row += bytes((b, g, r))
+        rows.append(bytes(row) + bytes(stride - width * 3))
+    header = struct.pack("<2sIHHI", b"BM", 54 + stride * height, 0, 0, 54)
+    info = struct.pack("<IiiHHIIiiII", 40, width, height, 1, 24, 0, stride * height, 2835, 2835, 0, 0)
+    Path(path).write_bytes(header + info + b"".join(rows))
+
+
+class Board4RecordTests(unittest.TestCase):
+    """The 2026-11-11 preview of board 4: what the record's fits and its own body tool rest on."""
+
+    def test_the_archived_fits_are_what_the_tool_gives_from_the_archived_inputs(self):
+        board = json.loads((RECORD / "package/board.json").read_text())
+        bom = (RECORD / "package/preview_board_4-lcsc-bom.csv").read_text(encoding="utf-8")
+        for readings, name in (("measurements.json", "fit.json"), ("body-model.json", "fit-model.json")):
+            with self.subTest(fit=name):
+                archived = json.loads((RECORD / name).read_text())
+                digests = archived.pop("inputs_sha256")
+                self.assertEqual(digests[readings], hashlib.sha256((RECORD / readings).read_bytes()).hexdigest())
+                self.assertEqual(archived, json.loads(json.dumps(
+                    cf.report(board, json.loads((RECORD / readings).read_text()), bom))))
+                # Ten calibration part numbers, five orientations in each view; the 15 not drawn are not zeros.
+                self.assertEqual((len(archived["parts"]), len(archived["lands"]), len(archived["views"])), (20, 8, 2))
+                self.assertTrue(all(p["n"] == 5 for p in archived["parts"]))
+                self.assertEqual(sum(n["reason"] == "not drawn" for n in archived["not_fitted"]), 15)
+
+    def test_the_archived_package_is_the_uploaded_one(self):
+        for line in (RECORD / "package/SHA256SUMS").read_text().splitlines():
+            digest, name = line.split()
+            self.assertEqual(hashlib.sha256((RECORD / "package" / name.lstrip("*")).read_bytes()).hexdigest(), digest, name)
+        readme = (RECORD / "README.md").read_text(encoding="utf-8")
+        for name in ("top.png", "bottom.png", "measurements.json", "body-model.json"):
+            self.assertIn(hashlib.sha256((RECORD / name).read_bytes()).hexdigest(), readme, name)
+
+    def test_silkscreen_in_the_window_moves_the_all_pixel_body_but_not_the_connected_model(self):
+        # A grey body with white terminals, centred on its pads, and a white silkscreen bar
+        # 2 mm to one side of it: measure_preview's body reads both, the record's tool the model.
+        spec = importlib.util.spec_from_file_location("body_model", RECORD / "body_model.py")
+        bm = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(bm)
+        scale, size = 40, 10.0  # px per mm; the board is 10 mm square
+
+        def paint_for(angle):
+            c, s = math.cos(math.radians(angle)), math.sin(math.radians(angle))
+
+            def paint(x, y):
+                dx, dy = (x + 0.5) / scale - 5.0, (y + 0.5) / scale - 5.0
+                u, v = dx * c + dy * s, -dx * s + dy * c  # along and across the pads
+                if abs(u) <= 2.0 and abs(v) <= 1.2:
+                    return (70, 70, 70)
+                if abs(u) <= 2.5 and abs(v) <= 1.2:
+                    return (240, 240, 240)
+                if abs(u) <= 1.5 and -2.3 <= v <= -1.9:
+                    return (255, 255, 255)
+                return (20, 100, 40)
+            return paint
+
+        for angle in (0, 90, 37):
+            c, s = math.cos(math.radians(angle)), math.sin(math.radians(angle))
+            fp = {"ref": "R1", "fpid": "passive-CHIP_2010", "bottom": False, "x": 5.0, "y": 5.0, "angle": angle,
+                  "pads": [{"num": "1", "x": 5.0 - 2.3 * c, "y": 5.0 - 2.3 * s},
+                           {"num": "2", "x": 5.0 + 2.3 * c, "y": 5.0 + 2.3 * s}]}
+            with self.subTest(angle=angle), tempfile.TemporaryDirectory() as td:
+                write_bmp(Path(td) / "top.bmp", int(size * scale), int(size * scale), paint_for(angle))
+                view = cf.mp.View(str(Path(td) / "top.bmp"), (0.0, 0.0, size, size), False)
+                both, model = cf.mp.body(view, fp), bm.read(view, fp)
+            # The silkscreen pulls the all-pixel centroid toward itself, across the pads, and it turns with the part.
+            across = -both["offset_xy_mm"][0] * s + both["offset_xy_mm"][1] * c
+            self.assertLess(across, -0.1)
+            self.assertLess(model["offset_mm"], 0.02)
+            self.assertLess(abs(model["delta_mod_180"]), 0.5)
+            self.assertAlmostEqual(model["size_mm"][0], 5.0, delta=0.06)
+            self.assertAlmostEqual(model["size_mm"][1], 2.4, delta=0.06)
+            self.assertGreater(model["window_px"], model["model_px"])
 
 
 if __name__ == "__main__":

@@ -26,25 +26,25 @@ Three part numbers have been read on assembler previews of these lands. The
 readings are per part number; they do not confirm the frame for the lands as
 a whole (open question 3).
 
-| Land | Part number | Reading | Library part and candidate mapping |
+| Land | Part number | Reading | Library part and mapping |
 |---|---|---|---|
-| `SOD2613X110N` (SOD-323) | C7420331 B5819WS | Polarized. The assembler's model has its cathode at +x, a half turn from pad 1. With `rotate 180` applied, the model's minus sign and cathode band sat at the cathode silk bar on all four copies (read by eye; the measuring script gives no angle for a model with two marks). | `diode::SCHOTTKY_B5819WS`; candidate `rotate 180` |
-| `SOD1608X70N` (SOD-523) | C7420320 1N4148WT | Polarized; the same half turn, read the same way. | `diode::D_1N4148WT`; candidate `rotate 180` |
-| `SODFL3818X120N` (SOD-123FL) | C19077510 SMF15CA | Bidirectional TVS, read by the body only on a board with no correction: long axis within 1.0 degree of the pad axis, centre within 0.045 mm, on all four copies. This shows alignment and centring; the direction is known mod 180 only, which is enough only because the part is symmetric. | `esd::TVS_SMF15CA`; candidate zero mapping |
+| `SOD2613X110N` (SOD-323) | C7420331 B5819WS | Polarized. The assembler's model has its cathode at +x, a half turn from pad 1. With `rotate 180` applied, the model's minus sign and cathode band sat at the cathode silk bar on all four copies (read by eye; the measuring script gives no angle for a model with two marks). | `diode::SCHOTTKY_B5819WS`; bound with `rotate 180` |
+| `SOD1608X70N` (SOD-523) | C7420320 1N4148WT | Polarized; the same half turn, read the same way. | `diode::D_1N4148WT`; bound with `rotate 180` |
+| `SODFL3818X120N` (SOD-123FL) | C19077510 SMF15CA | Bidirectional TVS, read by the body only on a board with no correction: long axis within 1.0 degree of the pad axis, centre within 0.045 mm, on all four copies. This shows alignment and centring; the direction is known mod 180 only, which is enough only because the part is symmetric. | `esd::TVS_SMF15CA`; bound with a zero mapping |
 
 So the two polarized parts read on these lands are both a half turn from the
 land, while other SOD-323 parts (C2128, C191023) read 0 degrees on
 `contrib_esd::FP_SOD323_2P5X1P25mm`, whose pad 1 is also at -x. The assembler's model orientation differs by part number here, so the
-half turn is a per-part candidate and the lands are not moved. No part has been
+half turn is a per-part mapping and the lands are not moved. No part has been
 read on `SOD3716X135N` (SOD-123). The records are
 `tools/sourcing_data/jlc_previews/2026-11-08-reverify/` and
 `tools/sourcing_data/jlc_previews/2026-11-08-probe/` in the repository.
 
-None of the three parts is bound yet. A `supplier lcsc` clause needs the part
-number in `tools/sourcing_data/lcsc_map.json`, which takes a reviewed backfill
-run over every candidate page for the MPN; those pages have not been fetched.
-Until then the candidate rows stay archived with the preview records, and the
-mappings above are candidates, not bindings.
+All three parts are bound since 2026-11-11 (B5819WS, 1N4148WT and SMF15CA; `diode` 0.1.2
+and `esd` 0.1.3), with the mappings above: their part numbers reached
+`tools/sourcing_data/lcsc_map.json` through the backfill run of that date, and
+the archived rows were copied into `jlc_frames.json` keyed to this package's
+version. The bindings are per part number and still do not confirm the frame.
 
 ## Lands
 

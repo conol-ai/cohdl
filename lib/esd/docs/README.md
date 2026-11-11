@@ -89,29 +89,33 @@ Both `esd` frame rows now name 0.1.3.
   Diodes package files; the fit on the Hongjiacheng outlines is in the
   lands' records.
 
-### No supplier binding yet
+### LCSC bindings
 
-LCSC lists these parts as C19077561 (SMBJ6.0CA), C19077609 (SMCJ36CA) and
-C19077510 (SMF15CA). None is bound in 0.1.3:
+Each part binds its primary with no rotation and no offset: `supplier lcsc
+"C19077561"` (SMBJ6.0CA), `"C19077609"` (SMCJ36CA) and `"C19077510"`
+(SMF15CA).
 
-- **Placement evidence exists**, under the bidirectional-TVS rule
+- **Map rows.** The three part numbers are in
+  `tools/sourcing_data/lcsc_map.json` from the backfill run of 2026-11-11
+  (`tools/sourcing_data/lcsc_backfill/2026-11-11-hongjiacheng/`),
+  which read every candidate page for each MPN (112, 52 and 46 pages). Each
+  page names the manufacturer "hongjiacheng", matched through the reviewed
+  alias; the catalog class is Preferred.
+- **Placement evidence, and its limits**, under the bidirectional-TVS rule
   (`docs/library-supplier-plan.md`, W3): on the 2026-11-08 probe preview,
-  built with no rotation correction, the drawn body of each part number lay
-  along the pad axis within 1.0 degree and centred within 0.045 mm on all
-  four copies (top and bottom, 0 and 37 degrees). That is a reading of body
+  built with zero correction, the drawn body of each part number lay along
+  the pad axis within 1.0 degree and centred within 0.045 mm on all four
+  copies (top and bottom, 0 and 37 degrees). That is a reading of body
   alignment and centring only. The preview draws a plain rectangle with no
   band, mark or text, so it shows neither identity nor direction; the
   orientation is known mod 180, which is enough only because the part is
-  symmetric. The SMCJ36CA reading carries a caveat: it was made with a
-  window 0.8 mm wider than the stock body script, which clips that body's
-  corners and gives no long axis for a body only 1.18 times as long as wide.
-  The candidate rows are archived in
-  `tools/sourcing_data/jlc_previews/2026-11-08-probe/frames.json`.
-- **The map row is missing.** A binding needs the part number in
-  `tools/sourcing_data/lcsc_map.json`, and rows reach that file only through
-  a reviewed backfill run that reads every candidate page for the MPN. Those
-  pages have not been fetched, so the clause is left out.
-
-When the map rows exist, each part takes `supplier lcsc "<part number>"` with
-no rotation and its archived row moves into `jlc_frames.json`, keyed to the
-land package's version.
+  symmetric. It is not a polarity or pin 1 reading. The SMCJ36CA reading
+  carries a caveat: it was made with a window 0.8 mm wider than the stock
+  body script, which clips that body's corners and gives no long axis for a
+  body only 1.18 times as long as wide.
+- **Frame rows.** `w4d-diom5336x265n-c19077561`,
+  `w4d-diom7959x261n-c19077609` and `w4d-sodfl3818x120n-c19077510` in
+  `tools/sourcing_data/jlc_frames.json` are copies of the rows archived in
+  `tools/sourcing_data/jlc_previews/2026-11-08-probe/frames.json`, keyed to
+  `do214` 0.1.2 and `sod` 0.1.3. The readings were made on the 0.1.0 lands;
+  no pad has changed since.

@@ -3,12 +3,12 @@
 [[package]]
 name = "do214"
 version = "0.1.2"
-hash = "sha256:1ac499520e982ddd2e9ab77f45749543b3831bc6270c8e131b60b7d9f50a1e66"
+hash = "sha256:e7a19e158e33cf2ce93f4bff59181de9cf723ac6a3938cee4f320e3fc5c24a1a"
 
 [[package]]
 name = "sod"
 version = "0.1.3"
-hash = "sha256:7fc8b739cca45bb62bcb53bf9837f2ede336252565c4e1cb808acfb92d802629"
+hash = "sha256:5f24ff5d7235f2757e970e0dad57a562ba8cb268a804b00d393848d33239d58d"
 
 [[package]]
 name = "std"

@@ -5,11 +5,10 @@
 // two terminals are interchangeable, so each device follows the package's
 // two-terminal protector model (IO1 / IO2, as H5VL10B and TPD1E1B04).
 //
-// These parts carry no supplier binding yet. The assembler's models for
-// their LCSC part numbers were read by the body only, aligned and centred
-// with no rotation (archived with the 2026-11-08 probe preview); a binding
-// also needs the part number in the reviewed LCSC map, which is not there
-// yet. See docs/README.md ("Hongjiacheng TVS parts").
+// The LCSC bindings carry no rotation: on the 2026-11-08 probe preview the
+// assembler's models for these part numbers were read by the body only,
+// aligned and centred with zero correction. That is enough only because
+// the parts are symmetric. See docs/README.md ("LCSC bindings").
 //
 // Ratings are for a 10/1000us pulse. Each sheet's note (3) doubles the IR
 // limit for bidirectional devices with a VR of 10V and under; that applies
@@ -33,7 +32,7 @@ impl ESD_Protector for SMBJ6V0CA {}
 #[doc("docs/hongjiacheng-smbj6v0ca.evidence.md")]
 pub part TVS_SMBJ6V0CA: SMBJ6V0CA {
     primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "SMBJ6.0CA",
-              footprint: do214::DIOM5336X265N }
+              footprint: do214::DIOM5336X265N, supplier lcsc "C19077561" }
 }
 
 // ---- SMCJ36CA: 36V 1500W bidirectional TVS, SMC (DO-214AB) ----
@@ -53,7 +52,7 @@ impl ESD_Protector for SMCJ36CA {}
 #[doc("docs/hongjiacheng-smcj36ca.evidence.md")]
 pub part TVS_SMCJ36CA: SMCJ36CA {
     primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "SMCJ36CA",
-              footprint: do214::DIOM7959X261N }
+              footprint: do214::DIOM7959X261N, supplier lcsc "C19077609" }
 }
 
 // ---- SMF15CA: 15V 200W bidirectional TVS, SOD-123FL ----
@@ -72,6 +71,6 @@ impl ESD_Protector for SMF15CA {}
 
 #[doc("docs/hongjiacheng-smf15ca.evidence.md")]
 pub part TVS_SMF15CA: SMF15CA {
-    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "SMF15CA",
-              footprint: sod::SODFL3818X120N }
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "SMF15CA", footprint: sod::SODFL3818X120N,
+              supplier lcsc "C19077510" }
 }

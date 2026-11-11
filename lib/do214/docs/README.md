@@ -28,26 +28,26 @@ Three part numbers have been read on assembler previews of these lands. The
 readings are per part number; they do not confirm the frame for the lands as
 a whole (open question 3).
 
-| Land | Part number | Reading | Library part and candidate mapping |
+| Land | Part number | Reading | Library part and mapping |
 |---|---|---|---|
-| `DIOM5026X241N` (SMA) | C7420365 SS34 | Polarized. The assembler's model has its cathode at +x, a half turn from pad 1. With `rotate 180` applied, the model's minus sign and cathode band sat at the cathode silk bar on all four copies (read by eye; the measuring script gives no angle for a model with two marks). The preview labels the model SMAJ12A, so this shows the polarity of that part number in that preview, not the part's identity. | `diode::SCHOTTKY_SS34`; candidate `rotate 180` |
-| `DIOM5336X265N` (SMB) | C19077561 SMBJ6.0CA | Bidirectional TVS, read by the body only on a board with no correction: long axis within 0.2 degrees of the pad axis, centre within 0.033 mm, on all four copies. | `esd::TVS_SMBJ6V0CA`; candidate zero mapping |
-| `DIOM7959X261N` (SMC) | C19077609 SMCJ36CA | Bidirectional TVS, read by the body only: long axis within 0.2 degrees, centre within 0.027 mm. Caveat: read with a window 0.8 mm wider than the stock body script, which clips this body's corners and gives no long axis for a body only 1.18 times as long as wide. | `esd::TVS_SMCJ36CA`; candidate zero mapping |
+| `DIOM5026X241N` (SMA) | C7420365 SS34 | Polarized. The assembler's model has its cathode at +x, a half turn from pad 1. With `rotate 180` applied, the model's minus sign and cathode band sat at the cathode silk bar on all four copies (read by eye; the measuring script gives no angle for a model with two marks). The preview labels the model SMAJ12A, so this shows the polarity of that part number in that preview, not the part's identity. | `diode::SCHOTTKY_SS34`; bound with `rotate 180` |
+| `DIOM5336X265N` (SMB) | C19077561 SMBJ6.0CA | Bidirectional TVS, read by the body only on a board with no correction: long axis within 0.2 degrees of the pad axis, centre within 0.033 mm, on all four copies. | `esd::TVS_SMBJ6V0CA`; bound with a zero mapping |
+| `DIOM7959X261N` (SMC) | C19077609 SMCJ36CA | Bidirectional TVS, read by the body only: long axis within 0.2 degrees, centre within 0.027 mm. Caveat: read with a window 0.8 mm wider than the stock body script, which clips this body's corners and gives no long axis for a body only 1.18 times as long as wide. | `esd::TVS_SMCJ36CA`; bound with a zero mapping |
 
 A body reading shows alignment and centring; the direction is known mod 180
 only, which is enough only because a bidirectional TVS is symmetric. So the
 one polarized part read on these lands is a half turn from the land, and the
 two TVS readings cannot show direction: the frame is not confirmed as the
 assembler's zero for SMA, SMB or SMC. One part number is too few to move a
-land, so the half turn is a per-part candidate. No SMAF part has been read. The
+land, so the half turn is a per-part mapping. No SMAF part has been read. The
 records are `tools/sourcing_data/jlc_previews/2026-11-08-reverify/` and
 `tools/sourcing_data/jlc_previews/2026-11-08-probe/` in the repository.
 
-None of the three parts is bound yet. A `supplier lcsc` clause needs the part
-number in `tools/sourcing_data/lcsc_map.json`, which takes a reviewed backfill
-run over every candidate page for the MPN; those pages have not been fetched.
-Until then the candidate rows stay archived with the preview records, and the
-mappings above are candidates, not bindings.
+All three parts are bound since 2026-11-11 (SS34, SMBJ6.0CA and SMCJ36CA; `diode` 0.1.2
+and `esd` 0.1.3), with the mappings above: their part numbers reached
+`tools/sourcing_data/lcsc_map.json` through the backfill run of that date, and
+the archived rows were copied into `jlc_frames.json` keyed to this package's
+version. The bindings are per part number and still do not confirm the frame.
 
 ## Lands
 

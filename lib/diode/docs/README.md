@@ -59,26 +59,30 @@ its own changes.
 - **SMA land width.** `do214::DIOM5026X241N` keeps the SS-series sheet's
   1.70 mm minimum land width as a recorded waiver (`lib/do214/docs/README.md`).
 
-### No supplier binding yet
+### LCSC bindings
 
-LCSC lists these parts as C7420331 (B5819WS), C7420365 (SS34) and C7420320
-(1N4148WT). None is bound in 0.1.2:
+Each part binds its primary with a half turn: `supplier lcsc "C7420331"
+rotate 180` (B5819WS), `"C7420365"` (SS34) and `"C7420320"` (1N4148WT).
 
-- **Placement evidence exists.** On the 2026-11-08 re-verify preview the
-  assembler's model for each part number had its cathode at +x, a half turn
-  from the land. With `rotate 180` applied, the model's minus sign and
-  cathode band sat at the land's cathode bar on all four copies of each part
-  (top and bottom, 0 and 37 degrees). This was read by eye: the measuring
-  script gives no angle for a model that carries two marks. It is a polarity
-  reading for that part number in that preview, not a measured angle and not
-  a check of the part's identity (the SS34 model is labelled SMAJ12A). The
-  candidate rows are archived in
-  `tools/sourcing_data/jlc_previews/2026-11-08-reverify/frames.json`.
-- **The map row is missing.** A binding needs the part number in
-  `tools/sourcing_data/lcsc_map.json`, and rows reach that file only through
-  a reviewed backfill run that reads every candidate page for the MPN. Those
-  pages have not been fetched, so the clause is left out.
-
-When the map rows exist, each part takes `supplier lcsc "<part number>"
-rotate 180` and its archived row moves into `jlc_frames.json`, keyed to the
-land package's version.
+- **Map rows.** The three part numbers are in
+  `tools/sourcing_data/lcsc_map.json` from the backfill run of 2026-11-11
+  (`tools/sourcing_data/lcsc_backfill/2026-11-11-hongjiacheng/`),
+  which read every candidate page for each MPN (51, 81 and 53 pages). Each
+  page names the manufacturer "hongjiacheng", matched through the reviewed
+  alias; the catalog class is Preferred.
+- **Placement evidence, and its limits.** On the 2026-11-08 re-verify
+  preview the assembler's model for each part number had its cathode at +x, a
+  half turn from the land. With `rotate 180` applied, the model's minus sign
+  and cathode band sat at the land's cathode bar on all four copies of each
+  part (top and bottom, 0 and 37 degrees). This was read by eye: the
+  measuring script gives no angle for a model that carries two marks. It is a
+  polarity reading for that part number in that preview, not a measured angle
+  and not a check of the part's identity (the SS34 model is labelled
+  SMAJ12A).
+- **Frame rows.** `w4d-sod2613x110n-c7420331`, `w4d-diom5026x241n-c7420365`
+  and `w4d-sod1608x70n-c7420320` in `tools/sourcing_data/jlc_frames.json` are
+  copies of the rows archived in
+  `tools/sourcing_data/jlc_previews/2026-11-08-reverify/frames.json`, keyed
+  to `sod` 0.1.3 and `do214` 0.1.2. The readings were made on the 0.1.0
+  lands; no pad has changed since (on these lands only the SOD1608X70N
+  silkscreen body lines differ).

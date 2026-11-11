@@ -107,6 +107,8 @@ Pad numbers, land geometry and pin maps stay authored from manufacturer document
     2. both part numbers were placed on the same frame test board and checked in the same preview.
 
   Without such a reason, a part number needs its own evidence. A cluster that shares evidence also needs a sample from it checked directly: at least 3 part numbers or 5%, whichever is larger.
+
+  The part pages show no footprint identifier, so reason 1 cannot carry the chip passives. For the non-polar chip resistors and MLCCs of `lib/passive`, a row may instead cite a group's samples through the `sampled` evidence kind: [sampled inference](library-supplier-w3-sampling.md), accepted 2026-11-09, with its rule in `tools/sourcing/w3_rule.py`.
 - **Method:** a frame test board per batch.
   - One instance per part number at 0°, with its BOM and CPL uploaded to JLCPCB's assembly flow. The preview can show many parts at once without placing an order.
   - The placement-preview screenshot is archived with the batch.

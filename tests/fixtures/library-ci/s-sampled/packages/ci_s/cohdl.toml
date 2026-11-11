@@ -1,0 +1,7 @@
+[package]
+name = "ci_s"
+version = "1.0.0"
+license = "MIT"
+description = "Library supplier CI fixture: W3 sampled rows."
+
+[dependencies]

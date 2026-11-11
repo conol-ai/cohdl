@@ -92,7 +92,7 @@ fn regenerate_passives(root: &std::path::Path) -> GeneratedPassives {
         fixture.root.join("tools/gen_passive.py"),
     )
     .unwrap();
-    for file in ["__init__.py", "bindings.py"] {
+    for file in ["__init__.py", "bindings.py", "w3_rule.py"] {
         std::fs::copy(
             root.join("tools/sourcing").join(file),
             fixture.root.join("tools/sourcing").join(file),
@@ -150,13 +150,30 @@ fn frame_evidence_records(root: &std::path::Path) -> Vec<String> {
         return Vec::new();
     };
     let frames: serde_json::Value = serde_json::from_str(&text).unwrap();
-    let mut records: Vec<String> = frames["rows"]
-        .as_array()
-        .into_iter()
-        .flatten()
+    let rows = frames["rows"].as_array().into_iter().flatten();
+    let mut records: Vec<String> = rows
+        .clone()
         .filter_map(|row| row["evidence"]["record"].as_str())
         .map(str::to_string)
         .collect();
+    // A W3 inferred row needs its group record and the land files the record
+    // pins by SHA-256; without them the generator drops the row's binding.
+    for record in rows.filter_map(|row| row["sampled"]["record"].as_str()) {
+        records.push(record.to_string());
+        let Ok(text) = std::fs::read_to_string(root.join(record)) else {
+            continue;
+        };
+        let record: serde_json::Value = serde_json::from_str(&text).unwrap();
+        for group in record["groups"].as_array().into_iter().flatten() {
+            records.extend(
+                group["land"]
+                    .as_object()
+                    .into_iter()
+                    .flatten()
+                    .map(|(file, _)| file.clone()),
+            );
+        }
+    }
     records.sort();
     records.dedup();
     records

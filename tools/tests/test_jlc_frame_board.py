@@ -371,6 +371,50 @@ class FrameBoardTests(unittest.TestCase):
                          {"A": 12, "B": 1, "E": 10, "C": 10, "D": 51})
         jb.expand(jb.load_manifest(self.BOARD_4)["rows"], 5)  # no two boxes overlap
 
+    def test_preview_board_4_takes_its_samples_from_the_w3_report_and_mixes_groups_in_each_view(self):
+        report_path = ROOT / "tools/sourcing_data/w3_sampling/2026-11-10/groups.json"
+        self.assertEqual(hashlib.sha256(report_path.read_bytes()).hexdigest(),
+                         "5b0f77f2be21eb8cde5b15171d382338ef23f9e26cf6e7cdb35abc5f31929a2c")
+        groups = {" ".join(g[k] for k in ("footprint", "type", "mfr", "series")): g
+                  for g in json.loads(report_path.read_text())["groups"]}
+        member = {m[0]: name for name, g in groups.items() for m in g["member_rows"]}
+        manifest = json.loads(self.BOARD_4.read_text())
+        rows = manifest["rows"]
+        # D is the report's own sample of the two groups, whole and in its order.
+        sampled = ["CHIP_0402 ChipResistor Vishay CRCW", "CHIP_1210 ChipResistor Yageo RC"]
+        self.assertEqual([r["pn"] for r in rows if r["purpose"] == "D"],
+                         [pn for name in sampled for pn in groups[name]["sample"]])
+        self.assertEqual([len(groups[name]["sample"]) for name in sampled], [9, 42])
+        # A chip row names its report group; a part number no group has says null.
+        counted = {"top": {}, "bottom": {}}
+        for row in rows:
+            chip = row["footprint"].startswith("passive::CHIP_")
+            with self.subTest(row=row["name"]):
+                self.assertEqual("group" in row, chip)
+                if not chip:
+                    continue
+                self.assertEqual(row["group"], member.get(row["pn"]))
+                self.assertEqual(row["group"] is None, row["purpose"] == "E")
+                if row["group"]:
+                    self.assertTrue(row["group"].startswith(row["footprint"].split("::")[1] + " "))
+                if row["purpose"] == "D":
+                    self.assertIn(row["group"], row["note"])
+            for place in row["placements"]:
+                view = counted[place["side"]]
+                view[row["group"] or ""] = view.get(row["group"] or "", 0) + 1
+        self.assertEqual(manifest["view_groups"], counted)
+        # Tony's condition on the W3 median (#104): a view's median must include bodies
+        # of other groups. Here every group is a minority of its view's chip bodies.
+        self.assertEqual({view: sum(c.values()) for view, c in counted.items()}, {"top": 135, "bottom": 84})
+        for view, counts in counted.items():
+            named = {g: n for g, n in counts.items() if g}
+            with self.subTest(view=view):
+                self.assertGreaterEqual(len(named), 9)
+                self.assertLess(2 * max(named.values()), sum(counts.values()))
+        self.assertEqual(counted["top"]["CHIP_1210 ChipResistor Yageo RC"], 42)
+        self.assertEqual(counted["top"]["CHIP_0402 ChipResistor Vishay CRCW"], 19)
+        self.assertNotIn("CHIP_1210 ChipResistor Yageo RC", counted["bottom"])
+
     @unittest.skipUnless(COHDL.exists() or REQUIRE_BINARY, "needs target/debug/cohdl")
     def test_preview_board_4_turns_each_calibration_part_through_five_angles_on_both_sides(self):
         manifest = json.loads(self.BOARD_4.read_text())

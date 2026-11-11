@@ -15,8 +15,8 @@ Each row's `purpose` in the manifest is one of these.
 | A | 12 | top 0° and 37°, bottom 0° and 37° | An order number whose library entry exists and which `lcsc_map.json` maps: the reading is all its binding still lacks |
 | B | 1 | same | C97521 as the library binds it (`library_part`), on the land soic 0.3.0 moved |
 | E | 10 | same | An order number with a confirmed page in the 2026-10-30 catalog snapshot, but no map row and no library entry: evidence for (land, part number) only |
-| C | 10 | 0°, 90°, 180°, 270° and 37°, top and bottom | The calibration set of `docs/library-supplier-w3-sampling.md` §5 (#104) |
-| D | 51 | top 0° | The W3 report's samples for two groups that need samples |
+| C | 10 | 0°, 90°, 180°, 270° and 37°, top and bottom | The calibration set of `docs/library-supplier-w3-sampling.md` §5 |
+| D | 51 | top 0° | The W3 report's samples for two groups that need samples, read from the report |
 
 **A: OpenWalkieTalkie numbers already in the map.**
 
@@ -39,7 +39,7 @@ Each row's `purpose` in the manifest is one of these.
 - **C19666 and C23630 are entries of the 16 V parts.** The OpenWalkieTalkie design instantiates the 10 V parts (`C_4u7_10V_X5R_0603`, `C_2u2_10V_X5R_0603`), whose entries are other part numbers. A binding from this board therefore lands on the 16 V parts. The order's placements become bound only if the design uses those, or the 10 V parts gain these entries (a 16 V part does satisfy a 10 V requirement, but that is a library decision).
 - Each row declares a local part with the map row's identity on the library entry's device type and land, as on `lcsc-batch-2-passive`.
 
-**B: C97521 W25Q128JVSIQ** on `soic::SOIC8P127X790X216N`. Its frame row `c2b1-soic8_208-c97521` was measured on board 1 (rotate 270) before soic 0.3.0 turned the land; the mapping of 0 at 0.3.0 has had no confirming board. The order's CPL angle for U4 also disagrees with the library's reading. The row places `flash::FLASH_W25Q128JVSIQ` itself, and the build refuses the board unless the supplier BOM carries C97521 for it. Expected: rotate 0.
+**B: C97521 W25Q128JVSIQ** on `soic::SOIC8P127X790X216N`. Its frame row `c2b1-soic8_208-c97521` was measured on board 1 (rotate 270) before soic 0.3.0 turned the land; the mapping of 0 at 0.3.0 has had no confirming board. The order's CPL angle for U4 also disagrees with the library's reading. The row places `flash::FLASH_W25Q128JVSIQ` itself, as the library ships it now: flash 0.3.1 on soic 0.3.0, with `supplier lcsc "C97521"` and a zero map (flash 0.3.1 changed the W25Q32 land only; this part and its land are as in 0.3.0). The build refuses the board unless the supplier BOM carries C97521 for it, and the generator refuses to place it if soic is no longer at the version the frame row names. Expected: rotate 0.
 
 **E: order numbers with a page but no map row.** UNI-ROYAL 0402WGF resistors C25741 (100 k, 14 placements on the order), C11702 (1 k, 12), C26083 (1 M, 5), C17168 (0 Ω, 3), C25768 (22 k, 2), C25905 (5.1 k, 2), C25092 (22 Ω) and C25890 (3.3 k); Samsung C23733 CL05A475MP5NRNC (4.7 µF, 5); Fenghua C1548 0402CG150J500NT (15 pF). All are JLC Basic parts on `passive::CHIP_0402`. Each row reuses the library device of its value for the pins only, as board 1 did for C25744. A reading here is evidence for the pair (land, part number). A binding also needs a library `alt` entry and a map row, which are separate work.
 
@@ -60,7 +60,30 @@ Each row's `purpose` in the manifest is one of these.
 
 The first four 0402 parts are in the board's first band and the rest in its last, so each view has calibration bodies at both ends of the board. Five angles of one part sit side by side, top copies above bottom copies.
 
-**D: W3 samples.** The report of 2026-11-10 (`tools/sourcing_data/w3_sampling/2026-11-10/groups.json` on #104's branch, SHA-256 `5b0f77f2…`) lists the `sample` it chose for each group that needs samples. This board takes two groups whole: Vishay `CRCW` 0402 (9 samples, to replace the nine the pilot did not draw) and Yageo `RC` 1210 (42). The report is not in this tree, so the generator writes the part numbers out and checks each against the map, the pages and the library.
+**What each view's median is made of.** The W3 rule judges a sample's residual against the median of every drawn chip body in its view. Tony's condition on that (#104): the median must include bodies of at least one other group, or it shows only that a group agrees with itself. The rows' `group` is their group in the W3 report, the manifest's `view_groups` counts the chip bodies placed in each view, and the generator refuses a layout in which a view has fewer than three groups or one group holds half of it.
+
+| Group (W3 report) | Top bodies | Bottom bodies | From |
+|---|---:|---:|---|
+| `CHIP_1210` Yageo `RC` | 42 | 0 | D |
+| `CHIP_0402` Vishay `CRCW` | 19 | 10 | D 9, C 10 a view |
+| `CHIP_0402` Yageo `CC` | 16 | 16 | C 10, A 6 |
+| `CHIP_0402` Yageo `RC` | 15 | 15 | C |
+| `CHIP_0201` Yageo `RC` | 5 | 5 | C |
+| `CHIP_2010` Yageo `RC` | 5 | 5 | C |
+| `CHIP_2512` Yageo `RC` | 5 | 5 | C |
+| `CHIP_0603` Samsung `CL` | 4 | 4 | A |
+| `CHIP_0402` Samsung `CL` | 2 | 2 | A |
+| `CHIP_0603` Yageo `CC` | 2 | 2 | A |
+| in no group (UNI-ROYAL, Samsung C23733, Fenghua; all `CHIP_0402`) | 20 | 20 | E |
+| **All chip bodies** | **135** | **84** | |
+
+So the top view has ten groups and the bottom nine. The two sampled groups are judged in the top view: Yageo `RC` 1210 is 42 of its 135 bodies, with 93 from other groups; Vishay `CRCW` 0402 is 19, with 116 from others. No group reaches a third of a view. Three limits on what this gives:
+
+- These are placed bodies. The median is over drawn ones, so the composition has to be counted again from the measurement; the pilot left 9 of 49 `CRCW` samples undrawn.
+- Other groups are not other lands. `CHIP_0402` holds 72 of the top's 135 chip bodies and 63 of the bottom's 84, so each view's median is close to the 0402 median, and the 1210 samples are judged against it. That is what the rule's board median means; whether it should be per land is the question the fit below is for.
+- The bodies are not all at one angle. On top 78 are at 0°, 27 at 37° and 10 each at 90°, 180° and 270°; on the bottom 27 at 0°, 27 at 37° and 10 each at the others. If an offset turns with the part, the turned bodies pull the median away from what a 0° body sees, more on the bottom than on top.
+
+**D: W3 samples.** The report of 2026-11-10 (`tools/sourcing_data/w3_sampling/2026-11-10/groups.json`) lists the `sample` it chose for each group that needs samples. This board takes two groups whole: Vishay `CRCW` 0402 (9 samples, to replace the nine the pilot did not draw) and Yageo `RC` 1210 (42). The generator reads the part numbers from the report, in its order, after checking the report's SHA-256 (`5b0f77f2be21eb8cde5b15171d382338ef23f9e26cf6e7cdb35abc5f31929a2c`), and still checks each against the map, the pages and the library. A regenerated report therefore stops the generator until this board is looked at again.
 
 ## Left off
 
@@ -82,7 +105,26 @@ Every page read at least five pieces per placement, and at least 30. Three rows 
 - C7519, C131941, C189961: read, not assumed. A rotation that all four copies agree on is a candidate mapping for that part number.
 - A part the assembler does not select or draw is unverified, not a pass.
 
-After the preview, the calibration fit needs each body's offset as a vector. `measure_preview.py` on `main` reports only its size; #104 adds `offset_xy_mm`.
+## After the preview: the calibration fit
+
+`calibration_fit.py` is ready for the readings, so the upload does not have to wait on analysis. It takes the package's `board.json` and supplier BOM and the output of `measure_preview.py measure`, whose `body.offset_xy_mm` is each chip body's offset as a board-frame vector:
+
+```sh
+python3 -I tools/frame_boards/measure_preview.py measure board.json top.bmp bottom.bmp measurements.json
+python3 -I tools/frame_boards/calibration_fit.py board.json measurements.json preview_board_4-lcsc-bom.csv fit.json
+```
+
+For every part number read at three or more orientations in a view (here the ten calibration parts, five readings a view), it fits three models by least squares: `export_only` (one shift, fixed in the board frame), `model_only` (one offset in the part's own frame, turning with it) and `both`. It reports the shift as board x, y and the offset along the pads (pad 1 to pad 2) and across them, with each fit's misfit (`rms_mm`, `max_mm`, and `sigma_mm` per coordinate after the fitted parameters). It does this three ways in each view:
+
+- `parts`: each part number alone;
+- `lands`: the part numbers of one land with one shared offset, which is what an offset between the assembler's land and ours would look like (`CHIP_0402` has seven part numbers of three groups; the other three lands have one each);
+- `views`: one shift for the whole view with an offset for each part number, which is the export hypothesis in full: an export has one shift.
+
+The part's frame comes from `board.json`'s pads. A bottom part's frame is the top one mirrored, which assumes the assembler mirrors its model with the part. Bodies the preview does not draw, and part numbers read at fewer than three orientations (the A and E rows, at 0° and 37°), are listed under `not_fitted`.
+
+**No real data exists yet.** The tool is tested on synthetic readings only: a pure shift, a pure offset, a mixture, and noise of 0.015 mm (`tools/tests/test_calibration_fit.py`). It gives numbers, not a verdict: a hypothesis stands when its misfit is no worse than the scatter of repeated readings, which the earlier boards put at 0.01–0.02 mm. With five readings, each component of `both` is good to roughly that scatter over √5.
+
+What the board can settle: for these ten part numbers, in these two exports, how much of the offset stays with the board and how much turns with the part; whether the seven 0402 part numbers share one offset; and whether one shift fits a whole view. What it cannot: that another export has the same shift (the pilot and board 3 differed by about 0.03 mm), that part numbers not on the board behave like these, or anything about a body that is not drawn. The W3 rule itself is Tony's to change.
 
 ## Preview package
 

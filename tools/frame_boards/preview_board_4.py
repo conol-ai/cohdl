@@ -35,12 +35,22 @@ Nothing is fetched. A page must read at least five pieces per placement (the
 assembler builds five boards) and at least 30. LEFT_OFF lists the order
 numbers that qualify otherwise but are not placed, with the reason.
 
-The W3 samples and calibration choices are written out below, because the
-report they come from (tools/sourcing_data/w3_sampling/2026-11-10/groups.json,
-SHA-256 5b0f77f2...) is on #104's branch and not in this tree. Each is still
-checked here against the map, the pages and the library.
+The D samples are read from the committed W3 report
+(tools/sourcing_data/w3_sampling/2026-11-10/groups.json): the `sample` of each
+group in W3_GROUPS, in the report's order. The report's SHA-256 is checked
+first, so a regenerated report does not change this board silently. Each
+sample is still checked against the map, the pages and the library. The
+calibration choices are this board's own and stay written out; each must be a
+member of a group in the report.
+
+The W3 rule takes a view's median over every drawn chip body, and that median
+says something about a group only when other groups' bodies are in it. Each
+chip row therefore carries its report `group` (`null` for a part number no
+group has), the manifest's `view_groups` counts each view's chip bodies by
+group, and the generator refuses a layout in which a view has fewer than three
+groups or one group holds half of a view's chip bodies.
 """
-import json, math, re, subprocess, sys, tempfile
+import hashlib, json, math, re, subprocess, sys, tempfile
 from pathlib import Path
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
@@ -53,6 +63,18 @@ pages = {r["c"]: r for r in json.load(open(DATA / "jlc_catalog/2026-10-30/catalo
 pages.update({r["c"]: r for r in json.load(open(DATA / "lcsc_backfill/2026-11-07-samsung-b1/confirmed.json"))})
 mapped = {r["pn"]: r for r in json.load(open(DATA / "lcsc_map.json"))["rows"]}
 framed = {r["pn"] for r in json.load(open(DATA / "jlc_frames.json"))["rows"]}
+W3_REPORT = DATA / "w3_sampling/2026-11-10/groups.json"
+W3_REPORT_SHA256 = "5b0f77f2be21eb8cde5b15171d382338ef23f9e26cf6e7cdb35abc5f31929a2c"
+if hashlib.sha256(W3_REPORT.read_bytes()).hexdigest() != W3_REPORT_SHA256:
+    raise SystemExit(f"{W3_REPORT.relative_to(ROOT)} is not the report this board was drawn from")
+
+
+def group_name(group):
+    return " ".join(group[k] for k in ("footprint", "type", "mfr", "series"))
+
+
+w3_groups = {group_name(g): g for g in json.loads(W3_REPORT.read_text(encoding="utf-8"))["groups"]}
+group_of = {member[0]: name for name, g in w3_groups.items() for member in g["member_rows"]}
 
 # (part number, library part as package::PART, purpose, note). The library part
 # is the entry's own part for A, B, C and D; for E it only supplies the pins.
@@ -69,7 +91,7 @@ SEL = [
     ("C7519", "esd::ESD_USBLC6", "A", "OWT U20, SOT-23-6; board 1 read 180 for C85364 on this land"),
     ("C131941", "load-switch::LOADSW_TPS22918DBVR", "A", "OWT U2, U10 (2), SOT-23-6; board 1 read 270 for C12044 on this land"),
     ("C189961", "@contrib/audio-amp::AMP_NS4150B", "A", "OWT U1"),
-    ("C97521", "flash::FLASH_W25Q128JVSIQ", "B", "OWT U4; library binding as shipped in flash 0.3.0, land moved by soic 0.3.0"),
+    ("C97521", "flash::FLASH_W25Q128JVSIQ", "B", "OWT U4; library binding as shipped in flash {flash}, land moved by soic 0.3.0, the version it is on"),
     ("C25741", "passive::R_100K_F_0402", "E", "OWT 100k (14); UNI-ROYAL 0402WGF1003TCE"),
     ("C11702", "passive::R_1K_F_0402", "E", "OWT 1k (12); UNI-ROYAL 0402WGF1001TCE"),
     ("C26083", "passive::R_1M_F_0402", "E", "OWT 1M (5); UNI-ROYAL 0402WGF1004TCE"),
@@ -95,17 +117,14 @@ CAL = [
     ("C878096", "Yageo RC 2512; board 3 mixed"),
 ]
 CAL_ANGLES = (0, 90, 180, 270, 37)
-# W3 report 2026-11-10, `sample` of each group, in the report's order.
-W3 = [
-    ("CHIP_0402 ChipResistor Vishay CRCW", ["C482245", "C2076669", "C2085363", "C482122", "C482153", "C3151635",
-                                             "C4112969", "C482229", "C3008837"]),
-    ("CHIP_1210 ChipResistor Yageo RC", ["C375531", "C728359", "C723673", "C137103", "C275640", "C874782", "C470029",
-                                          "C728367", "C874830", "C723647", "C874855", "C137098", "C137097", "C728373",
-                                          "C728375", "C874966", "C723648", "C874999", "C728383", "C875026", "C728387",
-                                          "C137092", "C875093", "C875102", "C875123", "C728395", "C137089", "C728398",
-                                          "C875203", "C875206", "C137083", "C875217", "C326901", "C875225", "C875232",
-                                          "C875234", "C875236", "C440313", "C728409", "C326893", "C875251", "C723577"]),
-]
+# The W3 report's groups this board samples whole: the report's `sample` of each.
+W3_GROUPS = ["CHIP_0402 ChipResistor Vishay CRCW", "CHIP_1210 ChipResistor Yageo RC"]
+W3 = []
+for name in W3_GROUPS:
+    g = w3_groups[name]
+    if g["status"] != "needs_samples" or len(g["sample"]) != g["more_needed"] or len(set(g["sample"])) != len(g["sample"]):
+        raise SystemExit(f"{name}: the report does not list the samples this group still needs")
+    W3.append((name, g["sample"]))
 # Order numbers that would qualify but are not placed.
 LEFT_OFF = {
     "C2799946": "OWT SW3, SW4 (C&K PTS636, in lcsc_map): its page read stock 0 on 2026-11-06, and the assembler does not place such a part",
@@ -170,6 +189,11 @@ def row(pn, key, purpose, note, placements):
     devices = inv["devices"]
     pins = devices.get(package + "::" + base + variant, devices.get(package + "::" + base, ["A", "B"])) or ["A", "B"]
     deps[package] = part["ver"]
+    if purpose == "B":
+        versions = dict(inv["pkgs"].values())
+        if versions[fp_package] != "0.3.0" or pn not in framed:
+            raise SystemExit(f"{pn}: {fp_package} is at {versions[fp_package]}; its frame row names 0.3.0")
+        note = note.format(**versions)
     deps[fp_package] = next(ver for name, ver in inv["pkgs"].values() if name == fp_package)
     side = round(2 * reach(footprint), 3)
     out = {"name": "%s_%s_%s" % (purpose, key.split("::", 1)[1], pn), "footprint": ident(fp_package) + "::" + fp_name,
@@ -178,6 +202,11 @@ def row(pn, key, purpose, note, placements):
            "width_mm": side, "height_mm": side, "covers_rotation": True, "placements": placements,
            "purpose": purpose, "note": note, "jlc_package": page["package"], "category": page["category"],
            "stock": page["stock"]}
+    if fp_package == "passive" and fp_name.startswith("CHIP_") and len(pins) == 2:
+        # A chip body, as measure_preview.py's is_chip reads it: it enters its view's median.
+        out["group"] = group_of.get(pn)
+        if purpose in "CD" and (out["group"] is None or not out["group"].startswith(fp_name + " ")):
+            raise SystemExit(f"{pn}: not a member of a W3 group on {fp_name}")
     if purpose == "B":
         if pn not in part["bound"]:
             raise SystemExit(f"{pn}: {key} does not bind it")
@@ -204,12 +233,13 @@ for pn, key, purpose, note in SEL:
 blocks.sort(key=lambda b: -b[0]["width_mm"])  # stable: equal sizes keep SEL's order
 calibration = [(row(pn, from_map(pn), "C", note, [(side, a) for side in ("top", "bottom") for a in CAL_ANGLES]),
                 len(CAL_ANGLES), 2) for pn, note in CAL]
-samples = [(row(pn, from_map(pn), "D", "W3 sample 2026-11-10, group " + group, [("top", 0)]), 1, 1)
-           for group, pns in W3 for pn in pns]
+samples = []
 for group, pns in W3:
     for pn in pns:
-        if not from_map(pn).split("::")[1].endswith("_" + group.split()[0].split("_")[1]):
+        item = row(pn, from_map(pn), "D", "W3 sample 2026-11-10, group " + group, [("top", 0)])
+        if item["group"] != group:
             raise SystemExit(f"{pn}: not a {group} part")
+        samples.append((item, 1, 1))
 
 # Bands down the board. The calibration set is split between the first and the
 # last band, so each view has calibration bodies at both ends of the board.
@@ -230,6 +260,19 @@ for band in (calibration[:4], blocks, samples, calibration[4:]):
         rows.append(item)
 if len({r["pn"] for r in rows}) != len(rows) or set(LEFT_OFF) & {r["pn"] for r in rows}:
     raise SystemExit("a part number is on the board twice, or placed and left off")
-json.dump({"name": "preview_board_4", "dependencies": deps, "rows": rows, "left_off": LEFT_OFF},
+# Each view's chip bodies by W3 group; "" counts the part numbers no group has.
+view_groups = {}
+for r in rows:
+    if "group" in r:
+        for place in r["placements"]:
+            counts = view_groups.setdefault(place["side"], {})
+            counts[r["group"] or ""] = counts.get(r["group"] or "", 0) + 1
+for side, counts in view_groups.items():
+    total, named = sum(counts.values()), {g: n for g, n in counts.items() if g}
+    if len(named) < 3 or max(named.values()) * 2 >= total:
+        raise SystemExit(f"{side}: a view's median needs chip bodies from several groups, none of them half the view")
+view_groups = {side: dict(sorted(view_groups[side].items())) for side in ("top", "bottom")}
+json.dump({"name": "preview_board_4", "dependencies": deps, "rows": rows, "left_off": LEFT_OFF,
+           "view_groups": view_groups},
           open(sys.argv[1], "w", encoding="utf-8"), indent=1, ensure_ascii=False)
 print(len(rows), "rows,", sum(len(r["placements"]) for r in rows), "placements, board ~", WIDTH, "x", round(y + shelf, 1), "mm")

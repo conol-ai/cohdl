@@ -6,7 +6,7 @@
   "esd": "0.1.2",
   "load-switch": "0.2.0",
   "@contrib/audio-amp": "0.2.0",
-  "flash": "0.3.0",
+  "flash": "0.3.1",
   "soic": "0.3.0"
  },
  "rows": [
@@ -110,7 +110,8 @@
    "note": "Yageo RC 0402; pilot -3.0 deg, raw 0.070 mm; lib passive::R_100K_F_0402 primary; lcsc_map rule alias",
    "jlc_package": "0402",
    "category": "extended",
-   "stock": 15854286
+   "stock": 15854286,
+   "group": "CHIP_0402 ChipResistor Yageo RC"
   },
   {
    "name": "C_C_680p_50V_C0G_0402_C113781",
@@ -212,7 +213,8 @@
    "note": "Yageo CC 0402; pilot +10.5 deg, left for manual review; lib passive::C_680p_50V_C0G_0402 primary; lcsc_map rule alias",
    "jlc_package": "0402",
    "category": "extended",
-   "stock": 53693
+   "stock": 53693,
+   "group": "CHIP_0402 MLCC Yageo CC"
   },
   {
    "name": "C_R_100K_F_0402_C481918",
@@ -314,7 +316,8 @@
    "note": "Vishay CRCW 0402; pilot -7.3 deg, raw 0.068 mm; lib passive::R_100K_F_0402 alt; lcsc_map rule alias",
    "jlc_package": "0402",
    "category": "extended",
-   "stock": 695653
+   "stock": 695653,
+   "group": "CHIP_0402 ChipResistor Vishay CRCW"
   },
   {
    "name": "C_R_1M_F_0402_C138033",
@@ -416,7 +419,8 @@
    "note": "Yageo RC 0402; pilot +9.9 deg, raw 0.117 mm; lib passive::R_1M_F_0402 primary; lcsc_map rule alias",
    "jlc_package": "0402",
    "category": "extended",
-   "stock": 3068398
+   "stock": 3068398,
+   "group": "CHIP_0402 ChipResistor Yageo RC"
   },
   {
    "name": "B_FLASH_W25Q128JVSIQ_C97521",
@@ -467,7 +471,7 @@
     }
    ],
    "purpose": "B",
-   "note": "OWT U4; library binding as shipped in flash 0.3.0, land moved by soic 0.3.0",
+   "note": "OWT U4; library binding as shipped in flash 0.3.1, land moved by soic 0.3.0, the version it is on",
    "jlc_package": "SOIC-8-208mil",
    "category": "basic",
    "stock": 74161,
@@ -802,7 +806,8 @@
    "note": "OWT C18, C40, C41, C48 (4; r6 9); the design instantiates C_4u7_10V_X5R_0603, the entry is on the 16 V part; lib passive::C_4u7_16V_X5R_0603 alt; lcsc_map rule alias",
    "jlc_package": "0603",
    "category": "basic",
-   "stock": 4310991
+   "stock": 4310991,
+   "group": "CHIP_0603 MLCC Samsung CL"
   },
   {
    "name": "A_C_2u2_16V_X5R_0603_C23630",
@@ -856,7 +861,8 @@
    "note": "OWT r6 only, C14, C16, C23, C24, C27, C31 (6); the design instantiates C_2u2_10V_X5R_0603, the entry is on the 16 V part; lib passive::C_2u2_16V_X5R_0603 alt; lcsc_map rule alias",
    "jlc_package": "0603",
    "category": "basic",
-   "stock": 2886430
+   "stock": 2886430,
+   "group": "CHIP_0603 MLCC Samsung CL"
   },
   {
    "name": "A_C_1n5_50V_C0G_0603_C107039",
@@ -910,7 +916,8 @@
    "note": "OWT C2; lib passive::C_1n5_50V_C0G_0603 primary; lcsc_map rule alias",
    "jlc_package": "0603",
    "category": "extended",
-   "stock": 72493
+   "stock": 72493,
+   "group": "CHIP_0603 MLCC Yageo CC"
   },
   {
    "name": "A_C_1n_50V_C0G_0402_C113780",
@@ -964,7 +971,8 @@
    "note": "OWT C6, C32-C39, C50 (10); lib passive::C_1n_50V_C0G_0402 primary; lcsc_map rule alias",
    "jlc_package": "0402",
    "category": "extended",
-   "stock": 24241
+   "stock": 24241,
+   "group": "CHIP_0402 MLCC Yageo CC"
   },
   {
    "name": "A_C_330p_50V_C0G_0402_C107006",
@@ -1018,7 +1026,8 @@
    "note": "OWT C8-C10 (3); lib passive::C_330p_50V_C0G_0402 primary; lcsc_map rule alias",
    "jlc_package": "0402",
    "category": "extended",
-   "stock": 339123
+   "stock": 339123,
+   "group": "CHIP_0402 MLCC Yageo CC"
   },
   {
    "name": "A_C_1u_25V_X5R_0402_C52923",
@@ -1072,7 +1081,8 @@
    "note": "OWT C15, C26 (2); the design declares the part locally; lib passive::C_1u_25V_X5R_0402 alt; lcsc_map rule alias",
    "jlc_package": "0402",
    "category": "basic",
-   "stock": 10400655
+   "stock": 10400655,
+   "group": "CHIP_0402 MLCC Samsung CL"
   },
   {
    "name": "A_C_470n_10V_X5R_0402_C106255",
@@ -1126,7 +1136,8 @@
    "note": "OWT C25; lib passive::C_470n_10V_X5R_0402 primary; lcsc_map rule alias",
    "jlc_package": "0402",
    "category": "extended",
-   "stock": 511180
+   "stock": 511180,
+   "group": "CHIP_0402 MLCC Yageo CC"
   },
   {
    "name": "E_R_100K_F_0402_C25741",
@@ -1180,7 +1191,8 @@
    "note": "OWT 100k (14); UNI-ROYAL 0402WGF1003TCE; device supplies pins only; no map row, no library entry",
    "jlc_package": "0402",
    "category": "basic",
-   "stock": 8504307
+   "stock": 8504307,
+   "group": null
   },
   {
    "name": "E_R_1K_F_0402_C11702",
@@ -1234,7 +1246,8 @@
    "note": "OWT 1k (12); UNI-ROYAL 0402WGF1001TCE; device supplies pins only; no map row, no library entry",
    "jlc_package": "0402",
    "category": "basic",
-   "stock": 21756652
+   "stock": 21756652,
+   "group": null
   },
   {
    "name": "E_R_1M_F_0402_C26083",
@@ -1288,7 +1301,8 @@
    "note": "OWT 1M (5); UNI-ROYAL 0402WGF1004TCE; device supplies pins only; no map row, no library entry",
    "jlc_package": "0402",
    "category": "basic",
-   "stock": 2986704
+   "stock": 2986704,
+   "group": null
   },
   {
    "name": "E_R_0R_J_0402_C17168",
@@ -1342,7 +1356,8 @@
    "note": "OWT 0R (3); UNI-ROYAL 0402WGF0000TCE; device supplies pins only; no map row, no library entry",
    "jlc_package": "0402",
    "category": "basic",
-   "stock": 11396175
+   "stock": 11396175,
+   "group": null
   },
   {
    "name": "E_R_22K_F_0402_C25768",
@@ -1396,7 +1411,8 @@
    "note": "OWT 22k (2); UNI-ROYAL 0402WGF2202TCE; device supplies pins only; no map row, no library entry",
    "jlc_package": "0402",
    "category": "basic",
-   "stock": 1205510
+   "stock": 1205510,
+   "group": null
   },
   {
    "name": "E_R_5K1_F_0402_C25905",
@@ -1450,7 +1466,8 @@
    "note": "OWT 5.1k (2); UNI-ROYAL 0402WGF5101TCE; device supplies pins only; no map row, no library entry",
    "jlc_package": "0402",
    "category": "basic",
-   "stock": 3809515
+   "stock": 3809515,
+   "group": null
   },
   {
    "name": "E_R_22R_F_0402_C25092",
@@ -1504,7 +1521,8 @@
    "note": "OWT 22R; UNI-ROYAL 0402WGF220JTCE; device supplies pins only; no map row, no library entry",
    "jlc_package": "0402",
    "category": "basic",
-   "stock": 2962686
+   "stock": 2962686,
+   "group": null
   },
   {
    "name": "E_R_3K3_F_0402_C25890",
@@ -1558,7 +1576,8 @@
    "note": "OWT 3.3k; UNI-ROYAL 0402WGF3301TCE; device supplies pins only; no map row, no library entry",
    "jlc_package": "0402",
    "category": "basic",
-   "stock": 1599853
+   "stock": 1599853,
+   "group": null
   },
   {
    "name": "E_C_4u7_6V3_X5R_0402_C23733",
@@ -1612,7 +1631,8 @@
    "note": "OWT 4.7uF 0402 (5); Samsung CL05A475MP5NRNC, a 20% part; device supplies pins only; no map row, no library entry",
    "jlc_package": "0402",
    "category": "basic",
-   "stock": 2403008
+   "stock": 2403008,
+   "group": null
   },
   {
    "name": "E_C_15p_50V_C0G_0402_C1548",
@@ -1666,7 +1686,8 @@
    "note": "OWT C57; Fenghua 0402CG150J500NT; device supplies pins only; no map row, no library entry",
    "jlc_package": "0402",
    "category": "basic",
-   "stock": 1356902
+   "stock": 1356902,
+   "group": null
   },
   {
    "name": "D_R_100K_J_0402_C482245",
@@ -1696,7 +1717,8 @@
    "note": "W3 sample 2026-11-10, group CHIP_0402 ChipResistor Vishay CRCW; lib passive::R_100K_J_0402 alt; lcsc_map rule alias",
    "jlc_package": "0402",
    "category": "extended",
-   "stock": 8089
+   "stock": 8089,
+   "group": "CHIP_0402 ChipResistor Vishay CRCW"
   },
   {
    "name": "D_R_165R_F_0402_C2076669",
@@ -1726,7 +1748,8 @@
    "note": "W3 sample 2026-11-10, group CHIP_0402 ChipResistor Vishay CRCW; lib passive::R_165R_F_0402 alt; lcsc_map rule alias",
    "jlc_package": "0402",
    "category": "extended",
-   "stock": 8908
+   "stock": 8908,
+   "group": "CHIP_0402 ChipResistor Vishay CRCW"
   },
   {
    "name": "D_R_1M3_F_0402_C2085363",
@@ -1756,7 +1779,8 @@
    "note": "W3 sample 2026-11-10, group CHIP_0402 ChipResistor Vishay CRCW; lib passive::R_1M3_F_0402 alt; lcsc_map rule alias",
    "jlc_package": "0402",
    "category": "extended",
-   "stock": 1754
+   "stock": 1754,
+   "group": "CHIP_0402 ChipResistor Vishay CRCW"
   },
   {
    "name": "D_R_27R_F_0402_C482122",
@@ -1786,7 +1810,8 @@
    "note": "W3 sample 2026-11-10, group CHIP_0402 ChipResistor Vishay CRCW; lib passive::R_27R_F_0402 alt; lcsc_map rule alias",
    "jlc_package": "0402",
    "category": "extended",
-   "stock": 74
+   "stock": 74,
+   "group": "CHIP_0402 ChipResistor Vishay CRCW"
   },
   {
    "name": "D_R_33K_F_0402_C482153",
@@ -1816,7 +1841,8 @@
    "note": "W3 sample 2026-11-10, group CHIP_0402 ChipResistor Vishay CRCW; lib passive::R_33K_F_0402 alt; lcsc_map rule alias",
    "jlc_package": "0402",
    "category": "extended",
-   "stock": 61472
+   "stock": 61472,
+   "group": "CHIP_0402 ChipResistor Vishay CRCW"
   },
   {
    "name": "D_R_40R2_F_0402_C3151635",
@@ -1846,7 +1872,8 @@
    "note": "W3 sample 2026-11-10, group CHIP_0402 ChipResistor Vishay CRCW; lib passive::R_40R2_F_0402 alt; lcsc_map rule alias",
    "jlc_package": "0402",
    "category": "extended",
-   "stock": 208955
+   "stock": 208955,
+   "group": "CHIP_0402 ChipResistor Vishay CRCW"
   },
   {
    "name": "D_R_53R6_F_0402_C4112969",
@@ -1876,7 +1903,8 @@
    "note": "W3 sample 2026-11-10, group CHIP_0402 ChipResistor Vishay CRCW; lib passive::R_53R6_F_0402 alt; lcsc_map rule alias",
    "jlc_package": "0402",
    "category": "extended",
-   "stock": 544
+   "stock": 544,
+   "group": "CHIP_0402 ChipResistor Vishay CRCW"
   },
   {
    "name": "D_R_6K2_F_0402_C482229",
@@ -1906,7 +1934,8 @@
    "note": "W3 sample 2026-11-10, group CHIP_0402 ChipResistor Vishay CRCW; lib passive::R_6K2_F_0402 alt; lcsc_map rule alias",
    "jlc_package": "0402",
    "category": "extended",
-   "stock": 14068
+   "stock": 14068,
+   "group": "CHIP_0402 ChipResistor Vishay CRCW"
   },
   {
    "name": "D_R_9K31_F_0402_C3008837",
@@ -1936,7 +1965,8 @@
    "note": "W3 sample 2026-11-10, group CHIP_0402 ChipResistor Vishay CRCW; lib passive::R_9K31_F_0402 alt; lcsc_map rule alias",
    "jlc_package": "0402",
    "category": "extended",
-   "stock": 7126
+   "stock": 7126,
+   "group": "CHIP_0402 ChipResistor Vishay CRCW"
   },
   {
    "name": "D_R_100K_F_1210_C375531",
@@ -1966,7 +1996,8 @@
    "note": "W3 sample 2026-11-10, group CHIP_1210 ChipResistor Yageo RC; lib passive::R_100K_F_1210 primary; lcsc_map rule alias",
    "jlc_package": "1210",
    "category": "extended",
-   "stock": 11820
+   "stock": 11820,
+   "group": "CHIP_1210 ChipResistor Yageo RC"
   },
   {
    "name": "D_R_11R5_F_1210_C728359",
@@ -1996,7 +2027,8 @@
    "note": "W3 sample 2026-11-10, group CHIP_1210 ChipResistor Yageo RC; lib passive::R_11R5_F_1210 primary; lcsc_map rule alias",
    "jlc_package": "1210",
    "category": "extended",
-   "stock": 5000
+   "stock": 5000,
+   "group": "CHIP_1210 ChipResistor Yageo RC"
   },
   {
    "name": "D_R_133R_F_1210_C723673",
@@ -2026,7 +2058,8 @@
    "note": "W3 sample 2026-11-10, group CHIP_1210 ChipResistor Yageo RC; lib passive::R_133R_F_1210 primary; lcsc_map rule alias",
    "jlc_package": "1210",
    "category": "extended",
-   "stock": 4902
+   "stock": 4902,
+   "group": "CHIP_1210 ChipResistor Yageo RC"
   },
   {
    "name": "D_R_150K_F_1210_C137103",
@@ -2056,7 +2089,8 @@
    "note": "W3 sample 2026-11-10, group CHIP_1210 ChipResistor Yageo RC; lib passive::R_150K_F_1210 primary; lcsc_map rule alias",
    "jlc_package": "1210",
    "category": "extended",
-   "stock": 8799
+   "stock": 8799,
+   "group": "CHIP_1210 ChipResistor Yageo RC"
   },
   {
    "name": "D_R_174K_F_1210_C275640",
@@ -2086,7 +2120,8 @@
    "note": "W3 sample 2026-11-10, group CHIP_1210 ChipResistor Yageo RC; lib passive::R_174K_F_1210 primary; lcsc_map rule alias",
    "jlc_package": "1210",
    "category": "extended",
-   "stock": 35
+   "stock": 35,
+   "group": "CHIP_1210 ChipResistor Yageo RC"
   },
   {
    "name": "D_R_1K47_F_1210_C874782",
@@ -2116,7 +2151,8 @@
    "note": "W3 sample 2026-11-10, group CHIP_1210 ChipResistor Yageo RC; lib passive::R_1K47_F_1210 primary; lcsc_map rule alias",
    "jlc_package": "1210",
    "category": "extended",
-   "stock": 5000
+   "stock": 5000,
+   "group": "CHIP_1210 ChipResistor Yageo RC"
   },
   {
    "name": "D_R_1M_F_1210_C470029",
@@ -2146,7 +2182,8 @@
    "note": "W3 sample 2026-11-10, group CHIP_1210 ChipResistor Yageo RC; lib passive::R_1M_F_1210 primary; lcsc_map rule alias",
    "jlc_package": "1210",
    "category": "extended",
-   "stock": 1014
+   "stock": 1014,
+   "group": "CHIP_1210 ChipResistor Yageo RC"
   },
   {
    "name": "D_R_200R_F_1210_C728367",
@@ -2176,7 +2213,8 @@
    "note": "W3 sample 2026-11-10, group CHIP_1210 ChipResistor Yageo RC; lib passive::R_200R_F_1210 primary; lcsc_map rule alias",
    "jlc_package": "1210",
    "category": "extended",
-   "stock": 55
+   "stock": 55,
+   "group": "CHIP_1210 ChipResistor Yageo RC"
   },
   {
    "name": "D_R_220K_F_1210_C874830",
@@ -2206,7 +2244,8 @@
    "note": "W3 sample 2026-11-10, group CHIP_1210 ChipResistor Yageo RC; lib passive::R_220K_F_1210 primary; lcsc_map rule alias",
    "jlc_package": "1210",
    "category": "extended",
-   "stock": 8032
+   "stock": 8032,
+   "group": "CHIP_1210 ChipResistor Yageo RC"
   },
   {
    "name": "D_R_22R_F_1210_C723647",
@@ -2236,7 +2275,8 @@
    "note": "W3 sample 2026-11-10, group CHIP_1210 ChipResistor Yageo RC; lib passive::R_22R_F_1210 primary; lcsc_map rule alias",
    "jlc_package": "1210",
    "category": "extended",
-   "stock": 210
+   "stock": 210,
+   "group": "CHIP_1210 ChipResistor Yageo RC"
   },
   {
    "name": "D_R_24R9_F_1210_C874855",
@@ -2266,7 +2306,8 @@
    "note": "W3 sample 2026-11-10, group CHIP_1210 ChipResistor Yageo RC; lib passive::R_24R9_F_1210 primary; lcsc_map rule alias",
    "jlc_package": "1210",
    "category": "extended",
-   "stock": 113
+   "stock": 113,
+   "group": "CHIP_1210 ChipResistor Yageo RC"
   },
   {
    "name": "D_R_2K2_F_1210_C137098",
@@ -2296,7 +2337,8 @@
    "note": "W3 sample 2026-11-10, group CHIP_1210 ChipResistor Yageo RC; lib passive::R_2K2_F_1210 primary; lcsc_map rule alias",
    "jlc_package": "1210",
    "category": "extended",
-   "stock": 7370
+   "stock": 7370,
+   "group": "CHIP_1210 ChipResistor Yageo RC"
   },
   {
    "name": "D_R_2K_F_1210_C137097",
@@ -2326,7 +2368,8 @@
    "note": "W3 sample 2026-11-10, group CHIP_1210 ChipResistor Yageo RC; lib passive::R_2K_F_1210 primary; lcsc_map rule alias",
    "jlc_package": "1210",
    "category": "extended",
-   "stock": 372
+   "stock": 372,
+   "group": "CHIP_1210 ChipResistor Yageo RC"
   },
   {
    "name": "D_R_30K_F_1210_C728373",
@@ -2356,7 +2399,8 @@
    "note": "W3 sample 2026-11-10, group CHIP_1210 ChipResistor Yageo RC; lib passive::R_30K_F_1210 primary; lcsc_map rule alias",
    "jlc_package": "1210",
    "category": "extended",
-   "stock": 957
+   "stock": 957,
+   "group": "CHIP_1210 ChipResistor Yageo RC"
   },
   {
    "name": "D_R_360R_F_1210_C728375",
@@ -2386,7 +2430,8 @@
    "note": "W3 sample 2026-11-10, group CHIP_1210 ChipResistor Yageo RC; lib passive::R_360R_F_1210 primary; lcsc_map rule alias",
    "jlc_package": "1210",
    "category": "extended",
-   "stock": 39
+   "stock": 39,
+   "group": "CHIP_1210 ChipResistor Yageo RC"
   },
   {
    "name": "D_R_3K01_F_1210_C874966",
@@ -2416,7 +2461,8 @@
    "note": "W3 sample 2026-11-10, group CHIP_1210 ChipResistor Yageo RC; lib passive::R_3K01_F_1210 primary; lcsc_map rule alias",
    "jlc_package": "1210",
    "category": "extended",
-   "stock": 74
+   "stock": 74,
+   "group": "CHIP_1210 ChipResistor Yageo RC"
   },
   {
    "name": "D_R_3R_F_1210_C723648",
@@ -2446,7 +2492,8 @@
    "note": "W3 sample 2026-11-10, group CHIP_1210 ChipResistor Yageo RC; lib passive::R_3R_F_1210 primary; lcsc_map rule alias",
    "jlc_package": "1210",
    "category": "extended",
-   "stock": 9476
+   "stock": 9476,
+   "group": "CHIP_1210 ChipResistor Yageo RC"
   },
   {
    "name": "D_R_43R_F_1210_C874999",
@@ -2476,7 +2523,8 @@
    "note": "W3 sample 2026-11-10, group CHIP_1210 ChipResistor Yageo RC; lib passive::R_43R_F_1210 primary; lcsc_map rule alias",
    "jlc_package": "1210",
    "category": "extended",
-   "stock": 196
+   "stock": 196,
+   "group": "CHIP_1210 ChipResistor Yageo RC"
   },
   {
    "name": "D_R_47K_F_1210_C728383",
@@ -2506,7 +2554,8 @@
    "note": "W3 sample 2026-11-10, group CHIP_1210 ChipResistor Yageo RC; lib passive::R_47K_F_1210 primary; lcsc_map rule alias",
    "jlc_package": "1210",
    "category": "extended",
-   "stock": 5566
+   "stock": 5566,
+   "group": "CHIP_1210 ChipResistor Yageo RC"
   },
   {
    "name": "D_R_4K02_F_1210_C875026",
@@ -2536,7 +2585,8 @@
    "note": "W3 sample 2026-11-10, group CHIP_1210 ChipResistor Yageo RC; lib passive::R_4K02_F_1210 primary; lcsc_map rule alias",
    "jlc_package": "1210",
    "category": "extended",
-   "stock": 3665
+   "stock": 3665,
+   "group": "CHIP_1210 ChipResistor Yageo RC"
   },
   {
    "name": "D_R_560R_F_1210_C728387",
@@ -2566,7 +2616,8 @@
    "note": "W3 sample 2026-11-10, group CHIP_1210 ChipResistor Yageo RC; lib passive::R_560R_F_1210 primary; lcsc_map rule alias",
    "jlc_package": "1210",
    "category": "extended",
-   "stock": 2486
+   "stock": 2486,
+   "group": "CHIP_1210 ChipResistor Yageo RC"
   },
   {
    "name": "D_R_5R1_F_1210_C137092",
@@ -2596,7 +2647,8 @@
    "note": "W3 sample 2026-11-10, group CHIP_1210 ChipResistor Yageo RC; lib passive::R_5R1_F_1210 primary; lcsc_map rule alias",
    "jlc_package": "1210",
    "category": "extended",
-   "stock": 2527
+   "stock": 2527,
+   "group": "CHIP_1210 ChipResistor Yageo RC"
   },
   {
    "name": "D_R_649R_F_1210_C875093",
@@ -2626,7 +2678,8 @@
    "note": "W3 sample 2026-11-10, group CHIP_1210 ChipResistor Yageo RC; lib passive::R_649R_F_1210 primary; lcsc_map rule alias",
    "jlc_package": "1210",
    "category": "extended",
-   "stock": 49
+   "stock": 49,
+   "group": "CHIP_1210 ChipResistor Yageo RC"
   },
   {
    "name": "D_R_68K_F_1210_C875102",
@@ -2656,7 +2709,8 @@
    "note": "W3 sample 2026-11-10, group CHIP_1210 ChipResistor Yageo RC; lib passive::R_68K_F_1210 primary; lcsc_map rule alias",
    "jlc_package": "1210",
    "category": "extended",
-   "stock": 1200
+   "stock": 1200,
+   "group": "CHIP_1210 ChipResistor Yageo RC"
   },
   {
    "name": "D_R_71R5_F_1210_C875123",
@@ -2686,7 +2740,8 @@
    "note": "W3 sample 2026-11-10, group CHIP_1210 ChipResistor Yageo RC; lib passive::R_71R5_F_1210 primary; lcsc_map rule alias",
    "jlc_package": "1210",
    "category": "extended",
-   "stock": 35
+   "stock": 35,
+   "group": "CHIP_1210 ChipResistor Yageo RC"
   },
   {
    "name": "D_R_82R_F_1210_C728395",
@@ -2716,7 +2771,8 @@
    "note": "W3 sample 2026-11-10, group CHIP_1210 ChipResistor Yageo RC; lib passive::R_82R_F_1210 primary; lcsc_map rule alias",
    "jlc_package": "1210",
    "category": "extended",
-   "stock": 30
+   "stock": 30,
+   "group": "CHIP_1210 ChipResistor Yageo RC"
   },
   {
    "name": "D_R_100R_J_1210_C137089",
@@ -2746,7 +2802,8 @@
    "note": "W3 sample 2026-11-10, group CHIP_1210 ChipResistor Yageo RC; lib passive::R_100R_J_1210 primary; lcsc_map rule alias",
    "jlc_package": "1210",
    "category": "extended",
-   "stock": 8489
+   "stock": 8489,
+   "group": "CHIP_1210 ChipResistor Yageo RC"
   },
   {
    "name": "D_R_11R_J_1210_C728398",
@@ -2776,7 +2833,8 @@
    "note": "W3 sample 2026-11-10, group CHIP_1210 ChipResistor Yageo RC; lib passive::R_11R_J_1210 primary; lcsc_map rule alias",
    "jlc_package": "1210",
    "category": "extended",
-   "stock": 2386
+   "stock": 2386,
+   "group": "CHIP_1210 ChipResistor Yageo RC"
   },
   {
    "name": "D_R_15K_J_1210_C875203",
@@ -2806,7 +2864,8 @@
    "note": "W3 sample 2026-11-10, group CHIP_1210 ChipResistor Yageo RC; lib passive::R_15K_J_1210 primary; lcsc_map rule alias",
    "jlc_package": "1210",
    "category": "extended",
-   "stock": 4650
+   "stock": 4650,
+   "group": "CHIP_1210 ChipResistor Yageo RC"
   },
   {
    "name": "D_R_180K_J_1210_C875206",
@@ -2836,7 +2895,8 @@
    "note": "W3 sample 2026-11-10, group CHIP_1210 ChipResistor Yageo RC; lib passive::R_180K_J_1210 primary; lcsc_map rule alias",
    "jlc_package": "1210",
    "category": "extended",
-   "stock": 7799
+   "stock": 7799,
+   "group": "CHIP_1210 ChipResistor Yageo RC"
   },
   {
    "name": "D_R_1K5_J_1210_C137083",
@@ -2866,7 +2926,8 @@
    "note": "W3 sample 2026-11-10, group CHIP_1210 ChipResistor Yageo RC; lib passive::R_1K5_J_1210 primary; lcsc_map rule alias",
    "jlc_package": "1210",
    "category": "extended",
-   "stock": 1531
+   "stock": 1531,
+   "group": "CHIP_1210 ChipResistor Yageo RC"
   },
   {
    "name": "D_R_1R5_J_1210_C875217",
@@ -2896,7 +2957,8 @@
    "note": "W3 sample 2026-11-10, group CHIP_1210 ChipResistor Yageo RC; lib passive::R_1R5_J_1210 primary; lcsc_map rule alias",
    "jlc_package": "1210",
    "category": "extended",
-   "stock": 4680
+   "stock": 4680,
+   "group": "CHIP_1210 ChipResistor Yageo RC"
   },
   {
    "name": "D_R_220R_J_1210_C326901",
@@ -2926,7 +2988,8 @@
    "note": "W3 sample 2026-11-10, group CHIP_1210 ChipResistor Yageo RC; lib passive::R_220R_J_1210 primary; lcsc_map rule alias",
    "jlc_package": "1210",
    "category": "extended",
-   "stock": 1400
+   "stock": 1400,
+   "group": "CHIP_1210 ChipResistor Yageo RC"
   },
   {
    "name": "D_R_27K_J_1210_C875225",
@@ -2956,7 +3019,8 @@
    "note": "W3 sample 2026-11-10, group CHIP_1210 ChipResistor Yageo RC; lib passive::R_27K_J_1210 primary; lcsc_map rule alias",
    "jlc_package": "1210",
    "category": "extended",
-   "stock": 5195
+   "stock": 5195,
+   "group": "CHIP_1210 ChipResistor Yageo RC"
   },
   {
    "name": "D_R_30K_J_1210_C875232",
@@ -2986,7 +3050,8 @@
    "note": "W3 sample 2026-11-10, group CHIP_1210 ChipResistor Yageo RC; lib passive::R_30K_J_1210 primary; lcsc_map rule alias",
    "jlc_package": "1210",
    "category": "extended",
-   "stock": 66
+   "stock": 66,
+   "group": "CHIP_1210 ChipResistor Yageo RC"
   },
   {
    "name": "D_R_36K_J_1210_C875234",
@@ -3016,7 +3081,8 @@
    "note": "W3 sample 2026-11-10, group CHIP_1210 ChipResistor Yageo RC; lib passive::R_36K_J_1210 primary; lcsc_map rule alias",
    "jlc_package": "1210",
    "category": "extended",
-   "stock": 44
+   "stock": 44,
+   "group": "CHIP_1210 ChipResistor Yageo RC"
   },
   {
    "name": "D_R_3K_J_1210_C875236",
@@ -3046,7 +3112,8 @@
    "note": "W3 sample 2026-11-10, group CHIP_1210 ChipResistor Yageo RC; lib passive::R_3K_J_1210 primary; lcsc_map rule alias",
    "jlc_package": "1210",
    "category": "extended",
-   "stock": 4653
+   "stock": 4653,
+   "group": "CHIP_1210 ChipResistor Yageo RC"
   },
   {
    "name": "D_R_43K_J_1210_C440313",
@@ -3076,7 +3143,8 @@
    "note": "W3 sample 2026-11-10, group CHIP_1210 ChipResistor Yageo RC; lib passive::R_43K_J_1210 primary; lcsc_map rule alias",
    "jlc_package": "1210",
    "category": "extended",
-   "stock": 4980
+   "stock": 4980,
+   "group": "CHIP_1210 ChipResistor Yageo RC"
   },
   {
    "name": "D_R_4M7_J_1210_C728409",
@@ -3106,7 +3174,8 @@
    "note": "W3 sample 2026-11-10, group CHIP_1210 ChipResistor Yageo RC; lib passive::R_4M7_J_1210 primary; lcsc_map rule alias",
    "jlc_package": "1210",
    "category": "extended",
-   "stock": 127
+   "stock": 127,
+   "group": "CHIP_1210 ChipResistor Yageo RC"
   },
   {
    "name": "D_R_51R_J_1210_C326893",
@@ -3136,7 +3205,8 @@
    "note": "W3 sample 2026-11-10, group CHIP_1210 ChipResistor Yageo RC; lib passive::R_51R_J_1210 primary; lcsc_map rule alias",
    "jlc_package": "1210",
    "category": "extended",
-   "stock": 5016
+   "stock": 5016,
+   "group": "CHIP_1210 ChipResistor Yageo RC"
   },
   {
    "name": "D_R_6K2_J_1210_C875251",
@@ -3166,7 +3236,8 @@
    "note": "W3 sample 2026-11-10, group CHIP_1210 ChipResistor Yageo RC; lib passive::R_6K2_J_1210 primary; lcsc_map rule alias",
    "jlc_package": "1210",
    "category": "extended",
-   "stock": 4800
+   "stock": 4800,
+   "group": "CHIP_1210 ChipResistor Yageo RC"
   },
   {
    "name": "D_R_910R_J_1210_C723577",
@@ -3196,7 +3267,8 @@
    "note": "W3 sample 2026-11-10, group CHIP_1210 ChipResistor Yageo RC; lib passive::R_910R_J_1210 primary; lcsc_map rule alias",
    "jlc_package": "1210",
    "category": "extended",
-   "stock": 30
+   "stock": 30,
+   "group": "CHIP_1210 ChipResistor Yageo RC"
   },
   {
    "name": "C_R_20K5_F_0402_C185445",
@@ -3298,7 +3370,8 @@
    "note": "Yageo RC 0402; pilot +8.1 deg, raw 0.121 mm, the largest; lib passive::R_20K5_F_0402 primary; lcsc_map rule alias",
    "jlc_package": "0402",
    "category": "extended",
-   "stock": 34715
+   "stock": 34715,
+   "group": "CHIP_0402 ChipResistor Yageo RC"
   },
   {
    "name": "C_C_1u_16V_X5R_0402_C325464",
@@ -3400,7 +3473,8 @@
    "note": "Yageo CC 0402; pilot -0.3 deg, raw 0.082 mm; lib passive::C_1u_16V_X5R_0402 primary; lcsc_map rule alias",
    "jlc_package": "0402",
    "category": "extended",
-   "stock": 706026
+   "stock": 706026,
+   "group": "CHIP_0402 MLCC Yageo CC"
   },
   {
    "name": "C_R_20R_F_0402_C482097",
@@ -3502,7 +3576,8 @@
    "note": "Vishay CRCW 0402; pilot +7.5 deg, raw 0.100 mm; lib passive::R_20R_F_0402 alt; lcsc_map rule alias",
    "jlc_package": "0402",
    "category": "extended",
-   "stock": 83485
+   "stock": 83485,
+   "group": "CHIP_0402 ChipResistor Vishay CRCW"
   },
   {
    "name": "C_R_221R_F_0201_C138161",
@@ -3604,7 +3679,8 @@
    "note": "Yageo RC 0201; board 3 residual 0.046-0.064 mm pauses its group; lib passive::R_221R_F_0201 primary; lcsc_map rule alias",
    "jlc_package": "0201",
    "category": "extended",
-   "stock": 75
+   "stock": 75,
+   "group": "CHIP_0201 ChipResistor Yageo RC"
   },
   {
    "name": "C_R_200K_F_2010_C877226",
@@ -3706,7 +3782,8 @@
    "note": "Yageo RC 2010; board 3 offset about 0.18 mm that turns with the part; lib passive::R_200K_F_2010 primary; lcsc_map rule alias",
    "jlc_package": "2010",
    "category": "extended",
-   "stock": 4578
+   "stock": 4578,
+   "group": "CHIP_2010 ChipResistor Yageo RC"
   },
   {
    "name": "C_R_4R7_F_2512_C878096",
@@ -3808,7 +3885,8 @@
    "note": "Yageo RC 2512; board 3 mixed; lib passive::R_4R7_F_2512 primary; lcsc_map rule alias",
    "jlc_package": "2512",
    "category": "extended",
-   "stock": 252
+   "stock": 252,
+   "group": "CHIP_2512 ChipResistor Yageo RC"
   }
  ],
  "left_off": {
@@ -3816,5 +3894,32 @@
   "C2917717": "OWT AE1 (Johanson 2450AT18B100E): its page read stock 0 on 2026-11-06; not in lcsc_map",
   "C25744": "OWT 10k (UNI-ROYAL 0402WGF1002TCE): already has frame row c2b1-r0402-c25744",
   "C15849": "OWT 1uF 0603 (Samsung CL10A105KB8NNNC): already has frame row c2b1-c0603-c15849"
+ },
+ "view_groups": {
+  "top": {
+   "": 20,
+   "CHIP_0201 ChipResistor Yageo RC": 5,
+   "CHIP_0402 ChipResistor Vishay CRCW": 19,
+   "CHIP_0402 ChipResistor Yageo RC": 15,
+   "CHIP_0402 MLCC Samsung CL": 2,
+   "CHIP_0402 MLCC Yageo CC": 16,
+   "CHIP_0603 MLCC Samsung CL": 4,
+   "CHIP_0603 MLCC Yageo CC": 2,
+   "CHIP_1210 ChipResistor Yageo RC": 42,
+   "CHIP_2010 ChipResistor Yageo RC": 5,
+   "CHIP_2512 ChipResistor Yageo RC": 5
+  },
+  "bottom": {
+   "": 20,
+   "CHIP_0201 ChipResistor Yageo RC": 5,
+   "CHIP_0402 ChipResistor Vishay CRCW": 10,
+   "CHIP_0402 ChipResistor Yageo RC": 15,
+   "CHIP_0402 MLCC Samsung CL": 2,
+   "CHIP_0402 MLCC Yageo CC": 16,
+   "CHIP_0603 MLCC Samsung CL": 4,
+   "CHIP_0603 MLCC Yageo CC": 2,
+   "CHIP_2010 ChipResistor Yageo RC": 5,
+   "CHIP_2512 ChipResistor Yageo RC": 5
+  }
  }
 }

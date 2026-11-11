@@ -1,3 +1,4 @@
+import csv
 import json
 import math
 import sys
@@ -10,7 +11,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import w3_groups as wg
 
 REPORT = wg.DATA / "w3_sampling/2026-11-07"
-CURRENT = wg.DATA / "w3_sampling/2026-11-10"
+# Dated snapshots under earlier and current rules; none is compared with a fresh build.
+DATED = {"2026-11-10": (3, "w3-2026-11-10b"), "2026-11-11": (4, "w3-2026-11-11")}
 PILOT = wg.PREVIEWS / "2026-11-07-w3-pilot-0402"
 
 
@@ -93,16 +95,37 @@ class W3GroupsTests(unittest.TestCase):
         self.assertTrue(all("0402" in g["page_package_text"] for g in chip_0402))
         self.assertGreater(len(chip_0402), 1)
 
-    def test_the_current_dated_report_is_consistent_with_its_recorded_sources(self):
-        # The 2026-11-10 report under rule w3-2026-11-10b: like the 2026-11-07 one, a
-        # dated snapshot, checked against what it records rather than a fresh build.
-        committed = json.loads((CURRENT / "groups.json").read_text(encoding="utf-8"))
-        self.assertEqual((CURRENT / "groups.md").read_text(encoding="utf-8"), wg.render(committed))
-        self.assertEqual(committed["schema_version"], 3)
-        self.assertEqual(committed["rule"]["version"], "w3-2026-11-10b")
-        for name, digest in committed["sources"].items():
-            if name.startswith("jlc_previews/") or name.startswith("lcsc_backfill/"):
-                self.assertEqual(wg._sha256(wg.DATA / name), digest, name)
+    def test_the_later_dated_reports_are_consistent_with_their_recorded_sources(self):
+        # The 2026-11-10 report (rule w3-2026-11-10b) and the 2026-11-11 one (rule
+        # w3-2026-11-11): like the 2026-11-07 one, dated snapshots, checked against
+        # what they record rather than a fresh build. Their lcsc_map.json and
+        # jlc_frames.json hashes are those of their day: frame rows merged since make
+        # a report older, not wrong, so those two are not compared with the tree.
+        for day, (schema, rule) in DATED.items():
+            with self.subTest(report=day):
+                folder = wg.DATA / "w3_sampling" / day
+                committed = json.loads((folder / "groups.json").read_text(encoding="utf-8"))
+                self.assertEqual((folder / "groups.md").read_text(encoding="utf-8"), wg.render(committed))
+                self.assertEqual(committed["schema_version"], schema)
+                self.assertEqual(committed["rule"]["version"], rule)
+                for name, digest in committed["sources"].items():
+                    if name.startswith("jlc_previews/") or name.startswith("lcsc_backfill/"):
+                        self.assertEqual(wg._sha256(wg.DATA / name), digest, name)
+
+    def test_the_2026_11_11_report_records_the_two_follow_up_conditions(self):
+        committed = json.loads((wg.DATA / "w3_sampling/2026-11-11/groups.json").read_text(encoding="utf-8"))
+        rule = committed["rule"]
+        self.assertEqual((rule["bias_min_other_bodies"], rule["bias_other_share_above"],
+                          rule["not_drawn_max_share"], rule["not_drawn_excess"]), (3, 0.5, 0.1, "pause"))
+        self.assertEqual({view.split("/")[-2] + view.split("README.md")[1]: made["bodies"]
+                          for view, made in committed["views"].items()},
+                         {"2026-11-05-c2-board-3#bottom": 12, "2026-11-05-c2-board-3#top": 39,
+                          "2026-11-07-w3-pilot-0402#top": 89})
+        status = {(g["footprint"], g["mfr"], g["series"]): g["status"] for g in committed["groups"]}
+        self.assertEqual(status[("CHIP_0402", "Yageo", "RC")], "sampled")
+        self.assertEqual(status[("CHIP_0402", "Vishay", "CRCW")], "paused")
+        self.assertEqual(sorted(status.values()).count("paused"), 6)
+        self.assertFalse(any(g["bias_unsupported"] for g in committed["groups"]))
 
     def test_samples_follow_the_rule(self):
         for g in self.report["groups"]:
@@ -111,7 +134,10 @@ class W3GroupsTests(unittest.TestCase):
             passed = {p["pn"] for p in g["passed"]}
             failed = {f["pn"] for f in g["failed"]}
             not_drawn = {n["pn"] for n in g["not_drawn"]}
+            unsupported = {u["pn"] for u in g["bias_unsupported"]}
             self.assertFalse(passed & failed or passed & not_drawn or failed & not_drawn)
+            self.assertFalse(unsupported & (passed | failed | not_drawn))
+            self.assertEqual(g["judged"], len(passed | failed | not_drawn | unsupported))
             # Not drawn: every copy either passed or not drawn, and at least one not drawn.
             for n in g["not_drawn"]:
                 self.assertTrue(any(c["not_drawn"] for c in n["outcomes"]))
@@ -119,10 +145,18 @@ class W3GroupsTests(unittest.TestCase):
             self.assertEqual(g["required"], max(3, math.ceil(0.05 * g["members"])))
             self.assertEqual(g["more_needed"], max(0, g["required"] - len(passed)))
             self.assertLessEqual(len(g["sample"]), g["more_needed"])
-            self.assertEqual(g["status"] == "paused", bool(g["failed"] or g["anomalies"]))
+            excess = len(not_drawn) > 0.1 * max(g["judged"], g["required"])
+            self.assertEqual(g["not_drawn_excess"], excess)
+            self.assertEqual(g["status"] == "paused", bool(g["failed"] or g["anomalies"] or excess))
             for p in g["passed"]:
                 self.assertTrue(wg.w3_rule.sample_ok(p))
-            tried = direct | passed | failed | not_drawn
+                # Its bias comes from a view the group names, with other groups' bodies in the majority.
+                self.assertTrue(wg.w3_rule.bias_supported(p))
+                self.assertEqual((p["bias_bodies"], p["bias_other_bodies"]),
+                                 (g["views"][p["bias_view"]]["bodies"], g["views"][p["bias_view"]]["other_bodies"]))
+                self.assertGreater(2 * p["bias_other_bodies"], p["bias_bodies"])
+            self.assertTrue(wg.w3_rule.views_consistent(g["passed"]))
+            tried = direct | passed | failed | not_drawn | unsupported
             eligible = [pn for pn, row in rows.items() if pn not in tried and row[5] >= wg.MIN_STOCK]
             self.assertEqual(len(g["sample"]), min(g["more_needed"], len(eligible)))
             for pn in g["sample"]:
@@ -154,12 +188,23 @@ class W3GroupsTests(unittest.TestCase):
         self.assertEqual((rc["status"], len(rc["passed"]), rc["required"]), ("sampled", 49, 49))
         # Every RC sample is within the raw limit too, not only after the bias is taken off.
         self.assertTrue(all(p["raw_offset_mm"] <= p["offset_limit_mm"] for p in rc["passed"]))
-        # Not drawn no longer pauses CRCW: its 9 undrawn samples do not count, so it needs 9 more.
+        # The pilot view's median is taken over 89 bodies, 45 of them not RC: one more than RC's 44.
+        pilot = [p for p in rc["passed"] if "w3-pilot-0402" in p["bias_view"]]
+        self.assertEqual({(p["bias_bodies"], p["bias_other_bodies"]) for p in pilot}, {(89, 45)})
+        self.assertEqual({(p["bias_bodies"], p["bias_other_bodies"]) for p in rc["passed"] if p not in pilot},
+                         {(39, 34)})
+        # No CRCW sample fails, but 9 of its 49 judged members are not drawn: above the
+        # rule's 10%, so the group is paused (under w3-2026-11-10b it only needed 9 more).
         crcw = group(self.report, "CHIP_0402", "ChipResistor", "Vishay", "CRCW")
-        self.assertEqual((crcw["status"], len(crcw["passed"]), crcw["failed"]), ("needs_samples", 40, []))
+        self.assertEqual((crcw["status"], len(crcw["passed"]), crcw["failed"]), ("paused", 40, []))
         self.assertEqual(len(crcw["not_drawn"]), 9)
         self.assertTrue(all(c["status"] == "unverified" for n in crcw["not_drawn"] for c in n["outcomes"]))
-        self.assertEqual(crcw["more_needed"], 9)
+        self.assertEqual((crcw["judged"], crcw["not_drawn_share"], crcw["not_drawn_excess"]), (49, 0.1837, True))
+        self.assertIn("not drawn: 9 of 49 judged (18.4%), above 10%", wg.render(self.report))
+        # With the share at 20% the same readings leave it needing samples, as before.
+        with mock.patch.dict(wg.w3_rule.RULE, not_drawn_max_share=0.2):
+            crcw = group(wg.build(), "CHIP_0402", "ChipResistor", "Vishay", "CRCW")
+        self.assertEqual((crcw["status"], crcw["more_needed"], crcw["not_drawn_excess"]), ("needs_samples", 9, False))
         # CC stays paused: C113781 is left for manual review (10.5 deg), whatever C576731 is.
         cc = group(self.report, "CHIP_0402", "MLCC", "Yageo", "CC")
         self.assertEqual(cc["status"], "paused")
@@ -171,9 +216,63 @@ class W3GroupsTests(unittest.TestCase):
         r1210 = group(self.report, "CHIP_1210", "ChipResistor", "Yageo", "RC")
         self.assertEqual((r1210["status"], [n["pn"] for n in r1210["not_drawn"]]), ("needs_samples", ["C874860"]))
         self.assertNotIn("C874860", r1210["sample"])
+        # One of its two judged members: half of them, but 1 is within 10% of the 43
+        # the group requires, so it is not an excess while so few have been judged.
+        self.assertEqual((r1210["judged"], r1210["required"], r1210["not_drawn_excess"]), (2, 43, False))
         # 2512 also has C878096 off its residual limit, so it stays paused.
         r2512 = group(self.report, "CHIP_2512", "ChipResistor", "Yageo", "RC")
         self.assertEqual((r2512["status"], [f["pn"] for f in r2512["failed"]]), ("paused", ["C878096"]))
+
+    def pilot_without(self, drop):
+        """The pilot's readings without the bodies DROP(part number) selects: a board
+        on which those models were never drawn."""
+        meta = json.loads((PILOT / "w3.json").read_text(encoding="utf-8"))
+        readings = json.loads((PILOT / meta["measurements"]).read_text(encoding="utf-8"))
+        with (PILOT / meta["bom"]).open(encoding="utf-8-sig", newline="") as handle:
+            pns = {ref.strip(): row["LCSC Part #"] for row in csv.DictReader(handle)
+                   for ref in row["Designator"].split(",")}
+        kept = [m for m in readings if not ("offset_xy_mm" in m.get("body", {}) and drop(pns[m["ref"]]))]
+        real = Path.read_text
+
+        def read_text(path, *args, **kwargs):
+            if path == PILOT / meta["measurements"]:
+                return json.dumps(kept)
+            return real(path, *args, **kwargs)
+        with mock.patch.object(Path, "read_text", read_text):
+            return wg.build(), len(readings) - len(kept)
+
+    def test_a_median_of_the_groups_own_bodies_supports_no_sample(self):
+        # Tony's condition (2026-11-11): on a board of one group the residual only
+        # shows that the group agrees with itself. The pilot with nothing but RC drawn:
+        rc = group(self.report, "CHIP_0402", "ChipResistor", "Yageo", "RC")
+        members = {row[0] for row in rc["member_rows"]}
+        report, dropped = self.pilot_without(lambda pn: pn not in members)
+        self.assertEqual(dropped, 45)
+        alone = group(report, "CHIP_0402", "ChipResistor", "Yageo", "RC")
+        # The pilot samples within the limits still do not count; the 5 on board 3,
+        # whose view other groups fill, do. (Against RC's own median, C137880's residual
+        # is over the limit, so that one fails outright: 43 unsupported, 1 failed.)
+        self.assertEqual((len(alone["passed"]), len(alone["bias_unsupported"]),
+                          [f["pn"] for f in alone["failed"]]), (5, 43, ["C137880"]))
+        self.assertEqual({p["bias_view"] for p in alone["passed"]},
+                         {"tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/README.md#top"})
+        for u in alone["bias_unsupported"]:
+            (c,) = u["outcomes"]
+            self.assertTrue(c["ok"] and not c["supported"])
+            self.assertEqual((c["reading"]["bias_bodies"], c["reading"]["bias_other_bodies"]), (44, 0))
+        self.assertNotIn(alone["bias_unsupported"][0]["pn"], alone["sample"])
+
+    def test_a_group_that_is_half_of_its_view_supports_no_sample(self):
+        # The pilot has 44 RC bodies and 45 others. One other body fewer and RC is half
+        # of the median, which may then sit on an RC body: more than half must be others.
+        crcw = group(self.report, "CHIP_0402", "ChipResistor", "Vishay", "CRCW")
+        one = crcw["passed"][0]["pn"]
+        report, dropped = self.pilot_without(lambda pn: pn == one)
+        self.assertEqual(dropped, 1)
+        rc = group(report, "CHIP_0402", "ChipResistor", "Yageo", "RC")
+        self.assertEqual((rc["status"], len(rc["passed"]), len(rc["bias_unsupported"])), ("needs_samples", 5, 44))
+        self.assertEqual(rc["views"][str((PILOT / "README.md").relative_to(wg.ROOT)) + "#top"],
+                         {"bodies": 88, "other_bodies": 44})
 
     def pilot_with_uniform_offset(self, offset_y):
         """The pilot's readings with every drawn body moved to (0, OFFSET_Y): the
@@ -279,6 +378,46 @@ class W3RuleTests(unittest.TestCase):
         self.assertTrue(wg.w3_rule.sample_ok(reading))
         self.assertFalse(wg.w3_rule.sample_ok(dict(reading, residual_offset_mm=0.0)))
         self.assertFalse(wg.w3_rule.sample_ok(dict(reading, raw_offset_mm=0.0)))
+
+
+class W3FollowUpConditionTests(unittest.TestCase):
+    """Tony's two conditions of 2026-11-11, on the rule itself."""
+
+    def reading(self, bodies, other, view="record#top"):
+        return wg.w3_rule.sample_reading(0.0, (0.0, 0.0), 0.127, (0.0, 0.0), view, bodies, other)
+
+    def test_the_bias_needs_other_groups_in_the_majority(self):
+        ok = wg.w3_rule.bias_supported
+        self.assertTrue(ok(self.reading(89, 45)))       # the pilot, for Yageo RC
+        self.assertFalse(ok(self.reading(88, 44)))      # half is not more than half
+        self.assertFalse(ok(self.reading(44, 0)))       # a single-group board
+        self.assertFalse(ok(self.reading(3, 2)))        # a majority, but only 2 bodies
+        self.assertTrue(ok(self.reading(5, 3)))
+        self.assertFalse(ok(self.reading(5, 6)))        # more others than bodies
+        self.assertFalse(ok(self.reading(5, 3, view=" ")))
+        self.assertFalse(ok(wg.w3_rule.sample_reading(0.0, (0.0, 0.0), 0.127, (0.0, 0.0))))
+        self.assertFalse(ok(dict(self.reading(5, 3), bias_bodies=5.0)))
+
+    def test_samples_of_one_view_must_describe_it_alike(self):
+        same = [dict(self.reading(7, 4), pn=str(n)) for n in range(3)]
+        self.assertTrue(wg.w3_rule.views_consistent(same))
+        self.assertFalse(wg.w3_rule.views_consistent(same + [self.reading(8, 5)]))
+        self.assertFalse(wg.w3_rule.views_consistent(same + [dict(self.reading(7, 4), bias_xy_mm=[0.0, 0.01])]))
+        # Four samples on a view that holds three bodies of their group.
+        self.assertFalse(wg.w3_rule.views_consistent(same + [self.reading(7, 4)]))
+        self.assertTrue(wg.w3_rule.views_consistent(same + [self.reading(8, 5, view="record#bottom")]))
+
+    def test_not_drawn_above_a_tenth_of_the_judged_members_is_an_excess(self):
+        excess = wg.w3_rule.not_drawn_excess
+        self.assertTrue(excess(9, 49, 968))     # Vishay CRCW 0402: 18.4%
+        self.assertTrue(excess(5, 49, 968))     # 10.2%
+        self.assertFalse(excess(4, 49, 968))    # 8.2%
+        self.assertFalse(excess(1, 10, 199))    # Yageo CC 0402: exactly 10% is not above it
+        self.assertTrue(excess(2, 11, 199))
+        # While fewer are judged than required, the share is of the required sample.
+        self.assertFalse(excess(1, 2, 846))     # Yageo RC 1210: 1 of the 43 required
+        self.assertFalse(excess(4, 5, 846))
+        self.assertTrue(excess(5, 5, 846))      # 5 of 43 is 11.6%
 
 
 if __name__ == "__main__":

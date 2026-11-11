@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "rule": {
-    "version": "w3-2026-11-10b",
+    "version": "w3-2026-11-11",
     "package": "passive",
     "types": [
       "ChipResistor",
@@ -14,8 +14,12 @@
     "offset_raw_fraction": 1.0,
     "offset_residual_fraction": 0.5,
     "offset_bias": "board_median",
+    "bias_min_other_bodies": 3,
+    "bias_other_share_above": 0.5,
     "infer_zero_stock": false,
-    "infer_not_drawn": false
+    "infer_not_drawn": false,
+    "not_drawn_max_share": 0.1,
+    "not_drawn_excess": "pause"
   },
   "groups": [
     {
@@ -34,6 +38,12 @@
         "C_S1",
         "C_S2",
         "C_S3",
+        "C_S4",
+        "C_S5",
+        "C_S6",
+        "C_S7",
+        "C_S8",
+        "C_S9",
         "C_S_RULE",
         "C_S_UNDRAWN",
         "C_S_ZERO"
@@ -59,7 +69,10 @@
             0.0,
             -0.05
           ],
-          "residual_offset_mm": 0.02
+          "residual_offset_mm": 0.02,
+          "bias_view": "evidence.txt#top",
+          "bias_bodies": 20,
+          "bias_other_bodies": 12
         },
         {
           "pn": "C_S2",
@@ -75,7 +88,10 @@
             0.0,
             -0.05
           ],
-          "residual_offset_mm": 0.07
+          "residual_offset_mm": 0.07,
+          "bias_view": "evidence.txt#top",
+          "bias_bodies": 20,
+          "bias_other_bodies": 12
         },
         {
           "pn": "C_S3",
@@ -91,7 +107,124 @@
             0.0,
             -0.05
           ],
-          "residual_offset_mm": 0.0
+          "residual_offset_mm": 0.0,
+          "bias_view": "evidence.txt#top",
+          "bias_bodies": 20,
+          "bias_other_bodies": 12
+        },
+        {
+          "pn": "C_S4",
+          "row": "s4",
+          "angle_deg": 0.4,
+          "offset_limit_mm": 0.127,
+          "raw_offset_xy_mm": [
+            0.0,
+            -0.04
+          ],
+          "raw_offset_mm": 0.04,
+          "bias_xy_mm": [
+            0.0,
+            -0.05
+          ],
+          "residual_offset_mm": 0.01,
+          "bias_view": "evidence.txt#top",
+          "bias_bodies": 20,
+          "bias_other_bodies": 12
+        },
+        {
+          "pn": "C_S5",
+          "row": "s5",
+          "angle_deg": -1.5,
+          "offset_limit_mm": 0.127,
+          "raw_offset_xy_mm": [
+            0.0,
+            -0.06
+          ],
+          "raw_offset_mm": 0.06,
+          "bias_xy_mm": [
+            0.0,
+            -0.05
+          ],
+          "residual_offset_mm": 0.01,
+          "bias_view": "evidence.txt#top",
+          "bias_bodies": 20,
+          "bias_other_bodies": 12
+        },
+        {
+          "pn": "C_S6",
+          "row": "s6",
+          "angle_deg": 2.2,
+          "offset_limit_mm": 0.127,
+          "raw_offset_xy_mm": [
+            0.0,
+            -0.03
+          ],
+          "raw_offset_mm": 0.03,
+          "bias_xy_mm": [
+            0.0,
+            -0.05
+          ],
+          "residual_offset_mm": 0.02,
+          "bias_view": "evidence.txt#top",
+          "bias_bodies": 20,
+          "bias_other_bodies": 12
+        },
+        {
+          "pn": "C_S7",
+          "row": "s7",
+          "angle_deg": -0.8,
+          "offset_limit_mm": 0.127,
+          "raw_offset_xy_mm": [
+            0.0,
+            -0.08
+          ],
+          "raw_offset_mm": 0.08,
+          "bias_xy_mm": [
+            0.0,
+            -0.05
+          ],
+          "residual_offset_mm": 0.03,
+          "bias_view": "evidence.txt#top",
+          "bias_bodies": 20,
+          "bias_other_bodies": 12
+        },
+        {
+          "pn": "C_S8",
+          "row": "s8",
+          "angle_deg": 4.1,
+          "offset_limit_mm": 0.127,
+          "raw_offset_xy_mm": [
+            0.0,
+            -0.05
+          ],
+          "raw_offset_mm": 0.05,
+          "bias_xy_mm": [
+            0.0,
+            -0.05
+          ],
+          "residual_offset_mm": 0.0,
+          "bias_view": "evidence.txt#top",
+          "bias_bodies": 20,
+          "bias_other_bodies": 12
+        },
+        {
+          "pn": "C_S9",
+          "row": "s9",
+          "angle_deg": 0.6,
+          "offset_limit_mm": 0.127,
+          "raw_offset_xy_mm": [
+            0.0,
+            -0.03
+          ],
+          "raw_offset_mm": 0.03,
+          "bias_xy_mm": [
+            0.0,
+            -0.02
+          ],
+          "residual_offset_mm": 0.01,
+          "bias_view": "evidence.txt#bottom",
+          "bias_bodies": 7,
+          "bias_other_bodies": 4
         }
       ]
     }

@@ -66,12 +66,15 @@ struct SampledRow {
 /// The W3 rule Tony accepted on 2026-11-09 for `passive` chip resistors and MLCCs
 /// (https://github.com/conol-ai/cohdl/pull/79#issuecomment-6734040188), with his
 /// 2026-11-10 decision that a sample not drawn does not block its group and the
-/// numbers proposed in `docs/library-supplier-w3-sampling.md` §5. It must equal
-/// `RULE` in `tools/sourcing/w3_rule.py`; a group record carrying any other rule
-/// is rejected, so a record cannot loosen its own rule.
+/// sample limits he accepted on 2026-11-11
+/// (https://github.com/conol-ai/cohdl/pull/104#issuecomment-6784835520). The
+/// `bias_*` and `not_drawn_*` fields are the two conditions he asked for there,
+/// with the numbers proposed in `docs/library-supplier-w3-sampling.md` §5. It must
+/// equal `RULE` in `tools/sourcing/w3_rule.py`; a group record carrying any other
+/// rule is rejected, so a record cannot loosen its own rule.
 fn w3_rule() -> Value {
     serde_json::json!({
-        "version": "w3-2026-11-10b",
+        "version": "w3-2026-11-11",
         "package": "passive",
         "types": ["ChipResistor", "MLCC"],
         "min_sample": 3,
@@ -81,8 +84,12 @@ fn w3_rule() -> Value {
         "offset_raw_fraction": 1.0,
         "offset_residual_fraction": 0.5,
         "offset_bias": "board_median",
+        "bias_min_other_bodies": 3,
+        "bias_other_share_above": 0.5,
         "infer_zero_stock": false,
-        "infer_not_drawn": false
+        "infer_not_drawn": false,
+        "not_drawn_max_share": 0.1,
+        "not_drawn_excess": "pause"
     })
 }
 
@@ -692,7 +699,10 @@ fn json_strings(value: &Value, field: &str) -> Option<Vec<String>> {
 /// sample is a member with its own zero-mapping evidence row under the same key
 /// and a reading within the rule: its angle, its raw offset and its residual once
 /// the view's bias is taken off each within their limits, and the raw size and
-/// residual what its vectors give.
+/// residual what its vectors give. The bias must come from a named view whose
+/// median holds enough bodies of other groups, the group's samples must describe
+/// each view alike, and the part numbers not drawn must not be more than the
+/// rule's share of the judged members (the samples and those not drawn).
 fn audit_sampled(
     repo_root: &Path,
     rows: &[SampledRow],
@@ -707,6 +717,11 @@ fn audit_sampled(
         number("offset_raw_fraction"),
         number("offset_residual_fraction"),
     );
+    let (min_other_bodies, other_share_above) = (
+        number("bias_min_other_bodies") as u64,
+        number("bias_other_share_above"),
+    );
+    let not_drawn_max_share = number("not_drawn_max_share");
     let infer_zero_stock = rule["infer_zero_stock"].as_bool().unwrap();
     let infer_not_drawn = rule["infer_not_drawn"].as_bool().unwrap();
     let mut records: BTreeMap<String, Option<Value>> = BTreeMap::new();
@@ -899,6 +914,26 @@ fn audit_sampled(
                 errors,
             );
         }
+        // Every judged member of an active group is a sample or not drawn.
+        let judged = sample_pns
+            .iter()
+            .copied()
+            .chain(not_drawn.iter().map(String::as_str))
+            .collect::<BTreeSet<_>>()
+            .len();
+        let undrawn = not_drawn.iter().collect::<BTreeSet<_>>().len();
+        if undrawn as f64 > not_drawn_max_share * judged.max(required) as f64 {
+            error(
+                context,
+                format!(
+                    "W3 group `{}` has {undrawn} part numbers not drawn of {judged} judged; the rule pauses a group above {not_drawn_max_share} of them",
+                    row.group
+                ),
+                errors,
+            );
+        }
+        // view -> (first sample, its median, bodies, bodies of other groups, samples)
+        let mut views: BTreeMap<&str, (&str, &Value, u64, u64, u64)> = BTreeMap::new();
         for sample in &samples {
             let sample_pn = json_str(sample, "pn").unwrap_or("?");
             let target = json_str(sample, "row").unwrap_or("?");
@@ -929,6 +964,77 @@ fn audit_sampled(
                 error(
                     context,
                     format!("W3 sample lcsc {sample_pn} {message}"),
+                    errors,
+                );
+            }
+            let count = |field: &str| sample.get(field).and_then(Value::as_u64);
+            let (Some(view), Some(bodies), Some(other), Some(bias)) = (
+                json_str(sample, "bias_view").filter(|view| !view.trim().is_empty()),
+                count("bias_bodies"),
+                count("bias_other_bodies"),
+                sample.get("bias_xy_mm"),
+            ) else {
+                error(
+                    context,
+                    format!(
+                        "W3 sample lcsc {sample_pn} must name the view its bias came from (bias_view, bias_bodies, bias_other_bodies)"
+                    ),
+                    errors,
+                );
+                continue;
+            };
+            if other > bodies {
+                error(
+                    context,
+                    format!(
+                        "W3 sample lcsc {sample_pn} counts {other} bodies of other groups among {bodies}"
+                    ),
+                    errors,
+                );
+                continue;
+            }
+            if other < min_other_bodies {
+                error(
+                    context,
+                    format!(
+                        "W3 sample lcsc {sample_pn} takes its bias from a median with {other} bodies of other groups; the rule requires {min_other_bodies}"
+                    ),
+                    errors,
+                );
+            }
+            if other as f64 <= other_share_above * bodies as f64 {
+                error(
+                    context,
+                    format!(
+                        "W3 sample lcsc {sample_pn} takes its bias from a median of {bodies} bodies of which {other} are of other groups; the rule requires more than {other_share_above} of them"
+                    ),
+                    errors,
+                );
+            }
+            let seen = views
+                .entry(view)
+                .or_insert((sample_pn, bias, bodies, other, 0));
+            seen.4 += 1;
+            if (seen.1, seen.2, seen.3) != (bias, bodies, other) {
+                error(
+                    context,
+                    format!(
+                        "W3 samples lcsc {} and {sample_pn} describe the view `{view}` differently",
+                        seen.0
+                    ),
+                    errors,
+                );
+            }
+        }
+        for (view, (_, _, bodies, other, count)) in views {
+            if count > bodies - other {
+                error(
+                    context,
+                    format!(
+                        "W3 group `{}` has {count} samples on the view `{view}`, whose median holds {} of its bodies",
+                        row.group,
+                        bodies - other
+                    ),
                     errors,
                 );
             }
@@ -1386,7 +1492,7 @@ mod tests {
             ("sample", "lcsc C_S1 is a sample of W3 group `g1`"),
             (
                 "few",
-                "has 2 distinct samples; the rule requires 3 of 6 members",
+                "has 9 distinct samples; the rule requires 10 of 182 members",
             ),
             (
                 "own-evidence",
@@ -1412,6 +1518,26 @@ mod tests {
                 "exactly one of `evidence`, `evidence_ref` and `sampled` must be non-null",
             ),
             ("field", "sampled has unknown field `by`"),
+            (
+                "bias-bodies",
+                "W3 sample lcsc C_S9 takes its bias from a median with 2 bodies of other groups; the rule requires 3",
+            ),
+            (
+                "bias-share",
+                "W3 sample lcsc C_S9 takes its bias from a median of 7 bodies of which 3 are of other groups; the rule requires more than 0.5 of them",
+            ),
+            (
+                "bias-view",
+                "W3 samples lcsc C_S1 and C_S2 describe the view `evidence.txt#top` differently",
+            ),
+            (
+                "bias-own",
+                "W3 group `g1` has 1 samples on the view `evidence.txt#bottom`, whose median holds 0 of its bodies",
+            ),
+            (
+                "not-drawn-share",
+                "W3 group `g1` has 2 part numbers not drawn of 11 judged; the rule pauses a group above 0.1 of them",
+            ),
         ];
         for (case, expected) in cases {
             let message = audit_sampled_variant(&format!("jlc_frames.{case}.json")).unwrap_err();

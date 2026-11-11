@@ -31,10 +31,17 @@ rule's sample limits: its angle, its raw offset, and its offset once its view's
 median is taken off (board_bias).
 
 A member whose model a preview did not draw (and that no copy fails otherwise)
-is ``not_drawn``: it is not a passed sample and is never inferred, but it does
-not pause its group. A group is ``paused`` when any member fails otherwise (left
-for manual review, outside the limits, or unverified for another reason) or a
-direct reading is not (0, 0, 0).
+is ``not_drawn``: it is not a passed sample and is never inferred, and by itself
+it does not pause its group. A group is ``paused`` when any member fails
+otherwise (left for manual review, outside the limits, or unverified for another
+reason), when a direct reading is not (0, 0, 0), or when its part numbers not
+drawn are more than the rule's share of its judged members.
+
+A view is one side of one preview record; its median is taken over every drawn
+chip body on it. A reading within the limits counts only when enough of those
+bodies belong to other groups (``w3_rule.bias_supported``); otherwise its member
+is ``bias_unsupported``: neither a passed sample nor a failure. The report lists
+what each view's median is made of.
 """
 
 from __future__ import annotations
@@ -90,16 +97,9 @@ def short_at_preview() -> dict[str, str]:
 SHORT_AT_PREVIEW = short_at_preview()
 
 
-def judged_members() -> dict[tuple[str, str], list[dict]]:
-    """Each (footprint, pn) a preview record judges, with one outcome per copy.
-
-    Only records whose land files still hash as recorded count. Each outcome is
-    {record, ref, status, not_drawn, reading, ok}: ``status`` is the preview
-    check's, ``not_drawn`` whether it found bare pads where the model should be,
-    and ``reading`` the rule's (angle; raw offset, the view's bias and the
-    residual; limit) for a drawn body.
-    """
-    judged: dict[tuple[str, str], list[dict]] = {}
+def _records():
+    """Each usable preview record: (README path, {ref: (footprint, pn)}, checks, readings).
+    Only records whose land files still hash as recorded count."""
     for record, meta in preview_inputs().items():
         if meta["package"] != w3_rule.RULE["package"] or any(
                 _sha256(ROOT / path) != digest for path, digest in meta["land"].items()):
@@ -110,18 +110,47 @@ def judged_members() -> dict[tuple[str, str], list[dict]]:
                 for row in rows for ref in row["Designator"].split(",")}
         checks = json.loads((record / meta["checks"]).read_text(encoding="utf-8"))
         readings = {m["ref"]: m for m in json.loads((record / meta["measurements"]).read_text(encoding="utf-8"))}
+        yield str((record / "README.md").relative_to(ROOT)), refs, checks, readings
+
+
+def view_id(record: str, side: str) -> str:
+    return f"{record}#{side}"
+
+
+def view_bodies() -> dict[str, list[tuple[str, str]]]:
+    """For each view, the (footprint, pn) of every drawn body its median is taken
+    over (a body with no BOM line is ``("", "")``)."""
+    views: dict[str, list[tuple[str, str]]] = {}
+    for name, refs, _, readings in _records():
+        for ref, m in sorted(readings.items()):
+            if "offset_xy_mm" in m.get("body", {}):
+                views.setdefault(view_id(name, m["side"]), []).append(refs.get(ref, ("", "")))
+    return views
+
+
+def judged_members() -> dict[tuple[str, str], list[dict]]:
+    """Each (footprint, pn) a preview record judges, with one outcome per copy.
+
+    Only records whose land files still hash as recorded count. Each outcome is
+    {record, ref, view, status, not_drawn, reading, ok}: ``status`` is the preview
+    check's, ``not_drawn`` whether it found bare pads where the model should be,
+    and ``reading`` the rule's (angle; raw offset, the view's bias and the
+    residual; limit) for a drawn body. ``build`` adds to the reading what the
+    view's median is made of, which depends on the member's group.
+    """
+    judged: dict[tuple[str, str], list[dict]] = {}
+    for name, refs, checks, readings in _records():
         bias = {}
         for side in {m["side"] for m in readings.values()}:
             offsets = [m["body"]["offset_xy_mm"] for m in readings.values()
                        if m["side"] == side and "offset_xy_mm" in m.get("body", {})]
             if offsets:
                 bias[side] = w3_rule.board_bias([tuple(o) for o in offsets])
-        name = str((record / "README.md").relative_to(ROOT))
         for ref, (footprint, pn) in sorted(refs.items()):
             check, m = checks.get(ref), readings.get(ref)
             if check is None or m is None:
                 continue
-            outcome = {"record": name, "ref": ref, "status": check["status"],
+            outcome = {"record": name, "ref": ref, "view": view_id(name, m["side"]), "status": check["status"],
                        "not_drawn": check["status"] == "unverified" and check["detail"].startswith(NOT_DRAWN),
                        "reading": None, "ok": False}
             body = m.get("body", {})
@@ -216,6 +245,7 @@ def build() -> dict:
     direct = {(row["package"], row["package_version"], row["footprint"], row["pn"]): row
               for row in frames if row["supplier"] == "lcsc" and row["evidence"] is not None}
     judged = judged_members()
+    views = view_bodies()
 
     groups: dict[tuple, dict] = {}
     unmapped = 0
@@ -239,16 +269,32 @@ def build() -> dict:
         group = groups[key]
         members = sorted(group["members"], key=lambda m: m[1])
         anomalies = [d["pn"] for d in group["direct"] if any(group_value != 0 for group_value in d["mapping"].values())]
-        outcomes = {m[0]: judged[(key[2], m[0])] for m in members if (key[2], m[0]) in judged}
-        passed = sorted(pn for pn, copies in outcomes.items() if all(c["ok"] for c in copies))
+        own = {(key[2], m[0]) for m in members}
+        # Copied, so that what is added to a reading here stays this group's.
+        outcomes = {m[0]: [dict(c, reading=c["reading"] and dict(c["reading"])) for c in judged[(key[2], m[0])]]
+                    for m in members if (key[2], m[0]) in judged}
+        composition = {view: (len(bodies), sum(body not in own for body in bodies))
+                       for view, bodies in views.items()}
+        for copies in outcomes.values():
+            for c in copies:
+                if c["reading"] is not None:
+                    bodies, other = composition[c["view"]]
+                    c["reading"].update(bias_view=c["view"], bias_bodies=bodies, bias_other_bodies=other)
+                c["supported"] = c["reading"] is not None and w3_rule.bias_supported(c["reading"])
+        within = sorted(pn for pn, copies in outcomes.items() if all(c["ok"] for c in copies))
+        passed = [pn for pn in within if all(c["supported"] for c in outcomes[pn])]
+        # Within the limits, but against a median that is the group's own: not a
+        # passed sample and not a failure.
+        unsupported = [pn for pn in within if pn not in passed]
         # Not drawn on some copy, and no copy failing otherwise: neither passed nor a failure.
         not_drawn = sorted(pn for pn, copies in outcomes.items()
                            if any(c["not_drawn"] for c in copies) and all(c["ok"] or c["not_drawn"] for c in copies))
-        failed = sorted(set(outcomes) - set(passed) - set(not_drawn))
+        failed = sorted(set(outcomes) - set(within) - set(not_drawn))
         tried = set(outcomes) | {d["pn"] for d in group["direct"]}
         need = max(0, required(len(members)) - len(passed))
         eligible = [m for m in members if m[0] not in tried and m[5] >= MIN_STOCK]
-        paused = bool(anomalies or failed)
+        excess = w3_rule.not_drawn_excess(len(not_drawn), len(outcomes), len(members))
+        paused = bool(anomalies or failed or excess)
         report.append({
             "package": key[0], "package_version": key[1], "footprint": key[2], "type": key[3],
             "mfr": key[4], "series": key[5],
@@ -265,12 +311,29 @@ def build() -> dict:
                         "records": sorted({c["record"] for c in outcomes[pn]})} for pn in passed],
             "failed": [{"pn": pn, "outcomes": outcomes[pn]} for pn in failed],
             "not_drawn": [{"pn": pn, "outcomes": outcomes[pn]} for pn in not_drawn],
+            "bias_unsupported": [{"pn": pn, "outcomes": outcomes[pn]} for pn in unsupported],
+            "judged": len(outcomes),
+            # Of max(judged, required): see w3_rule.not_drawn_excess.
+            "not_drawn_share": round(len(not_drawn) / max(len(outcomes), required(len(members))), 4),
+            "not_drawn_excess": excess,
+            "views": {view: {"bodies": bodies, "other_bodies": other}
+                      for view, (bodies, other) in sorted(composition.items())
+                      if any(c["view"] == view for copies in outcomes.values() for c in copies)},
             "direct_not_judged": sorted({d["pn"] for d in group["direct"]} - set(outcomes)),
             "sample": [m[0] for m in choose(eligible, need, lambda m: m[0] in SHORT_AT_PREVIEW)],
             "member_rows": [m[:6] for m in members],
         })
+    member_group = {(g["footprint"], row[0]): " ".join((g["footprint"], g["type"], g["mfr"], g["series"]))
+                    for g in report for row in g["member_rows"]}
+    made_of = {}
+    for view, bodies in sorted(views.items()):
+        counts: dict[str, int] = {}
+        for body in bodies:
+            name_ = member_group.get(body, "no group")
+            counts[name_] = counts.get(name_, 0) + 1
+        made_of[view] = {"bodies": len(bodies), "groups": dict(sorted(counts.items()))}
     return {
-        "schema_version": 3,
+        "schema_version": 4,
         "rule": {**w3_rule.RULE, "short_at_preview": SHORT_AT_PREVIEW},
         "sources": {
             "lib/passive": version,
@@ -283,6 +346,8 @@ def build() -> dict:
         },
         "unmapped_entries": unmapped,
         "member_columns": ["pn", "mpn", "part", "entry", "category", "stock"],
+        # Per view (preview record and side): the drawn bodies its median is taken over, by group.
+        "views": made_of,
         "groups": report,
     }
 
@@ -290,6 +355,8 @@ def build() -> dict:
 def render(report: dict) -> str:
     if report["schema_version"] == 1:
         return _render_v1(report)
+    # Schema 3 is the 2026-11-10 report (rule w3-2026-11-10b), rendered as it was.
+    v4 = report["schema_version"] >= 4
     groups = report["groups"]
     rule = report["rule"]
     total = sum(g["members"] for g in groups)
@@ -308,9 +375,17 @@ def render(report: dict) -> str:
         f"within {rule['offset_residual_fraction']:g} of it once its view's median offset is taken off "
         f"(residual). Samples are chosen only among members with at least {rule['min_stock']} in "
         f"stock. Members with no stock are {'inferred' if rule['infer_zero_stock'] else 'not inferred'}.",
-        f"- A sample whose model is not drawn is not a passed sample and does not pause its group; that part "
+        f"- A sample whose model is not drawn is not a passed sample and does not {'by itself ' if v4 else ''}"
+        f"pause its group; that part "
         f"number is {'inferred' if rule['infer_not_drawn'] else 'not inferred'}. A sample left for manual "
         "review, outside the limits, or unverified for another reason pauses its group.",
+        *([f"- A reading counts only when the median taken off it is not its group's own: at least "
+           f"{rule['bias_min_other_bodies']} of the view's drawn bodies, and more than "
+           f"{rule['bias_other_share_above']:.0%} of them, must belong to other groups. Otherwise the sample "
+           "is unsupported: not a passed sample, and not a failure.",
+           f"- A group is paused when its part numbers not drawn are more than "
+           f"{rule['not_drawn_max_share']:.0%} of its judged members (of its required sample, while fewer "
+           "have been judged)."] if v4 else []),
         f"- Groups: {sum(g['status'] == 'sampled' for g in groups)} sampled, "
         f"{sum(g['status'] == 'needs_samples' for g in groups)} need samples, "
         f"{sum(g['status'] == 'paused' for g in groups)} paused.",
@@ -323,13 +398,15 @@ def render(report: dict) -> str:
         "- Direct rows not judged: frame rows with their own evidence on a preview record that has no "
         "`w3.json`, so the rule cannot judge them. They do not count as samples.",
         "",
-        "| Footprint | Type | Manufacturer | Series | Members | No stock | Passed | Failed | Not drawn | Required | More needed | Chosen | Status |",
-        "|---|---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---|",
+        "| Footprint | Type | Manufacturer | Series | Members | No stock | Passed | Failed | Not drawn | "
+        + ("Unsupported | " if v4 else "") + "Required | More needed | Chosen | Status |",
+        "|---|---|---|---|---:|---:|---:|---:|---:|" + ("---:|" if v4 else "") + "---:|---:|---:|---|",
     ]
     for g in groups:
         lines.append(f"| `{g['footprint']}` | {g['type']} | {g['mfr']} | {g['series']} | {g['members']:,} | "
                      f"{g['zero_stock']:,} | {len(g['passed'])} | {len(g['failed'])} | {len(g['not_drawn'])} | "
-                     f"{g['required']} | {g['more_needed']} | {len(g['sample'])} | {g['status']} |")
+                     + (f"{len(g['bias_unsupported'])} | " if v4 else "")
+                     + f"{g['required']} | {g['more_needed']} | {len(g['sample'])} | {g['status']} |")
     lines += ["", "## Why groups are paused", ""]
     for g in groups:
         if g["status"] != "paused":
@@ -339,6 +416,11 @@ def render(report: dict) -> str:
             why = "; ".join(f"{c['ref']} {c['status']}" + (f" ({_reading(c['reading'], rule)})" if c["reading"] else "")
                             for c in f["outcomes"])
             reasons.append(f"{f['pn']}: {why}")
+        if v4 and g["not_drawn_excess"]:
+            of = max(g["judged"], g["required"])
+            reasons.append(f"not drawn: {len(g['not_drawn'])} of {of} "
+                           f"{'judged' if of == g['judged'] else 'required'} ({g['not_drawn_share']:.1%}), "
+                           f"above {rule['not_drawn_max_share']:.0%}")
         lines.append(f"- `{g['footprint']}` {g['type']} {g['mfr']} {g['series']}: " + " | ".join(reasons))
     lines += ["", "## Not drawn", "",
               "Not passed samples and not inferred; they do not pause their group by themselves.", ""]
@@ -347,6 +429,33 @@ def render(report: dict) -> str:
             lines.append(f"- `{g['footprint']}` {g['type']} {g['mfr']} {g['series']} ({g['status']}): "
                          + ", ".join(f"{n['pn']} ({', '.join(c['ref'] for c in n['outcomes'])})"
                                      for n in g["not_drawn"]))
+    if v4:
+        lines += ["", "## What each view's median is made of", "",
+                  "A view is one side of one preview record. For each group with bodies in it: the group's "
+                  "own drawn bodies, and the bodies of other groups, which must number at least "
+                  f"{rule['bias_min_other_bodies']} and be more than {rule['bias_other_share_above']:.0%} "
+                  "of the view for the group's readings on it to count.", ""]
+        for view, made in report["views"].items():
+            lines += [f"- `{view}`: {made['bodies']} drawn bodies"]
+            for name, count in made["groups"].items():
+                other = made["bodies"] - count
+                if name == "no group":
+                    lines.append(f"  - in no group: {count}")
+                    continue
+                supported = (other >= rule["bias_min_other_bodies"]
+                             and other > rule["bias_other_share_above"] * made["bodies"])
+                lines.append(f"  - {name}: {count} own, {other} of other groups ({other / made['bodies']:.1%}): "
+                             f"{'counts' if supported else 'does not count'}")
+        lines += ["", "## Samples whose median is their group's own", "",
+                  "Within the limits, but not passed samples: their view does not hold enough bodies of "
+                  "other groups.", ""]
+        for g in groups:
+            if g["bias_unsupported"]:
+                lines.append(f"- `{g['footprint']}` {g['type']} {g['mfr']} {g['series']} ({g['status']}): "
+                             + ", ".join(f"{n['pn']} ({', '.join(c['ref'] for c in n['outcomes'])})"
+                                         for n in g["bias_unsupported"]))
+        if not any(g["bias_unsupported"] for g in groups):
+            lines.append("- None.")
     lines += ["", "## Offsets of passed samples", "",
               "Per group: the bias taken off in each view, and the largest raw offset and residual among its "
               "passed samples, each as a share of that sample's per-part limit.", ""]

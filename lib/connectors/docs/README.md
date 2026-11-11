@@ -22,6 +22,7 @@ redistributed here.
 | `hirose-fh12-24s-0.5sh.evidence.md` | Hirose `FH12-24S-0.5SH(55)` 24-contact FPC (`CONN_FPC24_0P5`); land from catalogue p.11 | FH12 series, 2016-11-01 | Local `fh12-series.pdf` | `9f056f58ff000739633cc3cb7697ba185967083dcf1429b7ab10783b3f55bac5` |
 | `conmhf4-smd-g-t.evidence.md` | Linx `CONMHF4-SMD-G-T` RF receptacle (`CONN_IPEX_MHF4`); land from Figure 2 | Datasheet, page 3 | Local `conmhf4-smd-g-t.pdf` | `63fedb5a916e68998c0ec4aafd5797065a19ffb404fb68fbbf44ad97910a7513` |
 | `yzp0048-20048-04025-03.evidence.md` | Xinyangze `YZP0048-20048-04025-03` magnetic pogo connector (`CONN_MAG_4P`) | Drawing A.1, 2022-03-24 | Local `yzp0048-20048-04025-03.pdf` | `d2c26de7b1294bc46f5294b357ab1d7b9584fca8ca2aef185b156c550e0cdb34` |
+| `jst-xh.evidence.md` | JST XH 2-circuit side-entry header (`CONN_BAT_2P`); land from the p. 2 side-entry layout and the p. 5 table, with page references | XH catalogue, 9 pages, PDF created 2025-07-30 | Local `jst-xh.pdf` | `9426b136902f11900825077535e5c65032b7fbc31ffb59c5e9e1f463bb20fb90` |
 | `jae-sf72s006.evidence.md` | JAE `SF72S006VBA(R2500)` nano-SIM socket | MB-0282-1, August 2014, 5 pages | [manufacturer document mirror](https://datasheet.lcsc.com/datasheet/pdf/b13cbe906d2905e1a5778f79cd6e142e.pdf?productCode=C2977289) | `e55440fbf6ea70bbe5cf8821b1838ab011151fbc53f16dba835e3dd6224c6707` |
 | External specification | Micro-Fit 3.0 dual-row electrical, environmental, and current-derating requirements | PS-43045 Rev R, 2025-11-14 | [Molex PDF](https://www.molex.com/content/dam/molex/molex-dot-com/products/automated/en-us/productspecificationpdf/430/43045/PS-43045-001.pdf) | Not vendored; audited facts are summarized below |
 
@@ -109,3 +110,7 @@ from being physically interchanged.
 - **Device text.** `BAT_CONN_2P` is described as the shrouded header it is, not a "battery spring clip", and carries the series ratings from p. 1. Battery positive/negative is the library's assignment; JST assigns no function to the circuits.
 
 The part, footprint and pad names and the pins are unchanged. A board laid out with 0.2.1 has no holes for this part and must be re-laid out.
+
+## JST XH evidence record in 0.3.1 (2026-11-10)
+
+`jst-xh.evidence.md` records, with page references into the local `jst-xh.pdf`, every JST value that the 0.3.0 `CONN_BAT_2P` land uses: the 0.9 +0.1/-0 mm side-entry holes at 2.5 mm pitch and the layout orientation (p. 2), the 0.64 mm posts and B = 7.4 mm, C = 9.2 mm and the 7 + 4.5 mm body (p. 5), the SMT range (p. 6) and the series ratings (p. 1). It also says how the PDF was read: some viewers show pp. 2-6 blank, but poppler renders and extracts all of them. The parts, pins, lands and all other package content are unchanged from 0.3.0; only documentation was added, so the package takes a patch bump.

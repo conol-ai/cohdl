@@ -1,0 +1,1438 @@
+[
+  {
+    "part_number": "C19077561",
+    "mpn": "SMBJ6.0CA",
+    "footprint": "DIOM5336X265N",
+    "verdict": "manual_review_no_mark",
+    "placements": [
+      {
+        "ref": "U1",
+        "side": "top",
+        "kicad_angle": 0.0,
+        "pad1": [
+          -2.42,
+          0.0
+        ],
+        "dots": [],
+        "coverage": {
+          "side": "top",
+          "status": "manual review",
+          "detail": "drawn, with no pin 1 mark of its own"
+        },
+        "verdict": "manual_review_no_mark"
+      },
+      {
+        "ref": "U2",
+        "side": "top",
+        "kicad_angle": 37.0,
+        "pad1": [
+          -1.933,
+          1.456
+        ],
+        "dots": [],
+        "coverage": {
+          "side": "top",
+          "status": "manual review",
+          "detail": "drawn, with no pin 1 mark of its own"
+        },
+        "verdict": "manual_review_no_mark"
+      },
+      {
+        "ref": "U3",
+        "side": "bottom",
+        "kicad_angle": 180.0,
+        "pad1": [
+          2.42,
+          0.0
+        ],
+        "dots": [],
+        "coverage": {
+          "side": "bottom",
+          "status": "manual review",
+          "detail": "drawn, with no pin 1 mark of its own"
+        },
+        "verdict": "manual_review_no_mark"
+      },
+      {
+        "ref": "U4",
+        "side": "bottom",
+        "kicad_angle": -143.0,
+        "pad1": [
+          1.933,
+          -1.456
+        ],
+        "dots": [],
+        "coverage": {
+          "side": "bottom",
+          "status": "manual review",
+          "detail": "drawn, with no pin 1 mark of its own"
+        },
+        "verdict": "manual_review_no_mark"
+      }
+    ]
+  },
+  {
+    "part_number": "C19077609",
+    "mpn": "SMCJ36CA",
+    "footprint": "DIOM7959X261N",
+    "verdict": "manual_review_no_mark",
+    "placements": [
+      {
+        "ref": "U5",
+        "side": "top",
+        "kicad_angle": 0.0,
+        "pad1": [
+          -3.45,
+          0.0
+        ],
+        "dots": [],
+        "coverage": {
+          "side": "top",
+          "status": "manual review",
+          "detail": "drawn, with no pin 1 mark of its own"
+        },
+        "verdict": "manual_review_no_mark"
+      },
+      {
+        "ref": "U6",
+        "side": "top",
+        "kicad_angle": 37.0,
+        "pad1": [
+          -2.755,
+          2.076
+        ],
+        "dots": [],
+        "coverage": {
+          "side": "top",
+          "status": "manual review",
+          "detail": "drawn, with no pin 1 mark of its own"
+        },
+        "verdict": "manual_review_no_mark"
+      },
+      {
+        "ref": "U7",
+        "side": "bottom",
+        "kicad_angle": 180.0,
+        "pad1": [
+          3.45,
+          0.0
+        ],
+        "dots": [],
+        "coverage": {
+          "side": "bottom",
+          "status": "manual review",
+          "detail": "drawn, with no pin 1 mark of its own"
+        },
+        "verdict": "manual_review_no_mark"
+      },
+      {
+        "ref": "U8",
+        "side": "bottom",
+        "kicad_angle": -143.0,
+        "pad1": [
+          2.755,
+          -2.076
+        ],
+        "dots": [],
+        "coverage": {
+          "side": "bottom",
+          "status": "manual review",
+          "detail": "drawn, with no pin 1 mark of its own"
+        },
+        "verdict": "manual_review_no_mark"
+      }
+    ]
+  },
+  {
+    "part_number": "C18199202",
+    "mpn": "SS24F",
+    "footprint": "FP_DO221AC_SMAF",
+    "verdict": "unverified_ambiguous_marks",
+    "placements": [
+      {
+        "ref": "U9",
+        "side": "top",
+        "kicad_angle": 0.0,
+        "pad1": [
+          -1.9,
+          0.0
+        ],
+        "dots": [
+          [
+            -2.03,
+            -0.06
+          ],
+          [
+            1.82,
+            0.04
+          ]
+        ],
+        "coverage": {
+          "side": "top",
+          "status": "mark",
+          "detail": ""
+        },
+        "verdict": "unverified_ambiguous_marks"
+      },
+      {
+        "ref": "U10",
+        "side": "top",
+        "kicad_angle": 37.0,
+        "pad1": [
+          -1.517,
+          1.143
+        ],
+        "dots": [
+          [
+            -1.62,
+            1.17
+          ],
+          [
+            1.51,
+            -1.06
+          ]
+        ],
+        "coverage": {
+          "side": "top",
+          "status": "mark",
+          "detail": ""
+        },
+        "verdict": "unverified_ambiguous_marks"
+      },
+      {
+        "ref": "U11",
+        "side": "bottom",
+        "kicad_angle": 180.0,
+        "pad1": [
+          1.9,
+          0.0
+        ],
+        "dots": [
+          [
+            -1.77,
+            0.04
+          ],
+          [
+            2.04,
+            -0.05
+          ]
+        ],
+        "coverage": {
+          "side": "bottom",
+          "status": "mark",
+          "detail": ""
+        },
+        "verdict": "unverified_ambiguous_marks"
+      },
+      {
+        "ref": "U12",
+        "side": "bottom",
+        "kicad_angle": -143.0,
+        "pad1": [
+          1.517,
+          -1.143
+        ],
+        "dots": [
+          [
+            1.62,
+            -1.26
+          ],
+          [
+            -1.37,
+            1.12
+          ]
+        ],
+        "coverage": {
+          "side": "bottom",
+          "status": "mark",
+          "detail": ""
+        },
+        "verdict": "unverified_ambiguous_marks"
+      }
+    ]
+  },
+  {
+    "part_number": "C32246052",
+    "mpn": "W25Q32RVXHJQ",
+    "footprint": "FP_W25Q32RV_XSON8_2X3",
+    "verdict": "rotation_correction_required",
+    "placements": [
+      {
+        "ref": "U13",
+        "side": "top",
+        "kicad_angle": 0.0,
+        "pad1": [
+          -1.375,
+          -0.75
+        ],
+        "dots": [
+          [
+            -0.81,
+            1.87
+          ]
+        ],
+        "delta_ccw_from_top": 95.2,
+        "coverage": {
+          "side": "top",
+          "status": "mark",
+          "detail": ""
+        },
+        "signed_delta_top_view": 95.2,
+        "delta_local_side": 95.2,
+        "verdict": "rotation_correction_required"
+      },
+      {
+        "ref": "U14",
+        "side": "top",
+        "kicad_angle": 37.0,
+        "pad1": [
+          -1.549,
+          0.229
+        ],
+        "dots": [
+          [
+            0.5,
+            1.95
+          ]
+        ],
+        "delta_ccw_from_top": 95.9,
+        "coverage": {
+          "side": "top",
+          "status": "mark",
+          "detail": ""
+        },
+        "signed_delta_top_view": 95.9,
+        "delta_local_side": 95.9,
+        "verdict": "rotation_correction_required"
+      },
+      {
+        "ref": "U15",
+        "side": "bottom",
+        "kicad_angle": 180.0,
+        "pad1": [
+          1.375,
+          -0.75
+        ],
+        "dots": [
+          [
+            0.77,
+            1.87
+          ]
+        ],
+        "delta_ccw_from_top": 263.7,
+        "coverage": {
+          "side": "bottom",
+          "status": "mark",
+          "detail": ""
+        },
+        "signed_delta_top_view": -96.3,
+        "delta_local_side": 96.3,
+        "verdict": "rotation_correction_required"
+      },
+      {
+        "ref": "U16",
+        "side": "bottom",
+        "kicad_angle": -143.0,
+        "pad1": [
+          0.647,
+          -1.426
+        ],
+        "dots": [
+          [
+            1.75,
+            1.03
+          ]
+        ],
+        "delta_ccw_from_top": 263.9,
+        "coverage": {
+          "side": "bottom",
+          "status": "mark",
+          "detail": ""
+        },
+        "signed_delta_top_view": -96.1,
+        "delta_local_side": 96.1,
+        "verdict": "rotation_correction_required"
+      }
+    ]
+  },
+  {
+    "part_number": "C5372421",
+    "mpn": "RS0104YTQF14",
+    "footprint": "QFN14N50P350X350_1EP200X150",
+    "verdict": "rotation_correction_required",
+    "placements": [
+      {
+        "ref": "U17",
+        "side": "top",
+        "kicad_angle": 0.0,
+        "pad1": [
+          -0.75,
+          -1.513
+        ],
+        "dots": [
+          [
+            -1.8,
+            0.75
+          ]
+        ],
+        "delta_ccw_from_top": 86.2,
+        "coverage": {
+          "side": "top",
+          "status": "mark",
+          "detail": ""
+        },
+        "signed_delta_top_view": 86.2,
+        "delta_local_side": 86.2,
+        "verdict": "rotation_correction_required"
+      },
+      {
+        "ref": "U18",
+        "side": "top",
+        "kicad_angle": 37.0,
+        "pad1": [
+          -1.509,
+          -0.757
+        ],
+        "dots": [
+          [
+            -0.97,
+            1.65
+          ]
+        ],
+        "delta_ccw_from_top": 86.1,
+        "coverage": {
+          "side": "top",
+          "status": "mark",
+          "detail": ""
+        },
+        "signed_delta_top_view": 86.1,
+        "delta_local_side": 86.1,
+        "verdict": "rotation_correction_required"
+      },
+      {
+        "ref": "U19",
+        "side": "bottom",
+        "kicad_angle": 180.0,
+        "pad1": [
+          0.75,
+          -1.512
+        ],
+        "dots": [
+          [
+            1.79,
+            0.74
+          ]
+        ],
+        "delta_ccw_from_top": 273.8,
+        "coverage": {
+          "side": "bottom",
+          "status": "mark",
+          "detail": ""
+        },
+        "signed_delta_top_view": -86.2,
+        "delta_local_side": 86.2,
+        "verdict": "rotation_correction_required"
+      },
+      {
+        "ref": "U20",
+        "side": "bottom",
+        "kicad_angle": -143.0,
+        "pad1": [
+          -0.311,
+          -1.659
+        ],
+        "dots": [
+          [
+            1.89,
+            -0.47
+          ]
+        ],
+        "delta_ccw_from_top": 273.5,
+        "coverage": {
+          "side": "bottom",
+          "status": "mark",
+          "detail": ""
+        },
+        "signed_delta_top_view": -86.5,
+        "delta_local_side": 86.5,
+        "verdict": "rotation_correction_required"
+      }
+    ]
+  },
+  {
+    "part_number": "C19077402",
+    "mpn": "BZT52C5V6",
+    "footprint": "SOD3716X135N",
+    "verdict": "unverified_ambiguous_marks",
+    "placements": [
+      {
+        "ref": "U21",
+        "side": "top",
+        "kicad_angle": 0.0,
+        "pad1": [
+          -1.635,
+          0.0
+        ],
+        "dots": [
+          [
+            -0.96,
+            -0.05
+          ],
+          [
+            0.73,
+            -0.05
+          ],
+          [
+            0.43,
+            -0.04
+          ],
+          [
+            -0.5,
+            -0.07
+          ]
+        ],
+        "coverage": {
+          "side": "top",
+          "status": "mark",
+          "detail": ""
+        },
+        "verdict": "unverified_ambiguous_marks"
+      },
+      {
+        "ref": "U22",
+        "side": "top",
+        "kicad_angle": 37.0,
+        "pad1": [
+          -1.306,
+          0.984
+        ],
+        "dots": [
+          [
+            0.32,
+            -0.37
+          ],
+          [
+            -0.51,
+            0.3
+          ],
+          [
+            -0.82,
+            0.56
+          ],
+          [
+            0.69,
+            -0.53
+          ],
+          [
+            0.84,
+            -0.04
+          ],
+          [
+            0.21,
+            -0.89
+          ]
+        ],
+        "coverage": {
+          "side": "top",
+          "status": "mark",
+          "detail": ""
+        },
+        "verdict": "unverified_ambiguous_marks"
+      },
+      {
+        "ref": "U23",
+        "side": "bottom",
+        "kicad_angle": 180.0,
+        "pad1": [
+          1.635,
+          0.0
+        ],
+        "dots": [
+          [
+            0.98,
+            -0.04
+          ],
+          [
+            -0.69,
+            -0.58
+          ],
+          [
+            -0.96,
+            -0.05
+          ],
+          [
+            -0.5,
+            -0.01
+          ],
+          [
+            -0.69,
+            0.48
+          ],
+          [
+            0.59,
+            -0.05
+          ]
+        ],
+        "coverage": {
+          "side": "bottom",
+          "status": "mark",
+          "detail": ""
+        },
+        "verdict": "unverified_ambiguous_marks"
+      },
+      {
+        "ref": "U24",
+        "side": "bottom",
+        "kicad_angle": -143.0,
+        "pad1": [
+          1.306,
+          -0.984
+        ],
+        "dots": [
+          [
+            -0.31,
+            0.09
+          ],
+          [
+            0.81,
+            -0.65
+          ],
+          [
+            -0.86,
+            -0.03
+          ],
+          [
+            -0.75,
+            0.5
+          ],
+          [
+            0.49,
+            -0.41
+          ],
+          [
+            -0.25,
+            0.77
+          ]
+        ],
+        "coverage": {
+          "side": "bottom",
+          "status": "mark",
+          "detail": ""
+        },
+        "verdict": "unverified_ambiguous_marks"
+      }
+    ]
+  },
+  {
+    "part_number": "C7420331",
+    "mpn": "B5819WS",
+    "footprint": "SOD2613X110N",
+    "verdict": "unverified_ambiguous_marks",
+    "placements": [
+      {
+        "ref": "U25",
+        "side": "top",
+        "kicad_angle": 0.0,
+        "pad1": [
+          -1.075,
+          0.0
+        ],
+        "dots": [
+          [
+            -0.86,
+            -0.03
+          ],
+          [
+            1.0,
+            -0.04
+          ]
+        ],
+        "coverage": {
+          "side": "top",
+          "status": "mark",
+          "detail": ""
+        },
+        "verdict": "unverified_ambiguous_marks"
+      },
+      {
+        "ref": "U26",
+        "side": "top",
+        "kicad_angle": 37.0,
+        "pad1": [
+          -0.859,
+          0.647
+        ],
+        "dots": [
+          [
+            -0.68,
+            0.46
+          ],
+          [
+            0.8,
+            -0.66
+          ]
+        ],
+        "coverage": {
+          "side": "top",
+          "status": "mark",
+          "detail": ""
+        },
+        "verdict": "unverified_ambiguous_marks"
+      },
+      {
+        "ref": "U27",
+        "side": "bottom",
+        "kicad_angle": 180.0,
+        "pad1": [
+          1.075,
+          0.0
+        ],
+        "dots": [
+          [
+            0.83,
+            -0.03
+          ],
+          [
+            -1.0,
+            -0.06
+          ]
+        ],
+        "coverage": {
+          "side": "bottom",
+          "status": "mark",
+          "detail": ""
+        },
+        "verdict": "unverified_ambiguous_marks"
+      },
+      {
+        "ref": "U28",
+        "side": "bottom",
+        "kicad_angle": -143.0,
+        "pad1": [
+          0.859,
+          -0.647
+        ],
+        "dots": [
+          [
+            0.68,
+            -0.54
+          ],
+          [
+            -0.79,
+            0.56
+          ]
+        ],
+        "coverage": {
+          "side": "bottom",
+          "status": "mark",
+          "detail": ""
+        },
+        "verdict": "unverified_ambiguous_marks"
+      }
+    ]
+  },
+  {
+    "part_number": "C19077510",
+    "mpn": "SMF15CA",
+    "footprint": "SODFL3818X120N",
+    "verdict": "manual_review_no_mark",
+    "placements": [
+      {
+        "ref": "U29",
+        "side": "top",
+        "kicad_angle": 0.0,
+        "pad1": [
+          -1.43,
+          0.0
+        ],
+        "dots": [],
+        "coverage": {
+          "side": "top",
+          "status": "manual review",
+          "detail": "drawn, with no pin 1 mark of its own"
+        },
+        "verdict": "manual_review_no_mark"
+      },
+      {
+        "ref": "U30",
+        "side": "top",
+        "kicad_angle": 37.0,
+        "pad1": [
+          -1.142,
+          0.861
+        ],
+        "dots": [],
+        "coverage": {
+          "side": "top",
+          "status": "manual review",
+          "detail": "drawn, with no pin 1 mark of its own"
+        },
+        "verdict": "manual_review_no_mark"
+      },
+      {
+        "ref": "U31",
+        "side": "bottom",
+        "kicad_angle": 180.0,
+        "pad1": [
+          1.43,
+          0.0
+        ],
+        "dots": [],
+        "coverage": {
+          "side": "bottom",
+          "status": "manual review",
+          "detail": "drawn, with no pin 1 mark of its own"
+        },
+        "verdict": "manual_review_no_mark"
+      },
+      {
+        "ref": "U32",
+        "side": "bottom",
+        "kicad_angle": -143.0,
+        "pad1": [
+          1.142,
+          -0.861
+        ],
+        "dots": [],
+        "coverage": {
+          "side": "bottom",
+          "status": "manual review",
+          "detail": "drawn, with no pin 1 mark of its own"
+        },
+        "verdict": "manual_review_no_mark"
+      }
+    ]
+  },
+  {
+    "part_number": "C7420320",
+    "mpn": "1N4148WT",
+    "footprint": "SOD1608X70N",
+    "verdict": "unverified_ambiguous_marks",
+    "placements": [
+      {
+        "ref": "U33",
+        "side": "top",
+        "kicad_angle": 0.0,
+        "pad1": [
+          -0.71,
+          0.0
+        ],
+        "dots": [
+          [
+            -0.83,
+            -0.05
+          ],
+          [
+            0.8,
+            -0.05
+          ]
+        ],
+        "coverage": {
+          "side": "top",
+          "status": "mark",
+          "detail": ""
+        },
+        "verdict": "unverified_ambiguous_marks"
+      },
+      {
+        "ref": "U34",
+        "side": "top",
+        "kicad_angle": 37.0,
+        "pad1": [
+          -0.567,
+          0.427
+        ],
+        "dots": [
+          [
+            -0.64,
+            0.45
+          ],
+          [
+            0.65,
+            -0.53
+          ]
+        ],
+        "coverage": {
+          "side": "top",
+          "status": "mark",
+          "detail": ""
+        },
+        "verdict": "unverified_ambiguous_marks"
+      },
+      {
+        "ref": "U35",
+        "side": "bottom",
+        "kicad_angle": 180.0,
+        "pad1": [
+          0.71,
+          0.0
+        ],
+        "dots": [
+          [
+            0.85,
+            -0.03
+          ],
+          [
+            -0.73,
+            -0.03
+          ]
+        ],
+        "coverage": {
+          "side": "bottom",
+          "status": "mark",
+          "detail": ""
+        },
+        "verdict": "unverified_ambiguous_marks"
+      },
+      {
+        "ref": "U36",
+        "side": "bottom",
+        "kicad_angle": -143.0,
+        "pad1": [
+          0.567,
+          -0.427
+        ],
+        "dots": [
+          [
+            -0.57,
+            0.41
+          ],
+          [
+            0.69,
+            -0.54
+          ]
+        ],
+        "coverage": {
+          "side": "bottom",
+          "status": "mark",
+          "detail": ""
+        },
+        "verdict": "unverified_ambiguous_marks"
+      }
+    ]
+  },
+  {
+    "part_number": "C7420357",
+    "mpn": "MMBT5551",
+    "footprint": "SOT3P190X290X130N",
+    "verdict": "within_10_deg",
+    "placements": [
+      {
+        "ref": "U37",
+        "side": "top",
+        "kicad_angle": 0.0,
+        "pad1": [
+          1.0,
+          0.95
+        ],
+        "dots": [
+          [
+            1.41,
+            1.06
+          ]
+        ],
+        "delta_ccw_from_top": 6.5,
+        "coverage": {
+          "side": "top",
+          "status": "mark",
+          "detail": ""
+        },
+        "signed_delta_top_view": 6.5,
+        "delta_local_side": 6.5,
+        "verdict": "within_10_deg"
+      },
+      {
+        "ref": "U38",
+        "side": "top",
+        "kicad_angle": 37.0,
+        "pad1": [
+          1.37,
+          0.157
+        ],
+        "dots": [
+          [
+            1.78,
+            -0.04
+          ]
+        ],
+        "delta_ccw_from_top": 7.9,
+        "coverage": {
+          "side": "top",
+          "status": "mark",
+          "detail": ""
+        },
+        "signed_delta_top_view": 7.9,
+        "delta_local_side": 7.9,
+        "verdict": "within_10_deg"
+      },
+      {
+        "ref": "U39",
+        "side": "bottom",
+        "kicad_angle": 180.0,
+        "pad1": [
+          -1.0,
+          0.95
+        ],
+        "dots": [
+          [
+            -1.45,
+            1.06
+          ]
+        ],
+        "delta_ccw_from_top": 352.6,
+        "coverage": {
+          "side": "bottom",
+          "status": "mark",
+          "detail": ""
+        },
+        "signed_delta_top_view": -7.4,
+        "delta_local_side": 7.4,
+        "verdict": "within_10_deg"
+      },
+      {
+        "ref": "U40",
+        "side": "bottom",
+        "kicad_angle": -143.0,
+        "pad1": [
+          -0.227,
+          1.361
+        ],
+        "dots": [
+          [
+            -0.49,
+            1.72
+          ]
+        ],
+        "delta_ccw_from_top": 353.6,
+        "coverage": {
+          "side": "bottom",
+          "status": "mark",
+          "detail": ""
+        },
+        "signed_delta_top_view": -6.4,
+        "delta_local_side": 6.4,
+        "verdict": "within_10_deg"
+      }
+    ]
+  },
+  {
+    "part_number": "C20069128",
+    "mpn": "D882",
+    "footprint": "SOT3P150X450X250N",
+    "verdict": "within_10_deg",
+    "placements": [
+      {
+        "ref": "U41",
+        "side": "top",
+        "kicad_angle": 0.0,
+        "pad1": [
+          1.45,
+          1.5
+        ],
+        "dots": [
+          [
+            1.69,
+            1.46
+          ]
+        ],
+        "delta_ccw_from_top": 5.2,
+        "coverage": {
+          "side": "top",
+          "status": "mark",
+          "detail": ""
+        },
+        "signed_delta_top_view": 5.2,
+        "delta_local_side": 5.2,
+        "verdict": "within_10_deg"
+      },
+      {
+        "ref": "U42",
+        "side": "top",
+        "kicad_angle": 37.0,
+        "pad1": [
+          2.061,
+          0.325
+        ],
+        "dots": [
+          [
+            2.26,
+            0.12
+          ]
+        ],
+        "delta_ccw_from_top": 6.0,
+        "coverage": {
+          "side": "top",
+          "status": "mark",
+          "detail": ""
+        },
+        "signed_delta_top_view": 6.0,
+        "delta_local_side": 6.0,
+        "verdict": "within_10_deg"
+      },
+      {
+        "ref": "U43",
+        "side": "bottom",
+        "kicad_angle": 180.0,
+        "pad1": [
+          -1.45,
+          1.5
+        ],
+        "dots": [
+          [
+            -1.7,
+            1.46
+          ]
+        ],
+        "delta_ccw_from_top": 354.6,
+        "coverage": {
+          "side": "bottom",
+          "status": "mark",
+          "detail": ""
+        },
+        "signed_delta_top_view": -5.4,
+        "delta_local_side": 5.4,
+        "verdict": "within_10_deg"
+      },
+      {
+        "ref": "U44",
+        "side": "bottom",
+        "kicad_angle": -143.0,
+        "pad1": [
+          -0.255,
+          2.071
+        ],
+        "dots": [
+          [
+            -0.46,
+            2.19
+          ]
+        ],
+        "delta_ccw_from_top": 355.2,
+        "coverage": {
+          "side": "bottom",
+          "status": "mark",
+          "detail": ""
+        },
+        "signed_delta_top_view": -4.8,
+        "delta_local_side": 4.8,
+        "verdict": "within_10_deg"
+      }
+    ]
+  },
+  {
+    "part_number": "C7420322",
+    "mpn": "2N7002W",
+    "footprint": "SOT3P130X200X125N",
+    "verdict": "unverified_not_all_placements_pass",
+    "placements": [
+      {
+        "ref": "U45",
+        "side": "top",
+        "kicad_angle": 0.0,
+        "pad1": [
+          0.95,
+          0.65
+        ],
+        "dots": [
+          [
+            1.43,
+            0.61
+          ]
+        ],
+        "delta_ccw_from_top": 11.4,
+        "coverage": {
+          "side": "top",
+          "status": "mark",
+          "detail": ""
+        },
+        "signed_delta_top_view": 11.4,
+        "delta_local_side": 11.4,
+        "verdict": "unverified_over_10_deg"
+      },
+      {
+        "ref": "U46",
+        "side": "top",
+        "kicad_angle": 37.0,
+        "pad1": [
+          1.15,
+          -0.053
+        ],
+        "dots": [
+          [
+            1.54,
+            -0.38
+          ]
+        ],
+        "delta_ccw_from_top": 11.4,
+        "coverage": {
+          "side": "top",
+          "status": "mark",
+          "detail": ""
+        },
+        "signed_delta_top_view": 11.4,
+        "delta_local_side": 11.4,
+        "verdict": "unverified_over_10_deg"
+      },
+      {
+        "ref": "U47",
+        "side": "bottom",
+        "kicad_angle": 180.0,
+        "pad1": [
+          -0.95,
+          0.65
+        ],
+        "dots": [
+          [
+            -1.44,
+            0.61
+          ]
+        ],
+        "delta_ccw_from_top": 348.7,
+        "coverage": {
+          "side": "bottom",
+          "status": "mark",
+          "detail": ""
+        },
+        "signed_delta_top_view": -11.3,
+        "delta_local_side": 11.3,
+        "verdict": "unverified_over_10_deg"
+      },
+      {
+        "ref": "U48",
+        "side": "bottom",
+        "kicad_angle": -143.0,
+        "pad1": [
+          -0.368,
+          1.091
+        ],
+        "dots": [
+          [
+            -0.74,
+            1.36
+          ]
+        ],
+        "delta_ccw_from_top": 350.1,
+        "coverage": {
+          "side": "bottom",
+          "status": "mark",
+          "detail": ""
+        },
+        "signed_delta_top_view": -9.9,
+        "delta_local_side": 9.9,
+        "verdict": "within_10_deg"
+      }
+    ]
+  },
+  {
+    "part_number": "C6186",
+    "mpn": "AMS1117-3.3",
+    "footprint": "SOT4P230X651X351N",
+    "verdict": "unverified_not_all_placements_pass",
+    "placements": [
+      {
+        "ref": "U49",
+        "side": "top",
+        "kicad_angle": 0.0,
+        "pad1": [
+          3.2,
+          2.3
+        ],
+        "dots": [
+          [
+            4.57,
+            2.14
+          ]
+        ],
+        "delta_ccw_from_top": 10.6,
+        "coverage": {
+          "side": "top",
+          "status": "mark",
+          "detail": ""
+        },
+        "signed_delta_top_view": 10.6,
+        "delta_local_side": 10.6,
+        "verdict": "unverified_over_10_deg"
+      },
+      {
+        "ref": "U50",
+        "side": "top",
+        "kicad_angle": 37.0,
+        "pad1": [
+          3.94,
+          -0.089
+        ],
+        "dots": [
+          [
+            4.97,
+            -1.03
+          ]
+        ],
+        "delta_ccw_from_top": 10.4,
+        "coverage": {
+          "side": "top",
+          "status": "mark",
+          "detail": ""
+        },
+        "signed_delta_top_view": 10.4,
+        "delta_local_side": 10.4,
+        "verdict": "unverified_over_10_deg"
+      },
+      {
+        "ref": "U51",
+        "side": "bottom",
+        "kicad_angle": 180.0,
+        "pad1": [
+          -3.2,
+          2.3
+        ],
+        "dots": [
+          [
+            -4.52,
+            2.15
+          ]
+        ],
+        "delta_ccw_from_top": 349.7,
+        "coverage": {
+          "side": "bottom",
+          "status": "mark",
+          "detail": ""
+        },
+        "signed_delta_top_view": -10.3,
+        "delta_local_side": 10.3,
+        "verdict": "unverified_over_10_deg"
+      },
+      {
+        "ref": "U52",
+        "side": "bottom",
+        "kicad_angle": -143.0,
+        "pad1": [
+          -1.171,
+          3.763
+        ],
+        "dots": [
+          [
+            -2.28,
+            4.45
+          ]
+        ],
+        "delta_ccw_from_top": 350.1,
+        "coverage": {
+          "side": "bottom",
+          "status": "mark",
+          "detail": ""
+        },
+        "signed_delta_top_view": -9.9,
+        "delta_local_side": 9.9,
+        "verdict": "within_10_deg"
+      }
+    ]
+  },
+  {
+    "part_number": "C7420365",
+    "mpn": "SS34",
+    "footprint": "DIOM5026X241N",
+    "verdict": "unverified_ambiguous_marks",
+    "placements": [
+      {
+        "ref": "U53",
+        "side": "top",
+        "kicad_angle": 0.0,
+        "pad1": [
+          -2.2,
+          0.0
+        ],
+        "dots": [
+          [
+            1.99,
+            -0.02
+          ],
+          [
+            -2.1,
+            -0.02
+          ]
+        ],
+        "coverage": {
+          "side": "top",
+          "status": "mark",
+          "detail": ""
+        },
+        "verdict": "unverified_ambiguous_marks"
+      },
+      {
+        "ref": "U54",
+        "side": "top",
+        "kicad_angle": 37.0,
+        "pad1": [
+          -1.757,
+          1.324
+        ],
+        "dots": [
+          [
+            1.6,
+            -1.26
+          ],
+          [
+            -1.67,
+            1.2
+          ]
+        ],
+        "coverage": {
+          "side": "top",
+          "status": "mark",
+          "detail": ""
+        },
+        "verdict": "unverified_ambiguous_marks"
+      },
+      {
+        "ref": "U55",
+        "side": "bottom",
+        "kicad_angle": 180.0,
+        "pad1": [
+          2.2,
+          0.0
+        ],
+        "dots": [
+          [
+            2.05,
+            -0.03
+          ],
+          [
+            -2.05,
+            -0.03
+          ]
+        ],
+        "coverage": {
+          "side": "bottom",
+          "status": "mark",
+          "detail": ""
+        },
+        "verdict": "unverified_ambiguous_marks"
+      },
+      {
+        "ref": "U56",
+        "side": "bottom",
+        "kicad_angle": -143.0,
+        "pad1": [
+          1.757,
+          -1.324
+        ],
+        "dots": [
+          [
+            1.64,
+            -1.26
+          ],
+          [
+            -1.62,
+            1.2
+          ]
+        ],
+        "coverage": {
+          "side": "bottom",
+          "status": "mark",
+          "detail": ""
+        },
+        "verdict": "unverified_ambiguous_marks"
+      }
+    ]
+  }
+]

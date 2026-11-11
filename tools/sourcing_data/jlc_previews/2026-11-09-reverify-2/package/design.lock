@@ -1,0 +1,11 @@
+[designators]
+"FramePreview::Cand_1_0" = "U1"
+"FramePreview::Cand_1_1" = "U2"
+"FramePreview::Cand_1_2" = "U3"
+"FramePreview::Cand_1_3" = "U4"
+"FramePreview::Cand_2_0" = "U5"
+"FramePreview::Cand_2_1" = "U6"
+"FramePreview::Cand_2_2" = "U7"
+"FramePreview::Cand_2_3" = "U8"
+
+[tombstones]

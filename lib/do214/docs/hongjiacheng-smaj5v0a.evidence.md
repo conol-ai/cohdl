@@ -27,8 +27,9 @@
 - Page 2, the same table also lists land rows without a drawing: M 2.26 min,
   J 2.10 min, K 2.74 max (mm). These differ from the SS34 sheet (M 1.70 min,
   K 2.30 max). `DIOM5026X241N` (2.10 x 1.70 mm lands, 2.30 mm gap) meets this
-  sheet's J and K limits but not its M limit; see the open question in
-  `README.md`.
+  sheet's J and K limits but not its M limit, a deliberate waiver (the
+  rows are table-only and identical to the SMBJ sheet's SMB rows); see open
+  question 1 in `README.md`.
 - No separate "Suggested Pad Layout" figure appears on any of the five pages.
 
 The PDF is not redistributed by this repository. Download it from the source

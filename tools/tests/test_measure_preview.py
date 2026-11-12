@@ -241,14 +241,89 @@ class BodyMethodTests(unittest.TestCase):
             (Path(td) / "board.json").write_text(json.dumps(doc))
             args = [str(Path(td) / "board.json"), str(Path(td) / "top.bmp"), "-"]
             mp.measure(*args, str(Path(td) / "two.json"))
-            mp.measure(*args, str(Path(td) / "one.json"), method=1)
+            mp.measure(*args, str(Path(td) / "one.json"), method=1, attribution=1)
             (two,), (one,) = (json.loads((Path(td) / name).read_text()) for name in ("two.json", "one.json"))
         self.assertEqual(mp.BODY_METHOD, 2)
         self.assertEqual(two["body"]["method"], 2)
         self.assertEqual(list(one["body"]), ["delta_mod_180", "offset_mm", "offset_xy_mm", "offset_limit_mm",
                                              "elongation", "fill"])
-        self.assertEqual({k: v for k, v in two.items() if k not in ("body", "body_ok")},
+        self.assertEqual({k: v for k, v in two.items() if k not in ("body", "body_ok", "attribution")},
                          {k: v for k, v in one.items() if k not in ("body", "body_ok")})
+        self.assertEqual((mp.ATTRIBUTION, two["attribution"], "attribution" in one), (2, 2, False))
+        self.assertEqual(list(one), ["ref", "side", "kicad_angle", "pad1", "dots", "body", "body_ok"])
+
+
+MAGENTA = (255, 0, 255)
+
+
+def ic(ref, x, y, half):
+    """A four-pad part: pads 1 to 4 at the corners of a square, pad 1 up and to the left."""
+    corners = ((-half, -half), (-half, half), (half, half), (half, -half))
+    return {"ref": ref, "fpid": "qfn-QFN4", "bottom": False, "x": x, "y": y, "angle": 0.0,
+            "pads": [{"num": str(i + 1), "x": x + u, "y": y + v} for i, (u, v) in enumerate(corners)]}
+
+
+def magenta(shapes):
+    """A bare board with magenta SHAPES: (x, y, radius) discs and (x0, y0, x1, y1) rectangles, in mm."""
+    def paint(x, y):
+        bx, by = (x + 0.5) / SCALE, (y + 0.5) / SCALE
+        for shape in shapes:
+            if len(shape) == 3 and math.hypot(bx - shape[0], by - shape[1]) <= shape[2]:
+                return MAGENTA
+            if len(shape) == 4 and shape[0] <= bx <= shape[2] and shape[1] <= by <= shape[3]:
+                return MAGENTA
+        return GREEN
+    return paint
+
+
+class MarkAttributionTests(unittest.TestCase):
+    def test_a_piece_of_a_model_is_too_large_to_be_a_mark(self):
+        # A mark as large as the largest archived one (0.745 mm2), and the 0.76 x 3.55 mm piece of a
+        # connector model that was read as a mark on 2026-11-12; then one just inside each limit and
+        # one just outside it.
+        shapes = [(2.0, 2.0, 0.49), (4.0, 1.0, 4.76, 4.55),
+                  (6.0, 1.0, 7.9, 1.7), (6.0, 3.0, 8.1, 3.3), (1.0, 6.0, 2.2, 7.2), (4.0, 6.0, 5.3, 7.3)]
+        with tempfile.TemporaryDirectory() as td:
+            write_bmp(Path(td) / "top.bmp", magenta(shapes))
+            view = mp.View(str(Path(td) / "top.bmp"), (0.0, 0.0, SIZE, SIZE), False)
+        found = sorted(mp.clusters(view))
+        self.assertEqual([(round(c[0], 1), round(c[1], 1), round(c[3], 2), round(c[4], 2)) for c in found],
+                         [(1.6, 6.6, 1.44, 1.2), (2.0, 2.0, 0.76, 1.0), (4.4, 2.8, 2.66, 3.55), (4.6, 6.6, 1.69, 1.3),
+                          (6.9, 1.3, 1.33, 1.9), (7.0, 3.1, 0.63, 2.1)])
+        self.assertEqual([(round(c[0], 1), round(c[1], 1)) for c in sorted(mp.marks(view))],
+                         [(1.6, 6.6), (2.0, 2.0), (6.9, 1.3)])
+        # dots() is what it was: every cluster, as (x, y, pixels).
+        self.assertEqual(sorted(mp.dots(view, view.outline, False)), [c[:3] for c in found])
+
+    def test_measure_gives_a_mark_to_the_part_whose_pad_it_is_at(self):
+        # U1's mark, 0.4 mm beyond its pad 1, is nearer to C1's origin and within R1's old reach; U2's
+        # model is a half turn off; J1 has a large piece of its model in magenta and no mark.
+        u1, u2, j1 = ic("U1", 3.0, 3.0, 1.0), ic("U2", 7.0, 3.0, 1.0), ic("J1", 5.0, 7.5, 1.0)
+        c1 = dict(footprint(half=0.5), ref="C1", fpid="passive-CHIP_0402", x=1.2, y=1.5,
+                  pads=[{"num": "1", "x": 0.7, "y": 1.5}, {"num": "2", "x": 1.7, "y": 1.5}])
+        r1 = dict(c1, ref="R1", x=1.5, y=0.6, pads=[{"num": "1", "x": 1.0, "y": 0.6}, {"num": "2", "x": 2.0, "y": 0.6}])
+        doc = {"bbox": [-0.05, -0.05, SIZE + 0.05, SIZE + 0.05], "fps": [u1, u2, j1, c1, r1]}
+        shapes = [(1.72, 1.72, 0.2), (8.28, 4.28, 0.2), (4.6, 6.0, 5.4, 9.0)]
+        with tempfile.TemporaryDirectory() as td:
+            write_bmp(Path(td) / "top.bmp", magenta(shapes))
+            (Path(td) / "board.json").write_text(json.dumps(doc))
+            args = [str(Path(td) / "board.json"), str(Path(td) / "top.bmp"), "-"]
+            mp.measure(*args, str(Path(td) / "two.json"))
+            mp.measure(*args, str(Path(td) / "one.json"), attribution=1)
+            two, one = ({row["ref"]: row for row in json.loads((Path(td) / name).read_text())}
+                        for name in ("two.json", "one.json"))
+        # Attribution 1: the mark is listed under every footprint in reach, and the piece is a mark.
+        self.assertEqual({ref: len(row["dots"]) for ref, row in one.items()}, {"C1": 1, "R1": 1, "J1": 1, "U1": 1, "U2": 1})
+        self.assertIn("delta_ccw_from_top", one["J1"])
+        self.assertFalse(any("attribution" in row or "mark_ok" in row for row in one.values()))
+        # Attribution 2: each mark under its owner alone; the piece under none.
+        self.assertEqual({ref: len(row["dots"]) for ref, row in two.items()}, {"C1": 0, "R1": 0, "J1": 0, "U1": 1, "U2": 1})
+        self.assertTrue(all(row["attribution"] == 2 for row in two.values()))
+        self.assertEqual((two["U1"]["delta_ccw_from_top"], two["U1"]["mark_ok"]), (one["U1"]["delta_ccw_from_top"], True))
+        self.assertLess(min(two["U1"]["delta_ccw_from_top"], 360 - two["U1"]["delta_ccw_from_top"]), 1.0)
+        self.assertEqual((round(two["U2"]["delta_ccw_from_top"]), two["U2"]["mark_ok"]), (180, False))
+        self.assertNotIn("delta_ccw_from_top", two["J1"])
+        self.assertNotIn("mark_ok", two["J1"])
 
 
 # Each W3 record: its board.json, its exports, the method 1 readings W3 used, and the method 2 readings.
@@ -324,7 +399,7 @@ class ArchivedReadingsTests(unittest.TestCase):
                                    check=True, capture_output=True)
                 for method, archived in ((1, method_1), (2, METHOD_2)):
                     out = Path(td) / ("method-%d.json" % method)
-                    mp.measure(str(record / board), *shots, str(out), method=method)
+                    mp.measure(str(record / board), *shots, str(out), method=method, attribution=1)
                     self.assertEqual(out.read_bytes(), (record / archived).read_bytes(), (name, method))
 
 

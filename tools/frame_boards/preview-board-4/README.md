@@ -39,6 +39,7 @@ Each row's `purpose` in the manifest is one of these.
 | C189961 NS4150B | `@contrib/audio-amp::AMP_NS4150B` primary | `SOP8P65X490X110N` | U1 |
 
 - **The two SOT-23-6 parts are expected to read a rotation.** Board 1 read 180° for C85364 on `esd::FP_SOT_23_6` and 270° for C12044 on `FP_TI_DBV0006A`, and found the correction depends on the model. So C7519 and C131941 are placed raw, and whatever they read is theirs.
+- **After the preview (2026-11-12).** The manifest now pins `esd` 0.1.3, `load-switch` 0.2.1 and `@contrib/audio-amp` 0.2.1, which bind these three part numbers with the rotations this board read (`tools/sourcing_data/jlc_previews/2026-11-12-owt-rev-c/`). The package that was previewed pinned 0.1.2, 0.2.0 and 0.2.0, with no binding for them; it is kept unchanged in `tools/sourcing_data/jlc_previews/2026-11-11-board-4/package/`.
 - **C19666 and C23630 are entries of the 16 V parts.** The OpenWalkieTalkie design instantiates the 10 V parts (`C_4u7_10V_X5R_0603`, `C_2u2_10V_X5R_0603`), whose entries are other part numbers. A binding from this board therefore lands on the 16 V parts. The order's placements become bound only if the design uses those, or the 10 V parts gain these entries (a 16 V part does satisfy a 10 V requirement, but that is a library decision).
 - Each row declares a local part with the map row's identity on the library entry's device type and land, as on `lcsc-batch-2-passive`.
 

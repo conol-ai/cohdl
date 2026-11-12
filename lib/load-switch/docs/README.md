@@ -73,3 +73,12 @@ The `sf32-miniboard` example had worked around the wrong map with a local
 `SGM2554A_CORRECT` device on this land, under the same ordering code. It now
 pins load-switch 0.2.0 and uses `LOADSW_SGM2554` directly; its connectivity
 is unchanged.
+
+## LCSC binding for TPS22918DBVR (0.2.1)
+
+`LOADSW_TPS22918DBVR` binds its primary to LCSC C131941 with a half-turn map: `supplier lcsc "C131941" rotate 180`. The part number is in `tools/sourcing_data/lcsc_map.json` (exact rule, 2026-11-07).
+
+- **Why a map.** On preview board 4 (`tools/sourcing_data/jlc_previews/2026-11-11-board-4/`, section A), placed with no mapping, the assembler's pin 1 for C131941 lay half a turn from our pad 1 on all four copies, top and bottom, at 0° and 37°: 183.0°, 183.0°, 182.6° and 181.8°, on our pad 4. `FP_TI_DBV0006A` follows TI's land drawing and stays where it is; the binding carries the turn.
+- **Confirmed with the map applied.** The frame row `owtc-fptidbv0006a-c131941` cites a real board, OpenWalkieTalkie Rev C (`tools/sourcing_data/jlc_previews/2026-11-12-owt-rev-c/`). With `rotate 180` applied, the pin 1 mark of its two copies (U2 and U10, both on the bottom, half a turn apart) read 357.5° and 358.9°, 0.13 mm and 0.08 mm from pad 1's centre, with the model's leads on our pads. Both boards pinned the same `load-switch` 0.2.0 content.
+- **The map is this part number's, not the land's.** C2 frame board 1 read `rotate 270` for C12044 on this same `FP_TI_DBV0006A`; its frame row is still keyed to 0.1.2 and binds nothing. Do not copy `rotate 180` to another part number on this land: each needs its own preview reading.
+- **What changes in output.** No land, pin or part identity changed from 0.2.0. A plain `build` writes the same BOM and CPL; a design that places `LOADSW_TPS22918DBVR` gains the part's `LCSC` field in its netlist. `--supplier lcsc` writes the turn into the LCSC CPL.

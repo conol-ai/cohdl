@@ -1,0 +1,4 @@
+LCSC Part #,Designators,CoHDL part,Board footprint,Mapping applied,Reading,Verdict,Mapping implied
+C189961,U1,contrib_audio_amp::AMP_NS4150B,contrib_audio_amp-SOP8P65X490X110N,"board-4 reading: rotate 270, offset (0, 0)","U1: mark at (+0.94, -2.87) from origin, pad 1 at (+0.97, -2.17); delta 5.9 deg. mark and by eye: pin 1 on pad 1's lead, beside the silkscreen dot",CONFIRMED,
+C131941,U2 U10,load_switch::LOADSW_TPS22918DBVR,load_switch-FP_TI_DBV0006A,"board-4 reading: rotate 180, offset (0, 0)","U2: mark at (-0.95, -1.43) from origin, pad 1 at (-0.95, -1.30); delta 357.5 deg | U10: mark at (+0.97, +1.38) from origin, pad 1 at (+0.95, +1.30); delta 358.9 deg. mark and by eye: pin 1 on pad 1's lead",CONFIRMED,
+C7519,U20,esd::ESD_USBLC6,esd-FP_SOT_23_6,"board-4 reading: rotate 270, offset (0, 0)","U20: mark at (+0.90, -1.69) from origin, pad 1 at (+0.95, -1.15); delta 11.7 deg. mark and by eye: pin 1 on pad 1's lead, beside the silkscreen dot",CONFIRMED,

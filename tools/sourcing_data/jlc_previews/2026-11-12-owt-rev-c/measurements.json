@@ -1,0 +1,66 @@
+[
+ {
+  "ref": "U1",
+  "side": "top",
+  "kicad_angle": -90.0,
+  "pad1": [
+   0.975,
+   -2.175
+  ],
+  "dots": [
+   [
+    0.94,
+    -2.87
+   ]
+  ],
+  "delta_ccw_from_top": 5.9
+ },
+ {
+  "ref": "U2",
+  "side": "bottom",
+  "kicad_angle": -90.0,
+  "pad1": [
+   -0.95,
+   -1.3
+  ],
+  "dots": [
+   [
+    -0.95,
+    -1.43
+   ]
+  ],
+  "delta_ccw_from_top": 357.5
+ },
+ {
+  "ref": "U10",
+  "side": "bottom",
+  "kicad_angle": 90.0,
+  "pad1": [
+   0.95,
+   1.3
+  ],
+  "dots": [
+   [
+    0.97,
+    1.38
+   ]
+  ],
+  "delta_ccw_from_top": 358.9
+ },
+ {
+  "ref": "U20",
+  "side": "top",
+  "kicad_angle": -90.0,
+  "pad1": [
+   0.95,
+   -1.15
+  ],
+  "dots": [
+   [
+    0.9,
+    -1.69
+   ]
+  ],
+  "delta_ccw_from_top": 11.7
+ }
+]

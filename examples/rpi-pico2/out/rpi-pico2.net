@@ -508,6 +508,7 @@
       (fields
         (field (name "MPN") "USBLC6-2SC6")
         (field (name "MFR") "STMicroelectronics")
+        (field (name "LCSC") "C7519")
       )
       (sheetpath (names "/") (tstamps "/"))
       (tstamp "00000032")

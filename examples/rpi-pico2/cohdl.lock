@@ -22,8 +22,8 @@ hash = "sha256:fb008f4540ab035f26d2757828b90f0dc254ad71461411256f9de7339f366765"
 
 [[package]]
 name = "esd"
-version = "0.1.2"
-hash = "sha256:6195444ed69f363bdc42663e34b9e9c97f0335034ea0dd763573422a4c2595f6"
+version = "0.1.3"
+hash = "sha256:db6bdabf15582aa029bc7a95cff8a375bc782ca64c2fa63db55a77c3d7fb201c"
 
 [[package]]
 name = "flash"

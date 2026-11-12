@@ -37,8 +37,8 @@ hash = "sha256:9e34b82cb21c16072962243eb392e088e3d354c6dc61f6ae7ea874e06c6f7d4f"
 
 [[package]]
 name = "esd"
-version = "0.1.2"
-hash = "sha256:6195444ed69f363bdc42663e34b9e9c97f0335034ea0dd763573422a4c2595f6"
+version = "0.1.3"
+hash = "sha256:db6bdabf15582aa029bc7a95cff8a375bc782ca64c2fa63db55a77c3d7fb201c"
 
 [[package]]
 name = "flash"
@@ -47,8 +47,8 @@ hash = "sha256:09f5c34710bd70d8c866646c424f980fa09e6873d34ed538543a0c58d15f74bf"
 
 [[package]]
 name = "load-switch"
-version = "0.2.0"
-hash = "sha256:2306e411cb8e0e5252c392d17995533f6982f79bddafbcb954ef6f56af2fbc96"
+version = "0.2.1"
+hash = "sha256:e69e7f031d73762c236954e235987e2b01c44c31cd2316781213a27812a2762d"
 
 [[package]]
 name = "misc"

@@ -45,3 +45,12 @@ design that left `SD_MODE` unconnected now fails `cohdl check` after
 `cohdl update`; wire it to the logic level or pull-up for the channel it
 needs. The pin number, name and role, the part identity and the land are
 unchanged.
+
+## LCSC binding for NS4150B (0.2.1)
+
+`AMP_NS4150B` binds its primary to LCSC C189961 with a quarter-turn map: `supplier lcsc "C189961" rotate 270`. The part number is in `tools/sourcing_data/lcsc_map.json` (alias rule, 2026-11-07). `AMP_MAX98357A` stays unbound: no preview has read it.
+
+- **Why a map.** On preview board 4 (`tools/sourcing_data/jlc_previews/2026-11-11-board-4/`, section A), placed with no mapping, the assembler's pin 1 for C189961 lay a quarter turn from our pad 1 on all four copies, top and bottom, at 0° and 37°: 94.8°, 95.2°, 95.1° and 94.7°. The model's leads ran above and below where our pads are left and right. `SOP8P65X490X110N` follows the datasheet (`footprint-derivations.md`) and stays where it is; the binding carries the turn.
+- **Confirmed with the map applied.** The frame row `owtc-sop8p65x490x110n-c189961` cites a real board, OpenWalkieTalkie Rev C (`tools/sourcing_data/jlc_previews/2026-11-12-owt-rev-c/`). With `rotate 270` applied, U1's pin 1 mark read 5.9° from pad 1, on pad 1's lead, with the model's eight leads on our eight pads. That board has one copy of this part; board 4 has four, without the map. Both boards pinned the same `@contrib/audio-amp` 0.2.0 content.
+- **The map is this part number's.** It says how the assembler drew C189961. Another part number on this land needs its own preview reading.
+- **What changes in output.** No land, pin or part identity changed from 0.2.0. A plain `build` writes the same BOM and CPL; a design that places `AMP_NS4150B` gains the part's `LCSC` field in its netlist. `--supplier lcsc` writes the turn into the LCSC CPL.

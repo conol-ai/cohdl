@@ -52,3 +52,12 @@ redistributed here.
 ## LCSC binding (esd 0.1.2)
 
 `ESD_H5VL10B` binds its primary to LCSC C7420372 with a zero map: `supplier lcsc "C7420372"`. The part number is in `tools/sourcing_data/lcsc_map.json` since the B2 full run, and its frame row `c2b1-dfn1006-c7420372` cites C2 frame board 1 (`tools/sourcing_data/jlc_previews/2026-10-30-c2-board-1/`), where all four copies sat centred on their pads. That preview shows no polarity mark for this part. The H5VL10B is symmetric and bidirectional (`h5vl10b.evidence.md`), so the two pads are interchangeable and a half turn would not matter. No land changed from 0.1.1. Both `esd` frame rows now name 0.1.2. C85364's row keeps its per-part `rotate 180`, but no `esd` part lists that part number, so it binds nothing.
+
+## LCSC binding for USBLC6-2SC6 (esd 0.1.3)
+
+`ESD_USBLC6` binds its primary to LCSC C7519 with a quarter-turn map: `supplier lcsc "C7519" rotate 270`. The part number is in `tools/sourcing_data/lcsc_map.json` (exact rule, 2026-11-07).
+
+- **Why a map.** On preview board 4 (`tools/sourcing_data/jlc_previews/2026-11-11-board-4/`, section A), placed with no mapping, the assembler's pin 1 for C7519 lay a quarter turn from our pad 1 on all four copies, top and bottom, at 0° and 37°: 100.1°, 100.8°, 100.3° and 100.1°. The model's leads ran above and below where our pads are left and right. `FP_SOT_23_6` follows the datasheet and stays where it is; the binding carries the turn.
+- **Confirmed with the map applied.** The frame row `owtc-fpsot236-c7519` cites a real board, OpenWalkieTalkie Rev C (`tools/sourcing_data/jlc_previews/2026-11-12-owt-rev-c/`). With `rotate 270` applied, U20's pin 1 mark read 11.7° from pad 1: the model's six leads sit on our six pads and its dimple is at pad 1's corner. The mark is drawn beside the lead, outside the body, so it reads about 10° past the pad on both boards. That board has one copy of this part; board 4 has four, without the map. Both boards pinned the same `esd` 0.1.2 content.
+- **The map is this part number's, not the land's.** C2 frame board 1 read `rotate 180` for C85364 on this same `FP_SOT_23_6`. Do not copy `rotate 270` to another part number on this land: each needs its own preview reading.
+- **What changes in output.** No land changed from 0.1.2. A plain `build` writes the same BOM and CPL; a design that places `ESD_USBLC6` gains the part's `LCSC` field in its netlist. `--supplier lcsc` writes the turn into the LCSC CPL. All three `esd` frame rows now name 0.1.3; C85364's row still binds nothing.

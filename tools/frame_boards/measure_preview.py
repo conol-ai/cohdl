@@ -88,10 +88,29 @@ def is_hole(px):
     return max(px[0], px[1], px[2]) < 60
 
 
+# An edge of the board's bounding box must show in at least this many rows (or
+# columns) of the export, and in at least 1/EDGE_SHARE of them.
+EDGE_ROWS, EDGE_SHARE = 8, 64
+
+
+def _extent(firsts, lasts):
+    """Where the green starts and ends along one axis, from each line's first and
+    last green pixel: the outermost position that enough lines reach."""
+    need = max(EDGE_ROWS, len(firsts) // EDGE_SHARE)
+    reached = sorted(v for v in firsts if v is not None)
+    if len(reached) < need:
+        sys.exit("measure_preview.py: the export shows no board (too little green)")
+    return reached[need - 1], sorted((v for v in lasts if v is not None), reverse=True)[need - 1] + 1
+
+
 class View:
     """An export, calibrated to board millimetres through the board outline.
 
-    The green board spans the outline. A bottom export is the view from below,
+    The green board's bounding box is the outline's. Each edge of it is read
+    over the whole export, not on one line: the board need not be a rectangle,
+    and a part may overhang or cover an edge, as long as the edge shows bare
+    in enough rows or columns (`_extent`). A few stray green pixels outside
+    the board do not move an edge. A bottom export is the view from below,
     mirrored left to right, so its x runs from the right edge.
     """
 
@@ -100,10 +119,15 @@ class View:
         x0, y0, x1, y1 = outline
         w, h, self.bpp, self.rows = load_bmp(path)
         bpp, rows = self.bpp, self.rows
-        mid = rows[h // 2]
-        xs = [x for x in range(w) if is_green(mid[x * bpp:x * bpp + 3])]
-        ys = [y for y in range(h) if is_green(rows[y][(w // 2) * bpp:(w // 2) * bpp + 3])]
-        self.left, self.right, self.top, self.low = min(xs), max(xs) + 1, min(ys), max(ys) + 1
+
+        def ends(n, green):
+            first = next((i for i in range(n) if green(i)), None)
+            return first, first if first is None else next(i for i in range(n - 1, -1, -1) if green(i))
+
+        across = [ends(w, lambda x, row=row: is_green(row[x * bpp:x * bpp + 3])) for row in rows]
+        down = [ends(h, lambda y, at=x * bpp: is_green(rows[y][at:at + 3])) for x in range(w)]
+        self.left, self.right = _extent(*zip(*across))
+        self.top, self.low = _extent(*zip(*down))
         self.sx, self.sy = (self.right - self.left) / (x1 - x0), (self.low - self.top) / (y1 - y0)
 
     def px(self, x, y):

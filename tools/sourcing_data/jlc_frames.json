@@ -580,7 +580,7 @@
     {
       "id": "c2b1-sot236_esd-c85364",
       "package": "esd",
-      "package_version": "0.1.2",
+      "package_version": "0.1.3",
       "footprint": "FP_SOT_23_6",
       "supplier": "lcsc",
       "pn": "C85364",
@@ -630,7 +630,7 @@
     {
       "id": "c2b1-dfn1006-c7420372",
       "package": "esd",
-      "package_version": "0.1.2",
+      "package_version": "0.1.3",
       "footprint": "FP_Hongjiacheng_DFN1006_2L",
       "supplier": "lcsc",
       "pn": "C7420372",
@@ -2087,6 +2087,84 @@
         "date": "2026-11-09",
         "record": "tools/sourcing_data/jlc_previews/2026-11-09-reverify-2/README.md",
         "note": "read from the body, not a mark angle: with rotate 270 applied the drawn body is 2.97-3.00 x 1.96-1.98 mm, its long axis within 0.4 deg of the pad 1 to pad 8 axis, centred within 0.042 mm, and its pin 1 dimple 0.28-0.29 mm from pad 1 (pad 2 0.42-0.44 mm) on all four copies, top and bottom, 0 and 37 deg (body.json). The pin 1 mark's ray reading of 353.0-6.5 deg comes from the mark sitting outside the body corner. XSON is leadless, so the model's terminals are not seen"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "owtc-fpsot236-c7519",
+      "package": "esd",
+      "package_version": "0.1.3",
+      "footprint": "FP_SOT_23_6",
+      "supplier": "lcsc",
+      "pn": "C7519",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 270
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 270
+      },
+      "exception": "Per-part mapping: the supplier's SOT-23-6 model for C7519 lies a quarter turn from this land; preview board 4 read its pin 1 at 100.1-100.8 deg with no mapping. It is this part number's, not the land's: C85364 on the same land reads rotate 180",
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-12",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-12-owt-rev-c/README.md",
+        "note": "with rotate 270 applied on a real board (OpenWalkieTalkie Rev C, U20, top), the pin 1 mark read 11.7 deg from pad 1, beside pad 1's lead, with the model's six leads on our pads and its dimple at pad 1's corner. Raw reading with no mapping: tools/sourcing_data/jlc_previews/2026-11-11-board-4/README.md section A, four copies (top and bottom, 0 and 37 deg) at 100.1, 100.8, 100.3 and 100.1 deg. Same esd 0.1.2 content hash on both boards; the land is unchanged in 0.1.3"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "owtc-fptidbv0006a-c131941",
+      "package": "load-switch",
+      "package_version": "0.2.1",
+      "footprint": "FP_TI_DBV0006A",
+      "supplier": "lcsc",
+      "pn": "C131941",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 180
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 180
+      },
+      "exception": "Per-part mapping: the supplier's SOT-23-6 model for C131941 lies half a turn from this land; preview board 4 read its pin 1 at 181.8-183.0 deg with no mapping. It is this part number's, not the land's: C12044 on the same land reads rotate 270",
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-12",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-12-owt-rev-c/README.md",
+        "note": "with rotate 180 applied on a real board (OpenWalkieTalkie Rev C, U2 and U10, bottom, half a turn apart), the pin 1 mark read 357.5 and 358.9 deg, 0.13 and 0.08 mm from pad 1's centre, with the model's leads on our pads. Raw reading with no mapping: tools/sourcing_data/jlc_previews/2026-11-11-board-4/README.md section A, four copies (top and bottom, 0 and 37 deg) at 183.0, 183.0, 182.6 and 181.8 deg. Same load-switch 0.2.0 content hash on both boards; the land is unchanged in 0.2.1"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "owtc-sop8p65x490x110n-c189961",
+      "package": "@contrib/audio-amp",
+      "package_version": "0.2.1",
+      "footprint": "SOP8P65X490X110N",
+      "supplier": "lcsc",
+      "pn": "C189961",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 270
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 270
+      },
+      "exception": "Per-part mapping: the supplier's MSOP-8 model for C189961 lies a quarter turn from this land; preview board 4 read its pin 1 at 94.7-95.2 deg with no mapping",
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-12",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-12-owt-rev-c/README.md",
+        "note": "with rotate 270 applied on a real board (OpenWalkieTalkie Rev C, U1, top), the pin 1 mark read 5.9 deg from pad 1, on pad 1's lead, with the model's eight leads on our pads. Raw reading with no mapping: tools/sourcing_data/jlc_previews/2026-11-11-board-4/README.md section A, four copies (top and bottom, 0 and 37 deg) at 94.8, 95.2, 95.1 and 94.7 deg. Same @contrib/audio-amp 0.2.0 content hash on both boards; the land is unchanged in 0.2.1"
       },
       "evidence_ref": null
     },

@@ -445,10 +445,41 @@ def run_preview(package, run, downloads, board=None):
         if (!/Assembly Side/.test(document.body.innerText)) box.querySelector(".switch-box").click(); return "ok"; })()""")
     wait("String(/Assembly Side/.test(document.body.innerText))", lambda v: v == "true", 20, "the PCBA options")
     side = "Both Sides" if sides["Bottom"] and sides["Top"] else ("Bottom Side" if sides["Bottom"] else "Top Side")
-    pick = """(() => { const b = [...document.querySelectorAll(".btn.btnlg")].find(e => e.textContent.trim() === %s);
+    # Several option groups can carry a button with the same text (a multilayer board's
+    # quote has more groups than a two-layer one), so take the one nearest the
+    # "Assembly Side" label: the fewest ancestors up to an element whose text holds it.
+    pick = """(() => { const depth = e => { let k = 0; for (let a = e; a && a !== document.body; a = a.parentElement, k++)
+            if (/Assembly Side/.test(a.innerText || "")) return k; return 1e9; };
+        const all = [...document.querySelectorAll(".btn.btnlg")].filter(e => e.textContent.trim() === %s);
+        const b = all.slice().sort((p, q) => depth(p) - depth(q))[0];
         return b ? b.className : ""; })()""" % json.dumps(side)
+    # On a multilayer board the quote starts on the Economic PCBA type, which offers one
+    # side only: the wanted side is then disabled until the Standard type is chosen.
+    if js(pick.replace("return b ? b.className", "return b ? String(!!b.disabled)")) == "true":
+        kind = pick.replace(json.dumps(side), json.dumps("Standard")).replace("Assembly Side", "PCBA Type")
+        js(kind.replace("return b ? b.className", "if (b) b.click(); return b ? b.className"))
+        wait(kind, lambda v: "cur" in v.split(), 20, "the Standard PCBA type (%s is not offered on Economic)" % side)
+        print("PCBA Type: Standard, because %s is not offered on Economic for this board" % side)
     js(pick.replace("return b ? b.className", "if (b) b.click(); return b ? b.className"))
-    wait(pick, lambda v: "cur" in v.split(), 20, "the %s selection" % side)
+    try:
+        wait(pick, lambda v: "cur" in v.split(), 20, "the %s selection" % side)
+    except Stop as stop:
+        # Say what the page offers, so a person can see why the selection did not take.
+        seen = js(pick.replace('return b ? b.className : "";', """return JSON.stringify({
+            candidates: all.map(e => ({cls: e.className, depth: depth(e), disabled: !!e.disabled,
+                pointer: getComputedStyle(e).pointerEvents, group: ((e.parentElement || e).innerText || "").slice(0, 80)})),
+            dialogs: [...document.querySelectorAll("[role=dialog], .el-dialog__wrapper, .el-message-box__wrapper")]
+                .filter(d => d.offsetParent !== null).map(d => (d.innerText || "").slice(0, 200)),
+            options: (() => { const h = [...document.querySelectorAll("h2")].find(e => [...e.childNodes].some(n =>
+                n.nodeType === 3 && n.textContent.trim() === "PCB Assembly")); let box = h;
+                for (let k = 0; box && k < 3; k++) box = box.parentElement; if (!box) return [];
+                return [...box.querySelectorAll(".btn.btnlg")].map(e => e.textContent.trim().slice(0, 40) +
+                    (e.className.split(" ").includes("cur") ? " [cur]" : "") + (e.disabled ? " [disabled]" : "")); })(),
+            text: (() => { const h = [...document.querySelectorAll("h2")].find(e => [...e.childNodes].some(n =>
+                n.nodeType === 3 && n.textContent.trim() === "PCB Assembly")); let box = h;
+                for (let k = 0; box && k < 3; k++) box = box.parentElement;
+                return box ? (box.innerText || "").replace(/\\s+/g, " ").slice(0, 1500) : ""; })()});"""))
+        raise Stop("%s; the page shows %s" % (stop, seen[:4000]))
     agreed = js("""(() => { const r = document.evaluate("//*[contains(normalize-space(.), 'JLCPCB assembly Service')]",
         document.body, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null); for (let i = r.snapshotLength - 1; i >= 0; i--) {
         const cb = r.snapshotItem(i).querySelector("input[type=checkbox]"); if (cb) return String(cb.checked); } return "none"; })()""")

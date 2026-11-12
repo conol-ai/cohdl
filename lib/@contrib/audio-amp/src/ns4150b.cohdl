@@ -20,7 +20,8 @@ impl IC for NS4150B {}
 
 #[doc("docs/ns4150b.pdf")]
 pub part AMP_NS4150B: NS4150B {
-    primary { mfr: "NSIWAY", mpn: "NS4150B", footprint: SOP8P65X490X110N }
+    primary { mfr: "NSIWAY", mpn: "NS4150B", footprint: SOP8P65X490X110N,
+              supplier lcsc "C189961" rotate 270 }
 }
 
 // IPC-7351 nominal-density MSOP-8 land derived from the complete Nsiway

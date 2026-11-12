@@ -80,6 +80,76 @@ def read(paint, fp, method):
         return mp.body(view, fp, method)
 
 
+def view_of(paint):
+    with tempfile.TemporaryDirectory() as td:
+        write_bmp(Path(td) / "top.bmp", paint)
+        return mp.View(str(Path(td) / "top.bmp"), (0.0, 0.0, 9.0, 9.0), False)
+
+
+def extent(view):
+    return view.left, view.right, view.top, view.low
+
+
+class OutlineCalibrationTests(unittest.TestCase):
+    """The export is calibrated on the green's bounding box, read over the whole image."""
+
+    MARGIN = 20  # px of white around the board, which spans 360 x 360 px: 9 mm at 40 px/mm
+
+    def board(self, x, y):
+        return self.MARGIN <= x < 400 - self.MARGIN and self.MARGIN <= y < 400 - self.MARGIN
+
+    def test_a_rectangle_reads_as_its_middle_row_and_column_did(self):
+        view = view_of(lambda x, y: GREEN if self.board(x, y) else WHITE)
+        self.assertEqual(extent(view), (20, 380, 20, 380))
+        self.assertEqual((view.sx, view.sy), (40.0, 40.0))
+
+    def test_a_part_over_the_edge_and_a_cut_away_corner_do_not_shorten_the_board(self):
+        # A grey connector overhangs the top edge across the middle column, a grey
+        # switch the left edge across the middle row, and the lower left quarter of
+        # the board is cut away: the middle column ends half way down.
+        def paint(x, y):
+            if 150 <= x < 250 and y < 90 or x < 60 and 170 <= y < 230:
+                return GREY
+            if not self.board(x, y) or (x < 210 and y >= 200):
+                return WHITE
+            return GREEN
+        self.assertEqual(extent(view_of(paint)), (20, 380, 20, 380))
+        # What the middle row and column alone would have read: a board 320 x 110 px.
+        middle_row = [x for x in range(400) if paint(x, 200) == GREEN]
+        middle_column = [y for y in range(400) if paint(200, y) == GREEN]
+        self.assertEqual((min(middle_row), max(middle_column) + 1), (210, 200))
+
+    def test_a_few_stray_green_pixels_outside_the_board_do_not_move_an_edge(self):
+        stray = {(5, y) for y in range(100, 100 + mp.EDGE_ROWS - 1)} | {(x, 395) for x in range(40, 40 + mp.EDGE_ROWS - 1)}
+        view = view_of(lambda x, y: GREEN if self.board(x, y) or (x, y) in stray else WHITE)
+        self.assertEqual(extent(view), (20, 380, 20, 380))
+
+    def test_an_edge_that_shows_in_too_few_rows_is_not_read(self):
+        # A tab 5 px tall sticks out to the left: fewer rows than an edge needs.
+        view = view_of(lambda x, y: GREEN if self.board(x, y) or (10 <= x < 20 and 200 <= y < 205) else WHITE)
+        self.assertEqual(view.left, 20)
+
+    def test_an_export_with_no_board_stops(self):
+        with self.assertRaises(SystemExit):
+            view_of(lambda x, y: WHITE)
+
+    def test_every_archived_export_calibrates_as_its_middle_row_and_column_did(self):
+        if sys.platform != "darwin" or not shutil.which("sips"):
+            self.skipTest("needs macOS sips to convert the archived exports")
+        exports = sorted(p for p in PREVIEWS.glob("*/*") if p.name in ("top.png", "bottom.png", "top.jpg", "bottom.jpg"))
+        self.assertGreaterEqual(len(exports), 21)
+        with tempfile.TemporaryDirectory() as td:
+            for export in exports:
+                bmp = Path(td) / "export.bmp"
+                subprocess.run(["sips", "-s", "format", "bmp", str(export), "--out", str(bmp)], check=True, capture_output=True)
+                w, h, bpp, rows = mp.load_bmp(str(bmp))
+                xs = [x for x in range(w) if mp.is_green(rows[h // 2][x * bpp:x * bpp + 3])]
+                ys = [y for y in range(h) if mp.is_green(rows[y][(w // 2) * bpp:(w // 2) * bpp + 3])]
+                with self.subTest(export=str(export.relative_to(PREVIEWS))):
+                    self.assertEqual(extent(mp.View(str(bmp), (0.0, 0.0, 1.0, 1.0), False)),
+                                     (min(xs), max(xs) + 1, min(ys), max(ys) + 1))
+
+
 class BodyMethodTests(unittest.TestCase):
     def test_method_1_reads_the_text_with_the_model_and_method_2_the_model_alone(self):
         for angle in (0, 90, 37):

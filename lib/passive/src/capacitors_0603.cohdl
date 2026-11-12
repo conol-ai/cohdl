@@ -558,7 +558,7 @@ pub part C_2u2_16V_X5R_0603: MLCC<2.2uF, 16V, 10%>[C0603] {
 pub part C_4u7_16V_X5R_0603: MLCC<4.7uF, 16V, 10%>[C0603] {
     primary { mfr: "Yageo", mpn: "CC0603KRX5R7BB475", footprint: CHIP_0603 }
     alt { mfr: "Samsung", mpn: "CL10A475KO8NFN" }
-    alt { mfr: "Samsung", mpn: "CL10A475KO8NNNC" }
+    alt { mfr: "Samsung", mpn: "CL10A475KO8NNNC", supplier lcsc "C19666" }
 }
 
 #[doc("docs/yageo_x5r_4v_to_50v_datasheet_en.pdf")]
@@ -1678,7 +1678,8 @@ pub part C_1n2_50V_C0G_0603: MLCC<1.2nF, 50V, 5%>[C0603] {
 
 #[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_1n5_50V_C0G_0603: MLCC<1.5nF, 50V, 5%>[C0603] {
-    primary { mfr: "Yageo", mpn: "CC0603JRNPO9BN152", footprint: CHIP_0603 }
+    primary { mfr: "Yageo", mpn: "CC0603JRNPO9BN152", footprint: CHIP_0603,
+              supplier lcsc "C107039" }
     alt { mfr: "Samsung", mpn: "CL10C152JB81IN" }
 }
 

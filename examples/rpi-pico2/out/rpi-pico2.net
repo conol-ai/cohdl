@@ -257,6 +257,7 @@
       (fields
         (field (name "MPN") "DFE201612E-2R2M=P2")
         (field (name "MFR") "Murata")
+        (field (name "LCSC") "C337893")
       )
       (sheetpath (names "/") (tstamps "/"))
       (tstamp "00000019")

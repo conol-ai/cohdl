@@ -235,6 +235,40 @@ class W3GroupsTests(unittest.TestCase):
         self.assertEqual(outcome(committed), outcome(first))
         self.assertEqual({g["package_version"] for g in committed["groups"]}, {"0.2.7"})
 
+    def test_the_2026_11_12c_report_is_the_tree_at_passive_0_2_8(self):
+        # The same rule and records again, on the tree that adds direct rows read on a real
+        # board (jlc_previews/2026-11-12-owt-rev-c, passive 0.2.8). That record has no
+        # w3.json, so the rule judges none of its rows: no group's outcome differs, and the
+        # two 0402 Yageo RC members it read are direct rows that are not samples.
+        before = json.loads((wg.DATA / "w3_sampling/2026-11-12b/groups.json").read_text(encoding="utf-8"))
+        folder = wg.DATA / "w3_sampling/2026-11-12c"
+        committed = json.loads((folder / "groups.json").read_text(encoding="utf-8"))
+        self.assertEqual((folder / "groups.md").read_text(encoding="utf-8"), wg.render(committed))
+        self.assertEqual(committed["sources"]["lib/passive"], "0.2.8")
+        self.assertEqual((committed["rule"], committed["views"]), (before["rule"], before["views"]))
+        self.assertEqual({name: digest for name, digest in committed["sources"].items()
+                          if name not in ("lib/passive", "jlc_frames.json")},
+                         {name: digest for name, digest in before["sources"].items()
+                          if name not in ("lib/passive", "jlc_frames.json")})
+        outcome = lambda report: [(g["footprint"], g["type"], g["mfr"], g["series"], g["status"], g["passed"],
+                                   g["failed"], g["not_drawn"], g["bias_unsupported"], g["not_drawn_share"],
+                                   g["sample"], g["more_needed"])
+                                  for g in report["groups"]]
+        self.assertEqual(outcome(committed), outcome(before))
+        self.assertEqual({g["package_version"] for g in committed["groups"]}, {"0.2.8"})
+        record = "tools/sourcing_data/jlc_previews/2026-11-12-owt-rev-c/README.md"
+        added = lambda g, old: sorted(d["pn"] for d in g["direct"] if d["record"] == record
+                                      and d["pn"] not in {o["pn"] for o in old["direct"]})
+        new = {(g["footprint"], g["mfr"], g["series"]): added(g, old)
+               for g, old in zip(committed["groups"], before["groups"]) if added(g, old)}
+        self.assertEqual(new, {("CHIP_0402", "Yageo", "CC"): ["C106255", "C107006", "C113780"],
+                               ("CHIP_0402", "Yageo", "RC"): ["C137990", "C477807"],
+                               ("CHIP_0603", "Samsung", "CL"): ["C19666"],
+                               ("CHIP_0603", "Yageo", "CC"): ["C107039"]})
+        rc = next(g for g in committed["groups"] if (g["footprint"], g["mfr"], g["series"]) == ("CHIP_0402", "Yageo", "RC"))
+        self.assertEqual(rc["direct_not_judged"], ["C137990", "C477807"])
+        self.assertFalse({"C137990", "C477807"} & {p["pn"] for p in rc["passed"]})
+
     def test_samples_follow_the_rule(self):
         for g in self.report["groups"]:
             rows = {row[0]: row for row in g["member_rows"]}

@@ -176,6 +176,7 @@
       (fields
         (field (name "MPN") "CC0402KRX5R6BB474")
         (field (name "MFR") "Yageo")
+        (field (name "LCSC") "C106255")
       )
       (sheetpath (names "/") (tstamps "/"))
       (tstamp "00000011")
@@ -387,6 +388,7 @@
       (fields
         (field (name "MPN") "WPN201610U4R7MT")
         (field (name "MFR") "Sunlord")
+        (field (name "LCSC") "C97018")
       )
       (sheetpath (names "/") (tstamps "/"))
       (tstamp "00000026")
@@ -397,6 +399,7 @@
       (fields
         (field (name "MPN") "DFE201612E-2R2M=P2")
         (field (name "MFR") "Murata")
+        (field (name "LCSC") "C337893")
       )
       (sheetpath (names "/") (tstamps "/"))
       (tstamp "00000027")

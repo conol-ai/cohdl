@@ -150,3 +150,36 @@ All three have a zero map. That makes 36 bindings: 25 resistors and 11 MLCCs, wi
 **Lands.** No land changed: `pads.cohdl` and `footprints.cohdl` are byte for byte those of 0.2.6, and the record pins their SHA-256. Editing either file lapses every inferred row in CI. Every `passive` frame row now names 0.2.7.
 
 **What changes in a build.** A plain `build` writes the same neutral BOM and CPL. The KiCad netlist gains an `LCSC` field for each instance whose primary entry is bound. `cohdl build DIR --supplier lcsc` selects these part numbers as for any other binding.
+
+## Bindings read on a real board: OpenWalkieTalkie Rev C (passive 0.2.8)
+
+0.2.8 adds seven bindings and gives two existing ones their own evidence, for 886 bindings in all. Each part number was placed with no mapping on the assembler's preview of a real board, OpenWalkieTalkie Rev C, on 2026-11-12, and its drawn body read along its land and centred on it (`measure_preview.py` body method 2). The record is `tools/sourcing_data/jlc_previews/2026-11-12-owt-rev-c/`: the exports, the 24 placements' readings, which reproduce from the exports byte for byte, and what they are limited to. Each frame row cites it directly, with a zero map.
+
+| LCSC | Part | Entry | Land | This board: copies; axis; largest offset | Preview board 4 (2026-11-11), four copies | Binding |
+|---|---|---|---|---|---|---|
+| C107039 | `C_1n5_50V_C0G_0603` | primary Yageo `CC0603JRNPO9BN152` | `CHIP_0603` | 1; +0.1°; 0.013 mm | −0.7…+0.1°; 0.030 mm | new |
+| C113780 | `C_1n_50V_C0G_0402` | primary Yageo `CC0402JRNPO9BN102` | `CHIP_0402` | 10; −0.2…+0.4°; 0.024 mm | −1.1…+1.6°; 0.026 mm | new |
+| C107006 | `C_330p_50V_C0G_0402` | primary Yageo `CC0402JRNPO9BN331` | `CHIP_0402` | 3; −0.3…+0.1°; 0.022 mm | −1.9…+0.8°; 0.026 mm | new |
+| C19666 | `C_4u7_16V_X5R_0603` | alt Samsung `CL10A475KO8NNNC` | `CHIP_0603` | 4; −0.2…0.0°; 0.014 mm | −0.5…+0.4°; 0.024 mm | new |
+| C106255 | `C_470n_10V_X5R_0402` | primary Yageo `CC0402KRX5R6BB474` | `CHIP_0402` | 1; 0.0°; 0.014 mm | −2.9…+0.4°; 0.019 mm | new |
+| C97018 | `IND_4U7_WPN201610U` | primary Sunlord `WPN201610U4R7MT` | `FP_L_WPN201610U_2016Metric` | 1; 0.0°; 0.012 mm | −0.3…+0.5°; 0.014 mm | new |
+| C337893 | `IND_2U2` | primary Murata `DFE201612E-2R2M=P2` | `FP_L_0806_2016Metric` | 2; 0.0°; 0.013 mm | −0.9…+3.0°; 0.035 mm | new |
+| C477807 | `R_86K6_F_0402` | primary Yageo `RC0402FR-0786K6L` | `CHIP_0402` | 1; −0.1°; 0.003 mm | not placed | bound since 0.2.7 by W3 inference; now by its own row |
+| C137990 | `R_3K6_F_0402` | primary Yageo `RC0402FR-073K6L` | `CHIP_0402` | 1; 0.0°; 0.013 mm | not placed | bound since 0.2.7 by W3 inference; now by its own row |
+
+- **Which entry.** A part number is bound on the entry `tools/sourcing_data/lcsc_map.json` gives it by manufacturer and exact part number. C19666 is a 16 V part; the board used it where its design asks for 10 V, and the binding is on `C_4u7_16V_X5R_0603`.
+- **Orientation.** None of these parts is polarised, and a body reading is blind to a half turn, so each frame is known mod 180 only. That makes no difference to the copper.
+- **The inductors are the first bindings in `inductors.cohdl`,** which is written by hand. They are judged by the drawn body alone, as chip parts are. No recorded rule names inductors for that, the way `docs/library-supplier-plan.md` §W3 names chip parts and bidirectional TVS parts, so these two rows are for the maintainer to accept or drop. C337893's model shows a terminal on each pad. C97018's is one block over both pads (2.0 × 1.6 mm): its reading shows the block's long side along the pads and its centre on them, and no more.
+- **The W3 group.** C477807 and C137990 are members of `CHIP_0402` / `ChipResistor` / Yageo / `RC`. `tools/w3_record.py` infers a row only for a member with no row of its own, so the rebuilt record (`tools/sourcing_data/w3_records/2026-11-10-chip0402-yageo-rc.json`, now at 0.2.8) has 969 members, 49 samples and 122 with no stock as before, and 796 inferred rows where it had 798. The two are not samples: the board's record has no `w3.json`, so the rule does not judge them, and the group's sample count does not rest on them. Bindings in the group: 49 sampled, 796 inferred, 2 by their own reading; 847 as before.
+- **Lands.** No land changed: `pads.cohdl`, `footprints.cohdl` and the two inductor footprints are byte for byte those of 0.2.6, which the board and preview board 4 both pinned. Every `passive` frame row now names 0.2.8.
+- **What changes in a build.** A plain `build` writes the same neutral BOM and CPL. The KiCad netlist gains an `LCSC` field for each instance whose primary entry is newly bound.
+
+**Read on the same preview, not bound here.** Each of these read along its `CHIP` land with no mapping, like the nine above; what is missing is on the library's side.
+
+| LCSC | Read on | Why not bound |
+|---|---|---|
+| C11702, C25741, C25768, C25092, C26083, C25905, C25744, C25890, C17168, C25760 | `CHIP_0402` (43 placements; eight of the ten also on preview board 4) | UNI-ROYAL `0402WGF` resistors. The library has no UNI-ROYAL entry and `lcsc_map.json` no row for them. They wait on the UNI-ROYAL decoder (#109) and the maintainer's decisions on how they enter as alternates and on the zero-ohm jumper (C17168). C25744 already has a frame row from C2 frame board 1 and stays unbound for the same reason. |
+| C15849 | `CHIP_0603` (7 placements) | Samsung `CL10A105KB8NNNC`, 1 µF 50 V. `tools/passive_data/samsung_b1.json` lists it under "no library part": the package emits no 1 µF 50 V X5R 0603. It has no row in `lcsc_map.json`. Its frame row from C2 frame board 1 stays. |
+| C97946 | `CHIP_1206` (1 placement) | No row in `lcsc_map.json`, so no confirmed manufacturer part to match an entry by. A map row comes from `tools/lcsc_backfill.py` and a confirmed page; nothing was fetched for this change. |
+
+The board also read C23733, C52923 and C1548 on `CHIP_0402` under parts of its own, not `passive` parts. C52923 (`CL05A105KA5NQNC`, an alternate of `C_1u_25V_X5R_0402`) and C23630 (`CL10A225KO8NNNC`, an alternate of `C_2u2_16V_X5R_0603`, on preview board 4 only) have an identity and an entry and are left for a change of their own; C23733 and C1548 have no row in `lcsc_map.json`.

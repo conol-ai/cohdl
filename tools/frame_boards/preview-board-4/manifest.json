@@ -2,7 +2,7 @@
  "name": "preview_board_4",
  "dependencies": {
   "std": "0.3.0",
-  "passive": "0.2.7",
+  "passive": "0.2.8",
   "esd": "0.1.3",
   "load-switch": "0.2.1",
   "@contrib/audio-amp": "0.2.1",

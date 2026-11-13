@@ -1,6 +1,13 @@
 """Drive the assembler's placement preview for one preview package, in Arc.
 
 Usage: python3 -I tools/frame_boards/jlc_preview.py PACKAGE.zip [--board BOARD.json] [--run DIR] [--downloads DIR]
+       python3 -I tools/frame_boards/jlc_preview.py --recheck TOP.png BOTTOM.png --board BOARD.json
+                                                    [--cpl CPL.csv] [--attribution N] [--body-method N]
+
+The second form touches no browser: it prints the ``checks.json`` of exports that
+were already taken (BOTTOM.png may be ``-``), for the CPL's designators or, without
+``--cpl``, every footprint of the board. ``--attribution 1`` and ``--body-method 1``
+judge them as the records made before attribution 2 and body method 2 were.
 
 PACKAGE.zip is a ``preview_package.py`` output. Its SHA256SUMS is checked and it is
 unpacked into the run directory (default ``~/.cache/cohdl-preview/runs/<stem>``,
@@ -19,7 +26,8 @@ AppleScript ``execute javascript``:
    parts detected and confirmed must match, with no stock warning;
 6. NEXT to Component Placements; the 2D view; the preview's own whole-board
    exports of the top and the bottom land in the run directory. Each instance of
-   the side (``board.json``) needs its own evidence: a pin 1 mark, or, for a
+   the side (``board.json``) needs its own evidence: one pin 1 mark of its own,
+   at its pad 1 (``measure_preview.owners``, ``mark_ok``), or, for a
    non-polar chip part (``measure_preview.is_chip``), its drawn body along its
    pads, mod 180, and centred on them, read from the drawn model alone
    (``measure_preview.body``, method 2: silkscreen beside the part is not part
@@ -40,7 +48,7 @@ step (``measure_preview.py``).
 A package built before ``preview_package.py`` added ``board.json`` takes
 ``--board``: ``measure_preview.py board`` of the package's ``.kicad_pcb``.
 """
-import argparse, base64, csv, hashlib, json, math, re, shutil, subprocess, sys, time, zipfile
+import argparse, base64, csv, hashlib, json, math, re, shutil, subprocess, sys, tempfile, time, zipfile
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -268,9 +276,18 @@ def check_bom_step(text, table, placements):
             problems.append("BOM row %d has %d cells for %d columns" % (number, len(cells), len(heads)))
             continue
         matched = re.findall(r"^C\d+$", cells[col["Matched Part Detail"]], re.M)
+        if not matched:
+            # Some rows show the part number in one line with the part's name and
+            # parameters, not on a line of its own.
+            matched = sorted(set(re.findall(r"\bC\d{3,}\b", cells[col["Matched Part Detail"]])))
         pn = matched[0] if len(matched) == 1 else None
         if pn is None:
             problems.append("BOM row %d matches %s" % (number, ", ".join(matched) or "no part number"))
+        if pn is None or cells[col["Select"]] != "__checked__":
+            # Say what the row shows, so a person can see why it is unmatched or unselected.
+            shown = "; ".join("%s: %s" % (h, re.sub(r"\s+", " ", c).strip()[:120])
+                              for h, c in zip(heads, cells) if c.strip() and c != "__checked__")
+            problems.append("BOM row %d shows %s" % (number, shown[:700]))
         if cells[col["Select"]] != "__checked__":
             problems.append("BOM row %d (%s) is not selected" % (number, pn))
         for side in sides:
@@ -304,37 +321,46 @@ def load_board(upload, board, placements):
     return doc
 
 
-def inspect(png, outline, bottom, fps):
-    """What an export shows of each of FPS: the pin 1 marks, and per part whether
-    its model is drawn and, for a chip part, its body reading."""
-    bmp = png.with_suffix(".bmp")
-    subprocess.run(["sips", "-s", "format", "bmp", str(png), "--out", str(bmp)], check=True, capture_output=True)
-    try:
+def inspect(png, outline, bottom, fps, attribution=measure_preview.ATTRIBUTION, body_method=measure_preview.BODY_METHOD):
+    """What an export shows of each of FPS: the pin 1 marks (``measure_preview.marks``;
+    under attribution 1 every magenta cluster), and per part whether its model is
+    drawn and, for a chip part, its body reading."""
+    with tempfile.TemporaryDirectory() as td:
+        bmp = Path(td) / "export.bmp"
+        subprocess.run(["sips", "-s", "format", "bmp", str(png), "--out", str(bmp)], check=True, capture_output=True)
         view = measure_preview.View(str(bmp), outline, bottom)
         readings = {}
         for fp in fps:
             shown = measure_preview.drawn(view, fp)
-            readings[fp["ref"]] = {"drawn": shown,
-                                   "body": measure_preview.body(view, fp) if shown and measure_preview.is_chip(fp) else None}
-        return measure_preview.dots(view, outline, bottom), readings
-    finally:
-        bmp.unlink()
+            readings[fp["ref"]] = {"drawn": shown, "body": measure_preview.body(view, fp, body_method)
+                                   if shown and measure_preview.is_chip(fp) else None}
+        return (measure_preview.dots(view, outline, bottom) if attribution == 1 else measure_preview.marks(view)), readings
 
 
 PASS = ("mark", "body")
 
 
-def verdicts(marks, fps, readings):
+def verdicts(marks, fps, readings, attribution=measure_preview.ATTRIBUTION):
     """Each instance of FPS on its own evidence: {ref: (status, detail)}.
 
     - a chip part (``measure_preview.is_chip``) has no pin 1 mark; its drawn body
       must lie along its pads, mod 180, and be centred on them: "body";
-    - every other part needs a mark of its own (``unmarked``): "mark";
+    - every other part needs exactly one mark of its own
+      (``measure_preview.owners``), at its pad 1 within
+      ``measure_preview.MARK_ANGLE_TOL``: "mark". A part with no mark, with
+      several, with its mark elsewhere, or of a kind that has no pin 1
+      (``measure_preview.expects_mark``) goes to "manual review";
     - a part whose model is not drawn (bare pads and the centroid marker) is
       "unverified", and a drawn part without its evidence goes to "manual review".
     Neither of the last two passes, and no instance's evidence covers another's.
+
+    Under attribution 1, as the records before 2026-11-12 were judged, "mark" said
+    only that a mark's nearest footprint origin was this part's (``unmarked``).
     """
-    missing = set(unmarked(marks, fps))
+    if attribution == 1:
+        missing = set(unmarked(marks, fps))
+    else:
+        owned = measure_preview.owners(marks, [fp for fp in fps if readings[fp["ref"]]["drawn"]])
     out = {}
     for fp in fps:
         ref, reading = fp["ref"], readings[fp["ref"]]
@@ -347,15 +373,50 @@ def verdicts(marks, fps, readings):
                             % (b["delta_mod_180"], b["offset_mm"], b["offset_limit_mm"]))
             else:
                 out[ref] = ("manual review", "chip body not along or not centred on its pads: %s" % json.dumps(b, sort_keys=True))
-        elif ref in missing:
+        elif attribution == 1:
+            out[ref] = ("manual review", "drawn, with no pin 1 mark of its own") if ref in missing else ("mark", "")
+        elif not measure_preview.expects_mark(fp):
+            out[ref] = ("manual review", "drawn; a part of this kind has no pin 1 mark, and its body is not read here")
+        elif not owned[ref]:
             out[ref] = ("manual review", "drawn, with no pin 1 mark of its own")
+        elif len(owned[ref]) > 1:
+            out[ref] = ("manual review", "drawn, with %d marks of its own: which is pin 1 is read by hand" % len(owned[ref]))
         else:
-            out[ref] = ("mark", "")
+            mark, pad = owned[ref][0], measure_preview.pad_1(fp)
+            delta = measure_preview.delta_ccw(fp, pad, mark)
+            where = ("pin 1 mark %.1f deg counter-clockwise from pad 1 about the origin, seen from the top "
+                     "(limit %g either way), %.2f mm from pad 1"
+                     % (delta, measure_preview.MARK_ANGLE_TOL, math.hypot(mark[0] - pad["x"], mark[1] - pad["y"])))
+            out[ref] = ("mark", where) if measure_preview.mark_ok(delta) else ("manual review", "drawn; " + where)
     return out
 
 
+def entries(side, found, fps, attribution=measure_preview.ATTRIBUTION):
+    """``checks.json`` entries of one side's verdicts. An entry that rests on how marks
+    are given to parts names the attribution; one without the key is attribution 1."""
+    chip = {fp["ref"]: measure_preview.is_chip(fp) for fp in fps}
+    return {ref: dict({"side": side.lower(), "status": status, "detail": detail},
+                      **({"attribution": attribution} if attribution != 1 and status != "unverified" and not chip[ref] else {}))
+            for ref, (status, detail) in found.items()}
+
+
+def checks_text(checks):
+    return json.dumps(dict(sorted(checks.items(), key=lambda kv: natural(kv[0]))), indent=1) + "\n"
+
+
+def recheck(doc, exports, refs=None, attribution=measure_preview.ATTRIBUTION, body_method=measure_preview.BODY_METHOD):
+    """The checks of exports already taken, as a run records them: EXPORTS is
+    {"Top": png, "Bottom": png}, REFS the designators that were placed (all, if None)."""
+    checks = {}
+    for side, png in exports.items():
+        fps = [fp for fp in doc["fps"] if fp["bottom"] == (side == "Bottom") and (refs is None or fp["ref"] in refs)]
+        marks, readings = inspect(png, measure_preview.outline(doc), side == "Bottom", fps, attribution, body_method)
+        checks.update(entries(side, verdicts(marks, fps, readings, attribution), fps, attribution))
+    return checks
+
+
 def unmarked(marks, fps):
-    """The designators in FPS that no mark falls on.
+    """Attribution 1: the designators in FPS that no mark falls on.
 
     A mark counts once, for the nearest footprint within whose reach it lies, so
     the second mark of a BGA cannot stand in for a part that was not drawn.
@@ -422,7 +483,7 @@ def export_capture(side, downloads, out, fps, outline, attempts=3, settle=15, ti
     return out, found
 
 
-def run_preview(package, run, downloads, board=None):
+def run_preview(package, run, downloads, board=None, select_matched=False):
     upload, verification = unpack(package, run)
     name = next(upload.glob("*-gerbers.zip")).name.removesuffix("-gerbers.zip")
     placements = expected_placements(upload)
@@ -445,10 +506,41 @@ def run_preview(package, run, downloads, board=None):
         if (!/Assembly Side/.test(document.body.innerText)) box.querySelector(".switch-box").click(); return "ok"; })()""")
     wait("String(/Assembly Side/.test(document.body.innerText))", lambda v: v == "true", 20, "the PCBA options")
     side = "Both Sides" if sides["Bottom"] and sides["Top"] else ("Bottom Side" if sides["Bottom"] else "Top Side")
-    pick = """(() => { const b = [...document.querySelectorAll(".btn.btnlg")].find(e => e.textContent.trim() === %s);
+    # Several option groups can carry a button with the same text (a multilayer board's
+    # quote has more groups than a two-layer one), so take the one nearest the
+    # "Assembly Side" label: the fewest ancestors up to an element whose text holds it.
+    pick = """(() => { const depth = e => { let k = 0; for (let a = e; a && a !== document.body; a = a.parentElement, k++)
+            if (/Assembly Side/.test(a.innerText || "")) return k; return 1e9; };
+        const all = [...document.querySelectorAll(".btn.btnlg")].filter(e => e.textContent.trim() === %s);
+        const b = all.slice().sort((p, q) => depth(p) - depth(q))[0];
         return b ? b.className : ""; })()""" % json.dumps(side)
+    # On a multilayer board the quote starts on the Economic PCBA type, which offers one
+    # side only: the wanted side is then disabled until the Standard type is chosen.
+    if js(pick.replace("return b ? b.className", "return b ? String(!!b.disabled)")) == "true":
+        kind = pick.replace(json.dumps(side), json.dumps("Standard")).replace("Assembly Side", "PCBA Type")
+        js(kind.replace("return b ? b.className", "if (b) b.click(); return b ? b.className"))
+        wait(kind, lambda v: "cur" in v.split(), 20, "the Standard PCBA type (%s is not offered on Economic)" % side)
+        print("PCBA Type: Standard, because %s is not offered on Economic for this board" % side)
     js(pick.replace("return b ? b.className", "if (b) b.click(); return b ? b.className"))
-    wait(pick, lambda v: "cur" in v.split(), 20, "the %s selection" % side)
+    try:
+        wait(pick, lambda v: "cur" in v.split(), 20, "the %s selection" % side)
+    except Stop as stop:
+        # Say what the page offers, so a person can see why the selection did not take.
+        seen = js(pick.replace('return b ? b.className : "";', """return JSON.stringify({
+            candidates: all.map(e => ({cls: e.className, depth: depth(e), disabled: !!e.disabled,
+                pointer: getComputedStyle(e).pointerEvents, group: ((e.parentElement || e).innerText || "").slice(0, 80)})),
+            dialogs: [...document.querySelectorAll("[role=dialog], .el-dialog__wrapper, .el-message-box__wrapper")]
+                .filter(d => d.offsetParent !== null).map(d => (d.innerText || "").slice(0, 200)),
+            options: (() => { const h = [...document.querySelectorAll("h2")].find(e => [...e.childNodes].some(n =>
+                n.nodeType === 3 && n.textContent.trim() === "PCB Assembly")); let box = h;
+                for (let k = 0; box && k < 3; k++) box = box.parentElement; if (!box) return [];
+                return [...box.querySelectorAll(".btn.btnlg")].map(e => e.textContent.trim().slice(0, 40) +
+                    (e.className.split(" ").includes("cur") ? " [cur]" : "") + (e.disabled ? " [disabled]" : "")); })(),
+            text: (() => { const h = [...document.querySelectorAll("h2")].find(e => [...e.childNodes].some(n =>
+                n.nodeType === 3 && n.textContent.trim() === "PCB Assembly")); let box = h;
+                for (let k = 0; box && k < 3; k++) box = box.parentElement;
+                return box ? (box.innerText || "").replace(/\\s+/g, " ").slice(0, 1500) : ""; })()});"""))
+        raise Stop("%s; the page shows %s" % (stop, seen[:4000]))
     agreed = js("""(() => { const r = document.evaluate("//*[contains(normalize-space(.), 'JLCPCB assembly Service')]",
         document.body, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null); for (let i = r.snapshotLength - 1; i >= 0; i--) {
         const cb = r.snapshotItem(i).querySelector("input[type=checkbox]"); if (cb) return String(cb.checked); } return "none"; })()""")
@@ -468,15 +560,60 @@ def run_preview(package, run, downloads, board=None):
     click_button("Process BOM & CPL")
     wait("document.body.innerText", lambda v: "Parts confirmed" in v, 120, "the BOM match")
     time.sleep(3)
-    problems = check_bom_step(body_text(), json.loads(js(BOM_TABLE)), placements)
+    table = json.loads(js(BOM_TABLE))
+    problems = check_bom_step(body_text(), table, placements)
+    forced, unavailable = [], []
+    if problems and select_matched and "error" not in table and "Select" in table["heads"]:
+        # Opt-in, for reading orientation only: the assembler matched a part but left its
+        # row unticked (no quantity to offer). Tick such rows so the part is drawn. This
+        # changes nothing but the quote's part selection; the run still stops at
+        # Component Placements.
+        sel, det = table["heads"].index("Select"), table["heads"].index("Matched Part Detail")
+        for index, cells in enumerate(table["rows"]):
+            pns = sorted(set(re.findall(r"\bC\d{3,}\b", cells[det])))
+            if cells[sel] == "__unchecked__" and len(pns) == 1:
+                state = js("""(() => { const t = [...document.querySelectorAll(".el-table.ComponentList")].filter(e => e.offsetParent)[0];
+                    const tr = t.querySelectorAll(".el-table__body-wrapper tbody tr.el-table__row")[%d];
+                    const c = tr && tr.querySelector(".el-checkbox"); if (!c) return "no checkbox";
+                    if (c.classList.contains("is-disabled")) return "disabled";
+                    c.click(); return "clicked"; })()""" % index)
+                if state != "clicked":
+                    raise Unverified("BOM row %d (%s) is not selected and cannot be: %s" % (index + 1, pns[0], state))
+                forced.append((index + 1, pns[0]))
+            elif cells[sel] not in ("__checked__", "__unchecked__") and len(pns) == 1:
+                # No tick box at all: the assembler shows a shortfall instead and the row
+                # cannot be selected. The part will not be drawn; it stays unverified.
+                unavailable.append((index + 1, pns[0], re.sub(r"\s+", " ", cells[sel]).strip()[:60]))
+        if forced or unavailable:
+            time.sleep(3)
+            table = json.loads(js(BOM_TABLE))
+            problems = check_bom_step(body_text(), table, placements)
+            for number, pn in forced:
+                print("BOM row %d (%s) was matched but not selected; selected by this run to read its placement" % (number, pn))
+            for number, pn, shown in unavailable:
+                print("BOM row %d (%s) cannot be selected (%s); its part will not be drawn and stays unverified" % (number, pn, shown))
+            # Rows handled this way have no stock behind them: the warnings are expected and are reported, not fatal.
+            skip = tuple("BOM row %d " % number for number, _, _ in unavailable)
+            warnings = [p for p in problems if p.startswith("stock warning: ") or p.startswith("expected ")]
+            problems = [p for p in problems if p not in warnings and not (skip and p.startswith(skip))]
+            for warning in sorted(set(warnings)):
+                print("BOM step note (orientation-only run): " + warning)
     if problems:
         raise Unverified("; ".join(problems))
-    print("BOM step: %d part numbers detected and confirmed; each of %d top and %d bottom designators once, "
-          "on its side, with its part number, selected; no stock warning"
-          % (len(verification["part_numbers"]), len(sides["Top"]), len(sides["Bottom"])))
+    print("BOM step: %d part numbers detected%s; each of %d top and %d bottom designators once, "
+          "on its side, with its part number, selected%s"
+          % (len(verification["part_numbers"]), "" if forced or unavailable else " and confirmed", len(sides["Top"]), len(sides["Bottom"]),
+             "; %d row(s) selected by this run and %d that cannot be selected, so this is an orientation-only preview"
+             % (len(forced), len(unavailable)) if forced or unavailable else "; no stock warning"))
 
     click_button("NEXT")
-    wait("String(!!document.querySelector('[class*=_download-icon_]'))", lambda v: v == "true", 60, "Component Placements")
+    try:
+        wait("String(!!document.querySelector('[class*=_download-icon_]'))", lambda v: v == "true", 60, "Component Placements")
+    except Stop as stop:
+        # With rows left unselected the page may ask before going on; say what it shows.
+        dialogs = js("""JSON.stringify([...document.querySelectorAll("[role=dialog], .el-dialog__wrapper, .el-message-box__wrapper")]
+            .filter(d => d.offsetParent !== null).map(d => (d.innerText || "").replace(/\\s+/g, " ").slice(0, 400)))""")
+        raise Stop("%s; open dialogs: %s" % (stop, dialogs[:1500]))
     # A large board can still be rendering in 3D when the switch is first clicked.
     for attempt in range(3):
         js('(() => { document.querySelector("[class*=_contentLeft_]").click(); return "ok"; })()')
@@ -495,14 +632,12 @@ def run_preview(package, run, downloads, board=None):
             fps = [fp for fp in doc["fps"] if fp["ref"] in sides[side_name]]
             path, found = export_capture(side_name, downloads, preview / (side_name.lower() + ".png"), fps,
                                          measure_preview.outline(doc))
-            checks.update({ref: {"side": side_name.lower(), "status": status, "detail": detail}
-                           for ref, (status, detail) in found.items()})
+            checks.update(entries(side_name, found, fps))
             print("%s export: %s (sha256 %s)" % (side_name, path, hashlib.sha256(path.read_bytes()).hexdigest()))
-    (preview / "checks.json").write_text(json.dumps(dict(sorted(checks.items(), key=lambda kv: natural(kv[0]))),
-                                                    indent=1) + "\n", encoding="utf-8")
+    (preview / "checks.json").write_text(checks_text(checks), encoding="utf-8")
     count = {s: sorted((r for r, c in checks.items() if c["status"] == s), key=natural)
              for s in ("mark", "body", "unverified", "manual review")}
-    print("Instances: %d with a pin 1 mark, %d chip bodies along their pads; unverified: %s; manual review: %s"
+    print("Instances: %d with their pin 1 mark at pad 1, %d chip bodies along their pads; unverified: %s; manual review: %s"
           % (len(count["mark"]), len(count["body"]), ", ".join(count["unverified"]) or "none",
              ", ".join(count["manual review"]) or "none"))
     print("Stopped at Component Placements; nothing was added to the cart.")
@@ -511,14 +646,30 @@ def run_preview(package, run, downloads, board=None):
 
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("package", type=Path)
+    ap.add_argument("package", type=Path, nargs="?")
     ap.add_argument("--board", type=Path, help="board.json for a package that carries none")
     ap.add_argument("--run", type=Path)
     ap.add_argument("--downloads", type=Path, default=Path.home() / "Downloads")
+    ap.add_argument("--select-matched", action="store_true",
+                    help="tick BOM rows the assembler matched but left unselected, to read their placement (orientation only)")
+    ap.add_argument("--recheck", nargs=2, metavar=("TOP.png", "BOTTOM.png"), help="judge exports already taken; no browser")
+    ap.add_argument("--cpl", type=Path, help="with --recheck: the CPL whose designators were placed")
+    ap.add_argument("--attribution", type=int, choices=(1, 2), default=measure_preview.ATTRIBUTION)
+    ap.add_argument("--body-method", type=int, choices=sorted(measure_preview.BODY_METHODS), default=measure_preview.BODY_METHOD)
     args = ap.parse_args(argv)
+    if args.recheck:
+        if args.package or not args.board:
+            ap.error("--recheck takes --board and no package")
+        refs = args.cpl and {line.split(",")[0] for line in args.cpl.read_text(encoding="utf-8").splitlines()[1:]}
+        exports = {side: Path(png) for side, png in zip(("Top", "Bottom"), args.recheck) if png != "-"}
+        sys.stdout.write(checks_text(recheck(json.loads(args.board.read_text(encoding="utf-8")), exports, refs,
+                                             args.attribution, args.body_method)))
+        return 0
+    if not args.package:
+        ap.error("a package, or --recheck")
     run = args.run or Path.home() / ".cache/cohdl-preview/runs" / args.package.stem
     try:
-        checks = run_preview(args.package, run, args.downloads, args.board)
+        checks = run_preview(args.package, run, args.downloads, args.board, args.select_matched)
     except Stop as stop:
         print("jlc_preview.py: a person has to take over: %s" % stop, file=sys.stderr)
         return 2

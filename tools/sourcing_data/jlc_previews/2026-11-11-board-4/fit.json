@@ -1,0 +1,2703 @@
+{
+ "inputs_sha256": {
+  "board.json": "d4dcf5332808437e4db5e4edfb518304cf58324dbaedf717844662ea191e5d7c",
+  "measurements.json": "0b3b34f4066ad41171e39751c2a4f3fe9bd0c0e44fb3dbbfb61c59c851d1c71c",
+  "preview_board_4-lcsc-bom.csv": "35b6cef528f1a175552afc1fcf9309657048d95dbf2dd7a84e538bc8b25b49cc"
+ },
+ "min_angles": 3,
+ "parts": [
+  {
+   "view": "top",
+   "pn": "C60491",
+   "land": "passive-CHIP_0402",
+   "refs": [
+    "R11",
+    "R12",
+    "R13",
+    "R14",
+    "R15"
+   ],
+   "n": 5,
+   "orientations": [
+    0,
+    90,
+    180,
+    270,
+    323
+   ],
+   "export_only": {
+    "export_shift_xy_mm": [
+     -0.0164,
+     -0.0326
+    ],
+    "export_shift_mm": 0.0365,
+    "rms_mm": 0.0767,
+    "max_mm": 0.0929,
+    "sigma_mm": 0.0606
+   },
+   "model_only": {
+    "model_offset_along_across_mm": [
+     0.0078,
+     -0.0787
+    ],
+    "model_offset_mm": 0.0791,
+    "rms_mm": 0.031,
+    "max_mm": 0.04,
+    "sigma_mm": 0.0245
+   },
+   "separation": 0.96,
+   "both": {
+    "export_shift_xy_mm": [
+     -0.0085,
+     -0.0199
+    ],
+    "export_shift_mm": 0.0216,
+    "model_offset_along_across_mm": [
+     0.0068,
+     -0.0745
+    ],
+    "model_offset_mm": 0.0748,
+    "rms_mm": 0.0226,
+    "max_mm": 0.0319,
+    "sigma_mm": 0.0206
+   }
+  },
+  {
+   "view": "top",
+   "pn": "C113781",
+   "land": "passive-CHIP_0402",
+   "refs": [
+    "C39",
+    "C40",
+    "C41",
+    "C42",
+    "C43"
+   ],
+   "n": 5,
+   "orientations": [
+    0,
+    90,
+    180,
+    270,
+    323
+   ],
+   "export_only": {
+    "export_shift_xy_mm": [
+     -0.0008,
+     -0.0284
+    ],
+    "export_shift_mm": 0.0284,
+    "rms_mm": 0.0581,
+    "max_mm": 0.0748,
+    "sigma_mm": 0.046
+   },
+   "model_only": {
+    "model_offset_along_across_mm": [
+     0.0107,
+     -0.0551
+    ],
+    "model_offset_mm": 0.0561,
+    "rms_mm": 0.0322,
+    "max_mm": 0.0461,
+    "sigma_mm": 0.0255
+   },
+   "separation": 0.96,
+   "both": {
+    "export_shift_xy_mm": [
+     0.0043,
+     -0.0191
+    ],
+    "export_shift_mm": 0.0196,
+    "model_offset_along_across_mm": [
+     0.0077,
+     -0.0526
+    ],
+    "model_offset_mm": 0.0531,
+    "rms_mm": 0.0259,
+    "max_mm": 0.0357,
+    "sigma_mm": 0.0236
+   }
+  },
+  {
+   "view": "top",
+   "pn": "C138033",
+   "land": "passive-CHIP_0402",
+   "refs": [
+    "R21",
+    "R22",
+    "R23",
+    "R24",
+    "R25"
+   ],
+   "n": 5,
+   "orientations": [
+    0,
+    90,
+    180,
+    270,
+    323
+   ],
+   "export_only": {
+    "export_shift_xy_mm": [
+     -0.0242,
+     -0.0302
+    ],
+    "export_shift_mm": 0.0387,
+    "rms_mm": 0.095,
+    "max_mm": 0.1036,
+    "sigma_mm": 0.0751
+   },
+   "model_only": {
+    "model_offset_along_across_mm": [
+     -0.0089,
+     -0.0984
+    ],
+    "model_offset_mm": 0.0988,
+    "rms_mm": 0.0275,
+    "max_mm": 0.0375,
+    "sigma_mm": 0.0218
+   },
+   "separation": 0.96,
+   "both": {
+    "export_shift_xy_mm": [
+     -0.0114,
+     -0.0162
+    ],
+    "export_shift_mm": 0.0198,
+    "model_offset_along_across_mm": [
+     -0.009,
+     -0.0945
+    ],
+    "model_offset_mm": 0.0949,
+    "rms_mm": 0.0195,
+    "max_mm": 0.0279,
+    "sigma_mm": 0.0178
+   }
+  },
+  {
+   "view": "top",
+   "pn": "C138161",
+   "land": "passive-CHIP_0201",
+   "refs": [
+    "R61",
+    "R62",
+    "R63",
+    "R64",
+    "R65"
+   ],
+   "n": 5,
+   "orientations": [
+    0,
+    90,
+    180,
+    270,
+    323
+   ],
+   "export_only": {
+    "export_shift_xy_mm": [
+     0.0126,
+     -0.0198
+    ],
+    "export_shift_mm": 0.0235,
+    "rms_mm": 0.0636,
+    "max_mm": 0.0917,
+    "sigma_mm": 0.0503
+   },
+   "model_only": {
+    "model_offset_along_across_mm": [
+     0.0007,
+     -0.0612
+    ],
+    "model_offset_mm": 0.0612,
+    "rms_mm": 0.029,
+    "max_mm": 0.051,
+    "sigma_mm": 0.023
+   },
+   "separation": 0.96,
+   "both": {
+    "export_shift_xy_mm": [
+     0.0207,
+     -0.0103
+    ],
+    "export_shift_mm": 0.0231,
+    "model_offset_along_across_mm": [
+     -0.0039,
+     -0.0621
+    ],
+    "model_offset_mm": 0.0622,
+    "rms_mm": 0.0182,
+    "max_mm": 0.0248,
+    "sigma_mm": 0.0166
+   }
+  },
+  {
+   "view": "top",
+   "pn": "C185445",
+   "land": "passive-CHIP_0402",
+   "refs": [
+    "R41",
+    "R42",
+    "R43",
+    "R44",
+    "R45"
+   ],
+   "n": 5,
+   "orientations": [
+    0,
+    90,
+    180,
+    270,
+    323
+   ],
+   "export_only": {
+    "export_shift_xy_mm": [
+     0.0032,
+     -0.0182
+    ],
+    "export_shift_mm": 0.0185,
+    "rms_mm": 0.0243,
+    "max_mm": 0.0413,
+    "sigma_mm": 0.0192
+   },
+   "model_only": {
+    "model_offset_along_across_mm": [
+     0.0027,
+     -0.0174
+    ],
+    "model_offset_mm": 0.0176,
+    "rms_mm": 0.025,
+    "max_mm": 0.0391,
+    "sigma_mm": 0.0197
+   },
+   "separation": 0.96,
+   "both": {
+    "export_shift_xy_mm": [
+     0.0051,
+     -0.0157
+    ],
+    "export_shift_mm": 0.0165,
+    "model_offset_along_across_mm": [
+     -0.0,
+     -0.0155
+    ],
+    "model_offset_mm": 0.0155,
+    "rms_mm": 0.019,
+    "max_mm": 0.0246,
+    "sigma_mm": 0.0173
+   }
+  },
+  {
+   "view": "top",
+   "pn": "C325464",
+   "land": "passive-CHIP_0402",
+   "refs": [
+    "C29",
+    "C30",
+    "C31",
+    "C32",
+    "C33"
+   ],
+   "n": 5,
+   "orientations": [
+    0,
+    90,
+    180,
+    270,
+    323
+   ],
+   "export_only": {
+    "export_shift_xy_mm": [
+     -0.0018,
+     -0.0344
+    ],
+    "export_shift_mm": 0.0344,
+    "rms_mm": 0.1036,
+    "max_mm": 0.1229,
+    "sigma_mm": 0.0819
+   },
+   "model_only": {
+    "model_offset_along_across_mm": [
+     -0.0021,
+     -0.1053
+    ],
+    "model_offset_mm": 0.1053,
+    "rms_mm": 0.0285,
+    "max_mm": 0.0324,
+    "sigma_mm": 0.0225
+   },
+   "separation": 0.96,
+   "both": {
+    "export_shift_xy_mm": [
+     0.0117,
+     -0.0186
+    ],
+    "export_shift_mm": 0.0219,
+    "model_offset_along_across_mm": [
+     -0.0062,
+     -0.1038
+    ],
+    "model_offset_mm": 0.1039,
+    "rms_mm": 0.0187,
+    "max_mm": 0.031,
+    "sigma_mm": 0.0171
+   }
+  },
+  {
+   "view": "top",
+   "pn": "C481918",
+   "land": "passive-CHIP_0402",
+   "refs": [
+    "R1",
+    "R2",
+    "R3",
+    "R4",
+    "R5"
+   ],
+   "n": 5,
+   "orientations": [
+    0,
+    90,
+    180,
+    270,
+    323
+   ],
+   "export_only": {
+    "export_shift_xy_mm": [
+     0.002,
+     -0.0082
+    ],
+    "export_shift_mm": 0.0084,
+    "rms_mm": 0.064,
+    "max_mm": 0.0776,
+    "sigma_mm": 0.0506
+   },
+   "model_only": {
+    "model_offset_along_across_mm": [
+     0.0071,
+     -0.0629
+    ],
+    "model_offset_mm": 0.0633,
+    "rms_mm": 0.0126,
+    "max_mm": 0.0175,
+    "sigma_mm": 0.01
+   },
+   "separation": 0.96,
+   "both": {
+    "export_shift_xy_mm": [
+     0.0088,
+     0.0028
+    ],
+    "export_shift_mm": 0.0092,
+    "model_offset_along_across_mm": [
+     0.006,
+     -0.0644
+    ],
+    "model_offset_mm": 0.0647,
+    "rms_mm": 0.0088,
+    "max_mm": 0.0116,
+    "sigma_mm": 0.0081
+   }
+  },
+  {
+   "view": "top",
+   "pn": "C482097",
+   "land": "passive-CHIP_0402",
+   "refs": [
+    "R51",
+    "R52",
+    "R53",
+    "R54",
+    "R55"
+   ],
+   "n": 5,
+   "orientations": [
+    0,
+    90,
+    180,
+    270,
+    323
+   ],
+   "export_only": {
+    "export_shift_xy_mm": [
+     -0.0044,
+     -0.028
+    ],
+    "export_shift_mm": 0.0283,
+    "rms_mm": 0.0768,
+    "max_mm": 0.094,
+    "sigma_mm": 0.0607
+   },
+   "model_only": {
+    "model_offset_along_across_mm": [
+     0.003,
+     -0.0776
+    ],
+    "model_offset_mm": 0.0776,
+    "rms_mm": 0.026,
+    "max_mm": 0.0332,
+    "sigma_mm": 0.0206
+   },
+   "separation": 0.96,
+   "both": {
+    "export_shift_xy_mm": [
+     0.0046,
+     -0.0159
+    ],
+    "export_shift_mm": 0.0166,
+    "model_offset_along_across_mm": [
+     0.0003,
+     -0.0756
+    ],
+    "model_offset_mm": 0.0756,
+    "rms_mm": 0.0204,
+    "max_mm": 0.0301,
+    "sigma_mm": 0.0186
+   }
+  },
+  {
+   "view": "top",
+   "pn": "C877226",
+   "land": "passive-CHIP_2010",
+   "refs": [
+    "R31",
+    "R32",
+    "R33",
+    "R34",
+    "R35"
+   ],
+   "n": 5,
+   "orientations": [
+    0,
+    90,
+    180,
+    270,
+    323
+   ],
+   "export_only": {
+    "export_shift_xy_mm": [
+     -0.0284,
+     -0.0396
+    ],
+    "export_shift_mm": 0.0487,
+    "rms_mm": 0.1962,
+    "max_mm": 0.2427,
+    "sigma_mm": 0.1551
+   },
+   "model_only": {
+    "model_offset_along_across_mm": [
+     0.0025,
+     -0.2017
+    ],
+    "model_offset_mm": 0.2017,
+    "rms_mm": 0.0133,
+    "max_mm": 0.0211,
+    "sigma_mm": 0.0105
+   },
+   "separation": 0.96,
+   "both": {
+    "export_shift_xy_mm": [
+     -0.0047,
+     -0.0074
+    ],
+    "export_shift_mm": 0.0087,
+    "model_offset_along_across_mm": [
+     0.0024,
+     -0.2
+    ],
+    "model_offset_mm": 0.2,
+    "rms_mm": 0.0101,
+    "max_mm": 0.0139,
+    "sigma_mm": 0.0092
+   }
+  },
+  {
+   "view": "top",
+   "pn": "C878096",
+   "land": "passive-CHIP_2512",
+   "refs": [
+    "R71",
+    "R72",
+    "R73",
+    "R74",
+    "R75"
+   ],
+   "n": 5,
+   "orientations": [
+    0,
+    90,
+    180,
+    270,
+    323
+   ],
+   "export_only": {
+    "export_shift_xy_mm": [
+     -0.0112,
+     -0.0188
+    ],
+    "export_shift_mm": 0.0219,
+    "rms_mm": 0.1335,
+    "max_mm": 0.1618,
+    "sigma_mm": 0.1055
+   },
+   "model_only": {
+    "model_offset_along_across_mm": [
+     0.0058,
+     -0.1348
+    ],
+    "model_offset_mm": 0.1349,
+    "rms_mm": 0.0103,
+    "max_mm": 0.0153,
+    "sigma_mm": 0.0082
+   },
+   "separation": 0.96,
+   "both": {
+    "export_shift_xy_mm": [
+     0.0043,
+     0.0036
+    ],
+    "export_shift_mm": 0.0056,
+    "model_offset_along_across_mm": [
+     0.0055,
+     -0.1358
+    ],
+    "model_offset_mm": 0.136,
+    "rms_mm": 0.0088,
+    "max_mm": 0.0104,
+    "sigma_mm": 0.008
+   }
+  },
+  {
+   "view": "bottom",
+   "pn": "C60491",
+   "land": "passive-CHIP_0402",
+   "refs": [
+    "R16",
+    "R17",
+    "R18",
+    "R19",
+    "R20"
+   ],
+   "n": 5,
+   "orientations": [
+    0,
+    90,
+    143,
+    180,
+    270
+   ],
+   "export_only": {
+    "export_shift_xy_mm": [
+     -0.0392,
+     -0.034
+    ],
+    "export_shift_mm": 0.0519,
+    "rms_mm": 0.1006,
+    "max_mm": 0.1182,
+    "sigma_mm": 0.0795
+   },
+   "model_only": {
+    "model_offset_along_across_mm": [
+     0.013,
+     -0.1053
+    ],
+    "model_offset_mm": 0.1061,
+    "rms_mm": 0.0395,
+    "max_mm": 0.0574,
+    "sigma_mm": 0.0312
+   },
+   "separation": 0.96,
+   "both": {
+    "export_shift_xy_mm": [
+     -0.0255,
+     -0.0195
+    ],
+    "export_shift_mm": 0.0321,
+    "model_offset_along_across_mm": [
+     0.0113,
+     -0.0991
+    ],
+    "model_offset_mm": 0.0997,
+    "rms_mm": 0.0239,
+    "max_mm": 0.0296,
+    "sigma_mm": 0.0218
+   }
+  },
+  {
+   "view": "bottom",
+   "pn": "C113781",
+   "land": "passive-CHIP_0402",
+   "refs": [
+    "C44",
+    "C45",
+    "C46",
+    "C47",
+    "C48"
+   ],
+   "n": 5,
+   "orientations": [
+    0,
+    90,
+    143,
+    180,
+    270
+   ],
+   "export_only": {
+    "export_shift_xy_mm": [
+     -0.0084,
+     -0.007
+    ],
+    "export_shift_mm": 0.0109,
+    "rms_mm": 0.0443,
+    "max_mm": 0.0679,
+    "sigma_mm": 0.035
+   },
+   "model_only": {
+    "model_offset_along_across_mm": [
+     0.0081,
+     -0.0426
+    ],
+    "model_offset_mm": 0.0434,
+    "rms_mm": 0.014,
+    "max_mm": 0.0213,
+    "sigma_mm": 0.011
+   },
+   "separation": 0.96,
+   "both": {
+    "export_shift_xy_mm": [
+     -0.0021,
+     -0.0012
+    ],
+    "export_shift_mm": 0.0024,
+    "model_offset_along_across_mm": [
+     0.0079,
+     -0.0422
+    ],
+    "model_offset_mm": 0.0429,
+    "rms_mm": 0.0138,
+    "max_mm": 0.0214,
+    "sigma_mm": 0.0126
+   }
+  },
+  {
+   "view": "bottom",
+   "pn": "C138033",
+   "land": "passive-CHIP_0402",
+   "refs": [
+    "R26",
+    "R27",
+    "R28",
+    "R29",
+    "R30"
+   ],
+   "n": 5,
+   "orientations": [
+    0,
+    90,
+    143,
+    180,
+    270
+   ],
+   "export_only": {
+    "export_shift_xy_mm": [
+     -0.0212,
+     -0.0268
+    ],
+    "export_shift_mm": 0.0342,
+    "rms_mm": 0.1156,
+    "max_mm": 0.1384,
+    "sigma_mm": 0.0914
+   },
+   "model_only": {
+    "model_offset_along_across_mm": [
+     0.0014,
+     -0.1197
+    ],
+    "model_offset_mm": 0.1197,
+    "rms_mm": 0.0147,
+    "max_mm": 0.0209,
+    "sigma_mm": 0.0116
+   },
+   "separation": 0.96,
+   "both": {
+    "export_shift_xy_mm": [
+     -0.0068,
+     -0.0082
+    ],
+    "export_shift_mm": 0.0107,
+    "model_offset_along_across_mm": [
+     0.0013,
+     -0.1175
+    ],
+    "model_offset_mm": 0.1176,
+    "rms_mm": 0.0103,
+    "max_mm": 0.0126,
+    "sigma_mm": 0.0094
+   }
+  },
+  {
+   "view": "bottom",
+   "pn": "C138161",
+   "land": "passive-CHIP_0201",
+   "refs": [
+    "R66",
+    "R67",
+    "R68",
+    "R69",
+    "R70"
+   ],
+   "n": 5,
+   "orientations": [
+    0,
+    90,
+    143,
+    180,
+    270
+   ],
+   "export_only": {
+    "export_shift_xy_mm": [
+     0.0048,
+     0.0086
+    ],
+    "export_shift_mm": 0.0098,
+    "rms_mm": 0.0829,
+    "max_mm": 0.1153,
+    "sigma_mm": 0.0655
+   },
+   "model_only": {
+    "model_offset_along_across_mm": [
+     -0.0057,
+     -0.0726
+    ],
+    "model_offset_mm": 0.0728,
+    "rms_mm": 0.0409,
+    "max_mm": 0.0508,
+    "sigma_mm": 0.0323
+   },
+   "separation": 0.96,
+   "both": {
+    "export_shift_xy_mm": [
+     0.0131,
+     0.0217
+    ],
+    "export_shift_mm": 0.0254,
+    "model_offset_along_across_mm": [
+     -0.0063,
+     -0.0776
+    ],
+    "model_offset_mm": 0.0779,
+    "rms_mm": 0.0324,
+    "max_mm": 0.0374,
+    "sigma_mm": 0.0296
+   }
+  },
+  {
+   "view": "bottom",
+   "pn": "C185445",
+   "land": "passive-CHIP_0402",
+   "refs": [
+    "R46",
+    "R47",
+    "R48",
+    "R49",
+    "R50"
+   ],
+   "n": 5,
+   "orientations": [
+    0,
+    90,
+    143,
+    180,
+    270
+   ],
+   "export_only": {
+    "export_shift_xy_mm": [
+     -0.029,
+     -0.0184
+    ],
+    "export_shift_mm": 0.0343,
+    "rms_mm": 0.0569,
+    "max_mm": 0.0754,
+    "sigma_mm": 0.045
+   },
+   "model_only": {
+    "model_offset_along_across_mm": [
+     0.0188,
+     -0.0529
+    ],
+    "model_offset_mm": 0.0561,
+    "rms_mm": 0.0356,
+    "max_mm": 0.0556,
+    "sigma_mm": 0.0281
+   },
+   "separation": 0.96,
+   "both": {
+    "export_shift_xy_mm": [
+     -0.0205,
+     -0.0127
+    ],
+    "export_shift_mm": 0.0241,
+    "model_offset_along_across_mm": [
+     0.0171,
+     -0.0484
+    ],
+    "model_offset_mm": 0.0513,
+    "rms_mm": 0.0267,
+    "max_mm": 0.0407,
+    "sigma_mm": 0.0243
+   }
+  },
+  {
+   "view": "bottom",
+   "pn": "C325464",
+   "land": "passive-CHIP_0402",
+   "refs": [
+    "C34",
+    "C35",
+    "C36",
+    "C37",
+    "C38"
+   ],
+   "n": 5,
+   "orientations": [
+    0,
+    90,
+    143,
+    180,
+    270
+   ],
+   "export_only": {
+    "export_shift_xy_mm": [
+     -0.0158,
+     -0.0156
+    ],
+    "export_shift_mm": 0.0222,
+    "rms_mm": 0.1089,
+    "max_mm": 0.1479,
+    "sigma_mm": 0.0861
+   },
+   "model_only": {
+    "model_offset_along_across_mm": [
+     -0.0094,
+     -0.1095
+    ],
+    "model_offset_mm": 0.1099,
+    "rms_mm": 0.017,
+    "max_mm": 0.0247,
+    "sigma_mm": 0.0134
+   },
+   "separation": 0.96,
+   "both": {
+    "export_shift_xy_mm": [
+     -0.0043,
+     0.0031
+    ],
+    "export_shift_mm": 0.0053,
+    "model_offset_along_across_mm": [
+     -0.0105,
+     -0.1095
+    ],
+    "model_offset_mm": 0.11,
+    "rms_mm": 0.0162,
+    "max_mm": 0.0253,
+    "sigma_mm": 0.0148
+   }
+  },
+  {
+   "view": "bottom",
+   "pn": "C481918",
+   "land": "passive-CHIP_0402",
+   "refs": [
+    "R6",
+    "R7",
+    "R8",
+    "R9",
+    "R10"
+   ],
+   "n": 5,
+   "orientations": [
+    0,
+    90,
+    143,
+    180,
+    270
+   ],
+   "export_only": {
+    "export_shift_xy_mm": [
+     -0.007,
+     -0.0072
+    ],
+    "export_shift_mm": 0.01,
+    "rms_mm": 0.0967,
+    "max_mm": 0.1243,
+    "sigma_mm": 0.0764
+   },
+   "model_only": {
+    "model_offset_along_across_mm": [
+     0.0005,
+     -0.0864
+    ],
+    "model_offset_mm": 0.0864,
+    "rms_mm": 0.0445,
+    "max_mm": 0.0551,
+    "sigma_mm": 0.0352
+   },
+   "separation": 0.96,
+   "both": {
+    "export_shift_xy_mm": [
+     0.0036,
+     0.0068
+    ],
+    "export_shift_mm": 0.0077,
+    "model_offset_along_across_mm": [
+     0.0003,
+     -0.0879
+    ],
+    "model_offset_mm": 0.0879,
+    "rms_mm": 0.0438,
+    "max_mm": 0.0544,
+    "sigma_mm": 0.04
+   }
+  },
+  {
+   "view": "bottom",
+   "pn": "C482097",
+   "land": "passive-CHIP_0402",
+   "refs": [
+    "R56",
+    "R57",
+    "R58",
+    "R59",
+    "R60"
+   ],
+   "n": 5,
+   "orientations": [
+    0,
+    90,
+    143,
+    180,
+    270
+   ],
+   "export_only": {
+    "export_shift_xy_mm": [
+     -0.0184,
+     -0.0208
+    ],
+    "export_shift_mm": 0.0278,
+    "rms_mm": 0.0937,
+    "max_mm": 0.1084,
+    "sigma_mm": 0.0741
+   },
+   "model_only": {
+    "model_offset_along_across_mm": [
+     0.0062,
+     -0.0964
+    ],
+    "model_offset_mm": 0.0966,
+    "rms_mm": 0.0151,
+    "max_mm": 0.0216,
+    "sigma_mm": 0.0119
+   },
+   "separation": 0.96,
+   "both": {
+    "export_shift_xy_mm": [
+     -0.006,
+     -0.0064
+    ],
+    "export_shift_mm": 0.0088,
+    "model_offset_along_across_mm": [
+     0.006,
+     -0.0946
+    ],
+    "model_offset_mm": 0.0948,
+    "rms_mm": 0.0124,
+    "max_mm": 0.0141,
+    "sigma_mm": 0.0113
+   }
+  },
+  {
+   "view": "bottom",
+   "pn": "C877226",
+   "land": "passive-CHIP_2010",
+   "refs": [
+    "R36",
+    "R37",
+    "R38",
+    "R39",
+    "R40"
+   ],
+   "n": 5,
+   "orientations": [
+    0,
+    90,
+    143,
+    180,
+    270
+   ],
+   "export_only": {
+    "export_shift_xy_mm": [
+     -0.0436,
+     -0.0496
+    ],
+    "export_shift_mm": 0.066,
+    "rms_mm": 0.2168,
+    "max_mm": 0.2695,
+    "sigma_mm": 0.1714
+   },
+   "model_only": {
+    "model_offset_along_across_mm": [
+     -0.004,
+     -0.2247
+    ],
+    "model_offset_mm": 0.2248,
+    "rms_mm": 0.0291,
+    "max_mm": 0.0386,
+    "sigma_mm": 0.023
+   },
+   "separation": 0.96,
+   "both": {
+    "export_shift_xy_mm": [
+     -0.0179,
+     -0.0138
+    ],
+    "export_shift_mm": 0.0226,
+    "model_offset_along_across_mm": [
+     -0.0052,
+     -0.2204
+    ],
+    "model_offset_mm": 0.2204,
+    "rms_mm": 0.0189,
+    "max_mm": 0.0265,
+    "sigma_mm": 0.0172
+   }
+  },
+  {
+   "view": "bottom",
+   "pn": "C878096",
+   "land": "passive-CHIP_2512",
+   "refs": [
+    "R76",
+    "R77",
+    "R78",
+    "R79",
+    "R80"
+   ],
+   "n": 5,
+   "orientations": [
+    0,
+    90,
+    143,
+    180,
+    270
+   ],
+   "export_only": {
+    "export_shift_xy_mm": [
+     -0.0372,
+     -0.0434
+    ],
+    "export_shift_mm": 0.0572,
+    "rms_mm": 0.1511,
+    "max_mm": 0.1893,
+    "sigma_mm": 0.1194
+   },
+   "model_only": {
+    "model_offset_along_across_mm": [
+     0.0033,
+     -0.1575
+    ],
+    "model_offset_mm": 0.1575,
+    "rms_mm": 0.0358,
+    "max_mm": 0.063,
+    "sigma_mm": 0.0283
+   },
+   "separation": 0.96,
+   "both": {
+    "export_shift_xy_mm": [
+     -0.0184,
+     -0.0194
+    ],
+    "export_shift_mm": 0.0268,
+    "model_offset_along_across_mm": [
+     0.0027,
+     -0.1522
+    ],
+    "model_offset_mm": 0.1522,
+    "rms_mm": 0.0244,
+    "max_mm": 0.0416,
+    "sigma_mm": 0.0223
+   }
+  }
+ ],
+ "lands": [
+  {
+   "view": "top",
+   "land": "passive-CHIP_0201",
+   "pns": [
+    "C138161"
+   ],
+   "n": 5,
+   "orientations": [
+    0,
+    90,
+    180,
+    270,
+    323
+   ],
+   "export_only": {
+    "export_shift_xy_mm": [
+     0.0126,
+     -0.0198
+    ],
+    "export_shift_mm": 0.0235,
+    "rms_mm": 0.0636,
+    "max_mm": 0.0917,
+    "sigma_mm": 0.0503
+   },
+   "model_only": {
+    "model_offset_along_across_mm": [
+     0.0007,
+     -0.0612
+    ],
+    "model_offset_mm": 0.0612,
+    "rms_mm": 0.029,
+    "max_mm": 0.051,
+    "sigma_mm": 0.023
+   },
+   "separation": 0.96,
+   "both": {
+    "export_shift_xy_mm": [
+     0.0207,
+     -0.0103
+    ],
+    "export_shift_mm": 0.0231,
+    "model_offset_along_across_mm": [
+     -0.0039,
+     -0.0621
+    ],
+    "model_offset_mm": 0.0622,
+    "rms_mm": 0.0182,
+    "max_mm": 0.0248,
+    "sigma_mm": 0.0166
+   }
+  },
+  {
+   "view": "top",
+   "land": "passive-CHIP_0402",
+   "pns": [
+    "C113781",
+    "C138033",
+    "C185445",
+    "C325464",
+    "C481918",
+    "C482097",
+    "C60491"
+   ],
+   "n": 35,
+   "orientations": [
+    0,
+    90,
+    180,
+    270,
+    323
+   ],
+   "export_only": {
+    "export_shift_xy_mm": [
+     -0.0061,
+     -0.0257
+    ],
+    "export_shift_mm": 0.0264,
+    "rms_mm": 0.0763,
+    "max_mm": 0.1191,
+    "sigma_mm": 0.0547
+   },
+   "model_only": {
+    "model_offset_along_across_mm": [
+     0.0029,
+     -0.0708
+    ],
+    "model_offset_mm": 0.0708,
+    "rms_mm": 0.0388,
+    "max_mm": 0.0828,
+    "sigma_mm": 0.0278
+   },
+   "separation": 0.96,
+   "both": {
+    "export_shift_xy_mm": [
+     0.0021,
+     -0.0146
+    ],
+    "export_shift_mm": 0.0148,
+    "model_offset_along_across_mm": [
+     0.0008,
+     -0.0687
+    ],
+    "model_offset_mm": 0.0687,
+    "rms_mm": 0.0359,
+    "max_mm": 0.0749,
+    "sigma_mm": 0.0262
+   }
+  },
+  {
+   "view": "top",
+   "land": "passive-CHIP_2010",
+   "pns": [
+    "C877226"
+   ],
+   "n": 5,
+   "orientations": [
+    0,
+    90,
+    180,
+    270,
+    323
+   ],
+   "export_only": {
+    "export_shift_xy_mm": [
+     -0.0284,
+     -0.0396
+    ],
+    "export_shift_mm": 0.0487,
+    "rms_mm": 0.1962,
+    "max_mm": 0.2427,
+    "sigma_mm": 0.1551
+   },
+   "model_only": {
+    "model_offset_along_across_mm": [
+     0.0025,
+     -0.2017
+    ],
+    "model_offset_mm": 0.2017,
+    "rms_mm": 0.0133,
+    "max_mm": 0.0211,
+    "sigma_mm": 0.0105
+   },
+   "separation": 0.96,
+   "both": {
+    "export_shift_xy_mm": [
+     -0.0047,
+     -0.0074
+    ],
+    "export_shift_mm": 0.0087,
+    "model_offset_along_across_mm": [
+     0.0024,
+     -0.2
+    ],
+    "model_offset_mm": 0.2,
+    "rms_mm": 0.0101,
+    "max_mm": 0.0139,
+    "sigma_mm": 0.0092
+   }
+  },
+  {
+   "view": "top",
+   "land": "passive-CHIP_2512",
+   "pns": [
+    "C878096"
+   ],
+   "n": 5,
+   "orientations": [
+    0,
+    90,
+    180,
+    270,
+    323
+   ],
+   "export_only": {
+    "export_shift_xy_mm": [
+     -0.0112,
+     -0.0188
+    ],
+    "export_shift_mm": 0.0219,
+    "rms_mm": 0.1335,
+    "max_mm": 0.1618,
+    "sigma_mm": 0.1055
+   },
+   "model_only": {
+    "model_offset_along_across_mm": [
+     0.0058,
+     -0.1348
+    ],
+    "model_offset_mm": 0.1349,
+    "rms_mm": 0.0103,
+    "max_mm": 0.0153,
+    "sigma_mm": 0.0082
+   },
+   "separation": 0.96,
+   "both": {
+    "export_shift_xy_mm": [
+     0.0043,
+     0.0036
+    ],
+    "export_shift_mm": 0.0056,
+    "model_offset_along_across_mm": [
+     0.0055,
+     -0.1358
+    ],
+    "model_offset_mm": 0.136,
+    "rms_mm": 0.0088,
+    "max_mm": 0.0104,
+    "sigma_mm": 0.008
+   }
+  },
+  {
+   "view": "bottom",
+   "land": "passive-CHIP_0201",
+   "pns": [
+    "C138161"
+   ],
+   "n": 5,
+   "orientations": [
+    0,
+    90,
+    143,
+    180,
+    270
+   ],
+   "export_only": {
+    "export_shift_xy_mm": [
+     0.0048,
+     0.0086
+    ],
+    "export_shift_mm": 0.0098,
+    "rms_mm": 0.0829,
+    "max_mm": 0.1153,
+    "sigma_mm": 0.0655
+   },
+   "model_only": {
+    "model_offset_along_across_mm": [
+     -0.0057,
+     -0.0726
+    ],
+    "model_offset_mm": 0.0728,
+    "rms_mm": 0.0409,
+    "max_mm": 0.0508,
+    "sigma_mm": 0.0323
+   },
+   "separation": 0.96,
+   "both": {
+    "export_shift_xy_mm": [
+     0.0131,
+     0.0217
+    ],
+    "export_shift_mm": 0.0254,
+    "model_offset_along_across_mm": [
+     -0.0063,
+     -0.0776
+    ],
+    "model_offset_mm": 0.0779,
+    "rms_mm": 0.0324,
+    "max_mm": 0.0374,
+    "sigma_mm": 0.0296
+   }
+  },
+  {
+   "view": "bottom",
+   "land": "passive-CHIP_0402",
+   "pns": [
+    "C113781",
+    "C138033",
+    "C185445",
+    "C325464",
+    "C481918",
+    "C482097",
+    "C60491"
+   ],
+   "n": 35,
+   "orientations": [
+    0,
+    90,
+    143,
+    180,
+    270
+   ],
+   "export_only": {
+    "export_shift_xy_mm": [
+     -0.0199,
+     -0.0185
+    ],
+    "export_shift_mm": 0.0272,
+    "rms_mm": 0.0926,
+    "max_mm": 0.1524,
+    "sigma_mm": 0.0664
+   },
+   "model_only": {
+    "model_offset_along_across_mm": [
+     0.0055,
+     -0.0875
+    ],
+    "model_offset_mm": 0.0877,
+    "rms_mm": 0.0403,
+    "max_mm": 0.0676,
+    "sigma_mm": 0.0289
+   },
+   "separation": 0.96,
+   "both": {
+    "export_shift_xy_mm": [
+     -0.0088,
+     -0.0054
+    ],
+    "export_shift_mm": 0.0103,
+    "model_offset_along_across_mm": [
+     0.0048,
+     -0.0856
+    ],
+    "model_offset_mm": 0.0857,
+    "rms_mm": 0.039,
+    "max_mm": 0.0634,
+    "sigma_mm": 0.0284
+   }
+  },
+  {
+   "view": "bottom",
+   "land": "passive-CHIP_2010",
+   "pns": [
+    "C877226"
+   ],
+   "n": 5,
+   "orientations": [
+    0,
+    90,
+    143,
+    180,
+    270
+   ],
+   "export_only": {
+    "export_shift_xy_mm": [
+     -0.0436,
+     -0.0496
+    ],
+    "export_shift_mm": 0.066,
+    "rms_mm": 0.2168,
+    "max_mm": 0.2695,
+    "sigma_mm": 0.1714
+   },
+   "model_only": {
+    "model_offset_along_across_mm": [
+     -0.004,
+     -0.2247
+    ],
+    "model_offset_mm": 0.2248,
+    "rms_mm": 0.0291,
+    "max_mm": 0.0386,
+    "sigma_mm": 0.023
+   },
+   "separation": 0.96,
+   "both": {
+    "export_shift_xy_mm": [
+     -0.0179,
+     -0.0138
+    ],
+    "export_shift_mm": 0.0226,
+    "model_offset_along_across_mm": [
+     -0.0052,
+     -0.2204
+    ],
+    "model_offset_mm": 0.2204,
+    "rms_mm": 0.0189,
+    "max_mm": 0.0265,
+    "sigma_mm": 0.0172
+   }
+  },
+  {
+   "view": "bottom",
+   "land": "passive-CHIP_2512",
+   "pns": [
+    "C878096"
+   ],
+   "n": 5,
+   "orientations": [
+    0,
+    90,
+    143,
+    180,
+    270
+   ],
+   "export_only": {
+    "export_shift_xy_mm": [
+     -0.0372,
+     -0.0434
+    ],
+    "export_shift_mm": 0.0572,
+    "rms_mm": 0.1511,
+    "max_mm": 0.1893,
+    "sigma_mm": 0.1194
+   },
+   "model_only": {
+    "model_offset_along_across_mm": [
+     0.0033,
+     -0.1575
+    ],
+    "model_offset_mm": 0.1575,
+    "rms_mm": 0.0358,
+    "max_mm": 0.063,
+    "sigma_mm": 0.0283
+   },
+   "separation": 0.96,
+   "both": {
+    "export_shift_xy_mm": [
+     -0.0184,
+     -0.0194
+    ],
+    "export_shift_mm": 0.0268,
+    "model_offset_along_across_mm": [
+     0.0027,
+     -0.1522
+    ],
+    "model_offset_mm": 0.1522,
+    "rms_mm": 0.0244,
+    "max_mm": 0.0416,
+    "sigma_mm": 0.0223
+   }
+  }
+ ],
+ "views": [
+  {
+   "view": "top",
+   "pns": [
+    "C113781",
+    "C138033",
+    "C138161",
+    "C185445",
+    "C325464",
+    "C481918",
+    "C482097",
+    "C60491",
+    "C877226",
+    "C878096"
+   ],
+   "n": 50,
+   "orientations": [
+    0,
+    90,
+    180,
+    270,
+    323
+   ],
+   "export_only": {
+    "export_shift_xy_mm": [
+     -0.0069,
+     -0.0258
+    ],
+    "export_shift_mm": 0.0267,
+    "rms_mm": 0.1011,
+    "max_mm": 0.2278,
+    "sigma_mm": 0.0722
+   },
+   "model_only": {
+    "model_offset_along_across_mm": {
+     "C113781": [
+      0.0107,
+      -0.0551
+     ],
+     "C138033": [
+      -0.0089,
+      -0.0984
+     ],
+     "C138161": [
+      0.0007,
+      -0.0612
+     ],
+     "C185445": [
+      0.0027,
+      -0.0174
+     ],
+     "C325464": [
+      -0.0021,
+      -0.1053
+     ],
+     "C481918": [
+      0.0071,
+      -0.0629
+     ],
+     "C482097": [
+      0.003,
+      -0.0776
+     ],
+     "C60491": [
+      0.0078,
+      -0.0787
+     ],
+     "C877226": [
+      0.0025,
+      -0.2017
+     ],
+     "C878096": [
+      0.0058,
+      -0.1348
+     ]
+    },
+    "model_offset_mm": {
+     "C113781": 0.0561,
+     "C138033": 0.0988,
+     "C138161": 0.0612,
+     "C185445": 0.0176,
+     "C325464": 0.1053,
+     "C481918": 0.0633,
+     "C482097": 0.0776,
+     "C60491": 0.0791,
+     "C877226": 0.2017,
+     "C878096": 0.1349
+    },
+    "rms_mm": 0.0248,
+    "max_mm": 0.051,
+    "sigma_mm": 0.0196
+   },
+   "separation": 0.96,
+   "both": {
+    "export_shift_xy_mm": [
+     0.0035,
+     -0.0117
+    ],
+    "export_shift_mm": 0.0122,
+    "model_offset_along_across_mm": {
+     "C113781": [
+      0.0087,
+      -0.0537
+     ],
+     "C138033": [
+      -0.0108,
+      -0.097
+     ],
+     "C138161": [
+      -0.0013,
+      -0.0598
+     ],
+     "C185445": [
+      0.0007,
+      -0.016
+     ],
+     "C325464": [
+      -0.0041,
+      -0.1039
+     ],
+     "C481918": [
+      0.0051,
+      -0.0615
+     ],
+     "C482097": [
+      0.001,
+      -0.0761
+     ],
+     "C60491": [
+      0.0058,
+      -0.0772
+     ],
+     "C877226": [
+      0.0006,
+      -0.2003
+     ],
+     "C878096": [
+      0.0038,
+      -0.1333
+     ]
+    },
+    "model_offset_mm": {
+     "C113781": 0.0544,
+     "C138033": 0.0976,
+     "C138161": 0.0598,
+     "C185445": 0.016,
+     "C325464": 0.104,
+     "C481918": 0.0617,
+     "C482097": 0.0761,
+     "C60491": 0.0774,
+     "C877226": 0.2003,
+     "C878096": 0.1334
+    },
+    "rms_mm": 0.0218,
+    "max_mm": 0.0431,
+    "sigma_mm": 0.0174
+   }
+  },
+  {
+   "view": "bottom",
+   "pns": [
+    "C113781",
+    "C138033",
+    "C138161",
+    "C185445",
+    "C325464",
+    "C481918",
+    "C482097",
+    "C60491",
+    "C877226",
+    "C878096"
+   ],
+   "n": 50,
+   "orientations": [
+    0,
+    90,
+    143,
+    180,
+    270
+   ],
+   "export_only": {
+    "export_shift_xy_mm": [
+     -0.0215,
+     -0.0214
+    ],
+    "export_shift_mm": 0.0303,
+    "rms_mm": 0.1185,
+    "max_mm": 0.2404,
+    "sigma_mm": 0.0846
+   },
+   "model_only": {
+    "model_offset_along_across_mm": {
+     "C113781": [
+      0.0081,
+      -0.0426
+     ],
+     "C138033": [
+      0.0014,
+      -0.1197
+     ],
+     "C138161": [
+      -0.0057,
+      -0.0726
+     ],
+     "C185445": [
+      0.0188,
+      -0.0529
+     ],
+     "C325464": [
+      -0.0094,
+      -0.1095
+     ],
+     "C481918": [
+      0.0005,
+      -0.0864
+     ],
+     "C482097": [
+      0.0062,
+      -0.0964
+     ],
+     "C60491": [
+      0.013,
+      -0.1053
+     ],
+     "C877226": [
+      -0.004,
+      -0.2247
+     ],
+     "C878096": [
+      0.0033,
+      -0.1575
+     ]
+    },
+    "model_offset_mm": {
+     "C113781": 0.0434,
+     "C138033": 0.1197,
+     "C138161": 0.0728,
+     "C185445": 0.0561,
+     "C325464": 0.1099,
+     "C481918": 0.0864,
+     "C482097": 0.0966,
+     "C60491": 0.1061,
+     "C877226": 0.2248,
+     "C878096": 0.1575
+    },
+    "rms_mm": 0.0309,
+    "max_mm": 0.063,
+    "sigma_mm": 0.0244
+   },
+   "separation": 0.96,
+   "both": {
+    "export_shift_xy_mm": [
+     -0.0085,
+     -0.005
+    ],
+    "export_shift_mm": 0.0098,
+    "model_offset_along_across_mm": {
+     "C113781": [
+      0.0073,
+      -0.0408
+     ],
+     "C138033": [
+      0.0006,
+      -0.1179
+     ],
+     "C138161": [
+      -0.0065,
+      -0.0707
+     ],
+     "C185445": [
+      0.018,
+      -0.0511
+     ],
+     "C325464": [
+      -0.0102,
+      -0.1077
+     ],
+     "C481918": [
+      -0.0002,
+      -0.0846
+     ],
+     "C482097": [
+      0.0055,
+      -0.0946
+     ],
+     "C60491": [
+      0.0122,
+      -0.1035
+     ],
+     "C877226": [
+      -0.0047,
+      -0.2229
+     ],
+     "C878096": [
+      0.0026,
+      -0.1557
+     ]
+    },
+    "model_offset_mm": {
+     "C113781": 0.0415,
+     "C138033": 0.1179,
+     "C138161": 0.071,
+     "C185445": 0.0542,
+     "C325464": 0.1081,
+     "C481918": 0.0846,
+     "C482097": 0.0947,
+     "C60491": 0.1042,
+     "C877226": 0.223,
+     "C878096": 0.1557
+    },
+    "rms_mm": 0.0293,
+    "max_mm": 0.0611,
+    "sigma_mm": 0.0235
+   }
+  }
+ ],
+ "not_fitted": [
+  {
+   "ref": "R88",
+   "pn": "C875203",
+   "land": "passive-CHIP_1210",
+   "view": "top",
+   "reason": "not drawn"
+  },
+  {
+   "ref": "R91",
+   "pn": "C875206",
+   "land": "passive-CHIP_1210",
+   "view": "top",
+   "reason": "not drawn"
+  },
+  {
+   "ref": "R92",
+   "pn": "C874782",
+   "land": "passive-CHIP_1210",
+   "view": "top",
+   "reason": "not drawn"
+  },
+  {
+   "ref": "R94",
+   "pn": "C2085363",
+   "land": "passive-CHIP_0402",
+   "view": "top",
+   "reason": "not drawn"
+  },
+  {
+   "ref": "R95",
+   "pn": "C7276637",
+   "land": "passive-CHIP_1210",
+   "view": "top",
+   "reason": "not drawn"
+  },
+  {
+   "ref": "R96",
+   "pn": "C875217",
+   "land": "passive-CHIP_1210",
+   "view": "top",
+   "reason": "not drawn"
+  },
+  {
+   "ref": "R102",
+   "pn": "C875225",
+   "land": "passive-CHIP_1210",
+   "view": "top",
+   "reason": "not drawn"
+  },
+  {
+   "ref": "R107",
+   "pn": "C875232",
+   "land": "passive-CHIP_1210",
+   "view": "top",
+   "reason": "not drawn"
+  },
+  {
+   "ref": "R110",
+   "pn": "C875234",
+   "land": "passive-CHIP_1210",
+   "view": "top",
+   "reason": "not drawn"
+  },
+  {
+   "ref": "R111",
+   "pn": "C874966",
+   "land": "passive-CHIP_1210",
+   "view": "top",
+   "reason": "not drawn"
+  },
+  {
+   "ref": "R112",
+   "pn": "C875236",
+   "land": "passive-CHIP_1210",
+   "view": "top",
+   "reason": "not drawn"
+  },
+  {
+   "ref": "R116",
+   "pn": "C874999",
+   "land": "passive-CHIP_1210",
+   "view": "top",
+   "reason": "not drawn"
+  },
+  {
+   "ref": "R118",
+   "pn": "C875026",
+   "land": "passive-CHIP_1210",
+   "view": "top",
+   "reason": "not drawn"
+  },
+  {
+   "ref": "R127",
+   "pn": "C875251",
+   "land": "passive-CHIP_1210",
+   "view": "top",
+   "reason": "not drawn"
+  },
+  {
+   "ref": "R128",
+   "pn": "C875123",
+   "land": "passive-CHIP_1210",
+   "view": "top",
+   "reason": "not drawn"
+  },
+  {
+   "ref": "C49",
+   "pn": "C1548",
+   "land": "passive-CHIP_0402",
+   "view": "top",
+   "reason": "2 of its orientations read in this view"
+  },
+  {
+   "ref": "C50",
+   "pn": "C1548",
+   "land": "passive-CHIP_0402",
+   "view": "top",
+   "reason": "2 of its orientations read in this view"
+  },
+  {
+   "ref": "R140",
+   "pn": "C11702",
+   "land": "passive-CHIP_0402",
+   "view": "top",
+   "reason": "2 of its orientations read in this view"
+  },
+  {
+   "ref": "R141",
+   "pn": "C11702",
+   "land": "passive-CHIP_0402",
+   "view": "top",
+   "reason": "2 of its orientations read in this view"
+  },
+  {
+   "ref": "R132",
+   "pn": "C17168",
+   "land": "passive-CHIP_0402",
+   "view": "top",
+   "reason": "2 of its orientations read in this view"
+  },
+  {
+   "ref": "R133",
+   "pn": "C17168",
+   "land": "passive-CHIP_0402",
+   "view": "top",
+   "reason": "2 of its orientations read in this view"
+  },
+  {
+   "ref": "C25",
+   "pn": "C19666",
+   "land": "passive-CHIP_0603",
+   "view": "top",
+   "reason": "2 of its orientations read in this view"
+  },
+  {
+   "ref": "C26",
+   "pn": "C19666",
+   "land": "passive-CHIP_0603",
+   "view": "top",
+   "reason": "2 of its orientations read in this view"
+  },
+  {
+   "ref": "C13",
+   "pn": "C23630",
+   "land": "passive-CHIP_0603",
+   "view": "top",
+   "reason": "2 of its orientations read in this view"
+  },
+  {
+   "ref": "C14",
+   "pn": "C23630",
+   "land": "passive-CHIP_0603",
+   "view": "top",
+   "reason": "2 of its orientations read in this view"
+  },
+  {
+   "ref": "C53",
+   "pn": "C23733",
+   "land": "passive-CHIP_0402",
+   "view": "top",
+   "reason": "2 of its orientations read in this view"
+  },
+  {
+   "ref": "C54",
+   "pn": "C23733",
+   "land": "passive-CHIP_0402",
+   "view": "top",
+   "reason": "2 of its orientations read in this view"
+  },
+  {
+   "ref": "R152",
+   "pn": "C25092",
+   "land": "passive-CHIP_0402",
+   "view": "top",
+   "reason": "2 of its orientations read in this view"
+  },
+  {
+   "ref": "R153",
+   "pn": "C25092",
+   "land": "passive-CHIP_0402",
+   "view": "top",
+   "reason": "2 of its orientations read in this view"
+  },
+  {
+   "ref": "R136",
+   "pn": "C25741",
+   "land": "passive-CHIP_0402",
+   "view": "top",
+   "reason": "2 of its orientations read in this view"
+  },
+  {
+   "ref": "R137",
+   "pn": "C25741",
+   "land": "passive-CHIP_0402",
+   "view": "top",
+   "reason": "2 of its orientations read in this view"
+  },
+  {
+   "ref": "R148",
+   "pn": "C25768",
+   "land": "passive-CHIP_0402",
+   "view": "top",
+   "reason": "2 of its orientations read in this view"
+  },
+  {
+   "ref": "R149",
+   "pn": "C25768",
+   "land": "passive-CHIP_0402",
+   "view": "top",
+   "reason": "2 of its orientations read in this view"
+  },
+  {
+   "ref": "R156",
+   "pn": "C25890",
+   "land": "passive-CHIP_0402",
+   "view": "top",
+   "reason": "2 of its orientations read in this view"
+  },
+  {
+   "ref": "R157",
+   "pn": "C25890",
+   "land": "passive-CHIP_0402",
+   "view": "top",
+   "reason": "2 of its orientations read in this view"
+  },
+  {
+   "ref": "R160",
+   "pn": "C25905",
+   "land": "passive-CHIP_0402",
+   "view": "top",
+   "reason": "2 of its orientations read in this view"
+  },
+  {
+   "ref": "R161",
+   "pn": "C25905",
+   "land": "passive-CHIP_0402",
+   "view": "top",
+   "reason": "2 of its orientations read in this view"
+  },
+  {
+   "ref": "R144",
+   "pn": "C26083",
+   "land": "passive-CHIP_0402",
+   "view": "top",
+   "reason": "2 of its orientations read in this view"
+  },
+  {
+   "ref": "R145",
+   "pn": "C26083",
+   "land": "passive-CHIP_0402",
+   "view": "top",
+   "reason": "2 of its orientations read in this view"
+  },
+  {
+   "ref": "C9",
+   "pn": "C52923",
+   "land": "passive-CHIP_0402",
+   "view": "top",
+   "reason": "2 of its orientations read in this view"
+  },
+  {
+   "ref": "C10",
+   "pn": "C52923",
+   "land": "passive-CHIP_0402",
+   "view": "top",
+   "reason": "2 of its orientations read in this view"
+  },
+  {
+   "ref": "C21",
+   "pn": "C106255",
+   "land": "passive-CHIP_0402",
+   "view": "top",
+   "reason": "2 of its orientations read in this view"
+  },
+  {
+   "ref": "C22",
+   "pn": "C106255",
+   "land": "passive-CHIP_0402",
+   "view": "top",
+   "reason": "2 of its orientations read in this view"
+  },
+  {
+   "ref": "C17",
+   "pn": "C107006",
+   "land": "passive-CHIP_0402",
+   "view": "top",
+   "reason": "2 of its orientations read in this view"
+  },
+  {
+   "ref": "C18",
+   "pn": "C107006",
+   "land": "passive-CHIP_0402",
+   "view": "top",
+   "reason": "2 of its orientations read in this view"
+  },
+  {
+   "ref": "C1",
+   "pn": "C107039",
+   "land": "passive-CHIP_0603",
+   "view": "top",
+   "reason": "2 of its orientations read in this view"
+  },
+  {
+   "ref": "C2",
+   "pn": "C107039",
+   "land": "passive-CHIP_0603",
+   "view": "top",
+   "reason": "2 of its orientations read in this view"
+  },
+  {
+   "ref": "C5",
+   "pn": "C113780",
+   "land": "passive-CHIP_0402",
+   "view": "top",
+   "reason": "2 of its orientations read in this view"
+  },
+  {
+   "ref": "C6",
+   "pn": "C113780",
+   "land": "passive-CHIP_0402",
+   "view": "top",
+   "reason": "2 of its orientations read in this view"
+  },
+  {
+   "ref": "R93",
+   "pn": "C137083",
+   "land": "passive-CHIP_1210",
+   "view": "top",
+   "reason": "1 of its orientations read in this view"
+  },
+  {
+   "ref": "R83",
+   "pn": "C137089",
+   "land": "passive-CHIP_1210",
+   "view": "top",
+   "reason": "1 of its orientations read in this view"
+  },
+  {
+   "ref": "R123",
+   "pn": "C137092",
+   "land": "passive-CHIP_1210",
+   "view": "top",
+   "reason": "1 of its orientations read in this view"
+  },
+  {
+   "ref": "R105",
+   "pn": "C137097",
+   "land": "passive-CHIP_1210",
+   "view": "top",
+   "reason": "1 of its orientations read in this view"
+  },
+  {
+   "ref": "R104",
+   "pn": "C137098",
+   "land": "passive-CHIP_1210",
+   "view": "top",
+   "reason": "1 of its orientations read in this view"
+  },
+  {
+   "ref": "R87",
+   "pn": "C137103",
+   "land": "passive-CHIP_1210",
+   "view": "top",
+   "reason": "1 of its orientations read in this view"
+  },
+  {
+   "ref": "R90",
+   "pn": "C275640",
+   "land": "passive-CHIP_1210",
+   "view": "top",
+   "reason": "1 of its orientations read in this view"
+  },
+  {
+   "ref": "R120",
+   "pn": "C326893",
+   "land": "passive-CHIP_1210",
+   "view": "top",
+   "reason": "1 of its orientations read in this view"
+  },
+  {
+   "ref": "R99",
+   "pn": "C326901",
+   "land": "passive-CHIP_1210",
+   "view": "top",
+   "reason": "1 of its orientations read in this view"
+  },
+  {
+   "ref": "R81",
+   "pn": "C375531",
+   "land": "passive-CHIP_1210",
+   "view": "top",
+   "reason": "1 of its orientations read in this view"
+  },
+  {
+   "ref": "R115",
+   "pn": "C440313",
+   "land": "passive-CHIP_1210",
+   "view": "top",
+   "reason": "1 of its orientations read in this view"
+  },
+  {
+   "ref": "R103",
+   "pn": "C482122",
+   "land": "passive-CHIP_0402",
+   "view": "top",
+   "reason": "1 of its orientations read in this view"
+  },
+  {
+   "ref": "R108",
+   "pn": "C482153",
+   "land": "passive-CHIP_0402",
+   "view": "top",
+   "reason": "1 of its orientations read in this view"
+  },
+  {
+   "ref": "R126",
+   "pn": "C482229",
+   "land": "passive-CHIP_0402",
+   "view": "top",
+   "reason": "1 of its orientations read in this view"
+  },
+  {
+   "ref": "R82",
+   "pn": "C482245",
+   "land": "passive-CHIP_0402",
+   "view": "top",
+   "reason": "1 of its orientations read in this view"
+  },
+  {
+   "ref": "R130",
+   "pn": "C723577",
+   "land": "passive-CHIP_1210",
+   "view": "top",
+   "reason": "1 of its orientations read in this view"
+  },
+  {
+   "ref": "R100",
+   "pn": "C723647",
+   "land": "passive-CHIP_1210",
+   "view": "top",
+   "reason": "1 of its orientations read in this view"
+  },
+  {
+   "ref": "R113",
+   "pn": "C723648",
+   "land": "passive-CHIP_1210",
+   "view": "top",
+   "reason": "1 of its orientations read in this view"
+  },
+  {
+   "ref": "R86",
+   "pn": "C723673",
+   "land": "passive-CHIP_1210",
+   "view": "top",
+   "reason": "1 of its orientations read in this view"
+  },
+  {
+   "ref": "R84",
+   "pn": "C728359",
+   "land": "passive-CHIP_1210",
+   "view": "top",
+   "reason": "1 of its orientations read in this view"
+  },
+  {
+   "ref": "R97",
+   "pn": "C728367",
+   "land": "passive-CHIP_1210",
+   "view": "top",
+   "reason": "1 of its orientations read in this view"
+  },
+  {
+   "ref": "R106",
+   "pn": "C728373",
+   "land": "passive-CHIP_1210",
+   "view": "top",
+   "reason": "1 of its orientations read in this view"
+  },
+  {
+   "ref": "R109",
+   "pn": "C728375",
+   "land": "passive-CHIP_1210",
+   "view": "top",
+   "reason": "1 of its orientations read in this view"
+  },
+  {
+   "ref": "R117",
+   "pn": "C728383",
+   "land": "passive-CHIP_1210",
+   "view": "top",
+   "reason": "1 of its orientations read in this view"
+  },
+  {
+   "ref": "R122",
+   "pn": "C728387",
+   "land": "passive-CHIP_1210",
+   "view": "top",
+   "reason": "1 of its orientations read in this view"
+  },
+  {
+   "ref": "R125",
+   "pn": "C728392",
+   "land": "passive-CHIP_1210",
+   "view": "top",
+   "reason": "1 of its orientations read in this view"
+  },
+  {
+   "ref": "R129",
+   "pn": "C728395",
+   "land": "passive-CHIP_1210",
+   "view": "top",
+   "reason": "1 of its orientations read in this view"
+  },
+  {
+   "ref": "R85",
+   "pn": "C728398",
+   "land": "passive-CHIP_1210",
+   "view": "top",
+   "reason": "1 of its orientations read in this view"
+  },
+  {
+   "ref": "R119",
+   "pn": "C728409",
+   "land": "passive-CHIP_1210",
+   "view": "top",
+   "reason": "1 of its orientations read in this view"
+  },
+  {
+   "ref": "R98",
+   "pn": "C874830",
+   "land": "passive-CHIP_1210",
+   "view": "top",
+   "reason": "1 of its orientations read in this view"
+  },
+  {
+   "ref": "R101",
+   "pn": "C874855",
+   "land": "passive-CHIP_1210",
+   "view": "top",
+   "reason": "1 of its orientations read in this view"
+  },
+  {
+   "ref": "R124",
+   "pn": "C875093",
+   "land": "passive-CHIP_1210",
+   "view": "top",
+   "reason": "1 of its orientations read in this view"
+  },
+  {
+   "ref": "R89",
+   "pn": "C2076669",
+   "land": "passive-CHIP_0402",
+   "view": "top",
+   "reason": "1 of its orientations read in this view"
+  },
+  {
+   "ref": "R131",
+   "pn": "C3008837",
+   "land": "passive-CHIP_0402",
+   "view": "top",
+   "reason": "1 of its orientations read in this view"
+  },
+  {
+   "ref": "R114",
+   "pn": "C3151635",
+   "land": "passive-CHIP_0402",
+   "view": "top",
+   "reason": "1 of its orientations read in this view"
+  },
+  {
+   "ref": "R121",
+   "pn": "C4112969",
+   "land": "passive-CHIP_0402",
+   "view": "top",
+   "reason": "1 of its orientations read in this view"
+  },
+  {
+   "ref": "C51",
+   "pn": "C1548",
+   "land": "passive-CHIP_0402",
+   "view": "bottom",
+   "reason": "2 of its orientations read in this view"
+  },
+  {
+   "ref": "C52",
+   "pn": "C1548",
+   "land": "passive-CHIP_0402",
+   "view": "bottom",
+   "reason": "2 of its orientations read in this view"
+  },
+  {
+   "ref": "R142",
+   "pn": "C11702",
+   "land": "passive-CHIP_0402",
+   "view": "bottom",
+   "reason": "2 of its orientations read in this view"
+  },
+  {
+   "ref": "R143",
+   "pn": "C11702",
+   "land": "passive-CHIP_0402",
+   "view": "bottom",
+   "reason": "2 of its orientations read in this view"
+  },
+  {
+   "ref": "R134",
+   "pn": "C17168",
+   "land": "passive-CHIP_0402",
+   "view": "bottom",
+   "reason": "2 of its orientations read in this view"
+  },
+  {
+   "ref": "R135",
+   "pn": "C17168",
+   "land": "passive-CHIP_0402",
+   "view": "bottom",
+   "reason": "2 of its orientations read in this view"
+  },
+  {
+   "ref": "C27",
+   "pn": "C19666",
+   "land": "passive-CHIP_0603",
+   "view": "bottom",
+   "reason": "2 of its orientations read in this view"
+  },
+  {
+   "ref": "C28",
+   "pn": "C19666",
+   "land": "passive-CHIP_0603",
+   "view": "bottom",
+   "reason": "2 of its orientations read in this view"
+  },
+  {
+   "ref": "C15",
+   "pn": "C23630",
+   "land": "passive-CHIP_0603",
+   "view": "bottom",
+   "reason": "2 of its orientations read in this view"
+  },
+  {
+   "ref": "C16",
+   "pn": "C23630",
+   "land": "passive-CHIP_0603",
+   "view": "bottom",
+   "reason": "2 of its orientations read in this view"
+  },
+  {
+   "ref": "C55",
+   "pn": "C23733",
+   "land": "passive-CHIP_0402",
+   "view": "bottom",
+   "reason": "2 of its orientations read in this view"
+  },
+  {
+   "ref": "C56",
+   "pn": "C23733",
+   "land": "passive-CHIP_0402",
+   "view": "bottom",
+   "reason": "2 of its orientations read in this view"
+  },
+  {
+   "ref": "R154",
+   "pn": "C25092",
+   "land": "passive-CHIP_0402",
+   "view": "bottom",
+   "reason": "2 of its orientations read in this view"
+  },
+  {
+   "ref": "R155",
+   "pn": "C25092",
+   "land": "passive-CHIP_0402",
+   "view": "bottom",
+   "reason": "2 of its orientations read in this view"
+  },
+  {
+   "ref": "R138",
+   "pn": "C25741",
+   "land": "passive-CHIP_0402",
+   "view": "bottom",
+   "reason": "2 of its orientations read in this view"
+  },
+  {
+   "ref": "R139",
+   "pn": "C25741",
+   "land": "passive-CHIP_0402",
+   "view": "bottom",
+   "reason": "2 of its orientations read in this view"
+  },
+  {
+   "ref": "R150",
+   "pn": "C25768",
+   "land": "passive-CHIP_0402",
+   "view": "bottom",
+   "reason": "2 of its orientations read in this view"
+  },
+  {
+   "ref": "R151",
+   "pn": "C25768",
+   "land": "passive-CHIP_0402",
+   "view": "bottom",
+   "reason": "2 of its orientations read in this view"
+  },
+  {
+   "ref": "R158",
+   "pn": "C25890",
+   "land": "passive-CHIP_0402",
+   "view": "bottom",
+   "reason": "2 of its orientations read in this view"
+  },
+  {
+   "ref": "R159",
+   "pn": "C25890",
+   "land": "passive-CHIP_0402",
+   "view": "bottom",
+   "reason": "2 of its orientations read in this view"
+  },
+  {
+   "ref": "R162",
+   "pn": "C25905",
+   "land": "passive-CHIP_0402",
+   "view": "bottom",
+   "reason": "2 of its orientations read in this view"
+  },
+  {
+   "ref": "R163",
+   "pn": "C25905",
+   "land": "passive-CHIP_0402",
+   "view": "bottom",
+   "reason": "2 of its orientations read in this view"
+  },
+  {
+   "ref": "R146",
+   "pn": "C26083",
+   "land": "passive-CHIP_0402",
+   "view": "bottom",
+   "reason": "2 of its orientations read in this view"
+  },
+  {
+   "ref": "R147",
+   "pn": "C26083",
+   "land": "passive-CHIP_0402",
+   "view": "bottom",
+   "reason": "2 of its orientations read in this view"
+  },
+  {
+   "ref": "C11",
+   "pn": "C52923",
+   "land": "passive-CHIP_0402",
+   "view": "bottom",
+   "reason": "2 of its orientations read in this view"
+  },
+  {
+   "ref": "C12",
+   "pn": "C52923",
+   "land": "passive-CHIP_0402",
+   "view": "bottom",
+   "reason": "2 of its orientations read in this view"
+  },
+  {
+   "ref": "C23",
+   "pn": "C106255",
+   "land": "passive-CHIP_0402",
+   "view": "bottom",
+   "reason": "2 of its orientations read in this view"
+  },
+  {
+   "ref": "C24",
+   "pn": "C106255",
+   "land": "passive-CHIP_0402",
+   "view": "bottom",
+   "reason": "2 of its orientations read in this view"
+  },
+  {
+   "ref": "C19",
+   "pn": "C107006",
+   "land": "passive-CHIP_0402",
+   "view": "bottom",
+   "reason": "2 of its orientations read in this view"
+  },
+  {
+   "ref": "C20",
+   "pn": "C107006",
+   "land": "passive-CHIP_0402",
+   "view": "bottom",
+   "reason": "2 of its orientations read in this view"
+  },
+  {
+   "ref": "C3",
+   "pn": "C107039",
+   "land": "passive-CHIP_0603",
+   "view": "bottom",
+   "reason": "2 of its orientations read in this view"
+  },
+  {
+   "ref": "C4",
+   "pn": "C107039",
+   "land": "passive-CHIP_0603",
+   "view": "bottom",
+   "reason": "2 of its orientations read in this view"
+  },
+  {
+   "ref": "C7",
+   "pn": "C113780",
+   "land": "passive-CHIP_0402",
+   "view": "bottom",
+   "reason": "2 of its orientations read in this view"
+  },
+  {
+   "ref": "C8",
+   "pn": "C113780",
+   "land": "passive-CHIP_0402",
+   "view": "bottom",
+   "reason": "2 of its orientations read in this view"
+  }
+ ]
+}

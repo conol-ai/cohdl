@@ -1,0 +1,2867 @@
+{
+ "_provenance": {
+  "status": "dry run: gen_passive.py does not read this file; no alternate is emitted and nothing is bound",
+  "source": "B1 snapshot tools/sourcing_data/jlc_catalog/2026-10-30/catalog.json (confirmed JLCPCB pages), rows whose manufacturer reads 'UNI-ROYAL(Uniroyal Elec)'",
+  "rules": "transcribed from UNI-ROYAL's datasheet 'Thick Film Chip Resistors' SMD-SP-001 V.11 (tools/passive_data/uniroyal_chip_series.evidence.md) and checked against JLCPCB's pages; the zero-ohm jumper's part number is not in that datasheet and is still inferred from the snapshot (tools/gen_passive.py, UNI-ROYAL section)",
+  "meaning": "'alternates' decode to the resistance, tolerance, case size and rated power of the named library part; 'zero_ohm' are jumpers lettered F, alternates of the library's 5% R_0R_J part by the maintainer's decision (see 'decisions'), each with its note, and 'jumper_ratings' is the datasheet's p.5 rating of each size's jumper (it states no tolerance for a jumper); 'new_values' decode but the library emits no such part; 'not_decoded' are refused by the rule",
+  "generator": "tools/uniroyal_alternates.py"
+ },
+ "decisions": {
+  "date": "2026-11-13",
+  "by": "the maintainer",
+  "library_mfr": "UNI-ROYAL",
+  "alias": "'UNI-ROYAL(Uniroyal Elec)' -> 'UNI-ROYAL': decided, not applied; mfr_aliases.json is unchanged until the review issue exists (tools/sourcing_data/alias_reviews/2026-11-11-uni-royal-proposal.md)",
+  "jumpers": "the four F-lettered zero-ohm jumpers may be alternates of R_0R_J_<size>, with a note; each 'zero_ohm' row carries it"
+ },
+ "counts": {
+  "snapshot_rows": 295,
+  "alternates": 284,
+  "zero_ohm": 4,
+  "new_values": 1,
+  "not_decoded": 6,
+  "by_category": {
+   "alternates": {
+    "basic": 177,
+    "preferred": 107
+   },
+   "zero_ohm": {
+    "basic": 4,
+    "preferred": 0
+   },
+   "new_values": {
+    "basic": 1,
+    "preferred": 0
+   },
+   "not_decoded": {
+    "basic": 3,
+    "preferred": 3
+   }
+  },
+  "alternates_by_size": {
+   "0201": 0,
+   "0402": 57,
+   "0603": 115,
+   "0805": 96,
+   "1206": 16,
+   "1210": 0,
+   "2010": 0,
+   "2512": 0
+  },
+  "alternates_with_jumpers": 288,
+  "openwalkietalkie_rev_b": {
+   "numbers": 10,
+   "placements": 43,
+   "decoded": 10,
+   "in_snapshot": 9
+  }
+ },
+ "openwalkietalkie_rev_b": [
+  {
+   "pn": "C25741",
+   "mpn": "0402WGF1003TCE",
+   "placements": 14,
+   "list": "alternates",
+   "part": "R_100K_F_0402",
+   "size": "0402",
+   "ohms": "100000",
+   "tolerance": "1%",
+   "in_snapshot": true
+  },
+  {
+   "pn": "C11702",
+   "mpn": "0402WGF1001TCE",
+   "placements": 12,
+   "list": "alternates",
+   "part": "R_1K_F_0402",
+   "size": "0402",
+   "ohms": "1000",
+   "tolerance": "1%",
+   "in_snapshot": true
+  },
+  {
+   "pn": "C26083",
+   "mpn": "0402WGF1004TCE",
+   "placements": 5,
+   "list": "alternates",
+   "part": "R_1M_F_0402",
+   "size": "0402",
+   "ohms": "1000000",
+   "tolerance": "1%",
+   "in_snapshot": true
+  },
+  {
+   "pn": "C17168",
+   "mpn": "0402WGF0000TCE",
+   "placements": 3,
+   "list": "zero_ohm",
+   "part": "R_0R_J_0402",
+   "size": "0402",
+   "ohms": "0",
+   "letter": "F",
+   "alternate": true,
+   "note": "Alternate of R_0R_J_0402 by the maintainer's decision of 2026-11-13. The letter F states no 1% tolerance here: UNI-ROYAL's datasheet SMD-SP-001 V.11 rates the 0402 jumper at <50mΩ, rated current 1A, maximum overload current 2A (p.5 §7), and states no tolerance for a jumper, no meaning for the tolerance letter on one, and no jumper part number (tools/passive_data/uniroyal_chip_series.evidence.md, \"The zero-ohm jumper\"). The library part's 5% is Yageo's ordering code for its jumper; Yageo states the same resistance limit and the same two currents for this size.",
+   "in_snapshot": true
+  },
+  {
+   "pn": "C25768",
+   "mpn": "0402WGF2202TCE",
+   "placements": 2,
+   "list": "alternates",
+   "part": "R_22K_F_0402",
+   "size": "0402",
+   "ohms": "22000",
+   "tolerance": "1%",
+   "in_snapshot": true
+  },
+  {
+   "pn": "C25905",
+   "mpn": "0402WGF5101TCE",
+   "placements": 2,
+   "list": "alternates",
+   "part": "R_5K1_F_0402",
+   "size": "0402",
+   "ohms": "5100",
+   "tolerance": "1%",
+   "in_snapshot": true
+  },
+  {
+   "pn": "C25744",
+   "mpn": "0402WGF1002TCE",
+   "placements": 2,
+   "list": "alternates",
+   "part": "R_10K_F_0402",
+   "size": "0402",
+   "ohms": "10000",
+   "tolerance": "1%",
+   "in_snapshot": true
+  },
+  {
+   "pn": "C25092",
+   "mpn": "0402WGF220JTCE",
+   "placements": 1,
+   "list": "alternates",
+   "part": "R_22R_F_0402",
+   "size": "0402",
+   "ohms": "22",
+   "tolerance": "1%",
+   "in_snapshot": true
+  },
+  {
+   "pn": "C25890",
+   "mpn": "0402WGF3301TCE",
+   "placements": 1,
+   "list": "alternates",
+   "part": "R_3K3_F_0402",
+   "size": "0402",
+   "ohms": "3300",
+   "tolerance": "1%",
+   "in_snapshot": true
+  },
+  {
+   "pn": "C25760",
+   "mpn": "0402WGF1803TCE",
+   "placements": 1,
+   "list": "alternates",
+   "part": "R_180K_F_0402",
+   "size": "0402",
+   "ohms": "180000",
+   "tolerance": "1%",
+   "in_snapshot": false
+  }
+ ],
+ "jumper_ratings": {
+  "0201": {
+   "resistance": "<50mΩ",
+   "rated_current": "0.5A",
+   "max_overload_current": "1A"
+  },
+  "0402": {
+   "resistance": "<50mΩ",
+   "rated_current": "1A",
+   "max_overload_current": "2A"
+  },
+  "0603": {
+   "resistance": "<50mΩ",
+   "rated_current": "1A",
+   "max_overload_current": "2A"
+  },
+  "0805": {
+   "resistance": "<50mΩ",
+   "rated_current": "2A",
+   "max_overload_current": "5A"
+  },
+  "1206": {
+   "resistance": "<50mΩ",
+   "rated_current": "2A",
+   "max_overload_current": "10A"
+  },
+  "1210": {
+   "resistance": "<50mΩ",
+   "rated_current": "2A",
+   "max_overload_current": "10A"
+  },
+  "2010": {
+   "resistance": "<50mΩ",
+   "rated_current": "2A",
+   "max_overload_current": "10A"
+  },
+  "2512": {
+   "resistance": "<50mΩ",
+   "rated_current": "2A",
+   "max_overload_current": "10A"
+  }
+ },
+ "alternates": [
+  {
+   "pn": "C4109",
+   "mpn": "0402WGF2001TCE",
+   "category": "basic",
+   "part": "R_2K_F_0402",
+   "size": "0402",
+   "ohms": "2000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C4172",
+   "mpn": "0603WAF1504T5E",
+   "category": "preferred",
+   "part": "R_1M5_F_0603",
+   "size": "0603",
+   "ohms": "1500000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C4177",
+   "mpn": "0603WAF1801T5E",
+   "category": "basic",
+   "part": "R_1K8_F_0603",
+   "size": "0603",
+   "ohms": "1800",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C4184",
+   "mpn": "0603WAF2002T5E",
+   "category": "basic",
+   "part": "R_20K_F_0603",
+   "size": "0603",
+   "ohms": "20000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C4190",
+   "mpn": "0603WAF2201T5E",
+   "category": "basic",
+   "part": "R_2K2_F_0603",
+   "size": "0603",
+   "ohms": "2200",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C4197",
+   "mpn": "0603WAF2403T5E",
+   "category": "preferred",
+   "part": "R_240K_F_0603",
+   "size": "0603",
+   "ohms": "240000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C4211",
+   "mpn": "0603WAF3001T5E",
+   "category": "basic",
+   "part": "R_3K_F_0603",
+   "size": "0603",
+   "ohms": "3000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C4216",
+   "mpn": "0603WAF3302T5E",
+   "category": "basic",
+   "part": "R_33K_F_0603",
+   "size": "0603",
+   "ohms": "33000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C4260",
+   "mpn": "0603WAF6201T5E",
+   "category": "basic",
+   "part": "R_6K2_F_0603",
+   "size": "0603",
+   "ohms": "6200",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C4275",
+   "mpn": "0603WAF750JT5E",
+   "category": "basic",
+   "part": "R_75R_F_0603",
+   "size": "0603",
+   "ohms": "75",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C4310",
+   "mpn": "0805W8F1501T5E",
+   "category": "basic",
+   "part": "R_1K5_F_0805",
+   "size": "0805",
+   "ohms": "1500",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C4328",
+   "mpn": "0805W8F2002T5E",
+   "category": "basic",
+   "part": "R_20K_F_0805",
+   "size": "0805",
+   "ohms": "20000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C4360",
+   "mpn": "0805W8F3602T5E",
+   "category": "preferred",
+   "part": "R_36K_F_0805",
+   "size": "0805",
+   "ohms": "36000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C4382",
+   "mpn": "0805W8F5601T5E",
+   "category": "basic",
+   "part": "R_5K6_F_0805",
+   "size": "0805",
+   "ohms": "5600",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C4410",
+   "mpn": "1206W4F1001T5E",
+   "category": "basic",
+   "part": "R_1K_F_1206",
+   "size": "1206",
+   "ohms": "1000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C7250",
+   "mpn": "0603WAF1005T5E",
+   "category": "basic",
+   "part": "R_10M_F_0603",
+   "size": "0603",
+   "ohms": "10000000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C8218",
+   "mpn": "0603WAF2000T5E",
+   "category": "basic",
+   "part": "R_200R_F_0603",
+   "size": "0603",
+   "ohms": "200",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C11702",
+   "mpn": "0402WGF1001TCE",
+   "category": "basic",
+   "part": "R_1K_F_0402",
+   "size": "0402",
+   "ohms": "1000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C12447",
+   "mpn": "0603WAF4022T5E",
+   "category": "preferred",
+   "part": "R_40K2_F_0603",
+   "size": "0603",
+   "ohms": "40200",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C13167",
+   "mpn": "0603WAF2701T5E",
+   "category": "basic",
+   "part": "R_2K7_F_0603",
+   "size": "0603",
+   "ohms": "2700",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C13320",
+   "mpn": "0603WAF5104T5E",
+   "category": "preferred",
+   "part": "R_5M1_F_0603",
+   "size": "0603",
+   "ohms": "5100000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C17379",
+   "mpn": "0805W8F1201T5E",
+   "category": "basic",
+   "part": "R_1K2_F_0805",
+   "size": "0805",
+   "ohms": "1200",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C17398",
+   "mpn": "0805W8F1801T5E",
+   "category": "preferred",
+   "part": "R_1K8_F_0805",
+   "size": "0805",
+   "ohms": "1800",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C17408",
+   "mpn": "0805W8F1000T5E",
+   "category": "basic",
+   "part": "R_100R_F_0805",
+   "size": "0805",
+   "ohms": "100",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C17414",
+   "mpn": "0805W8F1002T5E",
+   "category": "basic",
+   "part": "R_10K_F_0805",
+   "size": "0805",
+   "ohms": "10000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C17415",
+   "mpn": "0805W8F100JT5E",
+   "category": "basic",
+   "part": "R_10R_F_0805",
+   "size": "0805",
+   "ohms": "10",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C17429",
+   "mpn": "0805W8F1102T5E",
+   "category": "preferred",
+   "part": "R_11K_F_0805",
+   "size": "0805",
+   "ohms": "11000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C17436",
+   "mpn": "0805W8F1203T5E",
+   "category": "preferred",
+   "part": "R_120K_F_0805",
+   "size": "0805",
+   "ohms": "120000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C17437",
+   "mpn": "0805W8F1200T5E",
+   "category": "basic",
+   "part": "R_120R_F_0805",
+   "size": "0805",
+   "ohms": "120",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C17444",
+   "mpn": "0805W8F1202T5E",
+   "category": "basic",
+   "part": "R_12K_F_0805",
+   "size": "0805",
+   "ohms": "12000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C17455",
+   "mpn": "0805W8F1302T5E",
+   "category": "preferred",
+   "part": "R_13K_F_0805",
+   "size": "0805",
+   "ohms": "13000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C17470",
+   "mpn": "0805W8F1503T5E",
+   "category": "basic",
+   "part": "R_150K_F_0805",
+   "size": "0805",
+   "ohms": "150000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C17471",
+   "mpn": "0805W8F1500T5E",
+   "category": "basic",
+   "part": "R_150R_F_0805",
+   "size": "0805",
+   "ohms": "150",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C17475",
+   "mpn": "0805W8F1502T5E",
+   "category": "basic",
+   "part": "R_15K_F_0805",
+   "size": "0805",
+   "ohms": "15000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C17480",
+   "mpn": "0805W8F150JT5E",
+   "category": "preferred",
+   "part": "R_15R_F_0805",
+   "size": "0805",
+   "ohms": "15",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C17490",
+   "mpn": "0805W8F1602T5E",
+   "category": "preferred",
+   "part": "R_16K_F_0805",
+   "size": "0805",
+   "ohms": "16000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C17501",
+   "mpn": "0805W8F1803T5E",
+   "category": "preferred",
+   "part": "R_180K_F_0805",
+   "size": "0805",
+   "ohms": "180000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C17506",
+   "mpn": "0805W8F1802T5E",
+   "category": "preferred",
+   "part": "R_18K_F_0805",
+   "size": "0805",
+   "ohms": "18000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C17513",
+   "mpn": "0805W8F1001T5E",
+   "category": "basic",
+   "part": "R_1K_F_0805",
+   "size": "0805",
+   "ohms": "1000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C17514",
+   "mpn": "0805W8F1004T5E",
+   "category": "basic",
+   "part": "R_1M_F_0805",
+   "size": "0805",
+   "ohms": "1000000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C17520",
+   "mpn": "0805W8F2201T5E",
+   "category": "basic",
+   "part": "R_2K2_F_0805",
+   "size": "0805",
+   "ohms": "2200",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C17521",
+   "mpn": "0805W8F220KT5E",
+   "category": "basic",
+   "part": "R_2R2_F_0805",
+   "size": "0805",
+   "ohms": "2.2",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C17526",
+   "mpn": "0805W8F2401T5E",
+   "category": "basic",
+   "part": "R_2K4_F_0805",
+   "size": "0805",
+   "ohms": "2400",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C17530",
+   "mpn": "0805W8F2701T5E",
+   "category": "basic",
+   "part": "R_2K7_F_0805",
+   "size": "0805",
+   "ohms": "2700",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C17539",
+   "mpn": "0805W8F2003T5E",
+   "category": "basic",
+   "part": "R_200K_F_0805",
+   "size": "0805",
+   "ohms": "200000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C17540",
+   "mpn": "0805W8F2000T5E",
+   "category": "basic",
+   "part": "R_200R_F_0805",
+   "size": "0805",
+   "ohms": "200",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C17544",
+   "mpn": "0805W8F200JT5E",
+   "category": "basic",
+   "part": "R_20R_F_0805",
+   "size": "0805",
+   "ohms": "20",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C17556",
+   "mpn": "0805W8F2203T5E",
+   "category": "basic",
+   "part": "R_220K_F_0805",
+   "size": "0805",
+   "ohms": "220000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C17557",
+   "mpn": "0805W8F2200T5E",
+   "category": "basic",
+   "part": "R_220R_F_0805",
+   "size": "0805",
+   "ohms": "220",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C17560",
+   "mpn": "0805W8F2202T5E",
+   "category": "basic",
+   "part": "R_22K_F_0805",
+   "size": "0805",
+   "ohms": "22000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C17561",
+   "mpn": "0805W8F220JT5E",
+   "category": "basic",
+   "part": "R_22R_F_0805",
+   "size": "0805",
+   "ohms": "22",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C17572",
+   "mpn": "0805W8F2400T5E",
+   "category": "preferred",
+   "part": "R_240R_F_0805",
+   "size": "0805",
+   "ohms": "240",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C17575",
+   "mpn": "0805W8F2402T5E",
+   "category": "basic",
+   "part": "R_24K_F_0805",
+   "size": "0805",
+   "ohms": "24000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C17589",
+   "mpn": "0805W8F2703T5E",
+   "category": "preferred",
+   "part": "R_270K_F_0805",
+   "size": "0805",
+   "ohms": "270000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C17590",
+   "mpn": "0805W8F2700T5E",
+   "category": "preferred",
+   "part": "R_270R_F_0805",
+   "size": "0805",
+   "ohms": "270",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C17593",
+   "mpn": "0805W8F2702T5E",
+   "category": "basic",
+   "part": "R_27K_F_0805",
+   "size": "0805",
+   "ohms": "27000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C17594",
+   "mpn": "0805W8F270JT5E",
+   "category": "preferred",
+   "part": "R_27R_F_0805",
+   "size": "0805",
+   "ohms": "27",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C17604",
+   "mpn": "0805W8F2001T5E",
+   "category": "basic",
+   "part": "R_2K_F_0805",
+   "size": "0805",
+   "ohms": "2000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C17606",
+   "mpn": "0805W8F200KT5E",
+   "category": "preferred",
+   "part": "R_2R_F_0805",
+   "size": "0805",
+   "ohms": "2",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C17614",
+   "mpn": "0805W8F3901T5E",
+   "category": "basic",
+   "part": "R_3K9_F_0805",
+   "size": "0805",
+   "ohms": "3900",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C17616",
+   "mpn": "0805W8F3003T5E",
+   "category": "preferred",
+   "part": "R_300K_F_0805",
+   "size": "0805",
+   "ohms": "300000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C17617",
+   "mpn": "0805W8F3000T5E",
+   "category": "basic",
+   "part": "R_300R_F_0805",
+   "size": "0805",
+   "ohms": "300",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C17621",
+   "mpn": "0805W8F3002T5E",
+   "category": "basic",
+   "part": "R_30K_F_0805",
+   "size": "0805",
+   "ohms": "30000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C17629",
+   "mpn": "0805W8F3303T5E",
+   "category": "preferred",
+   "part": "R_330K_F_0805",
+   "size": "0805",
+   "ohms": "330000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C17630",
+   "mpn": "0805W8F3300T5E",
+   "category": "basic",
+   "part": "R_330R_F_0805",
+   "size": "0805",
+   "ohms": "330",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C17633",
+   "mpn": "0805W8F3302T5E",
+   "category": "basic",
+   "part": "R_33K_F_0805",
+   "size": "0805",
+   "ohms": "33000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C17634",
+   "mpn": "0805W8F330JT5E",
+   "category": "basic",
+   "part": "R_33R_F_0805",
+   "size": "0805",
+   "ohms": "33",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C17655",
+   "mpn": "0805W8F3900T5E",
+   "category": "basic",
+   "part": "R_390R_F_0805",
+   "size": "0805",
+   "ohms": "390",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C17656",
+   "mpn": "0805W8F3903T5E",
+   "category": "preferred",
+   "part": "R_390K_F_0805",
+   "size": "0805",
+   "ohms": "390000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C17661",
+   "mpn": "0805W8F3001T5E",
+   "category": "basic",
+   "part": "R_3K_F_0805",
+   "size": "0805",
+   "ohms": "3000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C17667",
+   "mpn": "0805W8F4301T5E",
+   "category": "preferred",
+   "part": "R_4K3_F_0805",
+   "size": "0805",
+   "ohms": "4300",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C17673",
+   "mpn": "0805W8F4701T5E",
+   "category": "basic",
+   "part": "R_4K7_F_0805",
+   "size": "0805",
+   "ohms": "4700",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C17675",
+   "mpn": "0805W8F470KT5E",
+   "category": "basic",
+   "part": "R_4R7_F_0805",
+   "size": "0805",
+   "ohms": "4.7",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C17677",
+   "mpn": "0805W8F4991T5E",
+   "category": "preferred",
+   "part": "R_4K99_F_0805",
+   "size": "0805",
+   "ohms": "4990",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C17695",
+   "mpn": "0805W8F4302T5E",
+   "category": "preferred",
+   "part": "R_43K_F_0805",
+   "size": "0805",
+   "ohms": "43000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C17709",
+   "mpn": "0805W8F4703T5E",
+   "category": "basic",
+   "part": "R_470K_F_0805",
+   "size": "0805",
+   "ohms": "470000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C17710",
+   "mpn": "0805W8F4700T5E",
+   "category": "basic",
+   "part": "R_470R_F_0805",
+   "size": "0805",
+   "ohms": "470",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C17713",
+   "mpn": "0805W8F4702T5E",
+   "category": "basic",
+   "part": "R_47K_F_0805",
+   "size": "0805",
+   "ohms": "47000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C17714",
+   "mpn": "0805W8F470JT5E",
+   "category": "basic",
+   "part": "R_47R_F_0805",
+   "size": "0805",
+   "ohms": "47",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C17719",
+   "mpn": "0805W8F4992T5E",
+   "category": "preferred",
+   "part": "R_49K9_F_0805",
+   "size": "0805",
+   "ohms": "49900",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C17720",
+   "mpn": "0805W8F499JT5E",
+   "category": "basic",
+   "part": "R_49R9_F_0805",
+   "size": "0805",
+   "ohms": "49.9",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C17724",
+   "mpn": "0805W8F510KT5E",
+   "category": "basic",
+   "part": "R_5R1_F_0805",
+   "size": "0805",
+   "ohms": "5.1",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C17733",
+   "mpn": "0805W8F5103T5E",
+   "category": "preferred",
+   "part": "R_510K_F_0805",
+   "size": "0805",
+   "ohms": "510000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C17734",
+   "mpn": "0805W8F5100T5E",
+   "category": "basic",
+   "part": "R_510R_F_0805",
+   "size": "0805",
+   "ohms": "510",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C17737",
+   "mpn": "0805W8F5102T5E",
+   "category": "basic",
+   "part": "R_51K_F_0805",
+   "size": "0805",
+   "ohms": "51000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C17738",
+   "mpn": "0805W8F510JT5E",
+   "category": "basic",
+   "part": "R_51R_F_0805",
+   "size": "0805",
+   "ohms": "51",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C17756",
+   "mpn": "0805W8F5602T5E",
+   "category": "preferred",
+   "part": "R_56K_F_0805",
+   "size": "0805",
+   "ohms": "56000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C17757",
+   "mpn": "0805W8F560JT5E",
+   "category": "preferred",
+   "part": "R_56R_F_0805",
+   "size": "0805",
+   "ohms": "56",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C17767",
+   "mpn": "0805W8F6201T5E",
+   "category": "preferred",
+   "part": "R_6K2_F_0805",
+   "size": "0805",
+   "ohms": "6200",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C17772",
+   "mpn": "0805W8F6801T5E",
+   "category": "basic",
+   "part": "R_6K8_F_0805",
+   "size": "0805",
+   "ohms": "6800",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C17783",
+   "mpn": "0805W8F6202T5E",
+   "category": "preferred",
+   "part": "R_62K_F_0805",
+   "size": "0805",
+   "ohms": "62000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C17797",
+   "mpn": "0805W8F6803T5E",
+   "category": "preferred",
+   "part": "R_680K_F_0805",
+   "size": "0805",
+   "ohms": "680000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C17798",
+   "mpn": "0805W8F6800T5E",
+   "category": "basic",
+   "part": "R_680R_F_0805",
+   "size": "0805",
+   "ohms": "680",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C17801",
+   "mpn": "0805W8F6802T5E",
+   "category": "basic",
+   "part": "R_68K_F_0805",
+   "size": "0805",
+   "ohms": "68000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C17802",
+   "mpn": "0805W8F680JT5E",
+   "category": "preferred",
+   "part": "R_68R_F_0805",
+   "size": "0805",
+   "ohms": "68",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C17807",
+   "mpn": "0805W8F7501T5E",
+   "category": "preferred",
+   "part": "R_7K5_F_0805",
+   "size": "0805",
+   "ohms": "7500",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C17818",
+   "mpn": "0805W8F7500T5E",
+   "category": "preferred",
+   "part": "R_750R_F_0805",
+   "size": "0805",
+   "ohms": "750",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C17819",
+   "mpn": "0805W8F7502T5E",
+   "category": "preferred",
+   "part": "R_75K_F_0805",
+   "size": "0805",
+   "ohms": "75000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C17828",
+   "mpn": "0805W8F8201T5E",
+   "category": "basic",
+   "part": "R_8K2_F_0805",
+   "size": "0805",
+   "ohms": "8200",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C17837",
+   "mpn": "0805W8F8200T5E",
+   "category": "preferred",
+   "part": "R_820R_F_0805",
+   "size": "0805",
+   "ohms": "820",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C17840",
+   "mpn": "0805W8F8202T5E",
+   "category": "preferred",
+   "part": "R_82K_F_0805",
+   "size": "0805",
+   "ohms": "82000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C17855",
+   "mpn": "0805W8F9101T5E",
+   "category": "preferred",
+   "part": "R_9K1_F_0805",
+   "size": "0805",
+   "ohms": "9100",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C17887",
+   "mpn": "1206W4F3000T5E",
+   "category": "basic",
+   "part": "R_300R_F_1206",
+   "size": "1206",
+   "ohms": "300",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C17900",
+   "mpn": "1206W4F1003T5E",
+   "category": "basic",
+   "part": "R_100K_F_1206",
+   "size": "1206",
+   "ohms": "100000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C17901",
+   "mpn": "1206W4F1000T5E",
+   "category": "basic",
+   "part": "R_100R_F_1206",
+   "size": "1206",
+   "ohms": "100",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C17902",
+   "mpn": "1206W4F1002T5E",
+   "category": "basic",
+   "part": "R_10K_F_1206",
+   "size": "1206",
+   "ohms": "10000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C17903",
+   "mpn": "1206W4F100JT5E",
+   "category": "basic",
+   "part": "R_10R_F_1206",
+   "size": "1206",
+   "ohms": "10",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C17909",
+   "mpn": "1206W4F1200T5E",
+   "category": "basic",
+   "part": "R_120R_F_1206",
+   "size": "1206",
+   "ohms": "120",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C17924",
+   "mpn": "1206W4F1800T5E",
+   "category": "preferred",
+   "part": "R_180R_F_1206",
+   "size": "1206",
+   "ohms": "180",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C17927",
+   "mpn": "1206W4F1004T5E",
+   "category": "basic",
+   "part": "R_1M_F_1206",
+   "size": "1206",
+   "ohms": "1000000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C17928",
+   "mpn": "1206W4F100KT5E",
+   "category": "basic",
+   "part": "R_1R_F_1206",
+   "size": "1206",
+   "ohms": "1",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C17936",
+   "mpn": "1206W4F4701T5E",
+   "category": "basic",
+   "part": "R_4K7_F_1206",
+   "size": "1206",
+   "ohms": "4700",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C17944",
+   "mpn": "1206W4F2001T5E",
+   "category": "basic",
+   "part": "R_2K_F_1206",
+   "size": "1206",
+   "ohms": "2000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C17955",
+   "mpn": "1206W4F200JT5E",
+   "category": "basic",
+   "part": "R_20R_F_1206",
+   "size": "1206",
+   "ohms": "20",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C17958",
+   "mpn": "1206W4F220JT5E",
+   "category": "basic",
+   "part": "R_22R_F_1206",
+   "size": "1206",
+   "ohms": "22",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C17985",
+   "mpn": "1206W4F7500T5E",
+   "category": "preferred",
+   "part": "R_750R_F_1206",
+   "size": "1206",
+   "ohms": "750",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C18359",
+   "mpn": "0805W8F3601T5E",
+   "category": "preferred",
+   "part": "R_3K6_F_0805",
+   "size": "0805",
+   "ohms": "3600",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C21190",
+   "mpn": "0603WAF1001T5E",
+   "category": "basic",
+   "part": "R_1K_F_0603",
+   "size": "0603",
+   "ohms": "1000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C22107",
+   "mpn": "1206W4F1204T5E",
+   "category": "preferred",
+   "part": "R_1M2_F_1206",
+   "size": "1206",
+   "ohms": "1200000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C22764",
+   "mpn": "0603WAF1101T5E",
+   "category": "preferred",
+   "part": "R_1K1_F_0603",
+   "size": "0603",
+   "ohms": "1100",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C22765",
+   "mpn": "0603WAF1201T5E",
+   "category": "basic",
+   "part": "R_1K2_F_0603",
+   "size": "0603",
+   "ohms": "1200",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C22775",
+   "mpn": "0603WAF1000T5E",
+   "category": "basic",
+   "part": "R_100R_F_0603",
+   "size": "0603",
+   "ohms": "100",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C22787",
+   "mpn": "0603WAF1200T5E",
+   "category": "basic",
+   "part": "R_120R_F_0603",
+   "size": "0603",
+   "ohms": "120",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C22790",
+   "mpn": "0603WAF1202T5E",
+   "category": "basic",
+   "part": "R_12K_F_0603",
+   "size": "0603",
+   "ohms": "12000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C22795",
+   "mpn": "0603WAF1303T5E",
+   "category": "preferred",
+   "part": "R_130K_F_0603",
+   "size": "0603",
+   "ohms": "130000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C22797",
+   "mpn": "0603WAF1302T5E",
+   "category": "basic",
+   "part": "R_13K_F_0603",
+   "size": "0603",
+   "ohms": "13000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C22807",
+   "mpn": "0603WAF1503T5E",
+   "category": "basic",
+   "part": "R_150K_F_0603",
+   "size": "0603",
+   "ohms": "150000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C22808",
+   "mpn": "0603WAF1500T5E",
+   "category": "basic",
+   "part": "R_150R_F_0603",
+   "size": "0603",
+   "ohms": "150",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C22809",
+   "mpn": "0603WAF1502T5E",
+   "category": "basic",
+   "part": "R_15K_F_0603",
+   "size": "0603",
+   "ohms": "15000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C22810",
+   "mpn": "0603WAF150JT5E",
+   "category": "preferred",
+   "part": "R_15R_F_0603",
+   "size": "0603",
+   "ohms": "15",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C22813",
+   "mpn": "0603WAF1603T5E",
+   "category": "preferred",
+   "part": "R_160K_F_0603",
+   "size": "0603",
+   "ohms": "160000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C22827",
+   "mpn": "0603WAF1803T5E",
+   "category": "preferred",
+   "part": "R_180K_F_0603",
+   "size": "0603",
+   "ohms": "180000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C22828",
+   "mpn": "0603WAF1800T5E",
+   "category": "preferred",
+   "part": "R_180R_F_0603",
+   "size": "0603",
+   "ohms": "180",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C22843",
+   "mpn": "0603WAF1501T5E",
+   "category": "basic",
+   "part": "R_1K5_F_0603",
+   "size": "0603",
+   "ohms": "1500",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C22859",
+   "mpn": "0603WAF100JT5E",
+   "category": "basic",
+   "part": "R_10R_F_0603",
+   "size": "0603",
+   "ohms": "10",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C22935",
+   "mpn": "0603WAF1004T5E",
+   "category": "basic",
+   "part": "R_1M_F_0603",
+   "size": "0603",
+   "ohms": "1000000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C22936",
+   "mpn": "0603WAF100KT5E",
+   "category": "basic",
+   "part": "R_1R_F_0603",
+   "size": "0603",
+   "ohms": "1",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C22938",
+   "mpn": "0603WAF2204T5E",
+   "category": "preferred",
+   "part": "R_2M2_F_0603",
+   "size": "0603",
+   "ohms": "2200000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C22939",
+   "mpn": "0603WAF220KT5E",
+   "category": "basic",
+   "part": "R_2R2_F_0603",
+   "size": "0603",
+   "ohms": "2.2",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C22940",
+   "mpn": "0603WAF2401T5E",
+   "category": "basic",
+   "part": "R_2K4_F_0603",
+   "size": "0603",
+   "ohms": "2400",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C22950",
+   "mpn": "0603WAF200JT5E",
+   "category": "basic",
+   "part": "R_20R_F_0603",
+   "size": "0603",
+   "ohms": "20",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C22961",
+   "mpn": "0603WAF2203T5E",
+   "category": "basic",
+   "part": "R_220K_F_0603",
+   "size": "0603",
+   "ohms": "220000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C22962",
+   "mpn": "0603WAF2200T5E",
+   "category": "basic",
+   "part": "R_220R_F_0603",
+   "size": "0603",
+   "ohms": "220",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C22965",
+   "mpn": "0603WAF2703T5E",
+   "category": "preferred",
+   "part": "R_270K_F_0603",
+   "size": "0603",
+   "ohms": "270000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C22966",
+   "mpn": "0603WAF2700T5E",
+   "category": "basic",
+   "part": "R_270R_F_0603",
+   "size": "0603",
+   "ohms": "270",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C22967",
+   "mpn": "0603WAF2702T5E",
+   "category": "basic",
+   "part": "R_27K_F_0603",
+   "size": "0603",
+   "ohms": "27000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C22975",
+   "mpn": "0603WAF2001T5E",
+   "category": "basic",
+   "part": "R_2K_F_0603",
+   "size": "0603",
+   "ohms": "2000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C22976",
+   "mpn": "0603WAF2004T5E",
+   "category": "basic",
+   "part": "R_2M_F_0603",
+   "size": "0603",
+   "ohms": "2000000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C22977",
+   "mpn": "0603WAF200KT5E",
+   "category": "basic",
+   "part": "R_2R_F_0603",
+   "size": "0603",
+   "ohms": "2",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C22978",
+   "mpn": "0603WAF3301T5E",
+   "category": "basic",
+   "part": "R_3K3_F_0603",
+   "size": "0603",
+   "ohms": "3300",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C22980",
+   "mpn": "0603WAF3601T5E",
+   "category": "basic",
+   "part": "R_3K6_F_0603",
+   "size": "0603",
+   "ohms": "3600",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C22984",
+   "mpn": "0603WAF3002T5E",
+   "category": "basic",
+   "part": "R_30K_F_0603",
+   "size": "0603",
+   "ohms": "30000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C23018",
+   "mpn": "0603WAF3901T5E",
+   "category": "basic",
+   "part": "R_3K9_F_0603",
+   "size": "0603",
+   "ohms": "3900",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C23024",
+   "mpn": "0603WAF3003T5E",
+   "category": "basic",
+   "part": "R_300K_F_0603",
+   "size": "0603",
+   "ohms": "300000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C23025",
+   "mpn": "0603WAF3000T5E",
+   "category": "basic",
+   "part": "R_300R_F_0603",
+   "size": "0603",
+   "ohms": "300",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C23046",
+   "mpn": "0603WAF4991T5E",
+   "category": "basic",
+   "part": "R_4K99_F_0603",
+   "size": "0603",
+   "ohms": "4990",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C23137",
+   "mpn": "0603WAF3303T5E",
+   "category": "basic",
+   "part": "R_330K_F_0603",
+   "size": "0603",
+   "ohms": "330000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C23138",
+   "mpn": "0603WAF3300T5E",
+   "category": "basic",
+   "part": "R_330R_F_0603",
+   "size": "0603",
+   "ohms": "330",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C23140",
+   "mpn": "0603WAF330JT5E",
+   "category": "basic",
+   "part": "R_33R_F_0603",
+   "size": "0603",
+   "ohms": "33",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C23146",
+   "mpn": "0603WAF3603T5E",
+   "category": "preferred",
+   "part": "R_360K_F_0603",
+   "size": "0603",
+   "ohms": "360000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C23147",
+   "mpn": "0603WAF3602T5E",
+   "category": "preferred",
+   "part": "R_36K_F_0603",
+   "size": "0603",
+   "ohms": "36000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C23150",
+   "mpn": "0603WAF3903T5E",
+   "category": "preferred",
+   "part": "R_390K_F_0603",
+   "size": "0603",
+   "ohms": "390000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C23151",
+   "mpn": "0603WAF3900T5E",
+   "category": "basic",
+   "part": "R_390R_F_0603",
+   "size": "0603",
+   "ohms": "390",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C23153",
+   "mpn": "0603WAF3902T5E",
+   "category": "basic",
+   "part": "R_39K_F_0603",
+   "size": "0603",
+   "ohms": "39000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C23156",
+   "mpn": "0603WAF3004T5E",
+   "category": "preferred",
+   "part": "R_3M_F_0603",
+   "size": "0603",
+   "ohms": "3000000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C23159",
+   "mpn": "0603WAF4301T5E",
+   "category": "preferred",
+   "part": "R_4K3_F_0603",
+   "size": "0603",
+   "ohms": "4300",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C23162",
+   "mpn": "0603WAF4701T5E",
+   "category": "basic",
+   "part": "R_4K7_F_0603",
+   "size": "0603",
+   "ohms": "4700",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C23163",
+   "mpn": "0603WAF4704T5E",
+   "category": "preferred",
+   "part": "R_4M7_F_0603",
+   "size": "0603",
+   "ohms": "4700000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C23164",
+   "mpn": "0603WAF470KT5E",
+   "category": "basic",
+   "part": "R_4R7_F_0603",
+   "size": "0603",
+   "ohms": "4.7",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C23170",
+   "mpn": "0603WAF4300T5E",
+   "category": "preferred",
+   "part": "R_430R_F_0603",
+   "size": "0603",
+   "ohms": "430",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C23172",
+   "mpn": "0603WAF4302T5E",
+   "category": "preferred",
+   "part": "R_43K_F_0603",
+   "size": "0603",
+   "ohms": "43000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C23178",
+   "mpn": "0603WAF4703T5E",
+   "category": "basic",
+   "part": "R_470K_F_0603",
+   "size": "0603",
+   "ohms": "470000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C23179",
+   "mpn": "0603WAF4700T5E",
+   "category": "basic",
+   "part": "R_470R_F_0603",
+   "size": "0603",
+   "ohms": "470",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C23182",
+   "mpn": "0603WAF470JT5E",
+   "category": "basic",
+   "part": "R_47R_F_0603",
+   "size": "0603",
+   "ohms": "47",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C23184",
+   "mpn": "0603WAF4992T5E",
+   "category": "basic",
+   "part": "R_49K9_F_0603",
+   "size": "0603",
+   "ohms": "49900",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C23185",
+   "mpn": "0603WAF499JT5E",
+   "category": "basic",
+   "part": "R_49R9_F_0603",
+   "size": "0603",
+   "ohms": "49.9",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C23186",
+   "mpn": "0603WAF5101T5E",
+   "category": "basic",
+   "part": "R_5K1_F_0603",
+   "size": "0603",
+   "ohms": "5100",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C23189",
+   "mpn": "0603WAF5601T5E",
+   "category": "basic",
+   "part": "R_5K6_F_0603",
+   "size": "0603",
+   "ohms": "5600",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C23192",
+   "mpn": "0603WAF5103T5E",
+   "category": "basic",
+   "part": "R_510K_F_0603",
+   "size": "0603",
+   "ohms": "510000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C23193",
+   "mpn": "0603WAF5100T5E",
+   "category": "basic",
+   "part": "R_510R_F_0603",
+   "size": "0603",
+   "ohms": "510",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C23196",
+   "mpn": "0603WAF5102T5E",
+   "category": "basic",
+   "part": "R_51K_F_0603",
+   "size": "0603",
+   "ohms": "51000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C23197",
+   "mpn": "0603WAF510JT5E",
+   "category": "basic",
+   "part": "R_51R_F_0603",
+   "size": "0603",
+   "ohms": "51",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C23203",
+   "mpn": "0603WAF5603T5E",
+   "category": "preferred",
+   "part": "R_560K_F_0603",
+   "size": "0603",
+   "ohms": "560000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C23204",
+   "mpn": "0603WAF5600T5E",
+   "category": "basic",
+   "part": "R_560R_F_0603",
+   "size": "0603",
+   "ohms": "560",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C23206",
+   "mpn": "0603WAF5602T5E",
+   "category": "basic",
+   "part": "R_56K_F_0603",
+   "size": "0603",
+   "ohms": "56000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C23212",
+   "mpn": "0603WAF6801T5E",
+   "category": "basic",
+   "part": "R_6K8_F_0603",
+   "size": "0603",
+   "ohms": "6800",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C23220",
+   "mpn": "0603WAF6200T5E",
+   "category": "preferred",
+   "part": "R_620R_F_0603",
+   "size": "0603",
+   "ohms": "620",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C23221",
+   "mpn": "0603WAF6202T5E",
+   "category": "preferred",
+   "part": "R_62K_F_0603",
+   "size": "0603",
+   "ohms": "62000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C23228",
+   "mpn": "0603WAF6800T5E",
+   "category": "basic",
+   "part": "R_680R_F_0603",
+   "size": "0603",
+   "ohms": "680",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C23231",
+   "mpn": "0603WAF6802T5E",
+   "category": "basic",
+   "part": "R_68K_F_0603",
+   "size": "0603",
+   "ohms": "68000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C23234",
+   "mpn": "0603WAF7501T5E",
+   "category": "basic",
+   "part": "R_7K5_F_0603",
+   "size": "0603",
+   "ohms": "7500",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C23240",
+   "mpn": "0603WAF7503T5E",
+   "category": "preferred",
+   "part": "R_750K_F_0603",
+   "size": "0603",
+   "ohms": "750000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C23241",
+   "mpn": "0603WAF7500T5E",
+   "category": "preferred",
+   "part": "R_750R_F_0603",
+   "size": "0603",
+   "ohms": "750",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C23242",
+   "mpn": "0603WAF7502T5E",
+   "category": "basic",
+   "part": "R_75K_F_0603",
+   "size": "0603",
+   "ohms": "75000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C23253",
+   "mpn": "0603WAF8200T5E",
+   "category": "basic",
+   "part": "R_820R_F_0603",
+   "size": "0603",
+   "ohms": "820",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C23254",
+   "mpn": "0603WAF8202T5E",
+   "category": "basic",
+   "part": "R_82K_F_0603",
+   "size": "0603",
+   "ohms": "82000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C23255",
+   "mpn": "0603WAF820JT5E",
+   "category": "preferred",
+   "part": "R_82R_F_0603",
+   "size": "0603",
+   "ohms": "82",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C23260",
+   "mpn": "0603WAF9101T5E",
+   "category": "basic",
+   "part": "R_9K1_F_0603",
+   "size": "0603",
+   "ohms": "9100",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C23265",
+   "mpn": "0603WAF9102T5E",
+   "category": "preferred",
+   "part": "R_91K_F_0603",
+   "size": "0603",
+   "ohms": "91000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C23345",
+   "mpn": "0603WAF220JT5E",
+   "category": "basic",
+   "part": "R_22R_F_0603",
+   "size": "0603",
+   "ohms": "22",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C23350",
+   "mpn": "0603WAF2400T5E",
+   "category": "preferred",
+   "part": "R_240R_F_0603",
+   "size": "0603",
+   "ohms": "240",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C23352",
+   "mpn": "0603WAF2402T5E",
+   "category": "basic",
+   "part": "R_24K_F_0603",
+   "size": "0603",
+   "ohms": "24000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C25076",
+   "mpn": "0402WGF1000TCE",
+   "category": "basic",
+   "part": "R_100R_F_0402",
+   "size": "0402",
+   "ohms": "100",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C25077",
+   "mpn": "0402WGF100JTCE",
+   "category": "basic",
+   "part": "R_10R_F_0402",
+   "size": "0402",
+   "ohms": "10",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C25079",
+   "mpn": "0402WGF1200TCE",
+   "category": "basic",
+   "part": "R_120R_F_0402",
+   "size": "0402",
+   "ohms": "120",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C25082",
+   "mpn": "0402WGF1500TCE",
+   "category": "preferred",
+   "part": "R_150R_F_0402",
+   "size": "0402",
+   "ohms": "150",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C25086",
+   "mpn": "0402WGF100KTCE",
+   "category": "preferred",
+   "part": "R_1R_F_0402",
+   "size": "0402",
+   "ohms": "1",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C25087",
+   "mpn": "0402WGF2000TCE",
+   "category": "basic",
+   "part": "R_200R_F_0402",
+   "size": "0402",
+   "ohms": "200",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C25091",
+   "mpn": "0402WGF2200TCE",
+   "category": "basic",
+   "part": "R_220R_F_0402",
+   "size": "0402",
+   "ohms": "220",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C25092",
+   "mpn": "0402WGF220JTCE",
+   "category": "basic",
+   "part": "R_22R_F_0402",
+   "size": "0402",
+   "ohms": "22",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C25102",
+   "mpn": "0402WGF3000TCE",
+   "category": "preferred",
+   "part": "R_300R_F_0402",
+   "size": "0402",
+   "ohms": "300",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C25104",
+   "mpn": "0402WGF3300TCE",
+   "category": "basic",
+   "part": "R_330R_F_0402",
+   "size": "0402",
+   "ohms": "330",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C25105",
+   "mpn": "0402WGF330JTCE",
+   "category": "basic",
+   "part": "R_33R_F_0402",
+   "size": "0402",
+   "ohms": "33",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C25117",
+   "mpn": "0402WGF4700TCE",
+   "category": "basic",
+   "part": "R_470R_F_0402",
+   "size": "0402",
+   "ohms": "470",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C25118",
+   "mpn": "0402WGF470JTCE",
+   "category": "preferred",
+   "part": "R_47R_F_0402",
+   "size": "0402",
+   "ohms": "47",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C25120",
+   "mpn": "0402WGF499JTCE",
+   "category": "basic",
+   "part": "R_49R9_F_0402",
+   "size": "0402",
+   "ohms": "49.9",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C25123",
+   "mpn": "0402WGF5100TCE",
+   "category": "basic",
+   "part": "R_510R_F_0402",
+   "size": "0402",
+   "ohms": "510",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C25125",
+   "mpn": "0402WGF510JTCE",
+   "category": "preferred",
+   "part": "R_51R_F_0402",
+   "size": "0402",
+   "ohms": "51",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C25133",
+   "mpn": "0402WGF750JTCE",
+   "category": "preferred",
+   "part": "R_75R_F_0402",
+   "size": "0402",
+   "ohms": "75",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C25190",
+   "mpn": "0603WAF270JT5E",
+   "category": "preferred",
+   "part": "R_27R_F_0603",
+   "size": "0603",
+   "ohms": "27",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C25194",
+   "mpn": "0603WAF3600T5E",
+   "category": "preferred",
+   "part": "R_360R_F_0603",
+   "size": "0603",
+   "ohms": "360",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C25196",
+   "mpn": "0603WAF560JT5E",
+   "category": "preferred",
+   "part": "R_56R_F_0603",
+   "size": "0603",
+   "ohms": "56",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C25197",
+   "mpn": "0603WAF510KT5E",
+   "category": "basic",
+   "part": "R_5R1_F_0603",
+   "size": "0603",
+   "ohms": "5.1",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C25270",
+   "mpn": "0805W8F1800T5E",
+   "category": "preferred",
+   "part": "R_180R_F_0805",
+   "size": "0805",
+   "ohms": "180",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C25271",
+   "mpn": "0805W8F100KT5E",
+   "category": "basic",
+   "part": "R_1R_F_0805",
+   "size": "0805",
+   "ohms": "1",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C25741",
+   "mpn": "0402WGF1003TCE",
+   "category": "basic",
+   "part": "R_100K_F_0402",
+   "size": "0402",
+   "ohms": "100000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C25744",
+   "mpn": "0402WGF1002TCE",
+   "category": "basic",
+   "part": "R_10K_F_0402",
+   "size": "0402",
+   "ohms": "10000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C25750",
+   "mpn": "0402WGF1203TCE",
+   "category": "preferred",
+   "part": "R_120K_F_0402",
+   "size": "0402",
+   "ohms": "120000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C25752",
+   "mpn": "0402WGF1202TCE",
+   "category": "basic",
+   "part": "R_12K_F_0402",
+   "size": "0402",
+   "ohms": "12000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C25755",
+   "mpn": "0402WGF1503TCE",
+   "category": "preferred",
+   "part": "R_150K_F_0402",
+   "size": "0402",
+   "ohms": "150000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C25756",
+   "mpn": "0402WGF1502TCE",
+   "category": "basic",
+   "part": "R_15K_F_0402",
+   "size": "0402",
+   "ohms": "15000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C25762",
+   "mpn": "0402WGF1802TCE",
+   "category": "preferred",
+   "part": "R_18K_F_0402",
+   "size": "0402",
+   "ohms": "18000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C25764",
+   "mpn": "0402WGF2003TCE",
+   "category": "basic",
+   "part": "R_200K_F_0402",
+   "size": "0402",
+   "ohms": "200000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C25765",
+   "mpn": "0402WGF2002TCE",
+   "category": "basic",
+   "part": "R_20K_F_0402",
+   "size": "0402",
+   "ohms": "20000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C25767",
+   "mpn": "0402WGF2203TCE",
+   "category": "preferred",
+   "part": "R_220K_F_0402",
+   "size": "0402",
+   "ohms": "220000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C25768",
+   "mpn": "0402WGF2202TCE",
+   "category": "basic",
+   "part": "R_22K_F_0402",
+   "size": "0402",
+   "ohms": "22000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C25769",
+   "mpn": "0402WGF2402TCE",
+   "category": "preferred",
+   "part": "R_24K_F_0402",
+   "size": "0402",
+   "ohms": "24000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C25771",
+   "mpn": "0402WGF2702TCE",
+   "category": "preferred",
+   "part": "R_27K_F_0402",
+   "size": "0402",
+   "ohms": "27000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C25774",
+   "mpn": "0402WGF3003TCE",
+   "category": "preferred",
+   "part": "R_300K_F_0402",
+   "size": "0402",
+   "ohms": "300000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C25778",
+   "mpn": "0402WGF3303TCE",
+   "category": "preferred",
+   "part": "R_330K_F_0402",
+   "size": "0402",
+   "ohms": "330000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C25779",
+   "mpn": "0402WGF3302TCE",
+   "category": "basic",
+   "part": "R_33K_F_0402",
+   "size": "0402",
+   "ohms": "33000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C25783",
+   "mpn": "0402WGF3902TCE",
+   "category": "preferred",
+   "part": "R_39K_F_0402",
+   "size": "0402",
+   "ohms": "39000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C25790",
+   "mpn": "0402WGF4703TCE",
+   "category": "preferred",
+   "part": "R_470K_F_0402",
+   "size": "0402",
+   "ohms": "470000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C25792",
+   "mpn": "0402WGF4702TCE",
+   "category": "basic",
+   "part": "R_47K_F_0402",
+   "size": "0402",
+   "ohms": "47000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C25794",
+   "mpn": "0402WGF5102TCE",
+   "category": "basic",
+   "part": "R_51K_F_0402",
+   "size": "0402",
+   "ohms": "51000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C25796",
+   "mpn": "0402WGF5602TCE",
+   "category": "preferred",
+   "part": "R_56K_F_0402",
+   "size": "0402",
+   "ohms": "56000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C25798",
+   "mpn": "0402WGF7502TCE",
+   "category": "preferred",
+   "part": "R_75K_F_0402",
+   "size": "0402",
+   "ohms": "75000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C25803",
+   "mpn": "0603WAF1003T5E",
+   "category": "basic",
+   "part": "R_100K_F_0603",
+   "size": "0603",
+   "ohms": "100000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C25804",
+   "mpn": "0603WAF1002T5E",
+   "category": "basic",
+   "part": "R_10K_F_0603",
+   "size": "0603",
+   "ohms": "10000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C25805",
+   "mpn": "0603WAF1103T5E",
+   "category": "preferred",
+   "part": "R_110K_F_0603",
+   "size": "0603",
+   "ohms": "110000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C25808",
+   "mpn": "0603WAF1203T5E",
+   "category": "basic",
+   "part": "R_120K_F_0603",
+   "size": "0603",
+   "ohms": "120000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C25810",
+   "mpn": "0603WAF1802T5E",
+   "category": "basic",
+   "part": "R_18K_F_0603",
+   "size": "0603",
+   "ohms": "18000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C25811",
+   "mpn": "0603WAF2003T5E",
+   "category": "basic",
+   "part": "R_200K_F_0603",
+   "size": "0603",
+   "ohms": "200000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C25819",
+   "mpn": "0603WAF4702T5E",
+   "category": "basic",
+   "part": "R_47K_F_0603",
+   "size": "0603",
+   "ohms": "47000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C25822",
+   "mpn": "0603WAF6803T5E",
+   "category": "preferred",
+   "part": "R_680K_F_0603",
+   "size": "0603",
+   "ohms": "680000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C25826",
+   "mpn": "0805W8F3902T5E",
+   "category": "preferred",
+   "part": "R_39K_F_0805",
+   "size": "0805",
+   "ohms": "39000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C25862",
+   "mpn": "0402WGF1201TCE",
+   "category": "preferred",
+   "part": "R_1K2_F_0402",
+   "size": "0402",
+   "ohms": "1200",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C25867",
+   "mpn": "0402WGF1501TCE",
+   "category": "basic",
+   "part": "R_1K5_F_0402",
+   "size": "0402",
+   "ohms": "1500",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C25879",
+   "mpn": "0402WGF2201TCE",
+   "category": "basic",
+   "part": "R_2K2_F_0402",
+   "size": "0402",
+   "ohms": "2200",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C25882",
+   "mpn": "0402WGF2401TCE",
+   "category": "preferred",
+   "part": "R_2K4_F_0402",
+   "size": "0402",
+   "ohms": "2400",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C25890",
+   "mpn": "0402WGF3301TCE",
+   "category": "basic",
+   "part": "R_3K3_F_0402",
+   "size": "0402",
+   "ohms": "3300",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C25897",
+   "mpn": "0402WGF4992TCE",
+   "category": "preferred",
+   "part": "R_49K9_F_0402",
+   "size": "0402",
+   "ohms": "49900",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C25900",
+   "mpn": "0402WGF4701TCE",
+   "category": "basic",
+   "part": "R_4K7_F_0402",
+   "size": "0402",
+   "ohms": "4700",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C25905",
+   "mpn": "0402WGF5101TCE",
+   "category": "basic",
+   "part": "R_5K1_F_0402",
+   "size": "0402",
+   "ohms": "5100",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C25908",
+   "mpn": "0402WGF5601TCE",
+   "category": "preferred",
+   "part": "R_5K6_F_0402",
+   "size": "0402",
+   "ohms": "5600",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C25917",
+   "mpn": "0402WGF6801TCE",
+   "category": "preferred",
+   "part": "R_6K8_F_0402",
+   "size": "0402",
+   "ohms": "6800",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C25918",
+   "mpn": "0402WGF7501TCE",
+   "category": "preferred",
+   "part": "R_7K5_F_0402",
+   "size": "0402",
+   "ohms": "7500",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C25924",
+   "mpn": "0402WGF8201TCE",
+   "category": "preferred",
+   "part": "R_8K2_F_0402",
+   "size": "0402",
+   "ohms": "8200",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C25950",
+   "mpn": "0603WAF1102T5E",
+   "category": "preferred",
+   "part": "R_11K_F_0603",
+   "size": "0603",
+   "ohms": "11000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C25969",
+   "mpn": "0603WAF4303T5E",
+   "category": "preferred",
+   "part": "R_430K_F_0603",
+   "size": "0603",
+   "ohms": "430000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C25981",
+   "mpn": "0603WAF8201T5E",
+   "category": "basic",
+   "part": "R_8K2_F_0603",
+   "size": "0603",
+   "ohms": "8200",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C26010",
+   "mpn": "0805W8F3301T5E",
+   "category": "basic",
+   "part": "R_3K3_F_0805",
+   "size": "0805",
+   "ohms": "3300",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C26082",
+   "mpn": "0402WGF1005TCE",
+   "category": "preferred",
+   "part": "R_10M_F_0402",
+   "size": "0402",
+   "ohms": "10000000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C26083",
+   "mpn": "0402WGF1004TCE",
+   "category": "basic",
+   "part": "R_1M_F_0402",
+   "size": "0402",
+   "ohms": "1000000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C26108",
+   "mpn": "0805W8F1005T5E",
+   "category": "preferred",
+   "part": "R_10M_F_0805",
+   "size": "0805",
+   "ohms": "10000000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C26112",
+   "mpn": "0805W8F2004T5E",
+   "category": "preferred",
+   "part": "R_2M_F_0805",
+   "size": "0805",
+   "ohms": "2000000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C26113",
+   "mpn": "0805W8F2204T5E",
+   "category": "preferred",
+   "part": "R_2M2_F_0805",
+   "size": "0805",
+   "ohms": "2200000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C27592",
+   "mpn": "0603WAF680JT5E",
+   "category": "preferred",
+   "part": "R_68R_F_0603",
+   "size": "0603",
+   "ohms": "68",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C27834",
+   "mpn": "0805W8F5101T5E",
+   "category": "basic",
+   "part": "R_5K1_F_0805",
+   "size": "0805",
+   "ohms": "5100",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C28636",
+   "mpn": "0805W8F5600T5E",
+   "category": "basic",
+   "part": "R_560R_F_0805",
+   "size": "0805",
+   "ohms": "560",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C31850",
+   "mpn": "0603WAF2202T5E",
+   "category": "basic",
+   "part": "R_22K_F_0603",
+   "size": "0603",
+   "ohms": "22000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C36871",
+   "mpn": "0402WGF6802TCE",
+   "category": "preferred",
+   "part": "R_68K_F_0402",
+   "size": "0402",
+   "ohms": "68000",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C51721",
+   "mpn": "0402WGF3901TCE",
+   "category": "preferred",
+   "part": "R_3K9_F_0402",
+   "size": "0402",
+   "ohms": "3900",
+   "tolerance": "1%"
+  },
+  {
+   "pn": "C149504",
+   "mpn": "0805W8F1003T5E",
+   "category": "basic",
+   "part": "R_100K_F_0805",
+   "size": "0805",
+   "ohms": "100000",
+   "tolerance": "1%"
+  }
+ ],
+ "zero_ohm": [
+  {
+   "pn": "C17168",
+   "mpn": "0402WGF0000TCE",
+   "category": "basic",
+   "part": "R_0R_J_0402",
+   "size": "0402",
+   "ohms": "0",
+   "letter": "F",
+   "alternate": true,
+   "note": "Alternate of R_0R_J_0402 by the maintainer's decision of 2026-11-13. The letter F states no 1% tolerance here: UNI-ROYAL's datasheet SMD-SP-001 V.11 rates the 0402 jumper at <50mΩ, rated current 1A, maximum overload current 2A (p.5 §7), and states no tolerance for a jumper, no meaning for the tolerance letter on one, and no jumper part number (tools/passive_data/uniroyal_chip_series.evidence.md, \"The zero-ohm jumper\"). The library part's 5% is Yageo's ordering code for its jumper; Yageo states the same resistance limit and the same two currents for this size."
+  },
+  {
+   "pn": "C17477",
+   "mpn": "0805W8F0000T5E",
+   "category": "basic",
+   "part": "R_0R_J_0805",
+   "size": "0805",
+   "ohms": "0",
+   "letter": "F",
+   "alternate": true,
+   "note": "Alternate of R_0R_J_0805 by the maintainer's decision of 2026-11-13. The letter F states no 1% tolerance here: UNI-ROYAL's datasheet SMD-SP-001 V.11 rates the 0805 jumper at <50mΩ, rated current 2A, maximum overload current 5A (p.5 §7), and states no tolerance for a jumper, no meaning for the tolerance letter on one, and no jumper part number (tools/passive_data/uniroyal_chip_series.evidence.md, \"The zero-ohm jumper\"). The library part's 5% is Yageo's ordering code for its jumper; Yageo states the same resistance limit and the same two currents for this size."
+  },
+  {
+   "pn": "C17888",
+   "mpn": "1206W4F0000T5E",
+   "category": "basic",
+   "part": "R_0R_J_1206",
+   "size": "1206",
+   "ohms": "0",
+   "letter": "F",
+   "alternate": true,
+   "note": "Alternate of R_0R_J_1206 by the maintainer's decision of 2026-11-13. The letter F states no 1% tolerance here: UNI-ROYAL's datasheet SMD-SP-001 V.11 rates the 1206 jumper at <50mΩ, rated current 2A, maximum overload current 10A (p.5 §7), and states no tolerance for a jumper, no meaning for the tolerance letter on one, and no jumper part number (tools/passive_data/uniroyal_chip_series.evidence.md, \"The zero-ohm jumper\"). The library part's 5% is Yageo's ordering code for its jumper; Yageo states the same resistance limit and the same two currents for this size."
+  },
+  {
+   "pn": "C21189",
+   "mpn": "0603WAF0000T5E",
+   "category": "basic",
+   "part": "R_0R_J_0603",
+   "size": "0603",
+   "ohms": "0",
+   "letter": "F",
+   "alternate": true,
+   "note": "Alternate of R_0R_J_0603 by the maintainer's decision of 2026-11-13. The letter F states no 1% tolerance here: UNI-ROYAL's datasheet SMD-SP-001 V.11 rates the 0603 jumper at <50mΩ, rated current 1A, maximum overload current 2A (p.5 §7), and states no tolerance for a jumper, no meaning for the tolerance letter on one, and no jumper part number (tools/passive_data/uniroyal_chip_series.evidence.md, \"The zero-ohm jumper\"). The library part's 5% is Yageo's ordering code for its jumper; Yageo states the same resistance limit and the same two currents for this size."
+  }
+ ],
+ "new_values": [
+  {
+   "pn": "C25334",
+   "mpn": "1206W4F100LT5E",
+   "category": "basic",
+   "size": "1206",
+   "ohms": "0.1",
+   "tolerance": "1%",
+   "reason": "value not in the library's grid"
+  }
+ ],
+ "not_decoded": [
+  {
+   "pn": "C1980",
+   "mpn": "4D03WGJ0472T5E",
+   "category": "basic",
+   "reason": "not decoded"
+  },
+  {
+   "pn": "C20197",
+   "mpn": "4D03WGJ0102T5E",
+   "category": "basic",
+   "reason": "not decoded"
+  },
+  {
+   "pn": "C22818",
+   "mpn": "0603WAF1602T5E (SMTonly)",
+   "category": "preferred",
+   "reason": "not decoded"
+  },
+  {
+   "pn": "C25510",
+   "mpn": "4D03WGJ0471T5E",
+   "category": "preferred",
+   "reason": "not decoded"
+  },
+  {
+   "pn": "C25725",
+   "mpn": "4D02WGJ0103TCE",
+   "category": "preferred",
+   "reason": "not decoded"
+  },
+  {
+   "pn": "C29718",
+   "mpn": "4D03WGJ0103T5E",
+   "category": "basic",
+   "reason": "not decoded"
+  }
+ ]
+}

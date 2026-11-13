@@ -20,13 +20,63 @@
 The PDF is AES-256 encrypted with an owner password only (open, print and
 copy allowed) and embeds three fonts: `FuturaPT-Bold` (subset) and two CID
 Type 0C gothic fonts. Some viewers show the drawings and tables on pp. 2-6
-blank. Poppler renders and extracts all of them. Every value in this record
-was read from this file with poppler 26.06.0, in two independent ways:
+blank. Poppler renders and extracts all of them, provided its data files
+are installed (see the prerequisite below). Every value in this record was
+read from this file with poppler 26.06.0, in two independent ways:
 
 ```sh
 pdftotext -layout -f 2 -l 2 jst-xh.pdf -    # the same for pp. 1, 5 and 6
 pdftoppm -r 300 -f 2 -l 2 -png jst-xh.pdf p # also pdftocairo -png -r 300
 ```
+
+### Prerequisite: poppler with `poppler-data`
+
+Poppler alone is not enough. All the dimension text is set in the two CID
+gothic fonts, and poppler can only use them with the Adobe-Japan1 CMaps
+from the separate `poppler-data` project (the `cMap/Adobe-Japan1`
+directory under poppler's data directory, usually `share/poppler`).
+
+Without `poppler-data`, the commands above still exit 0, but:
+
+- `pdftotext` and `pdftoppm` print
+  `Syntax Error: Missing language pack for 'Adobe-Japan1' mapping`, twice
+  for p. 2 alone and 18 times for the whole file, among `Unknown font tag
+  'G1'` / `'G2'` and `No font in show` errors;
+- the text of p. 2 is only the heading `XH CONNECTOR` (14 bytes, against
+  7,448 with the data installed);
+- the rendering shows the outlines, holes and dimension lines with every
+  number and label missing. Only the `XH CONNECTOR` heading and the JST
+  logo remain.
+
+That is the "blank dimensions" result of the #105 review. It was reproduced
+for this record on 2026-11-11 by running the same poppler 26.06.0 build
+with its data directory pointed at a path that does not exist.
+
+Whether `poppler-data` is present depends on how poppler was installed.
+The Homebrew `poppler` formula, used for this record, bundles it (there is
+no separate formula). On Debian and Ubuntu it is the separate
+`poppler-data` package beside `poppler-utils`; that was not run for this
+record. To check an installation before reading any value:
+
+```sh
+pdftotext -layout jst-xh.pdf /dev/null       # must print nothing
+pdftotext -layout -f 5 -l 5 jst-xh.pdf - | grep 'S2B-XH-A '
+pdftotext -layout -f 2 -l 2 jst-xh.pdf - | grep -e '(14.3)' -e '2.5 ±0.05'
+```
+
+The first command must print no `Missing language pack` line (it printed
+nothing here). The second must print the 2-circuit row of the p. 5
+side-entry table, which reads, with the column spacing reduced:
+
+```text
+2    S2B-XH-A    S2B-XH-A-1    2.5    7.4    1,000
+```
+
+The third must print the p. 2 lines that carry `(14.3)` and `2.5 ±0.05`.
+If any of the three differs, install `poppler-data` and run them again;
+the values in the table below cannot be read until they pass.
+
+### What was read
 
 The text layer and the renderings agree on every value. Pages 1, 2, 5 and 6
 were rendered whole at 100 dpi, and the p. 2 side-entry layout and assembly

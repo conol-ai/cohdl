@@ -37,3 +37,9 @@ The supplier CPL is exported with `--bottom-rotation lcsc=mirrored`. The Gerbers
 Upload for preview only and record the result in `jlc_frames.json` with the screenshots. Do not order.
 
 The manifest pins the library as previewed, before transistor 0.2.0, soic 0.3.0 and qfp 0.3.0 moved nine of its footprints onto the assembler's frame. The preview of 2026-10-30 is recorded in `tools/sourcing_data/jlc_previews/2026-10-30-c2-board-1/`, and its rows in `jlc_frames.json` start with `c2b1-`.
+
+## The manifest is a record, not regenerated
+
+`manifest.json` is the board as it was uploaded on 2026-10-30, so its dependency table keeps the versions of that day: `diode` 0.1.0, `passive` 0.2.3, `transistor` 0.1.1, `soic` 0.2.1, `qfp` 0.2.0 and so on. It is not brought up to date when a package is bumped. Board 3 is different: `test_jlc_frame_board` requires `c2-board-3/manifest.json` to equal the output of `c2_board_3.py`, so a bump regenerates it, and its rows do not change when that happens.
+
+Running the "Regenerate" commands above against today's library does not reproduce this board. Checked on 2026-11-11: the output changes 14 of the 19 dependency pins (it adds `@gigadevice/gd32` and drops `can`) and the `part` of 8 of the 30 rows (the four chip resistors, SOIC8_KICAD, TSSOP20, LQFP48_IPC and LQFP32; the last four also change `pins`), because the first library user of those footprints is no longer the one that was previewed. The `c2b1-` readings were taken on the committed manifest, so rewriting it would leave them citing a board that was never uploaded. To preview these footprints again, generate a new board directory.

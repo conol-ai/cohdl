@@ -216,6 +216,25 @@ class W3GroupsTests(unittest.TestCase):
         self.assertIn("not drawn: 10 of 58 judged (17.2%), above 10%", text)
         self.assertIn("not drawn: 15 of 44 judged (34.1%), above 10%", text)
 
+    def test_the_2026_11_12b_report_is_the_combined_rule_at_passive_0_2_7(self):
+        # The same rule and records as 2026-11-12, on the tree that binds the 0402 Yageo
+        # RC group (passive 0.2.7 and its frame rows): no group's outcome differs.
+        first = json.loads((wg.DATA / "w3_sampling/2026-11-12/groups.json").read_text(encoding="utf-8"))
+        folder = wg.DATA / "w3_sampling/2026-11-12b"
+        committed = json.loads((folder / "groups.json").read_text(encoding="utf-8"))
+        self.assertEqual((folder / "groups.md").read_text(encoding="utf-8"), wg.render(committed))
+        self.assertEqual((first["sources"]["lib/passive"], committed["sources"]["lib/passive"]), ("0.2.6", "0.2.7"))
+        self.assertEqual(committed["rule"], first["rule"])
+        self.assertEqual(committed["views"], first["views"])
+        for name, digest in committed["sources"].items():
+            if name.startswith("jlc_previews/") or name.startswith("lcsc_backfill/"):
+                self.assertEqual(wg._sha256(wg.DATA / name), digest, name)
+        outcome = lambda report: [(g["footprint"], g["type"], g["mfr"], g["series"], g["status"], g["passed"],
+                                   g["failed"], g["not_drawn"], g["bias_unsupported"], g["not_drawn_share"])
+                                  for g in report["groups"]]
+        self.assertEqual(outcome(committed), outcome(first))
+        self.assertEqual({g["package_version"] for g in committed["groups"]}, {"0.2.7"})
+
     def test_samples_follow_the_rule(self):
         for g in self.report["groups"]:
             rows = {row[0]: row for row in g["member_rows"]}

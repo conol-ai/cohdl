@@ -479,7 +479,7 @@ class SampledEvidenceTests(unittest.TestCase):
 
     FIXTURE = ROOT / "tests" / "fixtures" / "library-ci" / "s-sampled"
     CASES = ("rule", "paused", "scope", "key", "land", "member", "zero-stock", "sample", "few",
-             "own-evidence", "reading", "offset", "raw", "arithmetic", "not-drawn", "mapping",
+             "own-evidence", "reading", "offset", "raw", "arithmetic", "method", "not-drawn", "mapping",
              "two-kinds", "field")
 
     def inferred(self, frames: str) -> bool:

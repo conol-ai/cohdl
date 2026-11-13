@@ -11,6 +11,8 @@ import w3_groups as wg
 
 REPORT = wg.DATA / "w3_sampling/2026-11-07"
 CURRENT = wg.DATA / "w3_sampling/2026-11-10"
+METHOD_2 = wg.DATA / "w3_sampling/2026-11-11-method-2"
+BOARD_3 = wg.PREVIEWS / "2026-11-05-c2-board-3"
 PILOT = wg.PREVIEWS / "2026-11-07-w3-pilot-0402"
 BOARD_4 = wg.PREVIEWS / "2026-11-11-board-4"
 
@@ -25,6 +27,13 @@ def before_board_4():
                              lambda: {record: meta for record, meta in real().items() if record != BOARD_4})
 
 
+def method_1():
+    """The rule as it read chip bodies until 2026-11-11: `measure_preview.py` method 1,
+    the model together with the silkscreen in its window, and the run's own check of
+    each body. The tests of what the records said then are about that reading."""
+    return mock.patch.dict(wg.w3_rule.RULE, body_method=1)
+
+
 def group(report, footprint, kind, mfr, series):
     return next(g for g in report["groups"]
                 if (g["footprint"], g["type"], g["mfr"], g["series"]) == (footprint, kind, mfr, series))
@@ -36,6 +45,10 @@ class W3GroupsTests(unittest.TestCase):
         cls.report = wg.build()
         with before_board_4():
             cls.before = wg.build()
+        with method_1():
+            cls.report_1 = wg.build()
+            with before_board_4():
+                cls.before_1 = wg.build()
 
     def test_the_committed_report_is_consistent_with_its_recorded_sources(self):
         # Historical record: a dated snapshot, checked only against what it records.
@@ -77,7 +90,9 @@ class W3GroupsTests(unittest.TestCase):
         pages_path, _ = wg.confirmed_pages(snapshot.pop())
         inputs = {str((record / name).relative_to(wg.DATA)): wg._sha256(record / name)
                   for record, meta in wg.preview_inputs().items()
-                  for name in ("w3.json", meta["bom"], meta["checks"], meta["measurements"])}
+                  for name in ("w3.json", meta["bom"], meta["checks"], "w3-readings.json",
+                               "remeasure-2026-11-11-method-2.json")}
+        self.assertFalse(any(name.endswith(("/measurements.json", "/remeasure-2026-11-10.json")) for name in inputs))
         inputs.update({str(path.relative_to(wg.ROOT / "tools")): wg._sha256(path) for path in wg.board_inputs()})
         self.assertIn("jlc_previews/2026-11-11-board-4/w3.json", inputs)
         self.assertNotIn("frame_boards/preview-board-4/w3.json", inputs)
@@ -119,6 +134,25 @@ class W3GroupsTests(unittest.TestCase):
         for name, digest in committed["sources"].items():
             if name.startswith("jlc_previews/") or name.startswith("lcsc_backfill/"):
                 self.assertEqual(wg._sha256(wg.DATA / name), digest, name)
+
+    def test_the_method_2_report_is_what_the_tree_builds_under_the_proposed_rule(self):
+        # The 2026-11-11 report under the proposed rule w3-2026-11-11-m2 (chip bodies read
+        # by method 2). A dated snapshot like the others, checked against what it records.
+        committed = json.loads((METHOD_2 / "groups.json").read_text(encoding="utf-8"))
+        self.assertEqual((METHOD_2 / "groups.md").read_text(encoding="utf-8"), wg.render(committed))
+        self.assertEqual((committed["schema_version"], committed["rule"]["version"], committed["rule"]["body_method"]),
+                         (3, "w3-2026-11-11-m2", 2))
+        for name, digest in committed["sources"].items():
+            if name.startswith("jlc_previews/") or name.startswith("lcsc_backfill/"):
+                self.assertEqual(wg._sha256(wg.DATA / name), digest, name)
+        # It reads each record's method 2 readings, and none of the method 1 files.
+        previews = sorted(name for name in committed["sources"] if name.startswith("jlc_previews/"))
+        self.assertEqual(sum(name.endswith("/remeasure-2026-11-11-method-2.json") for name in previews), 3)
+        self.assertFalse(any(name.endswith(("/measurements.json", "/remeasure-2026-11-10.json")) for name in previews))
+        self.assertTrue(all(p["body_method"] == 2 for g in committed["groups"] for p in g["passed"]))
+        self.assertIn("method 2", (METHOD_2 / "groups.md").read_text(encoding="utf-8"))
+        # The earlier reports render as they did: they name no method.
+        self.assertNotIn("method", (CURRENT / "groups.md").read_text(encoding="utf-8"))
 
     def test_samples_follow_the_rule(self):
         for g in self.report["groups"]:
@@ -166,36 +200,138 @@ class W3GroupsTests(unittest.TestCase):
         self.assertEqual(changed, [("CHIP_0402", "Samsung", "CL", ["C1525"])])
 
     def test_the_pilot_samples_the_0402_yageo_rc_group_and_not_the_others(self):
-        rc = group(self.before, "CHIP_0402", "ChipResistor", "Yageo", "RC")
+        # As method 1 read it: the outcome the rule on main gives, kept reproducible.
+        rc = group(self.before_1, "CHIP_0402", "ChipResistor", "Yageo", "RC")
         self.assertEqual((rc["status"], len(rc["passed"]), rc["required"]), ("sampled", 49, 49))
         # Every RC sample is within the raw limit too, not only after the bias is taken off.
         self.assertTrue(all(p["raw_offset_mm"] <= p["offset_limit_mm"] for p in rc["passed"]))
         # Not drawn no longer pauses CRCW: its 9 undrawn samples do not count, so it needs 9 more.
-        crcw = group(self.before, "CHIP_0402", "ChipResistor", "Vishay", "CRCW")
+        crcw = group(self.before_1, "CHIP_0402", "ChipResistor", "Vishay", "CRCW")
         self.assertEqual((crcw["status"], len(crcw["passed"]), crcw["failed"]), ("needs_samples", 40, []))
         self.assertEqual(len(crcw["not_drawn"]), 9)
         self.assertTrue(all(c["status"] == "unverified" for n in crcw["not_drawn"] for c in n["outcomes"]))
         self.assertEqual(crcw["more_needed"], 9)
         # CC stays paused: C113781 is left for manual review (10.5 deg), whatever C576731 is.
-        cc = group(self.before, "CHIP_0402", "MLCC", "Yageo", "CC")
+        cc = group(self.before_1, "CHIP_0402", "MLCC", "Yageo", "CC")
         self.assertEqual(cc["status"], "paused")
         self.assertEqual([f["pn"] for f in cc["failed"]], ["C113781"])
         self.assertEqual([n["pn"] for n in cc["not_drawn"]], ["C576731"])
+        self.assertEqual(max(p["raw_offset_mm"] for p in rc["passed"]), 0.121)
+        self.assertEqual(max(abs(p["angle_deg"]) for p in rc["passed"]), 9.9)
+
+    def test_the_pilot_and_board_3_as_method_2_reads_them(self):
+        # The same two records with the model read alone (board 4 left out).
+        rc = group(self.before, "CHIP_0402", "ChipResistor", "Yageo", "RC")
+        self.assertEqual((rc["status"], len(rc["passed"]), rc["required"]), ("sampled", 49, 49))
+        self.assertEqual({p["pn"] for p in rc["passed"]},
+                         {p["pn"] for p in group(self.before_1, "CHIP_0402", "ChipResistor", "Yageo", "RC")["passed"]})
+        # The margins: 0.050 of 0.128 mm raw (0.121 by method 1), 0.036 of 0.064 mm residual, 2.6 deg.
+        self.assertEqual(max(p["raw_offset_mm"] for p in rc["passed"]), 0.05)
+        self.assertEqual(max(p["residual_offset_mm"] for p in rc["passed"]), 0.036)
+        self.assertEqual(max(abs(p["angle_deg"]) for p in rc["passed"]), 2.6)
+        # The pilot's view median: (+0.005, -0.077) mm by method 1, the text above each part.
+        pilot = str((PILOT / "README.md").relative_to(wg.ROOT))
+        self.assertEqual({tuple(p["bias_xy_mm"]) for p in rc["passed"] if p["records"] == [pilot]}, {(0.011, -0.01)})
+        crcw = group(self.before, "CHIP_0402", "ChipResistor", "Vishay", "CRCW")
+        self.assertEqual((crcw["status"], len(crcw["passed"]), crcw["failed"], len(crcw["not_drawn"])),
+                         ("needs_samples", 40, [], 9))
+        # C113781, left for manual review at 10.5 deg by method 1, reads within 2.6 deg: CC is not paused.
+        cc = group(self.before, "CHIP_0402", "MLCC", "Yageo", "CC")
+        self.assertEqual((cc["status"], len(cc["passed"]), cc["failed"], cc["more_needed"]), ("needs_samples", 9, [], 1))
+        self.assertIn("C113781", {p["pn"] for p in cc["passed"]})
+
+    def test_method_2_still_fails_bodies_drawn_off_their_pads(self):
+        # Board 3 draws its three 0805 Yageo CC models 0.11-0.15 mm toward one pad, leaving
+        # the other bare, and its 0201 RC at -143 deg 0.10 mm along its pads. With the
+        # model read alone these still fail: one that method 1 passed (C527206), and
+        # C138161 now on the raw offset as well.
+        board_3 = str((BOARD_3 / "README.md").relative_to(wg.ROOT))
+        cc = group(self.report, "CHIP_0805", "MLCC", "Yageo", "CC")
+        self.assertEqual((cc["status"], [f["pn"] for f in cc["failed"]]), ("paused", ["C527206", "C527232", "C576985"]))
+        residuals = {f["pn"]: [c["reading"]["residual_offset_mm"] for c in f["outcomes"]] for f in cc["failed"]}
+        self.assertEqual(residuals, {"C527206": [0.12], "C527232": [0.138], "C576985": [0.156]})
+        self.assertTrue(all(c["record"] == board_3 and c["status"] == "body" and c["reading"]["offset_limit_mm"] == 0.228
+                            for f in cc["failed"] for c in f["outcomes"]))
+        self.assertEqual([f["pn"] for f in group(self.report_1, "CHIP_0805", "MLCC", "Yageo", "CC")["failed"]],
+                         ["C527232", "C576985"])
+        rc = group(self.report, "CHIP_0201", "ChipResistor", "Yageo", "RC")
+        self.assertEqual((rc["status"], [f["pn"] for f in rc["failed"]]), ("paused", ["C138161"]))
+        worst = max((c for f in rc["failed"] for c in f["outcomes"] if c["reading"]),
+                    key=lambda c: c["reading"]["raw_offset_mm"])
+        self.assertEqual((worst["record"], worst["ref"], worst["status"], worst["reading"]["raw_offset_mm"],
+                          worst["reading"]["offset_limit_mm"]), (board_3, "R4", "manual review", 0.099, 0.08))
+        # Every copy either method judges: one passed by method 1 fails by method 2, and no other.
+        with method_1():
+            one = wg.judged_members()
+        two = wg.judged_members()
+        self.assertEqual(set(one), set(two))
+        newly_failing = [(key[1], b["ref"]) for key in sorted(two) for a, b in zip(one[key], two[key])
+                         if a["ok"] and not b["ok"]]
+        self.assertEqual(newly_failing, [("C527206", "C12")])
+        self.assertEqual((sum(c["ok"] for v in one.values() for c in v), sum(c["ok"] for v in two.values() for c in v)),
+                         (225, 340))
+
+    def test_every_group_under_method_1_and_method_2(self):
+        # What the reading changes, group by group: (a) method 1 without board 4's record
+        # (main today), (b) method 1 with it (PR #111 alone), (c) method 2 with it.
+        def statuses(report):
+            return {(g["footprint"], g["mfr"], g["series"]): (g["status"], len(g["passed"]), len(g["failed"]))
+                    for g in report["groups"]}
+        a, b, c = statuses(self.before_1), statuses(self.report_1), statuses(self.report)
+        moved = {key: (a[key], b[key], c[key]) for key in a if len({a[key], b[key], c[key]}) > 1}
+        self.assertEqual(moved, {
+            ("CHIP_0402", "Vishay", "CRCW"): (("needs_samples", 40, 0), ("paused", 45, 3), ("needs_samples", 48, 0)),
+            ("CHIP_0402", "Yageo", "RC"): (("sampled", 49, 0), ("paused", 46, 3), ("sampled", 49, 0)),
+            ("CHIP_0402", "Samsung", "CL"): (("needs_samples", 0, 0), ("paused", 0, 1), ("needs_samples", 1, 0)),
+            ("CHIP_0402", "Yageo", "CC"): (("paused", 8, 1), ("paused", 7, 5), ("sampled", 12, 0)),
+            ("CHIP_0603", "Samsung", "CL"): (("needs_samples", 0, 0), ("paused", 1, 1), ("needs_samples", 2, 0)),
+            ("CHIP_0603", "Yageo", "CC"): (("needs_samples", 0, 0), ("paused", 0, 1), ("needs_samples", 1, 0)),
+            ("CHIP_0805", "Yageo", "CC"): (("paused", 2, 2), ("paused", 2, 2), ("paused", 1, 3)),
+            ("CHIP_1210", "Yageo", "RC"): (("needs_samples", 1, 0), ("needs_samples", 29, 0), ("needs_samples", 29, 0)),
+            ("CHIP_2010", "Yageo", "RC"): (("paused", 1, 1), ("paused", 1, 1), ("needs_samples", 2, 0)),
+            ("CHIP_2512", "Yageo", "RC"): (("paused", 0, 1), ("paused", 0, 1), ("needs_samples", 1, 0)),
+        })
+        count = lambda report: tuple(sum(g["status"] == s for g in report["groups"])
+                                     for s in ("sampled", "needs_samples", "paused"))
+        self.assertEqual((count(self.before_1), count(self.report_1), count(self.report)),
+                         ((1, 14, 5), (0, 10, 10), (2, 16, 2)))
+        # Without board 4's record method 2 gives (1, 17, 2): Yageo CC 0402 is then one sample short.
+        self.assertEqual(count(self.before), (1, 17, 2))
+
+    def test_readings_by_another_method_are_not_read_as_the_rules(self):
+        # A record with no readings by the rule's method is not judged ...
+        real = wg.readings_file
+        with mock.patch.object(wg, "readings_file", lambda record, meta, method=None:
+                               [] if record == BOARD_4 else real(record, meta, method)):
+            self.assertEqual(wg.build()["groups"], self.before["groups"])
+        # ... and a file listed for the rule's method that holds another method's readings stops the build.
+        with mock.patch.object(wg, "readings_file", lambda record, meta, method=None: [meta["measurements"]]):
+            with self.assertRaisesRegex(SystemExit, "listed as method 2 readings"):
+                wg.judged_members()
+        for record, meta in wg.preview_inputs().items():
+            self.assertEqual(wg.readings_file(record, meta, 1), [meta["measurements"]])
+            self.assertEqual(wg.readings_file(record, meta, 2), ["w3-readings.json", "remeasure-2026-11-11-method-2.json"])
+            self.assertEqual(wg.readings_file(record, meta, 3), [])
 
     def test_a_group_whose_only_fault_is_an_undrawn_sample_is_not_paused(self):
         # Board 3: C874860 is not drawn at any of its four placements; C309589 passes.
         r1210 = group(self.before, "CHIP_1210", "ChipResistor", "Yageo", "RC")
         self.assertEqual((r1210["status"], [n["pn"] for n in r1210["not_drawn"]]), ("needs_samples", ["C874860"]))
         self.assertNotIn("C874860", r1210["sample"])
-        # 2512 also has C878096 off its residual limit, so it stays paused.
-        r2512 = group(self.before, "CHIP_2512", "ChipResistor", "Yageo", "RC")
+        # By method 1, 2512 also had C878096 off its residual limit (0.169 of 0.125 mm) and
+        # was paused; with the model alone it reads 0.081 mm and passes.
+        r2512 = group(self.before_1, "CHIP_2512", "ChipResistor", "Yageo", "RC")
         self.assertEqual((r2512["status"], [f["pn"] for f in r2512["failed"]]), ("paused", ["C878096"]))
+        r2512 = group(self.before, "CHIP_2512", "ChipResistor", "Yageo", "RC")
+        self.assertEqual((r2512["status"], [p["pn"] for p in r2512["passed"]], len(r2512["not_drawn"])),
+                         ("needs_samples", ["C878096"], 1))
 
     def pilot_with_uniform_offset(self, offset_y):
         """The pilot's readings with every drawn body moved to (0, OFFSET_Y): the
         reviewer's counterexample, where the board median takes the whole offset off."""
         meta = json.loads((PILOT / "w3.json").read_text(encoding="utf-8"))
-        readings = json.loads((PILOT / meta["measurements"]).read_text(encoding="utf-8"))
+        name = wg.readings_file(PILOT, meta)[-1]
+        readings = json.loads((PILOT / name).read_text(encoding="utf-8"))
         for m in readings:
             if "offset_xy_mm" in m.get("body", {}):
                 m["body"]["offset_xy_mm"] = [0.0, offset_y]
@@ -203,7 +339,7 @@ class W3GroupsTests(unittest.TestCase):
         real = Path.read_text
 
         def read_text(path, *args, **kwargs):
-            if path == PILOT / meta["measurements"]:
+            if path == PILOT / name:
                 return json.dumps(readings)
             return real(path, *args, **kwargs)
         with mock.patch.object(Path, "read_text", read_text), before_board_4():
@@ -235,20 +371,23 @@ class W3GroupsTests(unittest.TestCase):
 
     def test_a_reading_outside_the_sample_limits_fails_its_member(self):
         meta = json.loads((PILOT / "w3.json").read_text(encoding="utf-8"))
-        readings = json.loads((PILOT / meta["measurements"]).read_text(encoding="utf-8"))
-        target = next(m for m in readings if m.get("body", {}).get("delta_mod_180") == 9.9)
+        name = wg.readings_file(PILOT, meta)[-1]
+        readings = json.loads((PILOT / name).read_text(encoding="utf-8"))
+        # R8 is C137920, the pilot's largest angle by method 2 (-2.6 deg).
+        target = next(m for m in readings if m["ref"] == "R8")
+        self.assertEqual((target["body"]["delta_mod_180"], target["body_ok"]), (-2.6, True))
         target["body"]["delta_mod_180"] = 10.5
         real = Path.read_text
 
         def read_text(path, *args, **kwargs):
-            if path == PILOT / meta["measurements"]:
+            if path == PILOT / name:
                 return json.dumps(readings)
             return real(path, *args, **kwargs)
         with mock.patch.object(Path, "read_text", read_text), before_board_4():
             report = wg.build()
         rc = group(report, "CHIP_0402", "ChipResistor", "Yageo", "RC")
         self.assertEqual(rc["status"], "paused")
-        self.assertEqual([f["pn"] for f in rc["failed"]], ["C138033"])
+        self.assertEqual([f["pn"] for f in rc["failed"]], ["C137920"])
 
     def test_short_at_preview_lives_in_the_dated_record(self):
         records = {pn for meta in wg.preview_inputs().values() for pn in meta["short_at_preview"]}
@@ -288,16 +427,55 @@ class W3GroupsTests(unittest.TestCase):
                 before_board_4():
             self.assertEqual(group(wg.build(), "CHIP_1210", "ChipResistor", "Yageo", "RC")["sample"], dated)
 
-    def test_board_4_as_the_rule_judges_its_record(self):
-        # The 2026-11-11 preview of board 4, read by measure_preview.py as the rule takes it.
-        # (The record's README shows that the readings include each part's silkscreen text;
-        # that is evidence for a decision about the reading, and changes nothing here.)
+    def test_board_4_as_method_2_judges_its_record(self):
+        record = str((BOARD_4 / "README.md").relative_to(wg.ROOT))
+
+        def here(items):
+            return sorted(x["pn"] for x in items if any(c["record"] == record for c in x["outcomes"]))
+        # No chip body of this record fails: every one of its 204 drawn bodies reads along its pads, centred.
+        self.assertEqual([c["ref"] for g in self.report["groups"] for f in g["failed"] for c in f["outcomes"]
+                          if c["record"] == record and not c["ok"]], [])
+        # (C138161, the 0201 calibration number, passes at all ten copies here and stays
+        # failed by board 3's R4.)
+        self.assertEqual([here(g["failed"]) for g in self.report["groups"] if here(g["failed"])], [["C138161"]])
+        # D, Yageo RC 1210: as by method 1, 28 passed and 14 not drawn; the offsets are smaller.
+        r1210 = group(self.report, "CHIP_1210", "ChipResistor", "Yageo", "RC")
+        self.assertEqual((r1210["status"], len(r1210["passed"]), r1210["failed"], r1210["more_needed"]),
+                         ("needs_samples", 29, [], 14))
+        self.assertEqual(len(here(r1210["not_drawn"])), 14)
+        self.assertEqual(max(p["raw_offset_mm"] for p in r1210["passed"]), 0.036)
+        # D, Vishay CRCW 0402: 8 of the 9 samples pass (C482153 read 10.1 deg by method 1, -0.8 by
+        # method 2); C2085363 is not drawn. With the two calibration numbers, 48 passed of 49.
+        crcw = group(self.report, "CHIP_0402", "ChipResistor", "Vishay", "CRCW")
+        self.assertEqual((crcw["status"], len(crcw["passed"]), crcw["failed"], crcw["more_needed"]),
+                         ("needs_samples", 48, [], 1))
+        self.assertEqual(here(crcw["not_drawn"]), ["C2085363"])
+        self.assertEqual(len(crcw["not_drawn"]), 10)
+        # C, Yageo RC 0402: the three calibration numbers pass at all ten copies each, so the
+        # group stays as the pilot left it.
+        rc = group(self.report, "CHIP_0402", "ChipResistor", "Yageo", "RC")
+        self.assertEqual((rc["status"], len(rc["passed"]), rc["failed"]), ("sampled", 49, []))
+        for pn in ("C138033", "C185445", "C60491"):
+            self.assertIn(record, next(p["records"] for p in rc["passed"] if p["pn"] == pn))
+        # A/C, Yageo CC 0402: three gap parts and the calibration numbers pass, which takes the
+        # group from 9 passed to 12 of the 10 required. This record is what samples it.
+        cc = group(self.report, "CHIP_0402", "MLCC", "Yageo", "CC")
+        self.assertEqual((cc["status"], len(cc["passed"]), cc["required"], cc["failed"], len(cc["not_drawn"])),
+                         ("sampled", 12, 10, [], 1))
+        self.assertEqual(sorted(p["pn"] for p in cc["passed"] if p["records"] == [record]),
+                         ["C106255", "C107006", "C113780"])
+        self.assertEqual(group(self.before, "CHIP_0402", "MLCC", "Yageo", "CC")["status"], "needs_samples")
+
+    def test_board_4_as_method_1_judged_its_record(self):
+        # The 2026-11-11 preview of board 4, read by measure_preview.py method 1, as the rule
+        # on main takes it: what PR #111 alone gives. (The record's README shows that these
+        # readings include each part's silkscreen text.)
         record = str((BOARD_4 / "README.md").relative_to(wg.ROOT))
 
         def here(items):
             return sorted(x["pn"] for x in items if any(c["record"] == record for c in x["outcomes"]))
         # D, Yageo RC 1210: 42 samples, 28 passed, none failed, 14 not drawn. Not paused.
-        r1210 = group(self.report, "CHIP_1210", "ChipResistor", "Yageo", "RC")
+        r1210 = group(self.report_1, "CHIP_1210", "ChipResistor", "Yageo", "RC")
         self.assertEqual((r1210["status"], len(r1210["passed"]), r1210["failed"], r1210["more_needed"]),
                          ("needs_samples", 29, [], 14))
         self.assertEqual(sum(record in p["records"] for p in r1210["passed"]), 28)
@@ -306,19 +484,19 @@ class W3GroupsTests(unittest.TestCase):
         self.assertIn("C7276637", here(r1210["not_drawn"]))  # one of the two replacements
         # D, Vishay CRCW 0402: 9 samples, 7 passed, C482153 left for manual review, C2085363 not
         # drawn. The two calibration numbers fail at their turned copies. Paused.
-        crcw = group(self.report, "CHIP_0402", "ChipResistor", "Vishay", "CRCW")
+        crcw = group(self.report_1, "CHIP_0402", "ChipResistor", "Vishay", "CRCW")
         self.assertEqual((crcw["status"], len(crcw["passed"]), crcw["more_needed"]), ("paused", 45, 4))
         self.assertEqual(here(crcw["failed"]), ["C481918", "C482097", "C482153"])
         self.assertEqual(here(crcw["not_drawn"]), ["C2085363"])
         self.assertEqual(len(crcw["not_drawn"]), 10)
         # C, Yageo RC 0402: the three calibration numbers the pilot passed fail here, so the
         # group the pilot sampled is paused while this record counts.
-        rc = group(self.report, "CHIP_0402", "ChipResistor", "Yageo", "RC")
+        rc = group(self.report_1, "CHIP_0402", "ChipResistor", "Yageo", "RC")
         self.assertEqual((rc["status"], len(rc["passed"]), rc["required"]), ("paused", 46, 49))
         self.assertEqual(here(rc["failed"]), ["C138033", "C185445", "C60491"])
-        self.assertEqual(group(self.before, "CHIP_0402", "ChipResistor", "Yageo", "RC")["status"], "sampled")
+        self.assertEqual(group(self.before_1, "CHIP_0402", "ChipResistor", "Yageo", "RC")["status"], "sampled")
         # Every group this record judges, and what it is afterwards.
-        judged = {(g["footprint"], g["mfr"], g["series"]): g["status"] for g in self.report["groups"]
+        judged = {(g["footprint"], g["mfr"], g["series"]): g["status"] for g in self.report_1["groups"]
                   if here(g["failed"]) or here(g["not_drawn"]) or any(record in p["records"] for p in g["passed"])}
         self.assertEqual(judged, {
             ("CHIP_0201", "Yageo", "RC"): "paused", ("CHIP_0402", "Vishay", "CRCW"): "paused",
@@ -347,7 +525,7 @@ class W3RuleTests(unittest.TestCase):
     def readings(self, offset):
         offsets = [(0.0, offset)] * 49
         bias = wg.w3_rule.board_bias(offsets)
-        return [wg.w3_rule.sample_reading(0.0, o, 0.127, bias) for o in offsets]
+        return [wg.w3_rule.sample_reading(0.0, o, 0.127, bias, body_method=2) for o in offsets]
 
     def test_a_uniform_offset_within_the_raw_limit_passes(self):
         readings = self.readings(0.12)
@@ -364,10 +542,34 @@ class W3RuleTests(unittest.TestCase):
             self.assertTrue(all(wg.w3_rule.sample_ok(r) for r in readings))
 
     def test_a_reading_whose_offsets_do_not_add_up_fails(self):
-        reading = wg.w3_rule.sample_reading(0.0, (0.0, 0.06), 0.127, (0.0, 0.0))
+        reading = wg.w3_rule.sample_reading(0.0, (0.0, 0.06), 0.127, (0.0, 0.0), body_method=2)
         self.assertTrue(wg.w3_rule.sample_ok(reading))
         self.assertFalse(wg.w3_rule.sample_ok(dict(reading, residual_offset_mm=0.0)))
         self.assertFalse(wg.w3_rule.sample_ok(dict(reading, raw_offset_mm=0.0)))
+
+    def test_a_reading_by_another_method_is_not_a_sample(self):
+        # The limits are the rule's only for its own reading: a method 1 reading well
+        # inside them, or one that names no method (which is method 1), does not pass.
+        self.assertEqual(wg.w3_rule.RULE["body_method"], 2)
+        good = wg.w3_rule.sample_reading(0.0, (0.0, 0.02), 0.127, (0.0, 0.0), body_method=2)
+        self.assertTrue(wg.w3_rule.sample_ok(good))
+        self.assertEqual(wg.w3_rule.sample_reading(0.0, (0.0, 0.02), 0.127, (0.0, 0.0))["body_method"], 1)
+        self.assertFalse(wg.w3_rule.sample_ok(wg.w3_rule.sample_reading(0.0, (0.0, 0.02), 0.127, (0.0, 0.0))))
+        self.assertFalse(wg.w3_rule.sample_ok({k: v for k, v in good.items() if k != "body_method"}))
+        for other in (1, 3, "2", 2.5, True, None):
+            self.assertFalse(wg.w3_rule.sample_ok(dict(good, body_method=other)), other)
+
+    def test_the_limits_are_the_accepted_ones(self):
+        # w3-2026-11-10b, as accepted on 2026-11-11: the reading method is the only addition.
+        rule = dict(wg.w3_rule.RULE)
+        self.assertEqual((rule.pop("version"), rule.pop("body_method")), ("w3-2026-11-11-m2", 2))
+        self.assertEqual(rule, {
+            "package": "passive", "types": ["ChipResistor", "MLCC"], "min_sample": 3, "fraction": 0.05,
+            "min_stock": 30, "angle_limit_deg": 10.0, "offset_raw_fraction": 1.0,
+            "offset_residual_fraction": 0.5, "offset_bias": "board_median",
+            "infer_zero_stock": False, "infer_not_drawn": False})
+        committed = json.loads((CURRENT / "groups.json").read_text(encoding="utf-8"))["rule"]
+        self.assertEqual({k: v for k, v in committed.items() if k not in ("version", "short_at_preview")}, rule)
 
 
 if __name__ == "__main__":

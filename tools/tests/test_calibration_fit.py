@@ -260,7 +260,9 @@ class Board4RecordTests(unittest.TestCase):
 
     def test_silkscreen_in_the_window_moves_the_all_pixel_body_but_not_the_connected_model(self):
         # A grey body with white terminals, centred on its pads, and a white silkscreen bar
-        # 2 mm to one side of it: measure_preview's body reads both, the record's tool the model.
+        # 2 mm to one side of it: measure_preview's method 1, which made this record's
+        # measurements.json, reads both; the record's tool reads the model. (measure_preview's
+        # method 2 came from this tool: tools/tests/test_measure_preview.py.)
         spec = importlib.util.spec_from_file_location("body_model", RECORD / "body_model.py")
         bm = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(bm)
@@ -289,7 +291,7 @@ class Board4RecordTests(unittest.TestCase):
             with self.subTest(angle=angle), tempfile.TemporaryDirectory() as td:
                 write_bmp(Path(td) / "top.bmp", int(size * scale), int(size * scale), paint_for(angle))
                 view = cf.mp.View(str(Path(td) / "top.bmp"), (0.0, 0.0, size, size), False)
-                both, model = cf.mp.body(view, fp), bm.read(view, fp)
+                both, model = cf.mp.body(view, fp, 1), bm.read(view, fp)
             # The silkscreen pulls the all-pixel centroid toward itself, across the pads, and it turns with the part.
             across = -both["offset_xy_mm"][0] * s + both["offset_xy_mm"][1] * c
             self.assertLess(across, -0.1)

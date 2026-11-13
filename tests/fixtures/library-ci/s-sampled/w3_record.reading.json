@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "rule": {
-    "version": "w3-2026-11-10b",
+    "version": "w3-2026-11-11-m2",
     "package": "passive",
     "types": [
       "ChipResistor",
@@ -14,6 +14,7 @@
     "offset_raw_fraction": 1.0,
     "offset_residual_fraction": 0.5,
     "offset_bias": "board_median",
+    "body_method": 2,
     "infer_zero_stock": false,
     "infer_not_drawn": false
   },
@@ -48,6 +49,7 @@
         {
           "pn": "C_S1",
           "row": "s1",
+          "body_method": 2,
           "angle_deg": -3.0,
           "offset_limit_mm": 0.127,
           "raw_offset_xy_mm": [
@@ -64,6 +66,7 @@
         {
           "pn": "C_S2",
           "row": "s2",
+          "body_method": 2,
           "angle_deg": 12.0,
           "offset_limit_mm": 0.127,
           "raw_offset_xy_mm": [
@@ -80,6 +83,7 @@
         {
           "pn": "C_S3",
           "row": "s3",
+          "body_method": 2,
           "angle_deg": 1.2,
           "offset_limit_mm": 0.127,
           "raw_offset_xy_mm": [

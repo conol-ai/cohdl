@@ -13,7 +13,9 @@ with the footprint's own pad 1:
     python3 -I measure_preview.py measure board.json top.bmp bottom.bmp out.json
     #    (bottom.bmp may be - on a board with no bottom parts)
     #    `measure --method 1 ...` reads chip bodies as the records made before
-    #    method 2 did (BODY_METHODS); those records reproduce only that way
+    #    method 2 did (BODY_METHODS); those records reproduce only that way.
+    #    `measure --attribution 1 ...` gives marks to parts as the records made
+    #    before attribution 2 did (ATTRIBUTION); likewise
     # 4. a connector's locating pegs against the board's own holes
     python3 -I measure_preview.py pegs board.json top.bmp bottom.bmp REF_PREFIX
 
@@ -26,6 +28,14 @@ Two-terminal polarised parts carry polarity signs instead of a dot and are
 read by eye. Non-polar chip parts (`is_chip`) carry neither: their row gives
 the drawn body's long axis against the pads' axis, mod 180, and its centring
 (`body`). A part whose model the preview did not draw shows `"drawn": false`.
+
+Which part a mark belongs to is decided by a numbered attribution
+(`ATTRIBUTION`). Attribution 2, the current one, writes `"attribution": 2`
+into each row: a row's `dots` are the marks that are this part's (`owners`),
+and `mark_ok` says whether its one mark sits at pad 1 (`mark_ok`).
+Attribution 1 listed every magenta cluster within a radius of the footprint
+origin under every footprint in that radius, and wrote no key: a row without
+one is an attribution 1 row.
 
 A chip body is read by a numbered method (`BODY_METHODS`). Method 2, the
 current one, reads the drawn model alone and writes `"method": 2` into each
@@ -88,10 +98,29 @@ def is_hole(px):
     return max(px[0], px[1], px[2]) < 60
 
 
+# An edge of the board's bounding box must show in at least this many rows (or
+# columns) of the export, and in at least 1/EDGE_SHARE of them.
+EDGE_ROWS, EDGE_SHARE = 8, 64
+
+
+def _extent(firsts, lasts):
+    """Where the green starts and ends along one axis, from each line's first and
+    last green pixel: the outermost position that enough lines reach."""
+    need = max(EDGE_ROWS, len(firsts) // EDGE_SHARE)
+    reached = sorted(v for v in firsts if v is not None)
+    if len(reached) < need:
+        sys.exit("measure_preview.py: the export shows no board (too little green)")
+    return reached[need - 1], sorted((v for v in lasts if v is not None), reverse=True)[need - 1] + 1
+
+
 class View:
     """An export, calibrated to board millimetres through the board outline.
 
-    The green board spans the outline. A bottom export is the view from below,
+    The green board's bounding box is the outline's. Each edge of it is read
+    over the whole export, not on one line: the board need not be a rectangle,
+    and a part may overhang or cover an edge, as long as the edge shows bare
+    in enough rows or columns (`_extent`). A few stray green pixels outside
+    the board do not move an edge. A bottom export is the view from below,
     mirrored left to right, so its x runs from the right edge.
     """
 
@@ -100,10 +129,15 @@ class View:
         x0, y0, x1, y1 = outline
         w, h, self.bpp, self.rows = load_bmp(path)
         bpp, rows = self.bpp, self.rows
-        mid = rows[h // 2]
-        xs = [x for x in range(w) if is_green(mid[x * bpp:x * bpp + 3])]
-        ys = [y for y in range(h) if is_green(rows[y][(w // 2) * bpp:(w // 2) * bpp + 3])]
-        self.left, self.right, self.top, self.low = min(xs), max(xs) + 1, min(ys), max(ys) + 1
+
+        def ends(n, green):
+            first = next((i for i in range(n) if green(i)), None)
+            return first, first if first is None else next(i for i in range(n - 1, -1, -1) if green(i))
+
+        across = [ends(w, lambda x, row=row: is_green(row[x * bpp:x * bpp + 3])) for row in rows]
+        down = [ends(h, lambda y, at=x * bpp: is_green(rows[y][at:at + 3])) for x in range(w)]
+        self.left, self.right = _extent(*zip(*across))
+        self.top, self.low = _extent(*zip(*down))
         self.sx, self.sy = (self.right - self.left) / (x1 - x0), (self.low - self.top) / (y1 - y0)
 
     def px(self, x, y):
@@ -127,9 +161,16 @@ class View:
 
 
 def dots(path, outline, bottom, pred=is_magenta, size=(6, None)):
-    """Clusters of `pred` pixels, magenta by default, in board millimetres."""
-    x0, y0, x1, y1 = outline
+    """Clusters of `pred` pixels, magenta by default, in board millimetres: (x, y, pixels)."""
     view = path if isinstance(path, View) else View(path, outline, bottom)
+    return [c[:3] for c in clusters(view, pred, size)]
+
+
+def clusters(view, pred=is_magenta, size=(6, None)):
+    """Clusters of `pred` pixels in VIEW: (x, y, pixels, area in mm2, the longer side
+    of its bounding box in mm), x and y in board millimetres."""
+    x0, y0, x1, y1 = view.outline
+    bottom = view.bottom
     left, right, top, low, sx, sy = view.left, view.right, view.top, view.low, view.sx, view.sy
     hits = {(x, y) for y in range(top, low) for x in range(left, right)
             if pred(view.px(x, y))}
@@ -150,7 +191,10 @@ def dots(path, outline, bottom, pred=is_magenta, size=(6, None)):
             continue
         cx = sum(p[0] for p in pts) / len(pts)
         cy = sum(p[1] for p in pts) / len(pts)
-        found.append((x0 + ((right - cx) if bottom else (cx - left)) / sx, y0 + (cy - top) / sy, len(pts)))
+        wide = (max(p[0] for p in pts) - min(p[0] for p in pts) + 1) / sx
+        high = (max(p[1] for p in pts) - min(p[1] for p in pts) + 1) / sy
+        found.append((x0 + ((right - cx) if bottom else (cx - left)) / sx, y0 + (cy - top) / sy, len(pts),
+                      len(pts) / (sx * sy), max(wide, high)))
     return found
 
 
@@ -162,7 +206,7 @@ def outline(doc):
 
 
 def reach(fp):
-    """How far from a footprint's origin its pin 1 mark can sit: its farthest pad, plus a margin."""
+    """Attribution 1: how far from a footprint's origin its pin 1 mark can sit: its farthest pad, plus a margin."""
     return max(math.hypot(p["x"] - fp["x"], p["y"] - fp["y"]) for p in fp["pads"] if p["num"]) + 1.2
 
 
@@ -172,6 +216,121 @@ def is_chip(fp):
     The preview gives these no pin 1 mark; their body is read instead (`body`).
     """
     return fp.get("fpid", "").startswith("passive-CHIP_") and len([p for p in fp["pads"] if p["num"]]) == 2
+
+
+# How a mark is given to a part. A row names its attribution (`row["attribution"]`);
+# one without the key is attribution 1, the only one there was until 2026-11-12.
+#
+# 1: every magenta cluster of at least 6 px is a mark, and belongs to every
+#    footprint within `reach` of whose origin it lies (`measure`), or to the
+#    nearest such origin (`jlc_preview.unmarked`), chip parts included.
+# 2: `marks` and `owners`, below.
+ATTRIBUTION = 2
+
+# A magenta cluster larger than this is a piece of a model, not a mark: a
+# model can have a magenta part of its own, millimetres long. The 184 clusters
+# of the six archived records that have a board.json (2026-11-05 to
+# 2026-11-11) are at most 0.745 mm2 and 1.34 mm on their longer side. The
+# limits are twice and one and a half times the largest of them.
+MARK_AREA_MAX_MM2 = 1.5
+MARK_SIDE_MAX_MM = 2.0
+# A part's marks lie within this of the square about its pads (`beyond`). Of
+# those 184, the farthest lies 1.39 mm outside it (a SOT-223's, beyond pad 1).
+MARK_MARGIN_MM = 2.0
+# A part's one mark is at pad 1 when its direction from the footprint origin is
+# within this of pad 1's. In those records, the marks of parts placed right
+# read at most 11.4 deg; a part a quarter or half turn off reads 85 or more.
+# What lies between is not decided here: a model whose mark is not drawn at
+# pad 1 can read anything, placed right or not, and goes to manual review.
+MARK_ANGLE_TOL = 20.0
+# Two-terminal parts with no pin 1: resistors, inductors and ferrite beads by
+# their designator, and the passive library's two-pad lands.
+NON_POLAR_REFS = ("R", "L", "FB")
+
+
+def numbered(fp):
+    return [p for p in fp["pads"] if p["num"]]
+
+
+def pad_1(fp):
+    """Pad 1; ball A1 on a BGA."""
+    return next((p for p in numbered(fp) if p["num"] in ("1", "A1")), None)
+
+
+def marks(view):
+    """The pin 1 marks an export shows (attribution 2): its magenta clusters, less
+    those too large to be a mark (MARK_AREA_MAX_MM2, MARK_SIDE_MAX_MM)."""
+    return [c for c in clusters(view) if c[3] <= MARK_AREA_MAX_MM2 and c[4] <= MARK_SIDE_MAX_MM]
+
+
+def expects_mark(fp):
+    """Whether the preview can show a pin 1 mark for this part: it has a pad 1, and
+    it is neither a chip part (`is_chip`) nor another two-terminal part with no
+    pin 1 (NON_POLAR_REFS, or a two-pad land of the passive library)."""
+    if pad_1(fp) is None or is_chip(fp):
+        return False
+    two = len({p["num"] for p in numbered(fp)}) <= 2
+    return not (two and (fp["ref"].rstrip("0123456789") in NON_POLAR_REFS
+                         or fp.get("fpid", "").startswith("passive-")))
+
+
+def beyond(fp, x, y):
+    """How far the board point lies outside the square about the footprint's pads, in
+    mm; 0 inside it.
+
+    The square is the box of the numbered pads' centres in the footprint's own
+    frame, widened to its longer side: a model a quarter turn off still lies in
+    it, and it does not depend on where the footprint origin is, so a model
+    placed with an offset keeps its mark.
+    """
+    a = math.radians(fp.get("angle", 0.0))
+
+    def own(px, py):
+        dx, dy = px - fp["x"], py - fp["y"]
+        return dx * math.cos(a) - dy * math.sin(a), dx * math.sin(a) + dy * math.cos(a)
+
+    pts = [own(p["x"], p["y"]) for p in numbered(fp)]
+    lo_x, hi_x = min(p[0] for p in pts), max(p[0] for p in pts)
+    lo_y, hi_y = min(p[1] for p in pts), max(p[1] for p in pts)
+    half = max(hi_x - lo_x, hi_y - lo_y) / 2
+    mx, my = own(x, y)
+    return max(abs(mx - (lo_x + hi_x) / 2) - half, abs(my - (lo_y + hi_y) / 2) - half, 0.0)
+
+
+def owners(found, fps):
+    """Attribution 2: {ref: [mark, ...]} for the marks FOUND (`marks`) among FPS, the
+    footprints of one side whose models are drawn.
+
+    Only a part that expects a mark (`expects_mark`) can own one: a chip part or
+    an inductor never does, however near it is. A mark belongs to a part when it
+    lies within MARK_MARGIN_MM of the square about the part's pads (`beyond`).
+    Where that holds for several parts, it belongs to the one with a pad nearest
+    to it: a mark is drawn at a pad of its own part. Each mark has at most one
+    owner. A part may come out owning several (a BGA's two, a connector's pegs,
+    a neighbour's that it cannot be told from); only a part with exactly one has
+    its pin 1 read from it, so a second mark never stands in for a missing one.
+    """
+    own = {fp["ref"]: [] for fp in fps}
+    expecting = [fp for fp in fps if expects_mark(fp)]
+    for mark in found:
+        near = [(min(math.hypot(mark[0] - p["x"], mark[1] - p["y"]) for p in numbered(fp)), fp["ref"])
+                for fp in expecting if beyond(fp, mark[0], mark[1]) <= MARK_MARGIN_MM]
+        if near:
+            own[min(near)[1]].append(mark)
+    return own
+
+
+def delta_ccw(fp, pad, mark):
+    """How far MARK sits counter-clockwise from PAD about the footprint origin, seen
+    from the top, in degrees."""
+    def angle(dx, dy):  # seen from the top, +y up, counter-clockwise
+        return math.degrees(math.atan2(-dy, dx)) % 360
+    return round((angle(mark[0] - fp["x"], mark[1] - fp["y"]) - angle(pad["x"] - fp["x"], pad["y"] - fp["y"])) % 360, 1)
+
+
+def mark_ok(delta):
+    """Whether a part's one mark, DELTA degrees from pad 1 (`delta_ccw`), is at pad 1."""
+    return min(delta, 360 - delta) <= MARK_ANGLE_TOL
 
 
 def drawn(view, fp):
@@ -388,9 +547,9 @@ def body_ok(reading):
             and reading["elongation"] >= CHIP_ELONGATION_MIN)
 
 
-def measure(board_json, top_bmp, bottom_bmp, out, method=BODY_METHOD):
-    """Write OUT. METHOD is how chip bodies are read; 1 writes exactly what this tool
-    wrote before it had methods."""
+def measure(board_json, top_bmp, bottom_bmp, out, method=BODY_METHOD, attribution=ATTRIBUTION):
+    """Write OUT. METHOD is how chip bodies are read and ATTRIBUTION how marks are given
+    to parts; 1 and 1 write exactly what this tool wrote before it had either."""
     with open(board_json) as f:
         doc = json.load(f)
     # A board with no bottom parts may pass "-" for the bottom view, which it does not export.
@@ -398,30 +557,37 @@ def measure(board_json, top_bmp, bottom_bmp, out, method=BODY_METHOD):
     if bottom_bmp == "-" and any(fp["bottom"] for fp in doc["fps"]):
         sys.exit("measure_preview.py: the board has bottom parts, so it needs the bottom view")
     views = {bottom: View(path, outline(doc), bottom) for bottom, path in shots.items() if path != "-"}
-    found = {bottom: dots(view, outline(doc), bottom) for bottom, view in views.items()}
-
-    def angle(dx, dy):  # seen from the top, +y up, counter-clockwise
-        return math.degrees(math.atan2(-dy, dx)) % 360
+    shown = {fp["ref"]: drawn(views[fp["bottom"]], fp) for fp in doc["fps"]}
+    if attribution == 1:
+        found = {bottom: dots(view, outline(doc), bottom) for bottom, view in views.items()}
+    else:
+        owned = {}
+        for bottom, view in views.items():
+            owned.update(owners(marks(view), [fp for fp in doc["fps"] if fp["bottom"] == bottom and shown[fp["ref"]]]))
 
     rows = []
     for fp in sorted(doc["fps"], key=lambda f: (f["ref"].rstrip("0123456789"), int(f["ref"].lstrip("ABCDEFGHIJKLMNOPQRSTUVWXYZ") or 0))):
         pads = [p for p in fp["pads"] if p["num"]]
-        near = [d for d in found[fp["bottom"]] if math.hypot(d[0] - fp["x"], d[1] - fp["y"]) <= reach(fp)]
-        # Pin 1 is ball A1 on a BGA.
-        pad1 = next((p for p in pads if p["num"] in ("1", "A1")), None)
+        if attribution == 1:
+            near = [d for d in found[fp["bottom"]] if math.hypot(d[0] - fp["x"], d[1] - fp["y"]) <= reach(fp)]
+        else:
+            near = owned.get(fp["ref"], [])
+        pad1 = pad_1(fp)
         row = {"ref": fp["ref"], "side": "bottom" if fp["bottom"] else "top", "kicad_angle": fp["angle"],
                "pad1": [round(pad1["x"] - fp["x"], 3), round(pad1["y"] - fp["y"], 3)] if pad1 else None,
                "dots": [[round(d[0] - fp["x"], 2), round(d[1] - fp["y"], 2)] for d in near]}
         # Keys only where they apply, so earlier records still reproduce byte for byte.
-        if not drawn(views[fp["bottom"]], fp):
+        if attribution != 1:
+            row["attribution"] = attribution
+        if not shown[fp["ref"]]:
             row["drawn"] = False
         elif is_chip(fp):
             row["body"] = body(views[fp["bottom"]], fp, method)
             row["body_ok"] = body_ok(row["body"])
         if pad1 and len(near) == 1 and not is_chip(fp):
-            d = near[0]
-            row["delta_ccw_from_top"] = round((angle(d[0] - fp["x"], d[1] - fp["y"])
-                                               - angle(pad1["x"] - fp["x"], pad1["y"] - fp["y"])) % 360, 1)
+            row["delta_ccw_from_top"] = delta_ccw(fp, pad1, near[0])
+            if attribution != 1:
+                row["mark_ok"] = mark_ok(row["delta_ccw_from_top"])
         rows.append(row)
     with open(out, "w") as f:
         json.dump(rows, f, indent=1)
@@ -447,13 +613,15 @@ def pegs(board_json, top_bmp, bottom_bmp, prefix):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) == 4 and sys.argv[1] == "board":
-        board(sys.argv[2], sys.argv[3])
-    elif len(sys.argv) == 6 and sys.argv[1] == "measure":
-        measure(*sys.argv[2:])
-    elif len(sys.argv) == 8 and sys.argv[1:3] == ["measure", "--method"] and sys.argv[3] in ("1", "2"):
-        measure(*sys.argv[4:], method=int(sys.argv[3]))
-    elif len(sys.argv) == 6 and sys.argv[1] == "pegs":
-        pegs(*sys.argv[2:])
+    args, how = sys.argv[1:], {}
+    while len(args) > 2 and args[0] == "measure" and args[1] in ("--method", "--attribution") and args[2] in ("1", "2"):
+        how[args[1][2:]] = int(args[2])
+        del args[1:3]
+    if len(args) == 3 and args[0] == "board":
+        board(args[1], args[2])
+    elif len(args) == 5 and args[0] == "measure":
+        measure(*args[1:], **how)
+    elif len(args) == 5 and args[0] == "pegs":
+        pegs(*args[1:])
     else:
         sys.exit(__doc__)

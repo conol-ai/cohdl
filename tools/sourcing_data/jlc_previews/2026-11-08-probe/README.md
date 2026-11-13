@@ -190,3 +190,12 @@ They are not in `tools/sourcing_data/jlc_frames.json`. `sod` and `do214` ship la
 Adopting a row is W4 discretes work: add a library part for the MPN on the same land with `supplier lcsc "<C number>"` and no rotation, and move the row into `jlc_frames.json`.
 
 The rows were read against the `sod` and `do214` **0.1.0** lands and carry `package_version` 0.1.0. PR #102 moves both packages to 0.1.1. So adoption must re-key each row's `package_version` to the version the new part ships in, after checking that version's land copper is still the copper read here (`package/board.json` holds the pads as placed).
+
+## Addendum, 2026-11-12: which part a mark belongs to
+
+Everything above is the record as made. `checks.json` and `measurements.json` were made with what is now called attribution 1 (`measure_preview.ATTRIBUTION`): a mark counted for the nearest footprint origin within reach, chip parts included, and "mark" in `checks.json` said only that a part had one, not where. They are unchanged, and reproduce byte for byte with `--attribution 1` added: `measure_preview.py measure --method 1 --attribution 1 …` and `jlc_preview.py --recheck top.png bottom.png --board package/board.json --attribution 1 --body-method 1`. `tools/tests/test_jlc_preview.py` and `test_measure_preview.py` check both with `COHDL_REMEASURE_PREVIEWS=1`.
+
+Attribution 2 gives a mark to the part within 2 mm of whose pads' square it lies (the one with the nearest pad, where several qualify, and never a chip part or an inductor), drops magenta areas too large to be a mark, and passes a part only on exactly one mark of its own within 20° of pad 1. On these exports no mark changes owner and no angle changes. Of the 44 instances that passed as "mark", 16 still do (U37–U52, at most 11.4° from pad 1) and 28 go to manual review:
+
+- U13–U16 (W25Q32, 95.2°, 95.9°, 263.7°, 263.9°) and U17–U20 (RS0104, 86.2°, 86.1°, 273.8°, 273.5°): one mark each, a quarter turn from pad 1 about the origin. "mark" was wrong as a pass; what the angle means for the W25Q32 is in `manual-review-correction.txt`.
+- U9–U12, U21–U28, U33–U36 and U53–U56 (the diodes): two to six magenta signs each (a diode model's "+" and "−", in pieces on some). Three of the five part numbers have their cathode at the wrong end (`manual-review-correction.txt`, and `../2026-11-08-reverify/`), which "mark" passed. With several marks the tool cannot say which is pin 1.

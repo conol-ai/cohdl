@@ -8,7 +8,7 @@ A footprint's **frame** is its origin and its 0° axis: the coordinate system it
 
 - RFC-034's Migration path records the situation: "A design that places that footprint still passes `check` and `build`, but its placed copper turns with the land, and `cohdl update` reports only the version change." The library plan (W3) is aligning footprints to assemblers' frames under breaking versions, so this is now routine and not an accident.
 - The only notice today is prose: each package's README lists its moved footprints as `(dx, dy, r)` triples, and `tools/realign_place.py` applies a hand-copied table of them.
-- **Evidence (OpenWalkieTalkie Rev C, compiler 0.10.0).** `soic` 0.3.0 turned `SOIC8P127X790X216N` by `(0mm, 0mm, 270)`. Raising `soic` 0.2.0 → 0.3.0 while leaving U4's `place flash at (32.6mm, 14.2mm) rotate 180 side bottom` unchanged gave a clean `cohdl check` and `cohdl build`, with all eight pads a quarter turn away from the routed copper. `cohdl update` reported twelve version changes, `soic: 0.2.0 -> 0.3.0` one of them. Only the project's own board-frame pad comparison caught it. The correct line is `rotate 270 side bottom`.
+- **Evidence (`soic` 0.3.0, compiler 0.10.0).** `soic` 0.3.0 turned `SOIC8P127X790X216N` by `(0mm, 0mm, 270)`; its README lists the move. A design that places a part on that land, raises `soic` 0.2.0 → 0.3.0 and leaves its `place … rotate 180 side bottom` line unchanged still gets a clean `cohdl check` and `cohdl build`, with all eight pads a quarter turn away from the routed copper. `cohdl update` reports `soic: 0.2.0 -> 0.3.0` among the other version changes of the update, and nothing else. Only a comparison of pad positions in the board frame shows it, and the compiler makes none. The line that keeps the copper is `rotate 270 side bottom`.
 - The footprint was reached through a part in another package (`flash::FLASH_W25Q128JVSIQ` names `soic::SOIC8P127X790X216N`), so the author never wrote the footprint's name and had no reason to read `soic`'s README.
 
 Who this is for: board authors and AI agents raising a dependency; library authors, who need a way to state a frame change that tools can read and CI can verify; reviewers of a dependency bump.
@@ -103,10 +103,10 @@ with RFC-034's shared `compose_place` (`src/placement.rs`), which already covers
 ```text
   soic: 0.2.0 -> 0.3.0
 note[E-TBD-2]: soic 0.3.0 moved the frame of soic::SOIC8P127X790X216N by (0mm, 0mm) rotate 270
-  src/main.cohdl:263  U4 (flash, part flash::FLASH_W25Q128JVSIQ)
-      place flash at (32.600000mm, 14.200000mm) rotate 180 side bottom
+  src/main.cohdl:120  U3 (flash, part flash::FLASH_W25Q128JVSIQ)
+      place flash at (20.000000mm, 10.000000mm) rotate 180 side bottom
     rewrite to keep the copper where it is:
-      place flash at (32.600000mm, 14.200000mm) rotate 270 side bottom
+      place flash at (20.000000mm, 10.000000mm) rotate 270 side bottom
   1 placement affected. Nothing was rewritten; `cohdl check` reports these until acknowledged (E-TBD-4).
 ```
 
@@ -154,7 +154,7 @@ frames = "0.2.0"
 
 It is deterministic and offline: its only inputs are the source, `cohdl.lock` and the pinned packages' content. It is a warning, so the verdict and every artifact are unchanged, like E814/E815. A supplier-mapping instance of it is reported only under `--supplier`, when the mapping is used.
 
-**Cost and benefit.** The cost is one optional lock key, one flag and one warning; an author can acknowledge without migrating, and placements added between the update and the acknowledgement are flagged although they were written against the new frame. The benefit is that the failure in the evidence, a clean build with moved copper, becomes impossible to reach without an explicit step recorded in a reviewed file. **Recommended:** adopt §4 together with §3. If only one is accepted, §3 alone still improves on today, and §4 is the part that would have stopped the Rev C case for anyone who did not read the update output.
+**Cost and benefit.** The cost is one optional lock key, one flag and one warning; an author can acknowledge without migrating, and placements added between the update and the acknowledgement are flagged although they were written against the new frame. The benefit is that the failure in the evidence, a clean build with moved copper, becomes impossible to reach without an explicit step recorded in a reviewed file. **Recommended:** adopt §4 together with §3. If only one is accepted, §3 alone still improves on today, and §4 is the part that stops the case in the evidence for anyone who does not read the update output.
 
 ### 5. What a library author must do, and how CI verifies it
 
@@ -187,13 +187,13 @@ d' = Rot(−r_Δ) · (d − d_Δ)        r' = (r − r_Δ) mod 360
 - The notice (§3) lists project-owned clauses with `d'`, `r'` written out.
 - The library plan's frame evidence is keyed by (footprint, package version, supplier, part number) and is already invalidated by a moved footprint; nothing changes there.
 
-### 7. Worked example: `soic` 0.2.0 → 0.3.0 and OpenWalkieTalkie U4
+### 7. Worked example: `soic` 0.2.0 → 0.3.0 and a flash placed on the bottom
 
 - `soic` 0.3.0 ships a `frames.toml` in the form of §1: five `transform` records, each `(0mm, 0mm) rotate 270`, replacing the README table as the authority (the README may still render it).
 - Library CI compares 0.3.0 with the 0.2.0 tar: each of the five lands' pad projections matches after the declared quarter turn; no other footprint differs.
 - `flash` 0.3.1 pins `soic = "0.3.0"` and its `supplier lcsc "C97521"` clause is the identity mapping, written against the new frame.
-- In the project, `cohdl update` moves twelve rows. One crosses a record. The notice is the block shown in §3: one placement, `src/main.cohdl:263`, U4, with the rewrite `rotate 270 side bottom` (bottom side: `180 − 270 ≡ 270`). The lock row for `soic` gets `frames = "0.2.0"`.
-- Had the author ignored it: every `cohdl check` and `cohdl build` reports E-TBD-4 at line 263 until the line is rewritten and `cohdl update --ack-frames soic` is run. Today the same state is a clean build.
+- In a project that places `flash::FLASH_W25Q128JVSIQ` on the bottom at `rotate 180` (the illustrative statement of §3), `cohdl update` moves several rows. One crosses a record. The notice is the block shown in §3: one placement, `src/main.cohdl:120`, U3, with the rewrite `rotate 270 side bottom` (bottom side: `180 − 270 ≡ 270`). The lock row for `soic` gets `frames = "0.2.0"`.
+- Had the author ignored it: every `cohdl check` and `cohdl build` reports E-TBD-4 at that line until the line is rewritten and `cohdl update --ack-frames soic` is run. Today the same state is a clean build.
 - Had the project kept `flash` at a version pinning `soic = "0.2.0"`: E-TBD-4 on that part's supplier mapping under `--supplier lcsc`, naming `flash` as the package to raise.
 
 ## Type-system-first test
@@ -225,7 +225,7 @@ The notice is written for an agent as much as a person: file, line, the statemen
 
 ## Alternatives
 
-1. **Major-version convention plus README lists** (today). Rejected as the whole answer: prose is not read by tools, the footprint is usually reached through a part in another package, and twelve version lines hide the one that matters.
+1. **Major-version convention plus README lists** (today). Rejected as the whole answer: prose is not read by tools, the footprint is usually reached through a part in another package, and a list of version lines hides the one that matters.
 2. **A geometry hash per footprint in `cohdl.lock`**, so any geometry change of a placed footprint is visible. It needs no declaration and also catches resized lands and undeclared moves. Not chosen as the mechanism: a hash says *that* something changed but not *how*, so no rewrite can be suggested; it fires on every courtyard or silkscreen tweak, which trains authors to acknowledge blindly; and it grows the lock by a row per footprint. It is complementary, and its detection half is what §5's CI check performs on the library side, where the author can act on it.
 3. **A manifest key in `cohdl.toml`.** Rejected: an older compiler's manifest parser would have to accept it, and a list of records per footprint and version is data about the package's history, not part of its identity or its dependency set.
 4. **A registry sidecar.** Rejected in §1: mutable, registry-only, unavailable offline.

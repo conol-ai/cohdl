@@ -7,12 +7,12 @@
 CoHDL has no way to say that a footprint on the board is not fitted with a component. Every instance is bought and placed.
 
 - RFC-034 §3.1 states the rule in force: "There are no exclusions by value or designator. A part that is bought is placed", and names the gap: "A way to mark an instance as bought but not assembled is out of scope for this RFC." RFC-032's Non-goals also set "DNP/DNI assembly-population states" aside.
-- **Evidence (OpenWalkieTalkie Rev C, compiler 0.10.0).** The board has five do-not-populate sites and twelve board features:
-  - C52, C53 (`rf.rf_shunt[0..=1]`), C58 (`rf.ant_shunt_c`) and L6 (`rf.ant_shunt_l`) are RF tuning sites, and R44 (`power.r_ntc_bench`) is a bench substitute for the battery's own thermistor. All five sit inside `subdesign` bodies; two are elements of one array declaration.
-  - L6's site has no chosen value at all, so the project declares a part for it with `mfr: "Unselected", mpn: "DNP"`.
-  - TP1–TP10 are bare-copper test points (`misc::TEST_POINT_ROUND_1MM`), and MH2, MH4 are non-plated mounting holes. Both part kinds carry the placeholder identity `mfr: "PCB Fabrication"` because a part must name an MPN.
-  - `cohdl build --supplier lcsc` lists all seventeen in the BOM, and the fifteen with an SMD pad in both CPLs (140 rows each; `R28,R29,R44` is one BOM row). R44's part has no `lcsc` binding today; with a bound resistor, the supplier files would have ordered and placed it.
-  - The project therefore keeps population in a side file (`assembly.json`: a `dnp` table and an `exclude_from_bom` list, both keyed by designator) and a script that removes those rows from the order files, removes paste from the DNP pads, and fails if one of them reaches an order file.
+- **Evidence (compiler 0.10.0 and the published library).** Any board with a site that is laid out but not fitted meets this. What the compiler and the library do with such sites today:
+  - Tuning and option sites, such as the shunt positions of an RF matching network or a bench substitute for a sensor, are ordinary instances. They often sit inside `subdesign` bodies, and several can be elements of one array declaration.
+  - A site with no chosen value at all still needs a part, so a project declares one with a placeholder identity such as `mfr: "Unselected", mpn: "DNP"`.
+  - Bare-copper test points (`misc::TEST_POINT_ROUND_1MM`) and non-plated mounting holes are parts too, and carry a placeholder identity such as `mfr: "PCB Fabrication"`, because a part must name an MPN.
+  - `cohdl build --supplier lcsc` lists every one of these in the BOM, and each one with an SMD pad in both CPLs. An unfitted site whose part has an `lcsc` binding is ordered and placed.
+  - A project therefore has to keep population in a side file of its own (a do-not-populate table and an exclude-from-BOM list, both keyed by designator) and a script that removes those rows from the order files, removes paste from the DNP pads, and fails if one of them reaches an order file.
 - The side file is keyed by designator, which is allocator output and not something the source names. It is not checked by the compiler, not visible to an AI author reading the design, and not versioned with the meaning of the source: a misspelt designator silently populates a site.
 
 Who this is for: anyone sending a build to an assembler; reviewers, who need to see in the source which sites are empty and why; AI authors, who cannot be expected to maintain a second file in a project-specific format.
@@ -51,18 +51,18 @@ Two sources, because the two facts have different owners. Whether a resistor sit
 ### 2. `#[dnp]` on an instance
 
 ```cohdl
-subdesign RF {
+subdesign Matching {
     ports {
         required FEED: Pin
         required GND: Pin
     }
 
     #[dnp]
-    #[intent("RF shunts, tune on hardware")]
-    inst rf_shunt: [passive::C_3p9_100V_C0G_0402; 2]
+    #[intent("matching shunts, tuned on hardware")]
+    inst shunt: [passive::C_10p_50V_C0G_0402; 2]
 
     #[dnp]
-    inst ant_shunt_l: RF_SHUNT_UNFITTED
+    inst shunt_l: SHUNT_UNFITTED
     ...
 }
 ```
@@ -134,20 +134,20 @@ Both are RFC-034 warnings about an incomplete order, so both consider fitted ins
 - A `dnp` instance with no `place` is not reported by either. It is an unplaced footprint like any other, which is the layout tool's concern, and `--emit kicad_pcb` stages it as it does today.
 - A design whose placed instances are all non-fitted still gets the header-only CPL, by RFC-034's existing rule.
 
-### 7. Worked example: OpenWalkieTalkie Rev C
+### 7. Worked example
 
-Source changes: four `#[dnp]` lines in two subdesigns (`rf_shunt`, `ant_shunt_c`, `ant_shunt_l` in `rf.cohdl`; `r_ntc_bench` in `power.cohdl`), and `#[board_feature]` on `misc::TEST_POINT_ROUND_1MM` (a `misc` release) and on the project's own `REVB_MOUNTING_HOLE`.
+An illustrative board of 100 placed instances. Three sites are not fitted: C10 and C11, the two elements of one array declaration of tuning shunts in a subdesign, and R20, a bench substitute that shares its part, and today its BOM row, with the fitted R18 and R19. It has four test points (TP1–TP4) and two non-plated mounting holes (MH1, MH2).
+
+Source changes: two `#[dnp]` lines (one on the array declaration, one on R20's `inst`), and `#[board_feature]` on `misc::TEST_POINT_ROUND_1MM` (a `misc` release) and on the project's own mounting-hole part.
 
 | | Today | With this proposal |
 |---|---|---|
-| Neutral and `lcsc` BOM | 17 extra designators in rows | C52, C53, C58, L6, R44, TP1–TP10, MH2, MH4 absent; `R28,R29,R44` becomes `R28,R29` |
-| Neutral and `lcsc` CPL | 140 rows each | 125 rows each (the fifteen SMD-pad sites are gone) |
-| `-population.csv` | none | 17 rows: 5 `dnp`, 12 `board_feature` |
-| `.kicad_pcb` | all fitted | five footprints `dnp` with no paste; twelve excluded from position files and BOM |
+| Neutral and `lcsc` BOM | 9 extra designators in rows | C10, C11, R20, TP1–TP4, MH1, MH2 absent; `R18,R19,R20` becomes `R18,R19` |
+| Neutral and `lcsc` CPL | 98 rows each (the holes have no SMD pad) | 91 rows each (the seven SMD-pad sites are gone) |
+| `-population.csv` | none | 9 rows: 3 `dnp`, 6 `board_feature` |
+| `.kicad_pcb` | all fitted | three footprints `dnp` with no paste; six excluded from position files and BOM |
 | Designators, nets, DRC verdict | — | identical |
-| `assembly.json` `dnp` / `exclude_from_bom` | applied by script | deleted; the script's "none reaches an order file" check becomes a comparison against `-population.csv` |
-
-The side file's `value_labels` table is not population and is not addressed here.
+| A project's side file and script | applied after every build | deleted; a "none reaches an order file" check becomes a comparison against `-population.csv` |
 
 ## Type-system-first test
 
@@ -181,9 +181,9 @@ High. One bare attribute on the line above the instance it describes, in the sam
 ## Alternatives
 
 1. **A side file applied by scripts** (today). Rejected: keyed by designator, unchecked, invisible in the source, and different in every project.
-2. **An export flag** (`cohdl build --dnp C52,C53`, or a supplier-level exclusion list). Rejected: population would then be a property of an invocation, so the same source gives different order files; it is keyed by allocator output; and a per-supplier list would let two suppliers' files disagree about what the board carries.
-3. **A statement with instance paths in the design body** (`dnp rf.rf_shunt[0], power.r_ntc_bench`). It would address single elements and single uses. Not chosen for the first step: it needs reach-in into subdesign internals, for which RFC-032 admits placement as "the sole admitted exception"; it adds a statement keyword where an attribute suffices (the RFC-027 correction); and its meaning is not local to the instance. It is the natural shape for per-use overrides and variants later.
-4. **Only a part-level "not for assembly" property.** Rejected as the whole answer: R44 is an ordinary `passive::R_10K_F_0402` that other sites on the same board fit. It is kept as the second source (§3) for the cases where the property really is the part's.
+2. **An export flag** (`cohdl build --dnp C10,C11`, or a supplier-level exclusion list). Rejected: population would then be a property of an invocation, so the same source gives different order files; it is keyed by allocator output; and a per-supplier list would let two suppliers' files disagree about what the board carries.
+3. **A statement with instance paths in the design body** (`dnp matching.shunt[0], power.r_bench`). It would address single elements and single uses. Not chosen for the first step: it needs reach-in into subdesign internals, for which RFC-032 admits placement as "the sole admitted exception"; it adds a statement keyword where an attribute suffices (the RFC-027 correction); and its meaning is not local to the instance. It is the natural shape for per-use overrides and variants later.
+4. **Only a part-level "not for assembly" property.** Rejected as the whole answer: an unfitted site is often an ordinary part, such as a `passive::R_10K_F_0402`, that other sites on the same board fit. It is kept as the second source (§3) for the cases where the property really is the part's.
 5. **Only `#[dnp]`, with test points marked `#[dnp]` at each instance.** Rejected: ten identical attributes per board, on every board, for a fact the part already knows; and a test point would get KiCad's DNP rendering and paste removal, which describe an empty component site, not a copper feature.
 6. **Strip non-fitted instances from the netlist.** Rejected: the board would lose the footprint, which is the opposite of what a DNP site is.
 7. **A `DNP` column in the existing BOM.** Rejected: it changes the header, and so every existing BOM's bytes.
@@ -215,7 +215,7 @@ Low. "`#[dnp]` on an `inst` leaves the site empty; the footprint and nets stay. 
 
 1. **Variants.** Is a single population per design the right first step, with variants as a later RFC? Recommended: yes. The sketch for later is named variants declared in the source and selected at export, which keeps "same source and same selection give the same bytes" and reuses alternative 3's path form.
 2. **DRC and population.** Accept "all four rules as if fitted" (§4) for the first step, including the two stated D003/D004 limitations?
-3. **Paste on DNP pads.** Removed unconditionally (recommended, matching the project's own practice), kept, or author-selectable?
+3. **Paste on DNP pads.** Removed unconditionally (recommended), kept, or author-selectable?
 4. **`-population.csv`.** Accept the new artifact and its name, or record non-fitted instances only in the board and IPC-2581?
 5. **Board-feature part identity.** Keep the placeholder `mfr`/`mpn` for now (recommended), or let a `#[board_feature]` part omit `mpn` in this RFC?
 6. **Scope of this RFC.** Accept `#[dnp]` and `#[board_feature]` together as one model (recommended), or `#[dnp]` first?

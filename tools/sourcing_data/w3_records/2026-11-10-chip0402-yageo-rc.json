@@ -29,9 +29,9 @@
  },
  "groups": [
   {
-   "id": "passive-0.2.7-CHIP_0402-ChipResistor-Yageo-RC",
+   "id": "passive-0.2.8-CHIP_0402-ChipResistor-Yageo-RC",
    "package": "passive",
-   "package_version": "0.2.7",
+   "package_version": "0.2.8",
    "footprint": "CHIP_0402",
    "type": "ChipResistor",
    "mfr": "Yageo",

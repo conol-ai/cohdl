@@ -19,6 +19,8 @@ FULL = ROOT / "tools/sourcing_data/lcsc_backfill/2026-11-06-full-aliases"
 # The same run again after the library's manufacturer spellings were fixed.
 SPELLINGS = FULL.parent / "2026-11-06-full-spellings"
 SAMSUNG = FULL.parent / "2026-11-07-samsung-b1"
+# diode 0.1.2 and esd 0.1.3: the six Hongjiacheng diode and TVS parts.
+HONGJIACHENG = FULL.parent / "2026-11-11-hongjiacheng"
 EMPTY = {"schema_version": 1, "supplier": "lcsc", "rows": []}
 
 
@@ -78,6 +80,10 @@ class PromoteTests(unittest.TestCase):
         code, out, _ = self.promote("--aliases", str(current), run=SAMSUNG)
         self.assertEqual(code, 0)
         self.assertIn("12321 rows, 12321 changed", out)
+        # The Hongjiacheng diode and TVS run adds six identities and re-dates every row.
+        code, out, _ = self.promote("--aliases", str(current), run=HONGJIACHENG)
+        self.assertEqual(code, 0)
+        self.assertIn("12327 rows, 12327 changed", out)
         self.assertEqual(self.map.read_bytes(), (ROOT / "tools/sourcing_data/lcsc_map.json").read_bytes())
 
     def test_check_writes_nothing(self):

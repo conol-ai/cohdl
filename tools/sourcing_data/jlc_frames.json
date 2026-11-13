@@ -580,7 +580,7 @@
     {
       "id": "c2b1-sot236_esd-c85364",
       "package": "esd",
-      "package_version": "0.1.3",
+      "package_version": "0.1.4",
       "footprint": "FP_SOT_23_6",
       "supplier": "lcsc",
       "pn": "C85364",
@@ -630,7 +630,7 @@
     {
       "id": "c2b1-dfn1006-c7420372",
       "package": "esd",
-      "package_version": "0.1.3",
+      "package_version": "0.1.4",
       "footprint": "FP_Hongjiacheng_DFN1006_2L",
       "supplier": "lcsc",
       "pn": "C7420372",
@@ -2091,38 +2091,12 @@
       "evidence_ref": null
     },
     {
-      "id": "owtc-fpsot236-c7519",
-      "package": "esd",
+      "id": "w4d-sod2613x110n-c7420331",
+      "package": "sod",
       "package_version": "0.1.3",
-      "footprint": "FP_SOT_23_6",
+      "footprint": "SOD2613X110N",
       "supplier": "lcsc",
-      "pn": "C7519",
-      "mapping": {
-        "dx_mm": 0,
-        "dy_mm": 0,
-        "rotate_deg": 270
-      },
-      "measured": {
-        "dx_mm": 0,
-        "dy_mm": 0,
-        "rotate_deg": 270
-      },
-      "exception": "Per-part mapping: the supplier's SOT-23-6 model for C7519 lies a quarter turn from this land; preview board 4 read its pin 1 at 100.1-100.8 deg with no mapping. It is this part number's, not the land's: C85364 on the same land reads rotate 180",
-      "evidence": {
-        "method": "preview",
-        "date": "2026-11-12",
-        "record": "tools/sourcing_data/jlc_previews/2026-11-12-owt-rev-c/README.md",
-        "note": "with rotate 270 applied on a real board (OpenWalkieTalkie Rev C, U20, top), the pin 1 mark read 11.7 deg from pad 1, beside pad 1's lead, with the model's six leads on our pads and its dimple at pad 1's corner. Raw reading with no mapping: tools/sourcing_data/jlc_previews/2026-11-11-board-4/README.md section A, four copies (top and bottom, 0 and 37 deg) at 100.1, 100.8, 100.3 and 100.1 deg. Same esd 0.1.2 content hash on both boards; the land is unchanged in 0.1.3"
-      },
-      "evidence_ref": null
-    },
-    {
-      "id": "owtc-fptidbv0006a-c131941",
-      "package": "load-switch",
-      "package_version": "0.2.1",
-      "footprint": "FP_TI_DBV0006A",
-      "supplier": "lcsc",
-      "pn": "C131941",
+      "pn": "C7420331",
       "mapping": {
         "dx_mm": 0,
         "dy_mm": 0,
@@ -2133,100 +2107,74 @@
         "dy_mm": 0,
         "rotate_deg": 180
       },
-      "exception": "Per-part mapping: the supplier's SOT-23-6 model for C131941 lies half a turn from this land; preview board 4 read its pin 1 at 181.8-183.0 deg with no mapping. It is this part number's, not the land's: C12044 on the same land reads rotate 270",
+      "exception": "Per-part mapping: the supplier's SOD-323 model for C7420331 has its cathode at +x, a half turn from this land's pad 1; other SOD-323 parts (C2128, C191023) read 0 on @contrib/esd's land",
       "evidence": {
         "method": "preview",
-        "date": "2026-11-12",
-        "record": "tools/sourcing_data/jlc_previews/2026-11-12-owt-rev-c/README.md",
-        "note": "with rotate 180 applied on a real board (OpenWalkieTalkie Rev C, U2 and U10, bottom, half a turn apart), the pin 1 mark read 357.5 and 358.9 deg, 0.13 and 0.08 mm from pad 1's centre, with the model's leads on our pads. Raw reading with no mapping: tools/sourcing_data/jlc_previews/2026-11-11-board-4/README.md section A, four copies (top and bottom, 0 and 37 deg) at 183.0, 183.0, 182.6 and 181.8 deg. Same load-switch 0.2.0 content hash on both boards; the land is unchanged in 0.2.1"
+        "date": "2026-11-08",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-08-reverify/README.md",
+        "note": "polarity read by eye with rotate 180 applied: the preview's minus sign and lighter cathode band sit at our cathode silk bar (pad 1) on all four copies, top and bottom, 0 and 37 deg; measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 3.3 deg of the pad axis mod 180, centred within 0.059 mm. What this is not: a measured angle, or a check of the part's identity. Adopted 2026-11-11 from archived row rv1-sod2613x110n-c7420331 (frames.json beside the record), read on the sod 0.1.0 land; sod 0.1.3 changes no pad from 0.1.0"
       },
       "evidence_ref": null
     },
     {
-      "id": "owtc-sop8p65x490x110n-c189961",
-      "package": "@contrib/audio-amp",
-      "package_version": "0.2.1",
-      "footprint": "SOP8P65X490X110N",
+      "id": "w4d-diom5026x241n-c7420365",
+      "package": "do214",
+      "package_version": "0.1.2",
+      "footprint": "DIOM5026X241N",
       "supplier": "lcsc",
-      "pn": "C189961",
+      "pn": "C7420365",
       "mapping": {
         "dx_mm": 0,
         "dy_mm": 0,
-        "rotate_deg": 270
+        "rotate_deg": 180
       },
       "measured": {
         "dx_mm": 0,
         "dy_mm": 0,
-        "rotate_deg": 270
+        "rotate_deg": 180
       },
-      "exception": "Per-part mapping: the supplier's MSOP-8 model for C189961 lies a quarter turn from this land; preview board 4 read its pin 1 at 94.7-95.2 deg with no mapping",
+      "exception": "Per-part mapping: the supplier's SMA model for C7420365 has its cathode at +x, a half turn from this land's pad 1",
       "evidence": {
         "method": "preview",
-        "date": "2026-11-12",
-        "record": "tools/sourcing_data/jlc_previews/2026-11-12-owt-rev-c/README.md",
-        "note": "with rotate 270 applied on a real board (OpenWalkieTalkie Rev C, U1, top), the pin 1 mark read 5.9 deg from pad 1, on pad 1's lead, with the model's eight leads on our pads. Raw reading with no mapping: tools/sourcing_data/jlc_previews/2026-11-11-board-4/README.md section A, four copies (top and bottom, 0 and 37 deg) at 94.8, 95.2, 95.1 and 94.7 deg. Same @contrib/audio-amp 0.2.0 content hash on both boards; the land is unchanged in 0.2.1"
+        "date": "2026-11-08",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-08-reverify/README.md",
+        "note": "polarity read by eye with rotate 180 applied: the preview's minus sign and lighter cathode band sit at our cathode silk bar (pad 1) on all four copies, top and bottom, 0 and 37 deg; measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 0.6 deg of the pad axis mod 180, centred within 0.078 mm. The preview labels the model SMAJ12A, probably a reused SMA body; this row shows the polarity of C7420365 in this preview only, not the part's identity. What this is not: a measured angle, or a check of the part's identity. Adopted 2026-11-11 from archived row rv1-diom5026x241n-c7420365 (frames.json beside the record), read on the do214 0.1.0 land; do214 0.1.2 changes no pad from 0.1.0"
       },
       "evidence_ref": null
     },
     {
-      "id": "owtc-chip0603-c107039",
-      "package": "passive",
-      "package_version": "0.2.8",
-      "footprint": "CHIP_0603",
+      "id": "w4d-sod1608x70n-c7420320",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD1608X70N",
       "supplier": "lcsc",
-      "pn": "C107039",
+      "pn": "C7420320",
       "mapping": {
         "dx_mm": 0,
         "dy_mm": 0,
-        "rotate_deg": 0
+        "rotate_deg": 180
       },
       "measured": {
         "dx_mm": 0,
         "dy_mm": 0,
-        "rotate_deg": 0
+        "rotate_deg": 180
       },
-      "exception": null,
+      "exception": "Per-part mapping: the supplier's SOD-523 model for C7420320 has its cathode at +x, a half turn from this land's pad 1",
       "evidence": {
         "method": "preview",
-        "date": "2026-11-12",
-        "record": "tools/sourcing_data/jlc_previews/2026-11-12-owt-rev-c/README.md",
-        "note": "non-polar chip part: no pin 1 mark; placed with no mapping on a real board (OpenWalkieTalkie Rev C, C2; bottom), the drawn body lies along its pads on 1 of 1 copy (+0.1 deg mod 180, body method 2) and is centred on them (0.013 mm, limit 0.206), so the orientation is known mod 180 only. Also read with no mapping on preview board 4, tools/sourcing_data/jlc_previews/2026-11-11-board-4/README.md (remeasure-2026-11-11-method-2.json): four copies, top and bottom, 0 and 37 deg, -0.7 to +0.1 deg and within 0.030 mm. The land is that of passive 0.2.6, which the board pinned; it is unchanged in 0.2.8"
+        "date": "2026-11-08",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-08-reverify/README.md",
+        "note": "polarity read by eye with rotate 180 applied: the preview's minus sign and lighter cathode band sit at our cathode silk bar (pad 1) on all four copies, top and bottom, 0 and 37 deg; measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 3.8 deg of the pad axis mod 180, centred within 0.060 mm. What this is not: a measured angle, or a check of the part's identity. Adopted 2026-11-11 from archived row rv1-sod1608x70n-c7420320 (frames.json beside the record), read on the sod 0.1.0 land; sod 0.1.3 changes no pad from 0.1.0; only the silkscreen body lines of this land differ"
       },
       "evidence_ref": null
     },
     {
-      "id": "owtc-chip0402-c113780",
-      "package": "passive",
-      "package_version": "0.2.8",
-      "footprint": "CHIP_0402",
+      "id": "w4d-diom5336x265n-c19077561",
+      "package": "do214",
+      "package_version": "0.1.2",
+      "footprint": "DIOM5336X265N",
       "supplier": "lcsc",
-      "pn": "C113780",
-      "mapping": {
-        "dx_mm": 0,
-        "dy_mm": 0,
-        "rotate_deg": 0
-      },
-      "measured": {
-        "dx_mm": 0,
-        "dy_mm": 0,
-        "rotate_deg": 0
-      },
-      "exception": null,
-      "evidence": {
-        "method": "preview",
-        "date": "2026-11-12",
-        "record": "tools/sourcing_data/jlc_previews/2026-11-12-owt-rev-c/README.md",
-        "note": "non-polar chip part: no pin 1 mark; placed with no mapping on a real board (OpenWalkieTalkie Rev C, C6, C32, C33, C34, C35, C36, C37, C38, C39, C50; bottom and top), the drawn body lies along its pads on 10 of 10 copies (-0.2 to +0.4 deg mod 180, body method 2) and is centred on them (0.024 mm, limit 0.127), so the orientation is known mod 180 only. Also read with no mapping on preview board 4, tools/sourcing_data/jlc_previews/2026-11-11-board-4/README.md (remeasure-2026-11-11-method-2.json): four copies, top and bottom, 0 and 37 deg, -1.1 to +1.6 deg and within 0.026 mm. The land is that of passive 0.2.6, which the board pinned; it is unchanged in 0.2.8"
-      },
-      "evidence_ref": null
-    },
-    {
-      "id": "owtc-chip0402-c107006",
-      "package": "passive",
-      "package_version": "0.2.8",
-      "footprint": "CHIP_0402",
-      "supplier": "lcsc",
-      "pn": "C107006",
+      "pn": "C19077561",
       "mapping": {
         "dx_mm": 0,
         "dy_mm": 0,
@@ -2240,19 +2188,19 @@
       "exception": null,
       "evidence": {
         "method": "preview",
-        "date": "2026-11-12",
-        "record": "tools/sourcing_data/jlc_previews/2026-11-12-owt-rev-c/README.md",
-        "note": "non-polar chip part: no pin 1 mark; placed with no mapping on a real board (OpenWalkieTalkie Rev C, C8, C9, C10; top), the drawn body lies along its pads on 3 of 3 copies (-0.3 to +0.1 deg mod 180, body method 2) and is centred on them (0.022 mm, limit 0.127), so the orientation is known mod 180 only. Also read with no mapping on preview board 4, tools/sourcing_data/jlc_previews/2026-11-11-board-4/README.md (remeasure-2026-11-11-method-2.json): four copies, top and bottom, 0 and 37 deg, -1.9 to +0.8 deg and within 0.026 mm. The land is that of passive 0.2.6, which the board pinned; it is unchanged in 0.2.8"
+        "date": "2026-11-08",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-08-probe/README.md",
+        "note": "SMBJ6.0CA, read by the body only (bidirectional TVS rule): on all four copies (U1-U4: top and bottom, 0 and 37 deg) the drawn body's long axis lies within 0.2 deg of the pad 1 to pad 2 axis mod 180 and its centre within 0.033 mm of the footprint origin (limit 0.25 mm); body 4.48-4.49 x 3.49-3.50 mm against the datasheet's 4.25-4.85 x 3.30-3.94 mm (body.json, stock body_axes.py reach). The probe board was built with zero correction, so this is a reading of the mapping as applied, rotate 0, with no candidate tested against it. The preview draws a generic rectangular body with no band, mark or part text, so the reading shows alignment and centring only, not the part's identity, and the orientation is known mod 180 only (a bidirectional TVS has no polarity). A mirrored model on the bottom side would look the same for this symmetric two-terminal body and would place the same. Valid only because the part is symmetric: this is not a polarity or pin 1 reading. Adopted 2026-11-11 from archived row probe-diom5336x265n-c19077561 (frames.json beside the record), read on the do214 0.1.0 land; do214 0.1.2 changes no pad from 0.1.0"
       },
       "evidence_ref": null
     },
     {
-      "id": "owtc-chip0603-c19666",
-      "package": "passive",
-      "package_version": "0.2.8",
-      "footprint": "CHIP_0603",
+      "id": "w4d-diom7959x261n-c19077609",
+      "package": "do214",
+      "package_version": "0.1.2",
+      "footprint": "DIOM7959X261N",
       "supplier": "lcsc",
-      "pn": "C19666",
+      "pn": "C19077609",
       "mapping": {
         "dx_mm": 0,
         "dy_mm": 0,
@@ -2266,19 +2214,19 @@
       "exception": null,
       "evidence": {
         "method": "preview",
-        "date": "2026-11-12",
-        "record": "tools/sourcing_data/jlc_previews/2026-11-12-owt-rev-c/README.md",
-        "note": "non-polar chip part: no pin 1 mark; placed with no mapping on a real board (OpenWalkieTalkie Rev C, C18, C40, C41, C48; bottom and top), the drawn body lies along its pads on 4 of 4 copies (-0.2 to 0.0 deg mod 180, body method 2) and is centred on them (0.014 mm, limit 0.206), so the orientation is known mod 180 only. Also read with no mapping on preview board 4, tools/sourcing_data/jlc_previews/2026-11-11-board-4/README.md (remeasure-2026-11-11-method-2.json): four copies, top and bottom, 0 and 37 deg, -0.5 to +0.4 deg and within 0.024 mm. The land is that of passive 0.2.6, which the board pinned; it is unchanged in 0.2.8"
+        "date": "2026-11-08",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-08-probe/README.md",
+        "note": "SMCJ36CA, read by the body only (bidirectional TVS rule): on all four copies (U5-U8: top and bottom, 0 and 37 deg) the drawn body's long axis lies within 0.2 deg of the pad 1 to pad 2 axis mod 180, its edges within 0.4 deg mod 90, and its centre within 0.027 mm of the footprint origin (limit 0.25 mm); body 6.79-6.84 x 5.75-5.78 mm against the datasheet's 6.60-7.11 x 5.59-6.22 mm. Caveat: these come from body-wide.json (tvs_body_wide.py, reach 0.8 mm wider than body_axes.py), because the stock reach of 4.05 mm clips the body corners at 4.46 mm and the body's elongation, 1.18-1.19, is under the 1.2 that body_axes.py requires before it gives a long axis; the stock run (body.json) gives edges within 0.4 deg and centre within 0.020 mm but no long axis. The probe board was built with zero correction, so this is a reading of the mapping as applied, rotate 0, with no candidate tested against it. The preview draws a generic rectangular body with no band, mark or part text, so the reading shows alignment and centring only, not the part's identity, and the orientation is known mod 180 only (a bidirectional TVS has no polarity). A mirrored model on the bottom side would look the same for this symmetric two-terminal body and would place the same. Valid only because the part is symmetric: this is not a polarity or pin 1 reading. Adopted 2026-11-11 from archived row probe-diom7959x261n-c19077609 (frames.json beside the record), read on the do214 0.1.0 land; do214 0.1.2 changes no pad from 0.1.0"
       },
       "evidence_ref": null
     },
     {
-      "id": "owtc-chip0402-c106255",
-      "package": "passive",
-      "package_version": "0.2.8",
-      "footprint": "CHIP_0402",
+      "id": "w4d-sodfl3818x120n-c19077510",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SODFL3818X120N",
       "supplier": "lcsc",
-      "pn": "C106255",
+      "pn": "C19077510",
       "mapping": {
         "dx_mm": 0,
         "dy_mm": 0,
@@ -2292,113 +2240,9 @@
       "exception": null,
       "evidence": {
         "method": "preview",
-        "date": "2026-11-12",
-        "record": "tools/sourcing_data/jlc_previews/2026-11-12-owt-rev-c/README.md",
-        "note": "non-polar chip part: no pin 1 mark; placed with no mapping on a real board (OpenWalkieTalkie Rev C, C25; bottom), the drawn body lies along its pads on 1 of 1 copy (0.0 deg mod 180, body method 2) and is centred on them (0.014 mm, limit 0.127), so the orientation is known mod 180 only. Also read with no mapping on preview board 4, tools/sourcing_data/jlc_previews/2026-11-11-board-4/README.md (remeasure-2026-11-11-method-2.json): four copies, top and bottom, 0 and 37 deg, -2.9 to +0.4 deg and within 0.019 mm. The land is that of passive 0.2.6, which the board pinned; it is unchanged in 0.2.8"
-      },
-      "evidence_ref": null
-    },
-    {
-      "id": "owtc-chip0402-c477807",
-      "package": "passive",
-      "package_version": "0.2.8",
-      "footprint": "CHIP_0402",
-      "supplier": "lcsc",
-      "pn": "C477807",
-      "mapping": {
-        "dx_mm": 0,
-        "dy_mm": 0,
-        "rotate_deg": 0
-      },
-      "measured": {
-        "dx_mm": 0,
-        "dy_mm": 0,
-        "rotate_deg": 0
-      },
-      "exception": null,
-      "evidence": {
-        "method": "preview",
-        "date": "2026-11-12",
-        "record": "tools/sourcing_data/jlc_previews/2026-11-12-owt-rev-c/README.md",
-        "note": "non-polar chip part: no pin 1 mark; placed with no mapping on a real board (OpenWalkieTalkie Rev C, R31; bottom), the drawn body lies along its pads on 1 of 1 copy (-0.1 deg mod 180, body method 2) and is centred on them (0.003 mm, limit 0.127), so the orientation is known mod 180 only. Its own reading: until passive 0.2.8 this part number was bound by W3 inference from its group's samples (w3_records/2026-11-10-chip0402-yageo-rc.json). It is not a W3 sample: this record has no w3.json. The land is that of passive 0.2.6, which the board pinned; it is unchanged in 0.2.8"
-      },
-      "evidence_ref": null
-    },
-    {
-      "id": "owtc-chip0402-c137990",
-      "package": "passive",
-      "package_version": "0.2.8",
-      "footprint": "CHIP_0402",
-      "supplier": "lcsc",
-      "pn": "C137990",
-      "mapping": {
-        "dx_mm": 0,
-        "dy_mm": 0,
-        "rotate_deg": 0
-      },
-      "measured": {
-        "dx_mm": 0,
-        "dy_mm": 0,
-        "rotate_deg": 0
-      },
-      "exception": null,
-      "evidence": {
-        "method": "preview",
-        "date": "2026-11-12",
-        "record": "tools/sourcing_data/jlc_previews/2026-11-12-owt-rev-c/README.md",
-        "note": "non-polar chip part: no pin 1 mark; placed with no mapping on a real board (OpenWalkieTalkie Rev C, R37; top), the drawn body lies along its pads on 1 of 1 copy (0.0 deg mod 180, body method 2) and is centred on them (0.013 mm, limit 0.128), so the orientation is known mod 180 only. Its own reading: until passive 0.2.8 this part number was bound by W3 inference from its group's samples (w3_records/2026-11-10-chip0402-yageo-rc.json). It is not a W3 sample: this record has no w3.json. The land is that of passive 0.2.6, which the board pinned; it is unchanged in 0.2.8"
-      },
-      "evidence_ref": null
-    },
-    {
-      "id": "owtc-fplwpn201610u2016metric-c97018",
-      "package": "passive",
-      "package_version": "0.2.8",
-      "footprint": "FP_L_WPN201610U_2016Metric",
-      "supplier": "lcsc",
-      "pn": "C97018",
-      "mapping": {
-        "dx_mm": 0,
-        "dy_mm": 0,
-        "rotate_deg": 0
-      },
-      "measured": {
-        "dx_mm": 0,
-        "dy_mm": 0,
-        "rotate_deg": 0
-      },
-      "exception": null,
-      "evidence": {
-        "method": "preview",
-        "date": "2026-11-12",
-        "record": "tools/sourcing_data/jlc_previews/2026-11-12-owt-rev-c/README.md",
-        "note": "non-polarised two-terminal inductor: no pin 1 mark; placed with no mapping on a real board (OpenWalkieTalkie Rev C, L3; bottom), the drawn body lies along its pads on 1 of 1 copy (0.0 deg mod 180, body method 2 run on this land: inductor-bodies.json) and is centred on them (0.012 mm, limit 0.175), so the orientation is known mod 180 only. The model is one light block over both pads, 2.0 x 1.6 mm (elongation 1.25): the reading shows its long side along the pads and its centre on them, and no more. Also read with no mapping on preview board 4, tools/sourcing_data/jlc_previews/2026-11-11-board-4/README.md (body-model.json): four copies, top and bottom, 0 and 37 deg, -0.3 to +0.5 deg, 0.014 mm. The land is that of passive 0.2.6, which the board pinned; it is unchanged in 0.2.8"
-      },
-      "evidence_ref": null
-    },
-    {
-      "id": "owtc-fpl08062016metric-c337893",
-      "package": "passive",
-      "package_version": "0.2.8",
-      "footprint": "FP_L_0806_2016Metric",
-      "supplier": "lcsc",
-      "pn": "C337893",
-      "mapping": {
-        "dx_mm": 0,
-        "dy_mm": 0,
-        "rotate_deg": 0
-      },
-      "measured": {
-        "dx_mm": 0,
-        "dy_mm": 0,
-        "rotate_deg": 0
-      },
-      "exception": null,
-      "evidence": {
-        "method": "preview",
-        "date": "2026-11-12",
-        "record": "tools/sourcing_data/jlc_previews/2026-11-12-owt-rev-c/README.md",
-        "note": "non-polarised two-terminal inductor: no pin 1 mark; placed with no mapping on a real board (OpenWalkieTalkie Rev C, L4, L5; bottom), the drawn body lies along its pads on 2 of 2 copies (0.0 deg mod 180, body method 2 run on this land: inductor-bodies.json) and is centred on them (0.013 mm, limit 0.237), so the orientation is known mod 180 only. Also read with no mapping on preview board 4, tools/sourcing_data/jlc_previews/2026-11-11-board-4/README.md (body-model.json): four copies, top and bottom, 0 and 37 deg, -0.9 to +3.0 deg, 0.035 mm. The land is that of passive 0.2.6, which the board pinned; it is unchanged in 0.2.8"
+        "date": "2026-11-08",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-08-probe/README.md",
+        "note": "SMF15CA, read by the body only (bidirectional TVS rule): on all four copies (U29-U32: top and bottom, 0 and 37 deg) the drawn body's long axis lies within 1.0 deg of the pad 1 to pad 2 axis mod 180 and its centre within 0.045 mm of the footprint origin (limit 0.25 mm); body 2.65-2.69 x 1.63-1.74 mm against the datasheet's 2.55-2.85 x 1.60-1.90 mm (body.json, stock body_axes.py reach). The probe board was built with zero correction, so this is a reading of the mapping as applied, rotate 0, with no candidate tested against it. The preview draws a generic rectangular body with no band, mark or part text, so the reading shows alignment and centring only, not the part's identity, and the orientation is known mod 180 only (a bidirectional TVS has no polarity). A mirrored model on the bottom side would look the same for this symmetric two-terminal body and would place the same. Valid only because the part is symmetric: this is not a polarity or pin 1 reading. Adopted 2026-11-11 from archived row probe-sodfl3818x120n-c19077510 (frames.json beside the record), read on the sod 0.1.0 land; sod 0.1.3 changes no pad from 0.1.0"
       },
       "evidence_ref": null
     },
@@ -3543,6 +3387,318 @@
         "date": "2026-11-07",
         "record": "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md",
         "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copy (-3.0 deg mod 180) and is centred on them (0.070 mm), so the orientation is known mod 180 only. W3 pilot sample: its own evidence, not inference"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "owtc-fpsot236-c7519",
+      "package": "esd",
+      "package_version": "0.1.4",
+      "footprint": "FP_SOT_23_6",
+      "supplier": "lcsc",
+      "pn": "C7519",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 270
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 270
+      },
+      "exception": "Per-part mapping: the supplier's SOT-23-6 model for C7519 lies a quarter turn from this land; preview board 4 read its pin 1 at 100.1-100.8 deg with no mapping. It is this part number's, not the land's: C85364 on the same land reads rotate 180",
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-12",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-12-owt-rev-c/README.md",
+        "note": "with rotate 270 applied on a real board (OpenWalkieTalkie Rev C, U20, top), the pin 1 mark read 11.7 deg from pad 1, beside pad 1's lead, with the model's six leads on our pads and its dimple at pad 1's corner. Raw reading with no mapping: tools/sourcing_data/jlc_previews/2026-11-11-board-4/README.md section A, four copies (top and bottom, 0 and 37 deg) at 100.1, 100.8, 100.3 and 100.1 deg. Same esd 0.1.2 content hash on both boards; the land is unchanged in 0.1.3"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "owtc-fptidbv0006a-c131941",
+      "package": "load-switch",
+      "package_version": "0.2.1",
+      "footprint": "FP_TI_DBV0006A",
+      "supplier": "lcsc",
+      "pn": "C131941",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 180
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 180
+      },
+      "exception": "Per-part mapping: the supplier's SOT-23-6 model for C131941 lies half a turn from this land; preview board 4 read its pin 1 at 181.8-183.0 deg with no mapping. It is this part number's, not the land's: C12044 on the same land reads rotate 270",
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-12",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-12-owt-rev-c/README.md",
+        "note": "with rotate 180 applied on a real board (OpenWalkieTalkie Rev C, U2 and U10, bottom, half a turn apart), the pin 1 mark read 357.5 and 358.9 deg, 0.13 and 0.08 mm from pad 1's centre, with the model's leads on our pads. Raw reading with no mapping: tools/sourcing_data/jlc_previews/2026-11-11-board-4/README.md section A, four copies (top and bottom, 0 and 37 deg) at 183.0, 183.0, 182.6 and 181.8 deg. Same load-switch 0.2.0 content hash on both boards; the land is unchanged in 0.2.1"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "owtc-sop8p65x490x110n-c189961",
+      "package": "@contrib/audio-amp",
+      "package_version": "0.2.1",
+      "footprint": "SOP8P65X490X110N",
+      "supplier": "lcsc",
+      "pn": "C189961",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 270
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 270
+      },
+      "exception": "Per-part mapping: the supplier's MSOP-8 model for C189961 lies a quarter turn from this land; preview board 4 read its pin 1 at 94.7-95.2 deg with no mapping",
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-12",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-12-owt-rev-c/README.md",
+        "note": "with rotate 270 applied on a real board (OpenWalkieTalkie Rev C, U1, top), the pin 1 mark read 5.9 deg from pad 1, on pad 1's lead, with the model's eight leads on our pads. Raw reading with no mapping: tools/sourcing_data/jlc_previews/2026-11-11-board-4/README.md section A, four copies (top and bottom, 0 and 37 deg) at 94.8, 95.2, 95.1 and 94.7 deg. Same @contrib/audio-amp 0.2.0 content hash on both boards; the land is unchanged in 0.2.1"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "owtc-chip0603-c107039",
+      "package": "passive",
+      "package_version": "0.2.8",
+      "footprint": "CHIP_0603",
+      "supplier": "lcsc",
+      "pn": "C107039",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-12",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-12-owt-rev-c/README.md",
+        "note": "non-polar chip part: no pin 1 mark; placed with no mapping on a real board (OpenWalkieTalkie Rev C, C2; bottom), the drawn body lies along its pads on 1 of 1 copy (+0.1 deg mod 180, body method 2) and is centred on them (0.013 mm, limit 0.206), so the orientation is known mod 180 only. Also read with no mapping on preview board 4, tools/sourcing_data/jlc_previews/2026-11-11-board-4/README.md (remeasure-2026-11-11-method-2.json): four copies, top and bottom, 0 and 37 deg, -0.7 to +0.1 deg and within 0.030 mm. The land is that of passive 0.2.6, which the board pinned; it is unchanged in 0.2.8"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "owtc-chip0402-c113780",
+      "package": "passive",
+      "package_version": "0.2.8",
+      "footprint": "CHIP_0402",
+      "supplier": "lcsc",
+      "pn": "C113780",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-12",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-12-owt-rev-c/README.md",
+        "note": "non-polar chip part: no pin 1 mark; placed with no mapping on a real board (OpenWalkieTalkie Rev C, C6, C32, C33, C34, C35, C36, C37, C38, C39, C50; bottom and top), the drawn body lies along its pads on 10 of 10 copies (-0.2 to +0.4 deg mod 180, body method 2) and is centred on them (0.024 mm, limit 0.127), so the orientation is known mod 180 only. Also read with no mapping on preview board 4, tools/sourcing_data/jlc_previews/2026-11-11-board-4/README.md (remeasure-2026-11-11-method-2.json): four copies, top and bottom, 0 and 37 deg, -1.1 to +1.6 deg and within 0.026 mm. The land is that of passive 0.2.6, which the board pinned; it is unchanged in 0.2.8"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "owtc-chip0402-c107006",
+      "package": "passive",
+      "package_version": "0.2.8",
+      "footprint": "CHIP_0402",
+      "supplier": "lcsc",
+      "pn": "C107006",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-12",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-12-owt-rev-c/README.md",
+        "note": "non-polar chip part: no pin 1 mark; placed with no mapping on a real board (OpenWalkieTalkie Rev C, C8, C9, C10; top), the drawn body lies along its pads on 3 of 3 copies (-0.3 to +0.1 deg mod 180, body method 2) and is centred on them (0.022 mm, limit 0.127), so the orientation is known mod 180 only. Also read with no mapping on preview board 4, tools/sourcing_data/jlc_previews/2026-11-11-board-4/README.md (remeasure-2026-11-11-method-2.json): four copies, top and bottom, 0 and 37 deg, -1.9 to +0.8 deg and within 0.026 mm. The land is that of passive 0.2.6, which the board pinned; it is unchanged in 0.2.8"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "owtc-chip0603-c19666",
+      "package": "passive",
+      "package_version": "0.2.8",
+      "footprint": "CHIP_0603",
+      "supplier": "lcsc",
+      "pn": "C19666",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-12",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-12-owt-rev-c/README.md",
+        "note": "non-polar chip part: no pin 1 mark; placed with no mapping on a real board (OpenWalkieTalkie Rev C, C18, C40, C41, C48; bottom and top), the drawn body lies along its pads on 4 of 4 copies (-0.2 to 0.0 deg mod 180, body method 2) and is centred on them (0.014 mm, limit 0.206), so the orientation is known mod 180 only. Also read with no mapping on preview board 4, tools/sourcing_data/jlc_previews/2026-11-11-board-4/README.md (remeasure-2026-11-11-method-2.json): four copies, top and bottom, 0 and 37 deg, -0.5 to +0.4 deg and within 0.024 mm. The land is that of passive 0.2.6, which the board pinned; it is unchanged in 0.2.8"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "owtc-chip0402-c106255",
+      "package": "passive",
+      "package_version": "0.2.8",
+      "footprint": "CHIP_0402",
+      "supplier": "lcsc",
+      "pn": "C106255",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-12",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-12-owt-rev-c/README.md",
+        "note": "non-polar chip part: no pin 1 mark; placed with no mapping on a real board (OpenWalkieTalkie Rev C, C25; bottom), the drawn body lies along its pads on 1 of 1 copy (0.0 deg mod 180, body method 2) and is centred on them (0.014 mm, limit 0.127), so the orientation is known mod 180 only. Also read with no mapping on preview board 4, tools/sourcing_data/jlc_previews/2026-11-11-board-4/README.md (remeasure-2026-11-11-method-2.json): four copies, top and bottom, 0 and 37 deg, -2.9 to +0.4 deg and within 0.019 mm. The land is that of passive 0.2.6, which the board pinned; it is unchanged in 0.2.8"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "owtc-chip0402-c477807",
+      "package": "passive",
+      "package_version": "0.2.8",
+      "footprint": "CHIP_0402",
+      "supplier": "lcsc",
+      "pn": "C477807",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-12",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-12-owt-rev-c/README.md",
+        "note": "non-polar chip part: no pin 1 mark; placed with no mapping on a real board (OpenWalkieTalkie Rev C, R31; bottom), the drawn body lies along its pads on 1 of 1 copy (-0.1 deg mod 180, body method 2) and is centred on them (0.003 mm, limit 0.127), so the orientation is known mod 180 only. Its own reading: until passive 0.2.8 this part number was bound by W3 inference from its group's samples (w3_records/2026-11-10-chip0402-yageo-rc.json). It is not a W3 sample: this record has no w3.json. The land is that of passive 0.2.6, which the board pinned; it is unchanged in 0.2.8"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "owtc-chip0402-c137990",
+      "package": "passive",
+      "package_version": "0.2.8",
+      "footprint": "CHIP_0402",
+      "supplier": "lcsc",
+      "pn": "C137990",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-12",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-12-owt-rev-c/README.md",
+        "note": "non-polar chip part: no pin 1 mark; placed with no mapping on a real board (OpenWalkieTalkie Rev C, R37; top), the drawn body lies along its pads on 1 of 1 copy (0.0 deg mod 180, body method 2) and is centred on them (0.013 mm, limit 0.128), so the orientation is known mod 180 only. Its own reading: until passive 0.2.8 this part number was bound by W3 inference from its group's samples (w3_records/2026-11-10-chip0402-yageo-rc.json). It is not a W3 sample: this record has no w3.json. The land is that of passive 0.2.6, which the board pinned; it is unchanged in 0.2.8"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "owtc-fplwpn201610u2016metric-c97018",
+      "package": "passive",
+      "package_version": "0.2.8",
+      "footprint": "FP_L_WPN201610U_2016Metric",
+      "supplier": "lcsc",
+      "pn": "C97018",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-12",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-12-owt-rev-c/README.md",
+        "note": "non-polarised two-terminal inductor: no pin 1 mark; placed with no mapping on a real board (OpenWalkieTalkie Rev C, L3; bottom), the drawn body lies along its pads on 1 of 1 copy (0.0 deg mod 180, body method 2 run on this land: inductor-bodies.json) and is centred on them (0.012 mm, limit 0.175), so the orientation is known mod 180 only. The model is one light block over both pads, 2.0 x 1.6 mm (elongation 1.25): the reading shows its long side along the pads and its centre on them, and no more. Also read with no mapping on preview board 4, tools/sourcing_data/jlc_previews/2026-11-11-board-4/README.md (body-model.json): four copies, top and bottom, 0 and 37 deg, -0.3 to +0.5 deg, 0.014 mm. The land is that of passive 0.2.6, which the board pinned; it is unchanged in 0.2.8"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "owtc-fpl08062016metric-c337893",
+      "package": "passive",
+      "package_version": "0.2.8",
+      "footprint": "FP_L_0806_2016Metric",
+      "supplier": "lcsc",
+      "pn": "C337893",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-12",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-12-owt-rev-c/README.md",
+        "note": "non-polarised two-terminal inductor: no pin 1 mark; placed with no mapping on a real board (OpenWalkieTalkie Rev C, L4, L5; bottom), the drawn body lies along its pads on 2 of 2 copies (0.0 deg mod 180, body method 2 run on this land: inductor-bodies.json) and is centred on them (0.013 mm, limit 0.237), so the orientation is known mod 180 only. Also read with no mapping on preview board 4, tools/sourcing_data/jlc_previews/2026-11-11-board-4/README.md (body-model.json): four copies, top and bottom, 0 and 37 deg, -0.9 to +3.0 deg, 0.035 mm. The land is that of passive 0.2.6, which the board pinned; it is unchanged in 0.2.8"
       },
       "evidence_ref": null
     },

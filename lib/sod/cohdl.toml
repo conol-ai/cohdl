@@ -1,6 +1,6 @@
 [package]
 name = "sod"
-version = "0.1.1"
+version = "0.1.3"
 license = "MIT"
 description = "Audited SOD-123, SOD-323, SOD-123FL and SOD-523 two-terminal diode land patterns, authored on the assembler's frame."
 repository = "https://github.com/conol-ai/cohdl"

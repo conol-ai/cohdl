@@ -29,10 +29,10 @@
   }
  },
  "sources": {
-  "lib/passive": "0.2.8",
-  "lcsc_map.json": "f5a1f9791e756122cddbf123f2e5295c449bae80c67484b76ad28093ca479b27",
-  "jlc_frames.json": "13f97014596b83efdbcdfbcbb335284acd53f9232d4003849beac75d054f6452",
-  "lcsc_backfill/2026-11-07-samsung-b1/confirmed.json": "643ee6d3e2ec221e6c1da2368f1af246244830d13599f969f7e793c59db93320",
+  "lib/passive": "0.2.7",
+  "lcsc_map.json": "0c81b03e38d0390419d8c43b0459a1181079e504d112ed47b9ad7a5efc640677",
+  "jlc_frames.json": "e4633f9f7ae0232ceb63e0bc7889c667c1b93b7dbbef588afc2cb64329b1221a",
+  "lcsc_backfill/2026-11-11-hongjiacheng/confirmed.json": "8a9b7ee4603b210710ca4250dac0557fa65d51977c9f1bece2f5a9863c094575",
   "jlc_previews/2026-11-05-c2-board-3/w3.json": "38bd8e60c362baefb2ccf3ab1cf7396f4ff1ad329daa2d550ee3848894512395",
   "jlc_previews/2026-11-05-c2-board-3/c2_frame_board_3-lcsc-bom.csv": "78b06d7499acc994a069eb4df64cf15e9ee575f0d6f682411cc2c7fc9e2a996d",
   "jlc_previews/2026-11-05-c2-board-3/checks.json": "4d75dfaac69aa0df73999e05629275a8da1ec820689de2f424f272ad56f010cc",
@@ -129,7 +129,7 @@
  "groups": [
   {
    "package": "passive",
-   "package_version": "0.2.8",
+   "package_version": "0.2.7",
    "footprint": "CHIP_0201",
    "type": "ChipResistor",
    "mfr": "Vishay",
@@ -5177,7 +5177,7 @@
   },
   {
    "package": "passive",
-   "package_version": "0.2.8",
+   "package_version": "0.2.7",
    "footprint": "CHIP_0201",
    "type": "ChipResistor",
    "mfr": "Yageo",
@@ -11587,7 +11587,7 @@
   },
   {
    "package": "passive",
-   "package_version": "0.2.8",
+   "package_version": "0.2.7",
    "footprint": "CHIP_0201",
    "type": "MLCC",
    "mfr": "Yageo",
@@ -12634,7 +12634,7 @@
   },
   {
    "package": "passive",
-   "package_version": "0.2.8",
+   "package_version": "0.2.7",
    "footprint": "CHIP_0402",
    "type": "ChipResistor",
    "mfr": "Vishay",
@@ -21660,7 +21660,7 @@
   },
   {
    "package": "passive",
-   "package_version": "0.2.8",
+   "package_version": "0.2.7",
    "footprint": "CHIP_0402",
    "type": "ChipResistor",
    "mfr": "Yageo",
@@ -21831,16 +21831,6 @@
       "rotate_deg": 0
      },
      "record": "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md"
-    },
-    {
-     "pn": "C137990",
-     "row": "owtc-chip0402-c137990",
-     "mapping": {
-      "dx_mm": 0,
-      "dy_mm": 0,
-      "rotate_deg": 0
-     },
-     "record": "tools/sourcing_data/jlc_previews/2026-11-12-owt-rev-c/README.md"
     },
     {
      "pn": "C137992",
@@ -22151,16 +22141,6 @@
       "rotate_deg": 0
      },
      "record": "tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/README.md"
-    },
-    {
-     "pn": "C477807",
-     "row": "owtc-chip0402-c477807",
-     "mapping": {
-      "dx_mm": 0,
-      "dy_mm": 0,
-      "rotate_deg": 0
-     },
-     "record": "tools/sourcing_data/jlc_previews/2026-11-12-owt-rev-c/README.md"
     },
     {
      "pn": "C60491",
@@ -23294,10 +23274,7 @@
      "other_bodies": 105
     }
    },
-   "direct_not_judged": [
-    "C137990",
-    "C477807"
-   ],
+   "direct_not_judged": [],
    "sample": [],
    "member_rows": [
     [
@@ -31056,7 +31033,7 @@
   },
   {
    "package": "passive",
-   "package_version": "0.2.8",
+   "package_version": "0.2.7",
    "footprint": "CHIP_0402",
    "type": "MLCC",
    "mfr": "Murata",
@@ -31106,7 +31083,7 @@
   },
   {
    "package": "passive",
-   "package_version": "0.2.8",
+   "package_version": "0.2.7",
    "footprint": "CHIP_0402",
    "type": "MLCC",
    "mfr": "Samsung",
@@ -31273,7 +31250,7 @@
   },
   {
    "package": "passive",
-   "package_version": "0.2.8",
+   "package_version": "0.2.7",
    "footprint": "CHIP_0402",
    "type": "MLCC",
    "mfr": "Yageo",
@@ -31297,26 +31274,6 @@
      "record": "tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/README.md"
     },
     {
-     "pn": "C106255",
-     "row": "owtc-chip0402-c106255",
-     "mapping": {
-      "dx_mm": 0,
-      "dy_mm": 0,
-      "rotate_deg": 0
-     },
-     "record": "tools/sourcing_data/jlc_previews/2026-11-12-owt-rev-c/README.md"
-    },
-    {
-     "pn": "C107006",
-     "row": "owtc-chip0402-c107006",
-     "mapping": {
-      "dx_mm": 0,
-      "dy_mm": 0,
-      "rotate_deg": 0
-     },
-     "record": "tools/sourcing_data/jlc_previews/2026-11-12-owt-rev-c/README.md"
-    },
-    {
      "pn": "C107011",
      "row": "c2b3-chip0402-c107011",
      "mapping": {
@@ -31325,16 +31282,6 @@
       "rotate_deg": 0
      },
      "record": "tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/README.md"
-    },
-    {
-     "pn": "C113780",
-     "row": "owtc-chip0402-c113780",
-     "mapping": {
-      "dx_mm": 0,
-      "dy_mm": 0,
-      "rotate_deg": 0
-     },
-     "record": "tools/sourcing_data/jlc_previews/2026-11-12-owt-rev-c/README.md"
     }
    ],
    "required": 10,
@@ -33248,7 +33195,7 @@
   },
   {
    "package": "passive",
-   "package_version": "0.2.8",
+   "package_version": "0.2.7",
    "footprint": "CHIP_0603",
    "type": "ChipResistor",
    "mfr": "Vishay",
@@ -33400,7 +33347,7 @@
   },
   {
    "package": "passive",
-   "package_version": "0.2.8",
+   "package_version": "0.2.7",
    "footprint": "CHIP_0603",
    "type": "ChipResistor",
    "mfr": "Yageo",
@@ -41364,7 +41311,7 @@
   },
   {
    "package": "passive",
-   "package_version": "0.2.8",
+   "package_version": "0.2.7",
    "footprint": "CHIP_0603",
    "type": "MLCC",
    "mfr": "Samsung",
@@ -41375,18 +41322,7 @@
    "page_package_text": [
     "0603"
    ],
-   "direct": [
-    {
-     "pn": "C19666",
-     "row": "owtc-chip0603-c19666",
-     "mapping": {
-      "dx_mm": 0,
-      "dy_mm": 0,
-      "rotate_deg": 0
-     },
-     "record": "tools/sourcing_data/jlc_previews/2026-11-12-owt-rev-c/README.md"
-    }
-   ],
+   "direct": [],
    "required": 3,
    "more_needed": 1,
    "status": "needs_samples",
@@ -41654,7 +41590,7 @@
   },
   {
    "package": "passive",
-   "package_version": "0.2.8",
+   "package_version": "0.2.7",
    "footprint": "CHIP_0603",
    "type": "MLCC",
    "mfr": "Yageo",
@@ -41667,16 +41603,6 @@
     "0603"
    ],
    "direct": [
-    {
-     "pn": "C107039",
-     "row": "owtc-chip0603-c107039",
-     "mapping": {
-      "dx_mm": 0,
-      "dy_mm": 0,
-      "rotate_deg": 0
-     },
-     "record": "tools/sourcing_data/jlc_previews/2026-11-12-owt-rev-c/README.md"
-    },
     {
      "pn": "C107045",
      "row": "c1-chip0603-c107045",
@@ -43939,7 +43865,7 @@
   },
   {
    "package": "passive",
-   "package_version": "0.2.8",
+   "package_version": "0.2.7",
    "footprint": "CHIP_0805",
    "type": "ChipResistor",
    "mfr": "Yageo",
@@ -51934,7 +51860,7 @@
   },
   {
    "package": "passive",
-   "package_version": "0.2.8",
+   "package_version": "0.2.7",
    "footprint": "CHIP_0805",
    "type": "MLCC",
    "mfr": "Samsung",
@@ -52030,7 +51956,7 @@
   },
   {
    "package": "passive",
-   "package_version": "0.2.8",
+   "package_version": "0.2.7",
    "footprint": "CHIP_0805",
    "type": "MLCC",
    "mfr": "Yageo",
@@ -53383,7 +53309,7 @@
   },
   {
    "package": "passive",
-   "package_version": "0.2.8",
+   "package_version": "0.2.7",
    "footprint": "CHIP_1206",
    "type": "ChipResistor",
    "mfr": "Yageo",
@@ -61331,7 +61257,7 @@
   },
   {
    "package": "passive",
-   "package_version": "0.2.8",
+   "package_version": "0.2.7",
    "footprint": "CHIP_1206",
    "type": "MLCC",
    "mfr": "Yageo",
@@ -62144,7 +62070,7 @@
   },
   {
    "package": "passive",
-   "package_version": "0.2.8",
+   "package_version": "0.2.7",
    "footprint": "CHIP_1210",
    "type": "ChipResistor",
    "mfr": "Yageo",
@@ -69877,7 +69803,7 @@
   },
   {
    "package": "passive",
-   "package_version": "0.2.8",
+   "package_version": "0.2.7",
    "footprint": "CHIP_2010",
    "type": "ChipResistor",
    "mfr": "Yageo",
@@ -76955,7 +76881,7 @@
   },
   {
    "package": "passive",
-   "package_version": "0.2.8",
+   "package_version": "0.2.7",
    "footprint": "CHIP_2512",
    "type": "ChipResistor",
    "mfr": "Yageo",

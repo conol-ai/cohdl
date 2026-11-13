@@ -8,6 +8,7 @@ It holds 84 part numbers in 243 placements (147 top, 96 bottom) on a board of 12
 
 - **First run (2026-11-11), unverified.** The first package (SHA-256 `1cd1883d3d51001af779ffc51cd685f393daa21cf7284e42ec341ba84ae30cd2`, commit `f62f3be`) was uploaded with Alex's approval. The assembler read a 2 layer board of 120.37 × 127.78 mm. Its BOM step read "84 parts detected, 82 Parts confirmed" with a shortage warning and left two rows unselected: C470029 (`RC1210FR-071ML`, its page read 1,014) and C875102 (`RC1210FR-0768KL`, 1,200), both W3 samples of Yageo `RC` 1210. `jlc_preview.py` stopped there. No placement preview was taken, and nothing was measured or recorded from that run.
 - **This package.** The two are replaced by their group's nearest eligible members, C7276637 (`RC1210FR-071M6L`, page 4,560) and C728392 (`RC1210FR-07681RL`, page 5,038), at the same two positions. The other 82 rows and all 243 positions are as the first run's BOM step confirmed them (see D and Stock below).
+- **After the preview (2026-11-13).** The manifest pins the library's current `esd`: 0.1.3 added three Hongjiacheng TVS parts, which this board does not place, and 0.1.4 binds C7519 (below). The package that was previewed pinned `esd` 0.1.2; it is kept unchanged in `tools/sourcing_data/jlc_previews/2026-11-11-board-4/package/`.
 
 ## What it carries
 
@@ -39,7 +40,7 @@ Each row's `purpose` in the manifest is one of these.
 | C189961 NS4150B | `@contrib/audio-amp::AMP_NS4150B` primary | `SOP8P65X490X110N` | U1 |
 
 - **The two SOT-23-6 parts are expected to read a rotation.** Board 1 read 180° for C85364 on `esd::FP_SOT_23_6` and 270° for C12044 on `FP_TI_DBV0006A`, and found the correction depends on the model. So C7519 and C131941 are placed raw, and whatever they read is theirs.
-- **After the preview (2026-11-12).** The manifest now pins `esd` 0.1.3, `load-switch` 0.2.1 and `@contrib/audio-amp` 0.2.1, which bind these three part numbers with the rotations this board read (`tools/sourcing_data/jlc_previews/2026-11-12-owt-rev-c/`). The package that was previewed pinned 0.1.2, 0.2.0 and 0.2.0, with no binding for them; it is kept unchanged in `tools/sourcing_data/jlc_previews/2026-11-11-board-4/package/`.
+- **After the preview (2026-11-12, versions as of 2026-11-13).** The manifest now pins `esd` 0.1.4, `load-switch` 0.2.1 and `@contrib/audio-amp` 0.2.1, which bind these three part numbers with the rotations this board read (`tools/sourcing_data/jlc_previews/2026-11-12-owt-rev-c/`). The package that was previewed pinned 0.1.2, 0.2.0 and 0.2.0, with no binding for them; it is kept unchanged in `tools/sourcing_data/jlc_previews/2026-11-11-board-4/package/`.
 - **C19666 and C23630 are entries of the 16 V parts.** The OpenWalkieTalkie design instantiates the 10 V parts (`C_4u7_10V_X5R_0603`, `C_2u2_10V_X5R_0603`), whose entries are other part numbers. A binding from this board therefore lands on the 16 V parts. The order's placements become bound only if the design uses those, or the 10 V parts gain these entries (a 16 V part does satisfy a 10 V requirement, but that is a library decision).
 - Each row declares a local part with the map row's identity on the library entry's device type and land, as on `lcsc-batch-2-passive`.
 

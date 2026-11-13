@@ -3,7 +3,7 @@
  "dependencies": {
   "std": "0.3.0",
   "passive": "0.2.8",
-  "esd": "0.1.3",
+  "esd": "0.1.4",
   "load-switch": "0.2.1",
   "@contrib/audio-amp": "0.2.1",
   "flash": "0.3.1",

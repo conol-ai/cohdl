@@ -235,13 +235,44 @@ class W3GroupsTests(unittest.TestCase):
         self.assertEqual(outcome(committed), outcome(first))
         self.assertEqual({g["package_version"] for g in committed["groups"]}, {"0.2.7"})
 
-    def test_the_2026_11_12c_report_is_the_tree_at_passive_0_2_8(self):
+    def test_the_2026_11_13_report_is_the_tree_with_the_hongjiacheng_pages(self):
+        # The same rule, records and library as 2026-11-12b, on the tree whose map cites
+        # the 2026-11-11 Hongjiacheng backfill's confirmed pages (six more parts, none of
+        # them a chip resistor or capacitor): no group, member or sample differs.
+        before = json.loads((wg.DATA / "w3_sampling/2026-11-12b/groups.json").read_text(encoding="utf-8"))
+        folder = wg.DATA / "w3_sampling/2026-11-13"
+        committed = json.loads((folder / "groups.json").read_text(encoding="utf-8"))
+        self.assertEqual((folder / "groups.md").read_text(encoding="utf-8"), wg.render(committed))
+        changed = {"lcsc_map.json", "jlc_frames.json"}
+        pages = lambda report: [name for name in report["sources"] if name.startswith("lcsc_backfill/")]
+        self.assertEqual((pages(before), pages(committed)),
+                         (["lcsc_backfill/2026-11-07-samsung-b1/confirmed.json"],
+                          ["lcsc_backfill/2026-11-11-hongjiacheng/confirmed.json"]))
+        rest = lambda report: {name: digest for name, digest in report["sources"].items()
+                               if name not in changed and not name.startswith("lcsc_backfill/")}
+        self.assertEqual(rest(committed), rest(before))
+        self.assertEqual({key: value for key, value in committed.items() if key != "sources"},
+                         {key: value for key, value in before.items() if key != "sources"})
+
+    def test_the_2026_11_13b_report_is_the_tree_with_three_more_frame_rows(self):
+        # The tree that binds C7519, C131941 and C189961 (esd 0.1.4, load-switch 0.2.1,
+        # @contrib/audio-amp 0.2.1). None is a chip part, so only the frame table's
+        # digest differs from 2026-11-13.
+        before = json.loads((wg.DATA / "w3_sampling/2026-11-13/groups.json").read_text(encoding="utf-8"))
+        folder = wg.DATA / "w3_sampling/2026-11-13b"
+        committed = json.loads((folder / "groups.json").read_text(encoding="utf-8"))
+        self.assertEqual((folder / "groups.md").read_text(encoding="utf-8"), wg.render(committed))
+        self.assertNotEqual(committed["sources"]["jlc_frames.json"], before["sources"]["jlc_frames.json"])
+        self.assertEqual(dict(committed, sources=dict(committed["sources"], **{"jlc_frames.json": None})),
+                         dict(before, sources=dict(before["sources"], **{"jlc_frames.json": None})))
+
+    def test_the_2026_11_13c_report_is_the_tree_at_passive_0_2_8(self):
         # The same rule and records again, on the tree that adds direct rows read on a real
         # board (jlc_previews/2026-11-12-owt-rev-c, passive 0.2.8). That record has no
         # w3.json, so the rule judges none of its rows: no group's outcome differs, and the
         # two 0402 Yageo RC members it read are direct rows that are not samples.
-        before = json.loads((wg.DATA / "w3_sampling/2026-11-12b/groups.json").read_text(encoding="utf-8"))
-        folder = wg.DATA / "w3_sampling/2026-11-12c"
+        before = json.loads((wg.DATA / "w3_sampling/2026-11-13b/groups.json").read_text(encoding="utf-8"))
+        folder = wg.DATA / "w3_sampling/2026-11-13c"
         committed = json.loads((folder / "groups.json").read_text(encoding="utf-8"))
         self.assertEqual((folder / "groups.md").read_text(encoding="utf-8"), wg.render(committed))
         self.assertEqual(committed["sources"]["lib/passive"], "0.2.8")

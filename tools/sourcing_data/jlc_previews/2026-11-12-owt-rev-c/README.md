@@ -25,7 +25,7 @@ The board is a customer board, not a CoHDL frame board. Its full record is in th
 
 The uploaded package is `owt-revc-preview.zip`, SHA-256 `8254b63a3369b7d8adab818bc40975ccdda4b08b445f1494b4ef4f5f5d5d5847`, built at that repository's commit `9b3e7ddd5685f71c1156068bc348344bec3ad999`. The package is not copied here. `source-package-SHA256SUMS` lists its members and `source-SHA256SUMS` every file of the source record, both as that record has them.
 
-The board pinned the same library package versions as preview board 4, with the same content hashes in both lock files: `esd` 0.1.2 (`sha256:6195444e…95f6`), `load-switch` 0.2.0 (`sha256:2306e411…bc96`) and `@contrib/audio-amp` 0.2.0 (`sha256:a1ac6087…b2af`). The three lands are unchanged in the versions that carry the bindings (`esd` 0.1.3, `load-switch` 0.2.1, `@contrib/audio-amp` 0.2.1). Both boards also pinned `passive` 0.2.6 (`sha256:d1f973fb…832e`). Its chip lands (`pads.cohdl`, `footprints.cohdl`) and `inductors.cohdl` are byte for byte the same in `passive` 0.2.8, which carries the nine bindings.
+The board pinned the same library package versions as preview board 4, with the same content hashes in both lock files: `esd` 0.1.2 (`sha256:6195444e…95f6`), `load-switch` 0.2.0 (`sha256:2306e411…bc96`) and `@contrib/audio-amp` 0.2.0 (`sha256:a1ac6087…b2af`). The three lands are unchanged in the versions that carry the bindings (`esd` 0.1.4, `load-switch` 0.2.1, `@contrib/audio-amp` 0.2.1). Both boards also pinned `passive` 0.2.6 (`sha256:d1f973fb…832e`). Its chip lands (`pads.cohdl`, `footprints.cohdl`) and `inductors.cohdl` are byte for byte the same in `passive` 0.2.8, which carries the nine bindings.
 
 ## Files
 
@@ -33,7 +33,7 @@ The board pinned the same library package versions as preview board 4, with the 
 |---|---|
 | `exports/top.png`, `exports/bottom.png` | The preview's own 2D whole-board exports, byte for byte (JPEG data under a `.png` name), 2271 × 3819 px, 39.4 px/mm. `bottom.png` is the view from below, mirrored left to right. They are in `exports/`, as in the source record, and not beside this page: `tools/tests/test_measure_preview.py` compares every export it finds there with the green extent of its middle row and column, which describes a bare frame board and not this one, whose middle row and column cross parts and silkscreen. `tools/tests/test_owt_rev_c_record.py` checks these two against the board's bounding box instead. |
 | `board-extract.json` | The board outline's bounding box and the 28 footprints claimed here (reference, footprint, side, position, angle, pads), cut unchanged and in order from the package's `board.json`. |
-| `measurements.json` | `measure_preview.py measure board-extract.json top.bmp bottom.bmp`, with the exports converted by `sips -s format bmp`. Its 28 rows equal the same 28 rows of the source record's `measurements.json`, which was measured with the whole `board.json`. A chip part's row has a `body` read by method 2; an inductor's row has none, because the tool reads a body only on a `passive` `CHIP_*` land. |
+| `measurements.json` | `measure_preview.py measure --attribution 1 board-extract.json top.bmp bottom.bmp`, with the exports converted by `sips -s format bmp`. Its 28 rows equal the same 28 rows of the source record's `measurements.json`, which was measured with the whole `board.json`. A chip part's row has a `body` read by method 2; an inductor's row has none, because the tool reads a body only on a `passive` `CHIP_*` land. |
 | `inductor-bodies.json` | The same method 2 body reading (`measure_preview.body`) run on the three inductor placements, with `ok` its `body_ok`. It equals the `bodies` entries for L3, L4 and L5 of the source record's `features.json`. |
 | `placements.csv`, `part-numbers.csv` | The 28 placement rows and 12 part-number rows of the source record's tables, with their header lines. |
 | `lcsc-bom-rows.csv`, `lcsc-cpl-rows.csv` | The 12 BOM rows and 28 CPL rows of the package as uploaded, with their header lines. The CPL rotation already includes the mapping. |
@@ -157,10 +157,12 @@ Each placement, from `measurements.json` (chip parts) and `inductor-bodies.json`
 ```sh
 sips -s format bmp exports/top.png --out top.bmp
 sips -s format bmp exports/bottom.png --out bottom.bmp
-python3 -I -B tools/frame_boards/measure_preview.py measure board-extract.json top.bmp bottom.bmp out.json
+python3 -I -B tools/frame_boards/measure_preview.py measure --attribution 1 board-extract.json top.bmp bottom.bmp out.json
 ```
 
 `out.json` equals `measurements.json` byte for byte. `inductor-bodies.json` is `measure_preview.body(view, footprint)` for L3, L4 and L5 on the same two BMPs, calibrated on the same `board-extract.json`, each with `"ok": body_ok(reading)`, written with `json.dumps(…, indent=1)`. `tools/tests/test_owt_rev_c_record.py` runs both on macOS.
+
+`measurements.json` was made before the tool numbered how a mark is given to a part, so it is an attribution 1 file (`measure_preview.ATTRIBUTION`) and reproduces with `--attribution 1`. Under attribution 2, the current one, each of the four rows has the same one mark and the same angle, and passes as a mark at pad 1 (`mark_ok`); the same test checks that.
 
 ## Licence
 

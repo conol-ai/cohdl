@@ -1,6 +1,13 @@
 """Drive the assembler's placement preview for one preview package, in Arc.
 
 Usage: python3 -I tools/frame_boards/jlc_preview.py PACKAGE.zip [--board BOARD.json] [--run DIR] [--downloads DIR]
+       python3 -I tools/frame_boards/jlc_preview.py --recheck TOP.png BOTTOM.png --board BOARD.json
+                                                    [--cpl CPL.csv] [--attribution N] [--body-method N]
+
+The second form touches no browser: it prints the ``checks.json`` of exports that
+were already taken (BOTTOM.png may be ``-``), for the CPL's designators or, without
+``--cpl``, every footprint of the board. ``--attribution 1`` and ``--body-method 1``
+judge them as the records made before attribution 2 and body method 2 were.
 
 PACKAGE.zip is a ``preview_package.py`` output. Its SHA256SUMS is checked and it is
 unpacked into the run directory (default ``~/.cache/cohdl-preview/runs/<stem>``,
@@ -19,7 +26,8 @@ AppleScript ``execute javascript``:
    parts detected and confirmed must match, with no stock warning;
 6. NEXT to Component Placements; the 2D view; the preview's own whole-board
    exports of the top and the bottom land in the run directory. Each instance of
-   the side (``board.json``) needs its own evidence: a pin 1 mark, or, for a
+   the side (``board.json``) needs its own evidence: one pin 1 mark of its own,
+   at its pad 1 (``measure_preview.owners``, ``mark_ok``), or, for a
    non-polar chip part (``measure_preview.is_chip``), its drawn body along its
    pads, mod 180, and centred on them, read from the drawn model alone
    (``measure_preview.body``, method 2: silkscreen beside the part is not part
@@ -40,7 +48,7 @@ step (``measure_preview.py``).
 A package built before ``preview_package.py`` added ``board.json`` takes
 ``--board``: ``measure_preview.py board`` of the package's ``.kicad_pcb``.
 """
-import argparse, base64, csv, hashlib, json, math, re, shutil, subprocess, sys, time, zipfile
+import argparse, base64, csv, hashlib, json, math, re, shutil, subprocess, sys, tempfile, time, zipfile
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -304,37 +312,46 @@ def load_board(upload, board, placements):
     return doc
 
 
-def inspect(png, outline, bottom, fps):
-    """What an export shows of each of FPS: the pin 1 marks, and per part whether
-    its model is drawn and, for a chip part, its body reading."""
-    bmp = png.with_suffix(".bmp")
-    subprocess.run(["sips", "-s", "format", "bmp", str(png), "--out", str(bmp)], check=True, capture_output=True)
-    try:
+def inspect(png, outline, bottom, fps, attribution=measure_preview.ATTRIBUTION, body_method=measure_preview.BODY_METHOD):
+    """What an export shows of each of FPS: the pin 1 marks (``measure_preview.marks``;
+    under attribution 1 every magenta cluster), and per part whether its model is
+    drawn and, for a chip part, its body reading."""
+    with tempfile.TemporaryDirectory() as td:
+        bmp = Path(td) / "export.bmp"
+        subprocess.run(["sips", "-s", "format", "bmp", str(png), "--out", str(bmp)], check=True, capture_output=True)
         view = measure_preview.View(str(bmp), outline, bottom)
         readings = {}
         for fp in fps:
             shown = measure_preview.drawn(view, fp)
-            readings[fp["ref"]] = {"drawn": shown,
-                                   "body": measure_preview.body(view, fp) if shown and measure_preview.is_chip(fp) else None}
-        return measure_preview.dots(view, outline, bottom), readings
-    finally:
-        bmp.unlink()
+            readings[fp["ref"]] = {"drawn": shown, "body": measure_preview.body(view, fp, body_method)
+                                   if shown and measure_preview.is_chip(fp) else None}
+        return (measure_preview.dots(view, outline, bottom) if attribution == 1 else measure_preview.marks(view)), readings
 
 
 PASS = ("mark", "body")
 
 
-def verdicts(marks, fps, readings):
+def verdicts(marks, fps, readings, attribution=measure_preview.ATTRIBUTION):
     """Each instance of FPS on its own evidence: {ref: (status, detail)}.
 
     - a chip part (``measure_preview.is_chip``) has no pin 1 mark; its drawn body
       must lie along its pads, mod 180, and be centred on them: "body";
-    - every other part needs a mark of its own (``unmarked``): "mark";
+    - every other part needs exactly one mark of its own
+      (``measure_preview.owners``), at its pad 1 within
+      ``measure_preview.MARK_ANGLE_TOL``: "mark". A part with no mark, with
+      several, with its mark elsewhere, or of a kind that has no pin 1
+      (``measure_preview.expects_mark``) goes to "manual review";
     - a part whose model is not drawn (bare pads and the centroid marker) is
       "unverified", and a drawn part without its evidence goes to "manual review".
     Neither of the last two passes, and no instance's evidence covers another's.
+
+    Under attribution 1, as the records before 2026-11-12 were judged, "mark" said
+    only that a mark's nearest footprint origin was this part's (``unmarked``).
     """
-    missing = set(unmarked(marks, fps))
+    if attribution == 1:
+        missing = set(unmarked(marks, fps))
+    else:
+        owned = measure_preview.owners(marks, [fp for fp in fps if readings[fp["ref"]]["drawn"]])
     out = {}
     for fp in fps:
         ref, reading = fp["ref"], readings[fp["ref"]]
@@ -347,15 +364,50 @@ def verdicts(marks, fps, readings):
                             % (b["delta_mod_180"], b["offset_mm"], b["offset_limit_mm"]))
             else:
                 out[ref] = ("manual review", "chip body not along or not centred on its pads: %s" % json.dumps(b, sort_keys=True))
-        elif ref in missing:
+        elif attribution == 1:
+            out[ref] = ("manual review", "drawn, with no pin 1 mark of its own") if ref in missing else ("mark", "")
+        elif not measure_preview.expects_mark(fp):
+            out[ref] = ("manual review", "drawn; a part of this kind has no pin 1 mark, and its body is not read here")
+        elif not owned[ref]:
             out[ref] = ("manual review", "drawn, with no pin 1 mark of its own")
+        elif len(owned[ref]) > 1:
+            out[ref] = ("manual review", "drawn, with %d marks of its own: which is pin 1 is read by hand" % len(owned[ref]))
         else:
-            out[ref] = ("mark", "")
+            mark, pad = owned[ref][0], measure_preview.pad_1(fp)
+            delta = measure_preview.delta_ccw(fp, pad, mark)
+            where = ("pin 1 mark %.1f deg counter-clockwise from pad 1 about the origin, seen from the top "
+                     "(limit %g either way), %.2f mm from pad 1"
+                     % (delta, measure_preview.MARK_ANGLE_TOL, math.hypot(mark[0] - pad["x"], mark[1] - pad["y"])))
+            out[ref] = ("mark", where) if measure_preview.mark_ok(delta) else ("manual review", "drawn; " + where)
     return out
 
 
+def entries(side, found, fps, attribution=measure_preview.ATTRIBUTION):
+    """``checks.json`` entries of one side's verdicts. An entry that rests on how marks
+    are given to parts names the attribution; one without the key is attribution 1."""
+    chip = {fp["ref"]: measure_preview.is_chip(fp) for fp in fps}
+    return {ref: dict({"side": side.lower(), "status": status, "detail": detail},
+                      **({"attribution": attribution} if attribution != 1 and status != "unverified" and not chip[ref] else {}))
+            for ref, (status, detail) in found.items()}
+
+
+def checks_text(checks):
+    return json.dumps(dict(sorted(checks.items(), key=lambda kv: natural(kv[0]))), indent=1) + "\n"
+
+
+def recheck(doc, exports, refs=None, attribution=measure_preview.ATTRIBUTION, body_method=measure_preview.BODY_METHOD):
+    """The checks of exports already taken, as a run records them: EXPORTS is
+    {"Top": png, "Bottom": png}, REFS the designators that were placed (all, if None)."""
+    checks = {}
+    for side, png in exports.items():
+        fps = [fp for fp in doc["fps"] if fp["bottom"] == (side == "Bottom") and (refs is None or fp["ref"] in refs)]
+        marks, readings = inspect(png, measure_preview.outline(doc), side == "Bottom", fps, attribution, body_method)
+        checks.update(entries(side, verdicts(marks, fps, readings, attribution), fps, attribution))
+    return checks
+
+
 def unmarked(marks, fps):
-    """The designators in FPS that no mark falls on.
+    """Attribution 1: the designators in FPS that no mark falls on.
 
     A mark counts once, for the nearest footprint within whose reach it lies, so
     the second mark of a BGA cannot stand in for a part that was not drawn.
@@ -526,14 +578,12 @@ def run_preview(package, run, downloads, board=None):
             fps = [fp for fp in doc["fps"] if fp["ref"] in sides[side_name]]
             path, found = export_capture(side_name, downloads, preview / (side_name.lower() + ".png"), fps,
                                          measure_preview.outline(doc))
-            checks.update({ref: {"side": side_name.lower(), "status": status, "detail": detail}
-                           for ref, (status, detail) in found.items()})
+            checks.update(entries(side_name, found, fps))
             print("%s export: %s (sha256 %s)" % (side_name, path, hashlib.sha256(path.read_bytes()).hexdigest()))
-    (preview / "checks.json").write_text(json.dumps(dict(sorted(checks.items(), key=lambda kv: natural(kv[0]))),
-                                                    indent=1) + "\n", encoding="utf-8")
+    (preview / "checks.json").write_text(checks_text(checks), encoding="utf-8")
     count = {s: sorted((r for r, c in checks.items() if c["status"] == s), key=natural)
              for s in ("mark", "body", "unverified", "manual review")}
-    print("Instances: %d with a pin 1 mark, %d chip bodies along their pads; unverified: %s; manual review: %s"
+    print("Instances: %d with their pin 1 mark at pad 1, %d chip bodies along their pads; unverified: %s; manual review: %s"
           % (len(count["mark"]), len(count["body"]), ", ".join(count["unverified"]) or "none",
              ", ".join(count["manual review"]) or "none"))
     print("Stopped at Component Placements; nothing was added to the cart.")
@@ -542,11 +592,25 @@ def run_preview(package, run, downloads, board=None):
 
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("package", type=Path)
+    ap.add_argument("package", type=Path, nargs="?")
     ap.add_argument("--board", type=Path, help="board.json for a package that carries none")
     ap.add_argument("--run", type=Path)
     ap.add_argument("--downloads", type=Path, default=Path.home() / "Downloads")
+    ap.add_argument("--recheck", nargs=2, metavar=("TOP.png", "BOTTOM.png"), help="judge exports already taken; no browser")
+    ap.add_argument("--cpl", type=Path, help="with --recheck: the CPL whose designators were placed")
+    ap.add_argument("--attribution", type=int, choices=(1, 2), default=measure_preview.ATTRIBUTION)
+    ap.add_argument("--body-method", type=int, choices=sorted(measure_preview.BODY_METHODS), default=measure_preview.BODY_METHOD)
     args = ap.parse_args(argv)
+    if args.recheck:
+        if args.package or not args.board:
+            ap.error("--recheck takes --board and no package")
+        refs = args.cpl and {line.split(",")[0] for line in args.cpl.read_text(encoding="utf-8").splitlines()[1:]}
+        exports = {side: Path(png) for side, png in zip(("Top", "Bottom"), args.recheck) if png != "-"}
+        sys.stdout.write(checks_text(recheck(json.loads(args.board.read_text(encoding="utf-8")), exports, refs,
+                                             args.attribution, args.body_method)))
+        return 0
+    if not args.package:
+        ap.error("a package, or --recheck")
     run = args.run or Path.home() / ".cache/cohdl-preview/runs" / args.package.stem
     try:
         checks = run_preview(args.package, run, args.downloads, args.board)

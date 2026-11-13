@@ -26,7 +26,7 @@ BOARD_4 = DATA / "jlc_previews" / "2026-11-11-board-4"
 #                library source, placements on the real board)
 ROWS = {
     "owtc-fpsot236-c7519": (
-        "esd", "0.1.3", "FP_SOT_23_6", "C7519", 270, "esd-FP_SOT_23_6",
+        "esd", "0.1.4", "FP_SOT_23_6", "C7519", 270, "esd-FP_SOT_23_6",
         "lib/esd/src/usblc6.cohdl", ["U20"]),
     "owtc-fptidbv0006a-c131941": (
         "load-switch", "0.2.1", "FP_TI_DBV0006A", "C131941", 180, "load_switch-FP_TI_DBV0006A",
@@ -296,8 +296,12 @@ class OwtRevCRecordTests(unittest.TestCase):
                 self.assertEqual((view.left, view.top, view.right, view.low), box, side)
             out = Path(td) / "out.json"
             with contextlib.redirect_stdout(io.StringIO()):
+                # The record was made before marks were attributed by number: attribution 1.
                 mp.measure(str(RECORD / "board-extract.json"), str(Path(td) / "top.bmp"),
-                           str(Path(td) / "bottom.bmp"), str(out))
+                           str(Path(td) / "bottom.bmp"), str(out), attribution=1)
+                current = Path(td) / "current.json"
+                mp.measure(str(RECORD / "board-extract.json"), str(Path(td) / "top.bmp"),
+                           str(Path(td) / "bottom.bmp"), str(current))
             self.assertEqual(out.read_bytes(), (RECORD / "measurements.json").read_bytes())
             # The inductors: the same method 2 body reading, which `measure` runs on CHIP lands only.
             extract = json.loads((RECORD / "board-extract.json").read_text())
@@ -312,6 +316,12 @@ class OwtRevCRecordTests(unittest.TestCase):
             bodies = {ref: bodies[ref] for ref in sorted(bodies, key=lambda ref: int(ref[1:]))}
             self.assertEqual(sorted(bodies), ["L3", "L4", "L5"])
             self.assertEqual(json.dumps(bodies, indent=1) + "\n", (RECORD / "inductor-bodies.json").read_text())
+            # Attribution 2, the current one, gives each part the same one mark at the same
+            # angle, and passes it as a mark at pad 1.
+            rows = json.loads(current.read_text())
+            self.assertEqual([dict(row, attribution=None, mark_ok=None) for row in rows],
+                             [dict(row, attribution=None, mark_ok=None) for row in json.loads(out.read_text())])
+            self.assertTrue(all(row["attribution"] == 2 and row["mark_ok"] is True for row in rows))
 
     def test_the_record_names_no_local_path(self):
         for path in sorted(p for p in RECORD.rglob("*") if p.is_file()):

@@ -124,9 +124,19 @@ class OwtRevCRecordTests(unittest.TestCase):
                 self.assertEqual((view.left, view.top, view.right, view.low), box, side)
             out = Path(td) / "out.json"
             with contextlib.redirect_stdout(io.StringIO()):
+                # The record was made before marks were attributed by number: attribution 1.
                 mp.measure(str(RECORD / "board-extract.json"), str(Path(td) / "top.bmp"),
-                           str(Path(td) / "bottom.bmp"), str(out))
+                           str(Path(td) / "bottom.bmp"), str(out), attribution=1)
+                current = Path(td) / "current.json"
+                mp.measure(str(RECORD / "board-extract.json"), str(Path(td) / "top.bmp"),
+                           str(Path(td) / "bottom.bmp"), str(current))
             self.assertEqual(out.read_bytes(), (RECORD / "measurements.json").read_bytes())
+            # Attribution 2, the current one, gives each part the same one mark at the same
+            # angle, and passes it as a mark at pad 1.
+            rows = json.loads(current.read_text())
+            self.assertEqual([dict(row, attribution=None, mark_ok=None) for row in rows],
+                             [dict(row, attribution=None, mark_ok=None) for row in json.loads(out.read_text())])
+            self.assertTrue(all(row["attribution"] == 2 and row["mark_ok"] is True for row in rows))
 
     def test_the_record_names_no_local_path(self):
         for path in sorted(p for p in RECORD.rglob("*") if p.is_file()):

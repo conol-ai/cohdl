@@ -24,7 +24,7 @@ The board pinned the same library package versions as preview board 4, with the 
 |---|---|
 | `exports/top.png`, `exports/bottom.png` | The preview's own 2D whole-board exports, byte for byte (JPEG data under a `.png` name), 2271 × 3819 px, 39.4 px/mm. `bottom.png` is the view from below, mirrored left to right. They are in `exports/`, as in the source record, and not beside this page: `tools/tests/test_measure_preview.py` compares every export it finds there with the green extent of its middle row and column, which describes a bare frame board and not this one, whose middle row and column cross parts and silkscreen. `tools/tests/test_owt_rev_c_record.py` checks these two against the board's bounding box instead. |
 | `board-extract.json` | The board outline's bounding box and the four footprints (reference, footprint, side, position, angle, pads), cut unchanged from the package's `board.json`. |
-| `measurements.json` | `measure_preview.py measure board-extract.json top.bmp bottom.bmp`, with the exports converted by `sips -s format bmp`. Its four rows equal the same four rows of the source record's `measurements.json`, which was measured with the whole `board.json`. |
+| `measurements.json` | `measure_preview.py measure --attribution 1 board-extract.json top.bmp bottom.bmp`, with the exports converted by `sips -s format bmp`. Its four rows equal the same four rows of the source record's `measurements.json`, which was measured with the whole `board.json`. |
 | `placements.csv`, `part-numbers.csv` | The four placement rows and three part-number rows of the source record's tables, with their header lines. |
 | `lcsc-bom-rows.csv`, `lcsc-cpl-rows.csv` | The three BOM rows and four CPL rows of the package as uploaded, with their header lines. The CPL rotation already includes the mapping. |
 | `crops/` | The source record's crops of the four placements: the export's pixels doubled, a cyan ring on our pad 1, a yellow square on each other pad, a white cross on the footprint origin. Bottom crops are the view from below. |
@@ -87,10 +87,12 @@ Against preview board 4, which applied no mapping (its `measurements.json`, top 
 ```sh
 sips -s format bmp exports/top.png --out top.bmp
 sips -s format bmp exports/bottom.png --out bottom.bmp
-python3 -I -B tools/frame_boards/measure_preview.py measure board-extract.json top.bmp bottom.bmp out.json
+python3 -I -B tools/frame_boards/measure_preview.py measure --attribution 1 board-extract.json top.bmp bottom.bmp out.json
 ```
 
 `out.json` equals `measurements.json` byte for byte; `tools/tests/test_owt_rev_c_record.py` runs this on macOS.
+
+`measurements.json` was made before the tool numbered how a mark is given to a part, so it is an attribution 1 file (`measure_preview.ATTRIBUTION`) and reproduces with `--attribution 1`. Under attribution 2, the current one, each of the four rows has the same one mark and the same angle, and passes as a mark at pad 1 (`mark_ok`); the same test checks that.
 
 ## Licence
 

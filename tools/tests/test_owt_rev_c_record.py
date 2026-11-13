@@ -316,12 +316,15 @@ class OwtRevCRecordTests(unittest.TestCase):
             bodies = {ref: bodies[ref] for ref in sorted(bodies, key=lambda ref: int(ref[1:]))}
             self.assertEqual(sorted(bodies), ["L3", "L4", "L5"])
             self.assertEqual(json.dumps(bodies, indent=1) + "\n", (RECORD / "inductor-bodies.json").read_text())
-            # Attribution 2, the current one, gives each part the same one mark at the same
-            # angle, and passes it as a mark at pad 1.
+            # Attribution 2, the current one, gives each IC the same one mark at the same
+            # angle, and passes it as a mark at pad 1. A passive part has no mark under either.
             rows = json.loads(current.read_text())
             self.assertEqual([dict(row, attribution=None, mark_ok=None) for row in rows],
                              [dict(row, attribution=None, mark_ok=None) for row in json.loads(out.read_text())])
-            self.assertTrue(all(row["attribution"] == 2 and row["mark_ok"] is True for row in rows))
+            self.assertTrue(all(row["attribution"] == 2 for row in rows))
+            ics = sorted(ref for values in ROWS.values() for ref in values[-1])
+            self.assertEqual(sorted(row["ref"] for row in rows if "mark_ok" in row), ics)
+            self.assertTrue(all(row["mark_ok"] is True if row["ref"] in ics else row["dots"] == [] for row in rows))
 
     def test_the_record_names_no_local_path(self):
         for path in sorted(p for p in RECORD.rglob("*") if p.is_file()):

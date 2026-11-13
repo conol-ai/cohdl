@@ -16,7 +16,9 @@ from pathlib import Path, PurePosixPath
 import re
 from typing import Any
 
-from .w3_rule import RULE as W3_RULE, required as w3_required, sample_ok as w3_sample_ok
+from .w3_rule import (RULE as W3_RULE, bias_supported as w3_bias_supported,
+                      not_drawn_excess as w3_not_drawn_excess, required as w3_required,
+                      sample_ok as w3_sample_ok, views_consistent as w3_views_consistent)
 
 
 SCHEMA_VERSION = 1
@@ -144,6 +146,12 @@ def _sampled(row: dict[str, Any], rows_by_id: dict[str, dict[str, Any]], root: P
                 or (not W3_RULE["infer_not_drawn"] and row["pn"] in group["not_drawn"])):
             return False
         if len(sample_pns) != len(samples) or len(samples) < w3_required(len(members)):
+            return False
+        # Every judged member of an active group is a sample or not drawn.
+        if w3_not_drawn_excess(len(set(group["not_drawn"])),
+                               len(sample_pns | set(group["not_drawn"])), len(members)):
+            return False
+        if not all(w3_bias_supported(sample) for sample in samples) or not w3_views_consistent(samples):
             return False
         for sample in samples:
             target = rows_by_id.get(sample["row"])

@@ -480,7 +480,8 @@ class SampledEvidenceTests(unittest.TestCase):
     FIXTURE = ROOT / "tests" / "fixtures" / "library-ci" / "s-sampled"
     CASES = ("rule", "paused", "scope", "key", "land", "member", "zero-stock", "sample", "few",
              "own-evidence", "reading", "offset", "raw", "arithmetic", "method", "not-drawn", "mapping",
-             "two-kinds", "field")
+             "two-kinds", "field", "bias-bodies", "bias-share", "bias-view", "bias-own",
+             "not-drawn-share")
 
     def inferred(self, frames: str) -> bool:
         rows = json.loads((self.FIXTURE / frames).read_text(encoding="utf-8"))["rows"]

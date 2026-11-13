@@ -24,7 +24,7 @@ BOARD_4 = DATA / "jlc_previews" / "2026-11-11-board-4"
 #                library source, placements on the real board)
 ROWS = {
     "owtc-fpsot236-c7519": (
-        "esd", "0.1.3", "FP_SOT_23_6", "C7519", 270, "esd-FP_SOT_23_6",
+        "esd", "0.1.4", "FP_SOT_23_6", "C7519", 270, "esd-FP_SOT_23_6",
         "lib/esd/src/usblc6.cohdl", ["U20"]),
     "owtc-fptidbv0006a-c131941": (
         "load-switch", "0.2.1", "FP_TI_DBV0006A", "C131941", 180, "load_switch-FP_TI_DBV0006A",

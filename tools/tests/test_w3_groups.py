@@ -254,6 +254,18 @@ class W3GroupsTests(unittest.TestCase):
         self.assertEqual({key: value for key, value in committed.items() if key != "sources"},
                          {key: value for key, value in before.items() if key != "sources"})
 
+    def test_the_2026_11_13b_report_is_the_tree_with_three_more_frame_rows(self):
+        # The tree that binds C7519, C131941 and C189961 (esd 0.1.4, load-switch 0.2.1,
+        # @contrib/audio-amp 0.2.1). None is a chip part, so only the frame table's
+        # digest differs from 2026-11-13.
+        before = json.loads((wg.DATA / "w3_sampling/2026-11-13/groups.json").read_text(encoding="utf-8"))
+        folder = wg.DATA / "w3_sampling/2026-11-13b"
+        committed = json.loads((folder / "groups.json").read_text(encoding="utf-8"))
+        self.assertEqual((folder / "groups.md").read_text(encoding="utf-8"), wg.render(committed))
+        self.assertNotEqual(committed["sources"]["jlc_frames.json"], before["sources"]["jlc_frames.json"])
+        self.assertEqual(dict(committed, sources=dict(committed["sources"], **{"jlc_frames.json": None})),
+                         dict(before, sources=dict(before["sources"], **{"jlc_frames.json": None})))
+
     def test_samples_follow_the_rule(self):
         for g in self.report["groups"]:
             rows = {row[0]: row for row in g["member_rows"]}

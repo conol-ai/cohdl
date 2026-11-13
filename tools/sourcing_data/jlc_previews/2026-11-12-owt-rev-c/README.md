@@ -16,7 +16,7 @@ The board is a customer board, not a CoHDL frame board. Its full record is in th
 
 The uploaded package is `owt-revc-preview.zip`, SHA-256 `8254b63a3369b7d8adab818bc40975ccdda4b08b445f1494b4ef4f5f5d5d5847`, built at that repository's commit `9b3e7ddd5685f71c1156068bc348344bec3ad999`. The package is not copied here. `source-package-SHA256SUMS` lists its members and `source-SHA256SUMS` every file of the source record, both as that record has them.
 
-The board pinned the same library package versions as preview board 4, with the same content hashes in both lock files: `esd` 0.1.2 (`sha256:6195444e…95f6`), `load-switch` 0.2.0 (`sha256:2306e411…bc96`) and `@contrib/audio-amp` 0.2.0 (`sha256:a1ac6087…b2af`). The three lands are unchanged in the versions that carry the bindings (`esd` 0.1.3, `load-switch` 0.2.1, `@contrib/audio-amp` 0.2.1).
+The board pinned the same library package versions as preview board 4, with the same content hashes in both lock files: `esd` 0.1.2 (`sha256:6195444e…95f6`), `load-switch` 0.2.0 (`sha256:2306e411…bc96`) and `@contrib/audio-amp` 0.2.0 (`sha256:a1ac6087…b2af`). The three lands are unchanged in the versions that carry the bindings (`esd` 0.1.4, `load-switch` 0.2.1, `@contrib/audio-amp` 0.2.1).
 
 ## Files
 

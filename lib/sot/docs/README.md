@@ -105,8 +105,12 @@ centre spacing between distinct pad numbers:
   digits: AMS body length 6.30-6.71 and width 3.30-3.71 mm, nominal 6.505
   and 3.505, rounded half up to 6.51 and 3.51 (open question 5). **Where
   651/351 come from:** AMS draws the outline in inches (0.248-0.264 x
-  0.130-0.146 in) and prints millimetre conversions beside them, so 651/351
-  are a rounding artefact of AMS's inch midpoints, not a different body.
+  0.130-0.146 in) and prints millimetre conversions, each rounded to
+  0.01 mm, beside them. The name takes the midpoint of that rounded
+  millimetre column: (6.30 + 6.71) / 2 = 6.505, which rounds half up to
+  6.51. The inch midpoints themselves give 6.50 and 3.51 (0.256 in =
+  6.5024 mm, 0.138 in = 3.5052 mm), so the 651 is an artefact of taking
+  the midpoint of AMS's rounded millimetre values, not a different body.
   The JEDEC / typical nominal, Diodes' typical D 6.50 x E 3.50 mm, would
   give `650X350`. The name was published as `sot::SOT4P230X651X351N` in
   sot 0.1.0 and is now permanent; the geometry does not depend on it.
@@ -269,8 +273,9 @@ For SOT-23-3 these lands are not moved or changed:
 5. **SOT-223 name digits.** *Settled: the published name stays.* The
    wave-1/2 rule (primary midpoint, rounded half up) gives
    `SOT4P230X651X351N` from AMS's millimetre column 6.30-6.71 x
-   3.30-3.71 mm. Those digits are an artefact of rounding AMS's wide inch
-   tolerances (0.248-0.264 x 0.130-0.146 in), not a different body; the
+   3.30-3.71 mm, the rounded conversions of an inch drawing (0.248-0.264 x
+   0.130-0.146 in, whose own midpoints give 6.50 x 3.51 mm). The 651 is an
+   artefact of that rounded millimetre column, not a different body; the
    JEDEC / typical nominal (Diodes' D 6.50 x E 3.50 mm, the midpoints of
    6.45-6.55 and 3.45-3.55 mm, and the 3c plan's placeholder) would give
    `SOT4P230X650X350N`. The #101 review recommended that name, but sot

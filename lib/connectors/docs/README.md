@@ -114,3 +114,7 @@ The part, footprint and pad names and the pins are unchanged. A board laid out w
 ## JST XH evidence record in 0.3.1 (2026-11-10)
 
 `jst-xh.evidence.md` records, with page references into the local `jst-xh.pdf`, every JST value that the 0.3.0 `CONN_BAT_2P` land uses: the 0.9 +0.1/-0 mm side-entry holes at 2.5 mm pitch and the layout orientation (p. 2), the 0.64 mm posts and B = 7.4 mm, C = 9.2 mm and the 7 + 4.5 mm body (p. 5), the SMT range (p. 6) and the series ratings (p. 1). It also says how the PDF was read: some viewers show pp. 2-6 blank, but poppler renders and extracts all of them. The parts, pins, lands and all other package content are unchanged from 0.3.0; only documentation was added, so the package takes a patch bump.
+
+## JST XH reading prerequisite in 0.3.2 (2026-11-11)
+
+`jst-xh.evidence.md` now states what its "Reading the local PDF" commands need: poppler with the `poppler-data` files (the Adobe-Japan1 CMaps). Without them `pdftotext` and `pdftoppm` exit 0 but print `Missing language pack for 'Adobe-Japan1' mapping` (18 times for the whole file) and give the drawings with every dimension missing, which is what the #105 review saw. The record names that symptom and adds three commands that show whether an installation can read the values. Only this documentation changed; parts, pins, lands and all other package content are unchanged from 0.3.1, so the package takes a patch bump.

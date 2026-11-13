@@ -327,6 +327,139 @@ class FrameBoardTests(unittest.TestCase):
                 self.assertEqual(float(supplier[row["Designator"]]["Rotation"]), expected)
                 self.assertEqual(supplier[row["Designator"]]["Mid X"], row["Mid X"])
 
+    BOARD_4 = ROOT / "tools/frame_boards/preview-board-4/manifest.json"
+    FOUR_COPIES = [(0, "top"), (37, "top"), (0, "bottom"), (37, "bottom")]
+    CALIBRATION = [(a, side) for side in ("top", "bottom") for a in (0, 90, 180, 270, 37)]
+
+    def test_preview_board_4_manifest_is_its_generators_output_with_confirmed_parts(self):
+        with tempfile.TemporaryDirectory() as td:
+            subprocess.run(["python3", "-I", str(ROOT / "tools/frame_boards/preview_board_4.py"), str(Path(td) / "m.json")],
+                           check=True, capture_output=True)
+            self.assertEqual((Path(td) / "m.json").read_bytes(), self.BOARD_4.read_bytes())
+        data = ROOT / "tools/sourcing_data"
+        pages = {r["c"]: r for r in json.load(open(data / "jlc_catalog/2026-10-30/catalog.json"))}
+        pages.update({r["c"]: r for r in json.load(open(data / "lcsc_backfill/2026-11-07-samsung-b1/confirmed.json"))})
+        mapped = {r["pn"]: r for r in json.load(open(data / "lcsc_map.json"))["rows"]}
+        framed = {r["pn"] for r in json.load(open(data / "jlc_frames.json"))["rows"]}
+        aliases = json.load(open(data / "mfr_aliases.json"))["aliases"]
+        manifest = json.loads(self.BOARD_4.read_text())
+        rows, left_off = manifest["rows"], manifest["left_off"]
+        self.assertEqual(len({r["pn"] for r in rows}), len(rows))
+        self.assertFalse(set(left_off) & {r["pn"] for r in rows})
+        self.assertTrue(all(left_off.values()))
+        copies = {"A": self.FOUR_COPIES, "B": self.FOUR_COPIES, "E": self.FOUR_COPIES,
+                  "C": self.CALIBRATION, "D": [(0, "top")]}
+        for row in rows:
+            with self.subTest(row=row["name"]):
+                # Every part number is a page already in the repository, with enough
+                # stock for five boards; a mapped one takes the map row's reviewed mfr.
+                page = pages[row["pn"]]
+                self.assertGreaterEqual(page["stock"], max(30, 5 * len(row["placements"])))
+                mfr = page["mfr"]
+                if row["purpose"] == "E":
+                    self.assertNotIn(row["pn"], mapped)
+                    self.assertNotIn(row["pn"], framed)
+                else:
+                    mfr = aliases.get(page["mfr"], page["mfr"])
+                    self.assertEqual((mapped[row["pn"]]["mfr"], mapped[row["pn"]]["mpn"]), (mfr, page["mpn"]))
+                self.assertEqual((row["mfr"], row["mpn"], row["jlc_package"]), (mfr, page["mpn"], page["package"]))
+                self.assertEqual([(p["rotate"], p["side"]) for p in row["placements"]], copies[row["purpose"]])
+                self.assertNotIn("mapping", row)
+                # Only the bound part is placed as the library ships it.
+                self.assertEqual("library_part" in row, row["purpose"] == "B")
+        self.assertEqual({p: sum(r["purpose"] == p for r in rows) for p in copies},
+                         {"A": 12, "B": 1, "E": 10, "C": 10, "D": 51})
+        jb.expand(jb.load_manifest(self.BOARD_4)["rows"], 5)  # no two boxes overlap
+
+    def test_preview_board_4_takes_its_samples_from_the_w3_report_and_mixes_groups_in_each_view(self):
+        report_path = ROOT / "tools/sourcing_data/w3_sampling/2026-11-10/groups.json"
+        self.assertEqual(hashlib.sha256(report_path.read_bytes()).hexdigest(),
+                         "5b0f77f2be21eb8cde5b15171d382338ef23f9e26cf6e7cdb35abc5f31929a2c")
+        groups = {" ".join(g[k] for k in ("footprint", "type", "mfr", "series")): g
+                  for g in json.loads(report_path.read_text())["groups"]}
+        member = {m[0]: name for name, g in groups.items() for m in g["member_rows"]}
+        manifest = json.loads(self.BOARD_4.read_text())
+        rows = manifest["rows"]
+        # D is the report's own sample of the two groups, whole and in its order, but for
+        # the two the first package's BOM step found short on 2026-11-11 (the w3.json of the
+        # board's preview record; the board's own w3.json is gone now that the record exists).
+        sampled = ["CHIP_0402 ChipResistor Vishay CRCW", "CHIP_1210 ChipResistor Yageo RC"]
+        self.assertFalse((self.BOARD_4.parent / "w3.json").exists())
+        short = json.loads((ROOT / "tools/sourcing_data/jlc_previews/2026-11-11-board-4/w3.json")
+                           .read_text())["short_at_preview"]
+        self.assertEqual(set(short), {"C470029", "C875102"})
+        replaced = {"C470029": "C7276637", "C875102": "C728392"}
+        self.assertEqual([r["pn"] for r in rows if r["purpose"] == "D"],
+                         [replaced.get(pn, pn) for name in sampled for pn in groups[name]["sample"]])
+        self.assertEqual([len(groups[name]["sample"]) for name in sampled], [9, 42])
+        self.assertFalse(set(short) & {r["pn"] for r in rows})
+        self.assertEqual({r["pn"]: r["replaces"] for r in rows if "replaces" in r}, {new: old for old, new in replaced.items()})
+        # Each replacement is the short sample's neighbour among the group's eligible
+        # members in MPN order (in stock, not yet tried), and not short itself.
+        g = groups["CHIP_1210 ChipResistor Yageo RC"]
+        tried = {x["pn"] for key in ("passed", "failed", "not_drawn", "direct") for x in g[key]}
+        eligible = [m[0] for m in g["member_rows"] if m[0] not in tried and m[5] >= 30]
+        for old, new in replaced.items():
+            self.assertEqual(abs(eligible.index(old) - eligible.index(new)), 1)
+            self.assertIn(short[old], next(r["note"] for r in rows if r["pn"] == new))
+        # A chip row names its report group; a part number no group has says null.
+        counted = {"top": {}, "bottom": {}}
+        for row in rows:
+            chip = row["footprint"].startswith("passive::CHIP_")
+            with self.subTest(row=row["name"]):
+                self.assertEqual("group" in row, chip)
+                if not chip:
+                    continue
+                self.assertEqual(row["group"], member.get(row["pn"]))
+                self.assertEqual(row["group"] is None, row["purpose"] == "E")
+                if row["group"]:
+                    self.assertTrue(row["group"].startswith(row["footprint"].split("::")[1] + " "))
+                if row["purpose"] == "D":
+                    self.assertIn(row["group"], row["note"])
+            for place in row["placements"]:
+                view = counted[place["side"]]
+                view[row["group"] or ""] = view.get(row["group"] or "", 0) + 1
+        self.assertEqual(manifest["view_groups"], counted)
+        # Tony's condition on the W3 median (#104): a view's median must include bodies
+        # of other groups. Here every group is a minority of its view's chip bodies.
+        self.assertEqual({view: sum(c.values()) for view, c in counted.items()}, {"top": 135, "bottom": 84})
+        for view, counts in counted.items():
+            named = {g: n for g, n in counts.items() if g}
+            with self.subTest(view=view):
+                self.assertGreaterEqual(len(named), 9)
+                self.assertLess(2 * max(named.values()), sum(counts.values()))
+        self.assertEqual(counted["top"]["CHIP_1210 ChipResistor Yageo RC"], 42)
+        self.assertEqual(counted["top"]["CHIP_0402 ChipResistor Vishay CRCW"], 19)
+        self.assertNotIn("CHIP_1210 ChipResistor Yageo RC", counted["bottom"])
+
+    @unittest.skipUnless(COHDL.exists() or REQUIRE_BINARY, "needs target/debug/cohdl")
+    def test_preview_board_4_turns_each_calibration_part_through_five_angles_on_both_sides(self):
+        manifest = json.loads(self.BOARD_4.read_text())
+        with tempfile.TemporaryDirectory() as td:
+            out = Path(td) / "board"
+            subprocess.run(["python3", "-I", str(ROOT / "tools/jlc_frame_board.py"), str(self.BOARD_4), "-o", str(out),
+                            "--cohdl", str(COHDL), "--skip-kicad"], check=True, capture_output=True)
+            supplier = {r["Designator"]: r for r in csv.DictReader(io.StringIO((out / "out/preview_board_4-lcsc-cpl.csv").read_text()))}
+            bom = list(csv.DictReader(io.StringIO((out / "out/preview_board_4-lcsc-bom.csv").read_text())))
+            maps = json.loads((out / "out/preview_board_4-lcsc-map.json").read_text())
+        self.assertEqual(len(supplier), 243)
+        self.assertEqual(len(bom), 84)
+        # No row is mapped: the supplier CPL shows each land's raw frame.
+        self.assertEqual(len(maps["designators"]), 243)
+        self.assertEqual({(tuple(d["at"]), d["rotate"]) for d in maps["designators"].values()}, {(("0mm", "0mm"), 0)})
+        by_pn = {r["LCSC Part #"]: r["Designator"].split(",") for r in bom}
+        for row in manifest["rows"]:
+            placed = sorted((supplier[ref]["Layer"], float(supplier[ref]["Rotation"])) for ref in by_pn[row["pn"]])
+            # The assembler's bottom angle is the authored one seen from below: -R.
+            expected = sorted(("Top", float(p["rotate"])) if p["side"] == "top" else ("Bottom", float(-p["rotate"] % 360))
+                              for p in row["placements"])
+            with self.subTest(row=row["name"]):
+                self.assertEqual(placed, expected)
+                if row["purpose"] == "C":
+                    self.assertEqual(expected, [("Bottom", 0.0), ("Bottom", 90.0), ("Bottom", 180.0), ("Bottom", 270.0),
+                                                ("Bottom", 323.0), ("Top", 0.0), ("Top", 37.0), ("Top", 90.0),
+                                                ("Top", 180.0), ("Top", 270.0)])
+
     def test_cpl_check_compares_position_side_and_top_angle(self):
         cpl = ("Designator,Mid X,Mid Y,Layer,Rotation\n"
                "U1,1.0000mm,2.0000mm,Top,37\nU2,3.0000mm,4.0000mm,Bottom,217\n")

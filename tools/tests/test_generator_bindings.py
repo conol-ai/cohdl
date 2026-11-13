@@ -525,16 +525,71 @@ class CommittedTablesTests(unittest.TestCase):
                 for row in rows:
                     self.assertEqual(set(row), FRAME_FIELDS, row["id"])
                     self.assertEqual(row["evidence"]["record"], record, row["id"])
-                # An archived row itself is never in the bound table. Only the copies
-                # of adopted rows, under their own ids, may cite the archive's record.
-                self.assertEqual(bound_ids & set(ids), set())
+                # A row leaves the archive in one of two ways. As a W3 group record's
+                # sample it keeps its id, and is unchanged apart from the package version
+                # it is bound at. Adopted by a library part (ADOPTED), the archived row
+                # itself stays out, and a copy under its own id cites the archive's record.
+                kept = bound_ids & set(ids)
+                samples = {s["row"] for path in (self.DATA / "w3_records").glob("*.json")
+                           for g in json.loads(path.read_text(encoding="utf-8"))["groups"] for s in g["samples"]}
+                self.assertLessEqual(kept, samples)
+                by_id = {row["id"]: row for row in frames}
+                for row in rows:
+                    if row["id"] in kept:
+                        bound = by_id[row["id"]]
+                        self.assertEqual(dict(bound, package_version=row["package_version"]), row, row["id"])
+                        self.assertEqual(bound["package_version"], PASSIVE_VERSION, row["id"])
                 adopted = self.ADOPTED.get(archive.parent.name, {})
-                self.assertLessEqual(set(adopted), set(ids))
+                self.assertLessEqual(set(adopted), set(ids) - kept)
+                # Nothing else in the bound table may cite the archive's record.
                 citing = sorted(
                     row["id"] for row in frames
                     if row["evidence"] is not None and row["evidence"]["record"] == record
+                    and row["id"] not in kept
                 )
                 self.assertEqual(citing, sorted(adopted.values()))
+
+    def test_committed_w3_records_are_what_the_tool_builds(self):
+        records = sorted((self.DATA / "w3_records").glob("*.json"))
+        self.assertTrue(records)  # not vacuous: 0402 Yageo RC
+        for path in records:
+            g = json.loads(path.read_text(encoding="utf-8"))["groups"][0]
+            with self.subTest(record=path.name):
+                result = subprocess.run(
+                    [sys.executable, "-I", str(TOOLS / "w3_record.py"), str(path.relative_to(ROOT)),
+                     "--group", ",".join([g["footprint"], g["type"], g["mfr"], g["series"]]), "--check"],
+                    capture_output=True, text=True, cwd=ROOT)
+                self.assertEqual(result.returncode, 0, result.stderr)
+
+
+    def test_the_0402_yageo_rc_record_holds_the_combined_rule_at_every_copy(self):
+        from sourcing import w3_rule
+        record = json.loads((self.DATA / "w3_records/2026-11-10-chip0402-yageo-rc.json").read_text(encoding="utf-8"))
+        self.assertEqual(record["rule"], w3_rule.RULE)
+        self.assertEqual((record["rule"]["version"], record["rule"]["body_method"]), ("w3-2026-11-12", 2))
+        (group,) = record["groups"]
+        samples = group["samples"]
+        self.assertEqual((len(group["members"]), len(samples), len(group["zero_stock"]), group["not_drawn"],
+                          group["judged"], group["not_drawn_share"]), (969, 49, 122, [], 49, 0.0))
+        # Every sample's own reading is by method 2 on a view other groups fill ...
+        self.assertTrue(all(s["body_method"] == 2 and w3_rule.sample_ok(s) and w3_rule.bias_supported(s)
+                            for s in samples))
+        self.assertTrue(w3_rule.views_consistent(samples))
+        self.assertEqual({(s["bias_view"].split("/")[-2], s["bias_bodies"], s["bias_other_bodies"]) for s in samples},
+                         {("2026-11-07-w3-pilot-0402", 89, 45), ("2026-11-05-c2-board-3", 39, 34)})
+        # ... and so is every further copy: board 4 placed three of them ten more times each.
+        further = {s["pn"]: s["other_copies"] for s in samples if "other_copies" in s}
+        self.assertEqual({pn: len(copies) for pn, copies in further.items()},
+                         {"C138033": 10, "C185445": 10, "C60491": 10})
+        self.assertEqual(sum(s["copies"] for s in samples), 79)
+        copies = [c for group_copies in further.values() for c in group_copies]
+        self.assertTrue(all("2026-11-11-board-4" in c["bias_view"] and c["body_method"] == 2
+                            and w3_rule.sample_ok(c) and w3_rule.bias_supported(c) for c in copies))
+        every = samples + copies
+        self.assertEqual((max(c["raw_offset_mm"] for c in every), max(c["residual_offset_mm"] for c in every),
+                          max(abs(c["angle_deg"]) for c in every)), (0.053, 0.041, 5.5))
+        # A method 1 reading of the same sample (0.121 mm raw as first recorded) is not one under this rule.
+        self.assertFalse(w3_rule.sample_ok({k: v for k, v in samples[0].items() if k != "body_method"}))
 
 
 class SampledEvidenceTests(unittest.TestCase):
@@ -543,8 +598,9 @@ class SampledEvidenceTests(unittest.TestCase):
 
     FIXTURE = ROOT / "tests" / "fixtures" / "library-ci" / "s-sampled"
     CASES = ("rule", "paused", "scope", "key", "land", "member", "zero-stock", "sample", "few",
-             "own-evidence", "reading", "offset", "raw", "arithmetic", "not-drawn", "mapping",
-             "two-kinds", "field")
+             "own-evidence", "reading", "offset", "raw", "arithmetic", "method", "not-drawn", "mapping",
+             "two-kinds", "field", "bias-bodies", "bias-share", "bias-view", "bias-own",
+             "not-drawn-share")
 
     def inferred(self, frames: str) -> bool:
         rows = json.loads((self.FIXTURE / frames).read_text(encoding="utf-8"))["rows"]

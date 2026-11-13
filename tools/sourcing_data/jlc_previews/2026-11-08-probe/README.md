@@ -191,6 +191,18 @@ Adopting a row is W4 discretes work: add a library part for the MPN on the same 
 
 The rows were read against the `sod` and `do214` **0.1.0** lands and carry `package_version` 0.1.0. PR #102 moves both packages to 0.1.1. So adoption must re-key each row's `package_version` to the version the new part ships in, after checking that version's land copper is still the copper read here (`package/board.json` holds the pads as placed).
 
+## Since 2026-11-11: library parts exist, still unbound
+
+`esd` 0.1.3 adds `TVS_SMBJ6V0CA`, `TVS_SMCJ36CA` and `TVS_SMF15CA` on these three lands, without a supplier clause. The rows stay archived here, and the statements above still hold: no library source lists C19077561, C19077609 or C19077510.
+
+What is missing is the map row. A binding's part number must be in `tools/sourcing_data/lcsc_map.json`, and rows reach it only through a reviewed `lcsc_backfill.py` run that reads every candidate page for the MPN. On 2026-11-11 the fetch cache held 1 or 2 of the 112 (SMBJ6.0CA), 52 (SMCJ36CA) and 46 (SMF15CA) candidate pages, and nothing was fetched. Once the rows are promoted, adoption is as described above: add the clause with no rotation, and move each row into `jlc_frames.json` with `package_version` 0.1.1 (`sod` and `do214` 0.1.1 change no pad from 0.1.0).
+
+## Since the backfill run of 2026-11-11: adopted
+
+The section above describes the state before the map rows existed. The backfill run in `../../lcsc_backfill/2026-11-11-hongjiacheng/` read every candidate page for the three MPNs and its rows were promoted, so C19077561, C19077609 and C19077510 are in `lcsc_map.json`. `esd` 0.1.3 now binds them with `supplier lcsc "<part number>"` with no rotation, and `jlc_frames.json` holds a copy of each archived row: `w4d-diom5336x265n-c19077561`, `w4d-diom7959x261n-c19077609` and `w4d-sodfl3818x120n-c19077510`, keyed to `sod` 0.1.3 and `do214` 0.1.2 after checking that no pad of these lands has changed since 0.1.0. Each copy's note says what the reading is and is not, and names the archived row it came from.
+
+`frames.json` here is unchanged: it keeps the rows as they were read, with their 0.1.0 key and their original notes, including the sentence that no library part lists the part number, which was true when it was written. `tools/tests/test_generator_bindings.py` now checks the adoption: each part number is bound once, on the land it was read on, and only the adopted copies cite this record.
+
 ## Addendum, 2026-11-12: which part a mark belongs to
 
 Everything above is the record as made. `checks.json` and `measurements.json` were made with what is now called attribution 1 (`measure_preview.ATTRIBUTION`): a mark counted for the nearest footprint origin within reach, chip parts included, and "mark" in `checks.json` said only that a part had one, not where. They are unchanged, and reproduce byte for byte with `--attribution 1` added: `measure_preview.py measure --method 1 --attribution 1 …` and `jlc_preview.py --recheck top.png bottom.png --board package/board.json --attribution 1 --body-method 1`. `tools/tests/test_jlc_preview.py` and `test_measure_preview.py` check both with `COHDL_REMEASURE_PREVIEWS=1`.

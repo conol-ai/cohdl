@@ -276,9 +276,18 @@ def check_bom_step(text, table, placements):
             problems.append("BOM row %d has %d cells for %d columns" % (number, len(cells), len(heads)))
             continue
         matched = re.findall(r"^C\d+$", cells[col["Matched Part Detail"]], re.M)
+        if not matched:
+            # Some rows show the part number in one line with the part's name and
+            # parameters, not on a line of its own.
+            matched = sorted(set(re.findall(r"\bC\d{3,}\b", cells[col["Matched Part Detail"]])))
         pn = matched[0] if len(matched) == 1 else None
         if pn is None:
             problems.append("BOM row %d matches %s" % (number, ", ".join(matched) or "no part number"))
+        if pn is None or cells[col["Select"]] != "__checked__":
+            # Say what the row shows, so a person can see why it is unmatched or unselected.
+            shown = "; ".join("%s: %s" % (h, re.sub(r"\s+", " ", c).strip()[:120])
+                              for h, c in zip(heads, cells) if c.strip() and c != "__checked__")
+            problems.append("BOM row %d shows %s" % (number, shown[:700]))
         if cells[col["Select"]] != "__checked__":
             problems.append("BOM row %d (%s) is not selected" % (number, pn))
         for side in sides:
@@ -474,7 +483,7 @@ def export_capture(side, downloads, out, fps, outline, attempts=3, settle=15, ti
     return out, found
 
 
-def run_preview(package, run, downloads, board=None):
+def run_preview(package, run, downloads, board=None, select_matched=False):
     upload, verification = unpack(package, run)
     name = next(upload.glob("*-gerbers.zip")).name.removesuffix("-gerbers.zip")
     placements = expected_placements(upload)
@@ -551,12 +560,44 @@ def run_preview(package, run, downloads, board=None):
     click_button("Process BOM & CPL")
     wait("document.body.innerText", lambda v: "Parts confirmed" in v, 120, "the BOM match")
     time.sleep(3)
-    problems = check_bom_step(body_text(), json.loads(js(BOM_TABLE)), placements)
+    table = json.loads(js(BOM_TABLE))
+    problems = check_bom_step(body_text(), table, placements)
+    forced = []
+    if problems and select_matched and "error" not in table and "Select" in table["heads"]:
+        # Opt-in, for reading orientation only: the assembler matched a part but left its
+        # row unticked (no quantity to offer). Tick such rows so the part is drawn. This
+        # changes nothing but the quote's part selection; the run still stops at
+        # Component Placements.
+        sel, det = table["heads"].index("Select"), table["heads"].index("Matched Part Detail")
+        for index, cells in enumerate(table["rows"]):
+            pns = sorted(set(re.findall(r"\bC\d{3,}\b", cells[det])))
+            if cells[sel] == "__unchecked__" and len(pns) == 1:
+                state = js("""(() => { const t = [...document.querySelectorAll(".el-table.ComponentList")].filter(e => e.offsetParent)[0];
+                    const tr = t.querySelectorAll(".el-table__body-wrapper tbody tr.el-table__row")[%d];
+                    const c = tr && tr.querySelector(".el-checkbox"); if (!c) return "no checkbox";
+                    if (c.classList.contains("is-disabled")) return "disabled";
+                    c.click(); return "clicked"; })()""" % index)
+                if state != "clicked":
+                    raise Unverified("BOM row %d (%s) is not selected and cannot be: %s" % (index + 1, pns[0], state))
+                forced.append((index + 1, pns[0]))
+        if forced:
+            time.sleep(3)
+            table = json.loads(js(BOM_TABLE))
+            problems = check_bom_step(body_text(), table, placements)
+            for number, pn in forced:
+                print("BOM row %d (%s) was matched but not selected; selected by this run to read its placement" % (number, pn))
+            # A row ticked this way has no stock behind it: the warning is expected and is reported, not fatal.
+            warnings = [p for p in problems if p.startswith("stock warning: ") or p.startswith("expected ")]
+            problems = [p for p in problems if p not in warnings]
+            for warning in sorted(set(warnings)):
+                print("BOM step note (orientation-only run): " + warning)
     if problems:
         raise Unverified("; ".join(problems))
-    print("BOM step: %d part numbers detected and confirmed; each of %d top and %d bottom designators once, "
-          "on its side, with its part number, selected; no stock warning"
-          % (len(verification["part_numbers"]), len(sides["Top"]), len(sides["Bottom"])))
+    print("BOM step: %d part numbers detected%s; each of %d top and %d bottom designators once, "
+          "on its side, with its part number, selected%s"
+          % (len(verification["part_numbers"]), "" if forced else " and confirmed", len(sides["Top"]), len(sides["Bottom"]),
+             "; %d row(s) selected by this run, so this is an orientation-only preview" % len(forced) if forced
+             else "; no stock warning"))
 
     click_button("NEXT")
     wait("String(!!document.querySelector('[class*=_download-icon_]'))", lambda v: v == "true", 60, "Component Placements")
@@ -596,6 +637,8 @@ def main(argv=None):
     ap.add_argument("--board", type=Path, help="board.json for a package that carries none")
     ap.add_argument("--run", type=Path)
     ap.add_argument("--downloads", type=Path, default=Path.home() / "Downloads")
+    ap.add_argument("--select-matched", action="store_true",
+                    help="tick BOM rows the assembler matched but left unselected, to read their placement (orientation only)")
     ap.add_argument("--recheck", nargs=2, metavar=("TOP.png", "BOTTOM.png"), help="judge exports already taken; no browser")
     ap.add_argument("--cpl", type=Path, help="with --recheck: the CPL whose designators were placed")
     ap.add_argument("--attribution", type=int, choices=(1, 2), default=measure_preview.ATTRIBUTION)
@@ -613,7 +656,7 @@ def main(argv=None):
         ap.error("a package, or --recheck")
     run = args.run or Path.home() / ".cache/cohdl-preview/runs" / args.package.stem
     try:
-        checks = run_preview(args.package, run, args.downloads, args.board)
+        checks = run_preview(args.package, run, args.downloads, args.board, args.select_matched)
     except Stop as stop:
         print("jlc_preview.py: a person has to take over: %s" % stop, file=sys.stderr)
         return 2

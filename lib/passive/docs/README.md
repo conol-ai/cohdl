@@ -150,3 +150,27 @@ All three have a zero map. That makes 36 bindings: 25 resistors and 11 MLCCs, wi
 **Lands.** No land changed: `pads.cohdl` and `footprints.cohdl` are byte for byte those of 0.2.6, and the record pins their SHA-256. Editing either file lapses every inferred row in CI. Every `passive` frame row now names 0.2.7.
 
 **What changes in a build.** A plain `build` writes the same neutral BOM and CPL. The KiCad netlist gains an `LCSC` field for each instance whose primary entry is bound. `cohdl build DIR --supplier lcsc` selects these part numbers as for any other binding.
+
+## Bindings read on preview board 4 (passive 0.2.8)
+
+0.2.8 adds seven bindings, for 886 in all. Each part number was placed with no mapping on preview board 4 on 2026-11-11, four copies each: top and bottom, at 0° and 37°. On every copy the drawn body lies along its land and is centred on it. The record is `tools/sourcing_data/jlc_previews/2026-11-11-board-4/`: the exports, the readings, which reproduce from the exports, and what they are limited to. Each frame row cites it directly, with a zero map.
+
+| LCSC | Part | Entry | Land | Copies | Axis, mod 180 | Largest centre offset (limit) | Reading |
+|---|---|---|---|---|---|---|---|
+| C107039 | `C_1n5_50V_C0G_0603` | primary Yageo `CC0603JRNPO9BN152` | `CHIP_0603` | C1–C4 | −0.7…+0.1° | 0.030 mm (0.206) | method 2 |
+| C113780 | `C_1n_50V_C0G_0402` | primary Yageo `CC0402JRNPO9BN102` | `CHIP_0402` | C5–C8 | −1.1…+1.6° | 0.026 mm (0.127) | method 2 |
+| C107006 | `C_330p_50V_C0G_0402` | primary Yageo `CC0402JRNPO9BN331` | `CHIP_0402` | C17–C20 | −1.9…+0.8° | 0.026 mm (0.127) | method 2 |
+| C19666 | `C_4u7_16V_X5R_0603` | alt Samsung `CL10A475KO8NNNC` | `CHIP_0603` | C25–C28 | −0.5…+0.4° | 0.024 mm (0.206) | method 2 |
+| C106255 | `C_470n_10V_X5R_0402` | primary Yageo `CC0402KRX5R6BB474` | `CHIP_0402` | C21–C24 | −2.9…+0.4° | 0.019 mm (0.127) | method 2 |
+| C97018 | `IND_4U7_WPN201610U` | primary Sunlord `WPN201610U4R7MT` | `FP_L_WPN201610U_2016Metric` | L5–L8 | −0.3…+0.5° | 0.014 mm (0.175) | model alone |
+| C337893 | `IND_2U2` | primary Murata `DFE201612E-2R2M=P2` | `FP_L_0806_2016Metric` | L1–L4 | −0.9…+3.0° | 0.035 mm (0.237) | model alone |
+
+- **Which reading.** The five MLCCs are read by `measure_preview.py`'s body method 2 (the record's `remeasure-2026-11-11-method-2.json`); all 20 copies pass its body check. `measure_preview.py measure` reads a body on `CHIP_*` lands only, so the two inductors are read by the record's own `body_model.py` (`body-model.json`): the drawn model alone, on the same exports and calibration.
+- **Which entry.** A part number is bound on the entry `tools/sourcing_data/lcsc_map.json` gives it by manufacturer and exact part number.
+- **Orientation.** None of these parts is polarised, and a body reading is blind to a half turn, so each frame is known mod 180 only. That makes no difference to the copper.
+- **The inductors are the first bindings in `inductors.cohdl`,** which is written by hand. They are judged by the drawn body alone, as chip parts are. Decided 2026-11-13 (Tony): a non-polar part may be bound on a body reading, and the per-part rule in `docs/library-supplier-plan.md` now names non-polar two-terminal inductors beside bidirectional TVS parts: axis along the pads mod 180, and centred, on every copy, per part number. It is not sampled inference, which stays chip resistors and MLCCs. C337893's model shows a terminal on each pad. C97018's is one block over both pads (2.0 × 1.6 mm): its reading shows the block's long side along the pads and its centre on them, and no more.
+- **The W3 group is as it was.** `tools/w3_record.py` rebuilt the record of `CHIP_0402` / `ChipResistor` / Yageo / `RC` at 0.2.8 (`tools/sourcing_data/w3_records/2026-11-10-chip0402-yageo-rc.json`): 969 members, 49 samples, 122 with no stock and 798 inferred rows, as in 0.2.7. None of the seven is a chip resistor. The five MLCCs were already among the members the rule judges on this record; a direct row changes no group's outcome (`w3_sampling/2026-11-14/`).
+- **Lands.** No land changed: `pads.cohdl`, `footprints.cohdl` and the two inductor footprints are those of 0.2.6, which the board pinned. Every `passive` frame row now names 0.2.8.
+- **What changes in a build.** A plain `build` writes the same neutral BOM and CPL. The KiCad netlist gains an `LCSC` field for each instance whose primary entry is newly bound.
+
+**Read on the same board, not bound here.** C52923 (`CL05A105KA5NQNC`, an alternate of `C_1u_25V_X5R_0402`) and C23630 (`CL10A225KO8NNNC`, an alternate of `C_2u2_16V_X5R_0603`) read along their lands on all four copies too. They have an identity and an entry and are left for a change of their own. The three ICs on the board read a quarter or half turn off and are not `passive` parts: their bindings wait for a re-verify board that places them with the candidate rotations.

@@ -21,9 +21,12 @@ Each row lands in one list:
 - ``alternates``: decodes to the resistance, tolerance and case size of an
   emitted library part, whose rated power is also the same.
 - ``zero_ohm``: the zero-ohm jumper. The library part is ``R_0R_J_<size>``
-  (declared 5%), the UNI-ROYAL number carries the letter F. A person decides
-  whether that is the same part; ``jumper_ratings`` restates what the
-  datasheet says about the jumper of each size.
+  (declared 5%), the UNI-ROYAL number carries the letter F. The maintainer
+  decided on 2026-11-13 that these may be alternates of that part, with a
+  note; each row carries the note (``jumper_note``), and ``jumper_ratings``
+  restates what the datasheet says about the jumper of each size. They stay
+  in their own list because their basis differs from the others': a decision
+  and a rating, not equal resistance and tolerance.
 - ``new_values``: decodes, but the library emits no such part.
 - ``not_decoded``: the rule refuses the part number.
 
@@ -51,9 +54,13 @@ CATALOG = ROOT / "tools/sourcing_data/jlc_catalog/2026-10-30/catalog.json"
 OUT = ROOT / "tools/passive_data/uniroyal_dry_run.json"
 ORIGIN = "https://jlcpcb.com"
 # The snapshot's own spelling. It is a filter on snapshot rows, not an alias:
-# the library name for this manufacturer is not decided (mfr_aliases.json has
-# no entry, and adding one needs a review record under alias_reviews/).
+# mfr_aliases.json has no entry for it. The maintainer decided the library's name
+# on 2026-11-13 (LIBRARY_MFR); the alias itself still waits for its review issue
+# (alias_reviews/2026-11-11-uni-royal-proposal.md) and is not applied here.
 CATALOG_MFR = "UNI-ROYAL(Uniroyal Elec)"
+LIBRARY_MFR = "UNI-ROYAL"
+DECIDED = "2026-11-13"
+EVIDENCE = "tools/passive_data/uniroyal_chip_series.evidence.md"
 
 # The jumper of each size as the datasheet rates it (p.5 §7 "Ratings": Resistance
 # Value of Jumper, Rated Current of Jumper, Max. Overload Current of Jumper).
@@ -84,6 +91,18 @@ OPENWALKIETALKIE_REV_B = (
     ("C25890", "0402WGF3301TCE", 1),
     ("C25760", "0402WGF1803TCE", 1),
 )
+
+
+def jumper_note(size: str) -> str:
+    """The note a UNI-ROYAL jumper carries as an alternate of ``R_0R_J_<size>``: what
+    the datasheet states for that size's jumper, and what it does not."""
+    resistance, rated, overload = UNIROYAL_JUMPER[size]
+    return (f"Alternate of R_0R_J_{size} by the maintainer's decision of {DECIDED}. The letter F states no 1% "
+            f"tolerance here: UNI-ROYAL's datasheet SMD-SP-001 V.11 rates the {size} jumper at {resistance}, rated "
+            f"current {rated}, maximum overload current {overload} (p.5 §7), and states no tolerance for a jumper, "
+            f"no meaning for the tolerance letter on one, and no jumper part number ({EVIDENCE}, "
+            f"\"The zero-ohm jumper\"). The library part's 5% is Yageo's ordering code for its jumper; Yageo "
+            f"states the same resistance limit and the same two currents for this size.")
 
 
 def library_part(decoded: dict, verified: dict) -> tuple[str | None, str]:
@@ -120,6 +139,10 @@ def classify(mpn: str, verified: dict) -> dict:
               "tolerance": gen_passive.UNIROYAL_TOLERANCE[decoded["tolerance"]][0]}
     if part is None:
         return {"list": "new_values", **fields, "reason": where}
+    if where == "zero_ohm":
+        # A jumper has no tolerance: the row carries the letter as printed, and the note.
+        fields = {"size": decoded["size"], "ohms": "0", "letter": decoded["tolerance"],
+                  "alternate": True, "note": jumper_note(decoded["size"])}
     return {"list": where, "part": part, **fields}
 
 
@@ -162,6 +185,8 @@ def build() -> dict:
                         for name, rows in lists.items()},
         "alternates_by_size": {size: sum(r["size"] == size for r in lists["alternates"])
                                for size in gen_passive.UNIROYAL_SIZE},
+        # What a later PR would emit: the alternates, and the jumpers as alternates with their note.
+        "alternates_with_jumpers": len(lists["alternates"]) + len(lists["zero_ohm"]),
         "openwalkietalkie_rev_b": {
             "numbers": len(highlighted),
             "placements": sum(e["placements"] for e in highlighted),
@@ -179,11 +204,22 @@ def build() -> dict:
                      "the zero-ohm jumper's part number is not in that datasheet and is still inferred from "
                      "the snapshot (tools/gen_passive.py, UNI-ROYAL section)",
             "meaning": "'alternates' decode to the resistance, tolerance, case size and rated power of the named "
-                       "library part; 'zero_ohm' are jumpers lettered F against the library's 5% R_0R_J part, and "
+                       "library part; 'zero_ohm' are jumpers lettered F, alternates of the library's 5% R_0R_J "
+                       "part by the maintainer's decision (see 'decisions'), each with its note, and "
                        "'jumper_ratings' is the datasheet's p.5 rating of each size's jumper (it states no "
                        "tolerance for a jumper); "
                        "'new_values' decode but the library emits no such part; 'not_decoded' are refused by the rule",
             "generator": "tools/uniroyal_alternates.py",
+        },
+        "decisions": {
+            "date": DECIDED,
+            "by": "the maintainer",
+            "library_mfr": LIBRARY_MFR,
+            "alias": f"'{CATALOG_MFR}' -> '{LIBRARY_MFR}': decided, not applied; mfr_aliases.json is unchanged "
+                     "until the review issue exists "
+                     "(tools/sourcing_data/alias_reviews/2026-11-11-uni-royal-proposal.md)",
+            "jumpers": "the four F-lettered zero-ohm jumpers may be alternates of R_0R_J_<size>, with a note; "
+                       "each 'zero_ohm' row carries it",
         },
         "counts": counts,
         "openwalkietalkie_rev_b": highlighted,

@@ -64,8 +64,10 @@ class DecodeTests(unittest.TestCase):
         for mpn, (ohms, part) in OPENWALKIETALKIE.items():
             with self.subTest(mpn=mpn):
                 result = ur.classify(mpn, verified)
-                self.assertEqual((result["ohms"], result["part"], result["size"], result["tolerance"]),
-                                 (ohms, part, "0402", "1%"))
+                # The jumper states no tolerance: its row carries the letter instead.
+                self.assertEqual((result["ohms"], result["part"], result["size"],
+                                  result.get("tolerance", result.get("letter"))),
+                                 (ohms, part, "0402", "F" if ohms == "0" else "1%"))
                 self.assertEqual(reencode(mpn), mpn)
         self.assertEqual({mpn for _, mpn, _ in ur.OPENWALKIETALKIE_REV_B}, set(OPENWALKIETALKIE))
 
@@ -258,9 +260,50 @@ class DryRunTests(unittest.TestCase):
                 self.assertEqual(row["part"], f"R_0R_J_{row['size']}")
                 self.assertIn(f"pub part {row['part']}: ChipResistor<0ohm, 5%>[R{row['size']}] {{", self.text[row["size"]])
 
+    def test_the_jumpers_are_alternates_by_decision_and_carry_the_note(self):
+        # Decided by the maintainer on 2026-11-13: the F-lettered jumpers may be alternates of
+        # R_0R_J_<size>, with a note. The note says what the datasheet rates and what it leaves out.
+        rows = {row["size"]: row for row in self.report["zero_ohm"]}
+        self.assertEqual({size: row["pn"] for size, row in rows.items()},
+                         {"0402": "C17168", "0603": "C21189", "0805": "C17477", "1206": "C17888"})
+        evidence = (ur.ROOT / ur.EVIDENCE).read_text(encoding="utf-8")
+        self.assertIn("## The zero-ohm jumper", evidence)
+        self.assertIn("Decided on 2026-11-13", evidence)
+        for size, row in rows.items():
+            with self.subTest(size=size):
+                # A jumper row states no tolerance: the letter as printed, never "1%".
+                self.assertEqual(set(row), {"pn", "mpn", "category", "part", "size", "ohms", "letter", "alternate", "note"})
+                self.assertEqual((row["ohms"], row["letter"], row["alternate"]), ("0", "F", True))
+                rating = self.report["jumper_ratings"][size]
+                self.assertEqual(row["note"], ur.jumper_note(size))
+                for text in (f"Alternate of R_0R_J_{size} by the maintainer's decision of 2026-11-13",
+                             f"rates the {size} jumper at <50mΩ, rated current {rating['rated_current']}, "
+                             f"maximum overload current {rating['max_overload_current']} (p.5 §7)",
+                             "states no tolerance for a jumper, no meaning for the tolerance letter on one",
+                             ur.EVIDENCE):
+                    self.assertIn(text, row["note"])
+        self.assertIn("rated current 2A, maximum overload current 5A", rows["0805"]["note"])
+        # No other row carries a note or is an alternate by decision.
+        self.assertFalse(any("note" in row or "letter" in row for row in self.report["alternates"]))
+        self.assertTrue(all("tolerance" in row for row in self.report["alternates"]))
+        self.assertEqual(self.report["counts"]["alternates_with_jumpers"], 288)
+        decisions = self.report["decisions"]
+        self.assertEqual((decisions["date"], decisions["library_mfr"]), ("2026-11-13", "UNI-ROYAL"))
+        self.assertIn("not applied", decisions["alias"])
+
+    def test_the_alias_review_record_is_decided_and_not_applied(self):
+        record = (ur.ROOT / "tools/sourcing_data/alias_reviews/2026-11-11-uni-royal-proposal.md").read_text(encoding="utf-8")
+        self.assertIn("Decided by the maintainer on 2026-11-13", record)
+        self.assertIn("NOT APPLIED YET", record)
+        self.assertIn("link pending", record)
+        self.assertNotIn("PROPOSAL", record)
+        aliases = json.loads((ur.ROOT / "tools/sourcing_data/mfr_aliases.json").read_text(encoding="utf-8"))["aliases"]
+        self.assertNotIn(ur.CATALOG_MFR, aliases)
+        self.assertNotIn(ur.LIBRARY_MFR, aliases.values())
+
     def test_jumper_ratings_are_the_datasheets_table(self):
         # p.5 §7. The library's jumper part states 0 ohm and 5%; the datasheet states neither a tolerance
-        # nor a part number for a jumper, so the zero_ohm rows stay apart for a person to decide.
+        # nor a part number for a jumper, so the zero_ohm rows stay apart: alternates by decision, with a note.
         ratings = self.report["jumper_ratings"]
         self.assertEqual(set(ratings), set(gen_passive.R_POWER))
         self.assertEqual(ratings["0402"], {"resistance": "<50mΩ", "rated_current": "1A", "max_overload_current": "2A"})

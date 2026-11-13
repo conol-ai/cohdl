@@ -1,6 +1,6 @@
 # Sampled inference for chip resistors and MLCCs (W3)
 
-Status: **accepted 2026-11-09 by Tony, for the non-polar chip resistors and MLCCs of `lib/passive` only** ([decision](https://github.com/conol-ai/cohdl/pull/79#issuecomment-6734040188)). It does not apply to polar or multi-pin parts. Group bindings come from the generator under this rule, through normal PRs. On 2026-11-10 Tony decided that a sample whose model is not drawn does not block its group, and on 2026-11-11 he accepted the five values of §5 (angle, raw offset, residual, members with no stock, part numbers not drawn) as the W3 standard for chip R/C ([decision](https://github.com/conol-ai/cohdl/pull/104#issuecomment-6784835520)). The rule in the tree, `w3-2026-11-12`, keeps those values and adds three things that are proposed and **await Tony's decision**: the two conditions he asked for in that comment, with proposed numbers (§5), and how a chip body is read, the rule's `body_method` (§6). [中文](library-supplier-w3-sampling.zh-CN.md)
+Status: **accepted 2026-11-09 by Tony, for the non-polar chip resistors and MLCCs of `lib/passive` only** ([decision](https://github.com/conol-ai/cohdl/pull/79#issuecomment-6734040188)). It does not apply to polar or multi-pin parts. Group bindings come from the generator under this rule, through normal PRs. On 2026-11-10 Tony decided that a sample whose model is not drawn does not block its group, and on 2026-11-11 he accepted the five values of §5 (angle, raw offset, residual, members with no stock, part numbers not drawn) as the W3 standard for chip R/C ([decision](https://github.com/conol-ai/cohdl/pull/104#issuecomment-6784835520)). The rule in the tree, `w3-2026-11-12`, keeps those values and adds three things, which Tony accepted on 2026-11-13: the two conditions he asked for in that comment, with the numbers proposed in §5 ([decision](https://github.com/conol-ai/cohdl/pull/112#issuecomment-6845382803)), and how a chip body is read, the rule's `body_method` (§6, [decision](https://github.com/conol-ai/cohdl/pull/115#issuecomment-6845382375)). §5 and §6 are kept as they were written for those decisions, so they still say "proposed" where they argue a number. [中文](library-supplier-w3-sampling.zh-CN.md)
 
 The rule is `tools/sourcing/w3_rule.py`; `tests/library/supplier.rs` holds the same numbers and rejects a group record that carries any other rule. Sections 1–4 are the proposal as reviewed, with §3 updated to what was built.
 
@@ -42,7 +42,8 @@ A group is (footprint-owning package, its version, footprint, part type, manufac
 - Two series are not merged. A future merge needs a written basis, for example the manufacturer's statement that both series share one body and termination drawing, and its own review.
 - A footprint move (new package version) starts new groups.
 
-`tools/w3_groups.py` builds the groups. The proposal's report is `tools/sourcing_data/w3_sampling/2026-11-07/` (`passive` 0.2.5, before the pilot): 19 groups, from 2 members (Samsung `CL` 0402) to 969 (Yageo `RC` 0402, 0603, 0805). `2026-11-10/` (`passive` 0.2.6, rule `w3-2026-11-10b` and the pilot's readings) has 20 groups; it is the report Tony reviewed. The current one is `2026-11-11/`, the same 20 groups under rule `w3-2026-11-11` with the two conditions of §5. Each is a dated snapshot of the tree it was built from.
+`tools/w3_groups.py` builds the groups. The proposal's report is `tools/sourcing_data/w3_sampling/2026-11-07/` (`passive` 0.2.5, before the pilot): 19 groups, from 2 members (Samsung `CL` 0402) to 969 (Yageo `RC` 0402, 0603, 0805). `2026-11-10/` (`passive` 0.2.6, rule `w3-2026-11-10b` and the pilot's readings) has 20 groups; it is the report Tony reviewed. `2026-11-11/` is the same 20 groups under rule `w3-2026-11-11`, with the two conditions of §5. Each is a dated snapshot of the tree it was built from, and none is edited afterwards. The report to read is always the newest dated folder under `tools/sourcing_data/w3_sampling/`: it is under the rule in the tree (`tools/tests/test_w3_groups.py` holds that), and `python3 -I tools/w3_groups.py -o <that folder> --check` says whether the tree has moved since it was built. This document names no folder as the current one, so that this sentence cannot go out of date.
+- The report also lists every preview record the rule does not judge, with the reason, and each group's members placed on it (`records_not_judged`, from the report of `2026-11-13/` on). A record is not judged when it has no readings by the rule's `body_method`, when a land file has changed since its preview, or when it previewed another package. Such a member is neither a passed sample nor a failure, and the report still builds: a record lapsing is how a land change or a new reading method takes effect, and stopping the build would make either impossible until every old record had been read again. `tools/w3_record.py` is stricter: it writes no group record while a member of the group sits on a record that only lacks readings by the rule's method, since that record may hold a failure nobody has read.
 - A group's land is pinned by the SHA-256 of the files that define it (`lib/passive/src/footprints.cohdl` and `pads.cohdl`). A version that changes no land keeps its readings; any change to those files lapses every reading taken on them.
 
 ### 3.3 A new evidence kind: `sampled`
@@ -210,9 +211,9 @@ This does not change any number in the rule. It is why the raw check is there: o
 
 These parts keep their own bindings: a paused group only stops inference. What each of the three proposals changes against the accepted rule on main's two records (`2026-11-10/`: 1 sampled, 14 need samples, 5 paused) is in §6's table and the dated reports: the conditions alone on those records (`2026-11-11/`) pause Vishay `CRCW` 0402; method 2 alone with board 4 (`2026-11-11-method-2/`) gives 2 / 16 / 2; both together pause `CRCW` 0402 and `RC` 1210 on top of that.
 
-## 6. How a chip body is read (proposed 2026-11-11, pending Tony)
+## 6. How a chip body is read (proposed 2026-11-11, accepted 2026-11-13)
 
-**Status: proposed, not accepted.** The rule `w3-2026-11-12` carries `body_method: 2` beside the limits of `w3-2026-11-10b`, which are unchanged, and the two conditions of §5. Tony decides whether method 2 becomes the W3 reading. (This section was first written under the interim version `w3-2026-11-11-m2`, the accepted limits plus `body_method` alone; its report is kept as `w3_sampling/2026-11-11-method-2/`.)
+**Status: accepted.** Tony accepted method 2 as the W3 reading on 2026-11-13 ([decision](https://github.com/conol-ai/cohdl/pull/115#issuecomment-6845382375)), with two follow-ups that are answered here: the decoder ("The decoder", below) and records the rule does not judge (§3.2). The rest of this section is the proposal as he reviewed it. The rule `w3-2026-11-12` carries `body_method: 2` beside the limits of `w3-2026-11-10b`, which are unchanged, and the two conditions of §5. (This section was first written under the interim version `w3-2026-11-11-m2`, the accepted limits plus `body_method` alone; its report is kept as `w3_sampling/2026-11-11-method-2/`.)
 
 **The defect.** `measure_preview.py` read a chip body as every pixel within 1.5 pad half-spacings of the origin that is not board green, bare copper or marker black (method 1). That window also holds part of the part's own white reference text, which our generator puts on one side of the land and which turns with the part. So the reading was of the model and its text together. Board 4 (`jlc_previews/2026-11-11-board-4/`), the first record with one part number at five angles on both sides, shows it: of 204 drawn chip bodies, 58 read more than 10° off their pads (up to 78.5°) and offsets reach 1.54 of the per-part limit, while by eye every one lies along its pads, centred.
 
@@ -276,6 +277,30 @@ Totals (sampled / need samples / paused): (a) 1 / 14 / 5, (b) 0 / 10 / 10, (c) 2
 - Of 451 judged copies, 225 pass by method 1 and 340 by method 2; 116 move from fail to pass.
 
 **Method 2 can fail, and does.** One sample that passed by method 1 fails by method 2: C527206 (`CHIP_0805` Yageo `CC`, board 3 C12), residual 0.110 → 0.120 mm against 0.114. Its group was already paused by C527232 and C576985, which still fail (0.138 and 0.156 mm): board 3 draws all three 0805 `CC` models 0.11–0.15 mm toward one pad, leaving the other bare. C138161 (`CHIP_0201` Yageo `RC`, board 3 R4 at −143°) failed on the residual and now fails on the raw offset too, 0.099 mm against 0.080: its model is drawn along its pads off centre. `tools/tests/test_measure_preview.py` shows on synthetic exports that a model shifted or turned beyond the limits fails with its text beside it.
+
+**The decoder.** The exports the assembler provides are JPEG data, although the page names them `.png`. `measure_preview.py` reads pixels, so every reading depends on the program that decoded the JPEG, and two decoders can differ by a level or two at an edge, which can move a body's outline by a pixel. Every archived reading was made from a BMP written by macOS `sips -s format bmp` (ImageIO), as each record's notes say. The version in use when each record was made was not written down. On 2026-11-13, `sips-316` on macOS 27.0.1 (build 26A434) reproduces all three W3 records byte for byte, by method 1 and by method 2 (`COHDL_REMEASURE_PREVIEWS=1`, `tools/tests/test_measure_preview.py`). No other decoder has been tried on them.
+
+One pixel is about 0.031 mm on these exports (32.5 px/mm on board 3). The two failures shown above are both closer to their line than that:
+
+| Sample | Reading | Limit | Over by |
+|---|---|---|---|
+| C138161 (`CHIP_0201` Yageo `RC`, board 3 R4) | raw offset 0.099 mm | 0.080 mm | 0.019 mm, about 0.6 px |
+| C527206 (`CHIP_0805` Yageo `CC`, board 3 C12) | residual 0.120 mm | 0.114 mm | 0.006 mm, about 0.2 px |
+
+Tony's point on #115 is that both sit within one decoded pixel of their line, so neither can be leaned on as a clean failure, and a different decoder might read either as passing. What rests on each today:
+
+- R4 is one of 14 copies of C138161. The other 13 pass (three on board 3, ten on board 4, raw offsets 0.009–0.054 mm), and this one copy is what pauses `CHIP_0201` Yageo `RC` (741 members). It also fails the residual, 0.062 mm against 0.040, by 0.022 mm, again less than a pixel.
+- `CHIP_0805` Yageo `CC` is paused whatever C527206 reads: C576985 fails by 0.042 mm (0.156 against 0.114), more than a pixel. C527232 (0.138) is within one.
+- On the passing side, the closest copy of the one bound group, `CHIP_0402` Yageo `RC`, is 0.023 mm (0.7 px) inside its residual limit (0.041 of 0.064 mm) and 0.075 mm inside its raw limit (0.053 of 0.128).
+
+A reading this close to a limit is "at the line", whichever side it fell. A pause is the safe side, and nothing here was changed on account of it; the numbers are given so that the margin is not mistaken for more than it is.
+
+From now on a record does not depend on the decoder:
+
+- `jlc_preview.py` keeps, beside each export, the decoded pixels it read as a lossless PNG (`top.pixels.png`, `bottom.pixels.png`), and writes `preview/pixels.json` with the decoder (`sips` and macOS versions) and the SHA-256 of each export and of its pixels. The 2026-11-08 probe record already kept its pixels this way.
+- `measure_preview.py` measures a BMP or such a PNG alike (`measure_preview.py pixels top.bmp top.pixels.png` writes one), and refuses JPEG data, so the decoding step is never silent. `measure_preview.py decoder` prints what a record should name.
+- A new record commits the exports as downloaded, their `.pixels.png` files and `pixels.json`. The reproduction test measures a record from its `.pixels.png` files when it has them, which needs no JPEG decoder and runs on any machine; for the archived records, which keep only the JPEG, it still needs `sips`.
+- The archived records are not rewritten. Their readings stand as made with `sips`.
 
 **Limits of the method.**
 

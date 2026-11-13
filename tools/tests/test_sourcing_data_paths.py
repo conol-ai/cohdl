@@ -1,8 +1,9 @@
 """tools/sourcing_data is committed evidence: no file in it may carry a path from someone's machine.
 
-A record that names `/Users/<name>/...`, `/home/<name>/...` or a `/private/...` temp directory tells
-a reader nothing they can open, and it leaks the layout of the machine that wrote it. Records name
-repository-relative paths instead.
+A record that names `/Users/<name>/...`, `/home/<name>/...`, a temp directory (`/private/...`, macOS
+`$TMPDIR` under `/var/folders/...`, an agent's Linux scratch directory `/tmp/claude-<uid>/...`) or a
+Windows home seen from WSL (`/mnt/c/Users/...`) tells a reader nothing they can open, and it leaks
+the layout of the machine that wrote it. Records name repository-relative paths instead.
 """
 import io
 import re
@@ -13,8 +14,11 @@ from pathlib import Path
 
 DATA = Path(__file__).resolve().parents[1] / "sourcing_data"
 # A path root at the start of a path. A URL such as https://example.com/home/x is not one: its
-# `/home/` follows a host or path character.
-LOCAL_PATH = re.compile(rb"(?<![\w.~-])/(?:Users|home|private)/")
+# `/home/` follows a host or path character. `/mnt/<drive>/` is its own root because the drive
+# letter before `/Users/` would otherwise read as such a character; `/tmp/` alone is not listed (a
+# record may tell its reader to work in a scratch directory), only the scratch form that names a
+# user id and that user's directories.
+LOCAL_PATH = re.compile(rb"(?<![\w.~-])/(?:(?:Users|home|private|var/folders|mnt/[A-Za-z])/|tmp/claude-)")
 
 
 def local_paths(data):
@@ -48,11 +52,18 @@ class SourcingDataPathTests(unittest.TestCase):
 
     def test_the_pattern_finds_paths_and_leaves_urls(self):
         for text in ('"cwd": "/Users/someone/repo"', "out=/home/ci/build", "see /private/tmp/x/audit.cohdl",
-                     "file:///Users/someone/a.pdf", "/home/a at the start"):
+                     "file:///Users/someone/a.pdf", "/home/a at the start",
+                     # Linux agent scratch, macOS $TMPDIR (bare and under /private), WSL: one hit each.
+                     '"run": "/tmp/claude-1000/-home-someone-repo/scratch/run"', "out=/var/folders/zz/abc123/T/x.bmp",
+                     "/private/var/folders/zz/abc123/T/x.bmp", "cd /mnt/c/Users/someone/repo",
+                     "/mnt/d/work/repo/board.json"):
             with self.subTest(text=text):
                 self.assertEqual(len(local_paths(text.encode())), 1)
         for text in ("https://example.com/home/page", "https://example.com/Users/list", "docs/private/notes.md",
-                     "tools/home/x", "-Users-someone-repo", "~/home/x"):
+                     "tools/home/x", "-Users-someone-repo", "~/home/x",
+                     "https://example.com/tmp/claude-1/x", "https://example.com/var/folders/a",
+                     "https://example.com/mnt/c/Users/list", "https://example.com/a/tmp/b", "T=/tmp/scratch",
+                     "docs/var/folders/x", "/var/log/syslog", "/mnt/data/x"):
             with self.subTest(text=text):
                 self.assertEqual(local_paths(text.encode()), [])
 

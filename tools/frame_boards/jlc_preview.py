@@ -27,6 +27,9 @@ AppleScript ``execute javascript``:
    is taken again. After the last attempt, an instance whose model is not drawn
    is "unverified", and a drawn one without its evidence is for "manual review";
    neither passes. ``preview/checks.json`` records each instance's verdict.
+   The exports are JPEG data; beside each, ``<side>.pixels.png`` keeps the
+   decoded pixels the verdicts were read from, losslessly, and
+   ``preview/pixels.json`` names the decoder and both files' SHA-256.
 
 It stops there. It never clicks anything that saves to the cart, quotes, orders or
 pays, and it never ticks the assembly terms on the person's behalf. It reads the
@@ -304,12 +307,22 @@ def load_board(upload, board, placements):
     return doc
 
 
+def pixels_path(png):
+    """Where the lossless copy of an export's decoded pixels is kept: beside it."""
+    return png.with_name(png.stem + ".pixels.png")
+
+
 def inspect(png, outline, bottom, fps):
     """What an export shows of each of FPS: the pin 1 marks, and per part whether
-    its model is drawn and, for a chip part, its body reading."""
+    its model is drawn and, for a chip part, its body reading.
+
+    The export is JPEG data. It is decoded once, by ``sips``, and the pixels that
+    were read are kept beside it as a lossless PNG (``pixels_path``), so the
+    readings do not depend on which JPEG decoder a later reader has."""
     bmp = png.with_suffix(".bmp")
     subprocess.run(["sips", "-s", "format", "bmp", str(png), "--out", str(bmp)], check=True, capture_output=True)
     try:
+        measure_preview.pixels(str(bmp), str(pixels_path(png)))
         view = measure_preview.View(str(bmp), outline, bottom)
         readings = {}
         for fp in fps:
@@ -489,7 +502,7 @@ def run_preview(package, run, downloads, board=None):
                 raise
     preview = run / "preview"
     preview.mkdir(exist_ok=True)
-    checks = {}
+    checks, kept = {}, {}
     for side_name in ("Top", "Bottom"):
         if sides[side_name]:
             fps = [fp for fp in doc["fps"] if fp["ref"] in sides[side_name]]
@@ -498,6 +511,13 @@ def run_preview(package, run, downloads, board=None):
             checks.update({ref: {"side": side_name.lower(), "status": status, "detail": detail}
                            for ref, (status, detail) in found.items()})
             print("%s export: %s (sha256 %s)" % (side_name, path, hashlib.sha256(path.read_bytes()).hexdigest()))
+            kept[side_name.lower()] = {
+                "export": path.name, "export_sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+                "pixels": pixels_path(path).name,
+                "pixels_sha256": hashlib.sha256(pixels_path(path).read_bytes()).hexdigest()}
+    # Which decoder made the pixels the checks were read from, and the lossless copy of them.
+    (preview / "pixels.json").write_text(json.dumps({"decoder": measure_preview.decoder(), "views": kept},
+                                                    indent=1) + "\n", encoding="utf-8")
     (preview / "checks.json").write_text(json.dumps(dict(sorted(checks.items(), key=lambda kv: natural(kv[0]))),
                                                     indent=1) + "\n", encoding="utf-8")
     count = {s: sorted((r for r, c in checks.items() if c["status"] == s), key=natural)

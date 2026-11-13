@@ -8,7 +8,14 @@ tree, under the rule in ``sourcing/w3_rule.py``. The tool then:
 - adopts each passed sample's own frame row into ``jlc_frames.json`` at the
   current ``passive`` version, if it is not there yet: the row from the archived
   ``frames.json`` of the preview record that judged it, with its id, mapping and
-  evidence unchanged;
+  evidence unchanged, except that its ``evidence.note`` gains one sentence. The
+  archived note quotes the angle and offset the preview run read, by whatever
+  method it read them. When the rule judges the sample by another method, the
+  adopted row keeps that text word for word and appends the reading the group
+  record carries (``adopted_note``), so the row and the record do not show two
+  different numbers unexplained. The note is rebuilt from the archive on every
+  run, so ``--check`` holds it. The archive itself is history and is not
+  rewritten; a sample's row that was never in an archive is left as it is;
 - writes RECORD, a group record (``docs/library-supplier-w3-sampling.md`` §3.3).
   Each sample carries the reading the rule judges it by: the method its body was
   read by, its angle, raw offset, the view's median and the residual, and what
@@ -57,6 +64,28 @@ def archived_rows(record: str) -> dict[str, dict]:
     return {row["pn"]: row for row in json.loads(path.read_text(encoding="utf-8"))["rows"]}
 
 
+def run_method(record: str, ref: str) -> int:
+    """The method the preview run of RECORD (its README's path) read REF's body by: the
+    one its ``w3.json`` measurements name, 1 where they name none."""
+    folder = ROOT / Path(record).parent
+    meta = json.loads((folder / "w3.json").read_text(encoding="utf-8"))
+    rows = {m["ref"]: m for m in json.loads((folder / meta["measurements"]).read_text(encoding="utf-8"))}
+    return rows[ref]["body"].get("method", 1)
+
+
+def adopted_note(archived: str, method: int, sample: dict, record_path: str) -> str:
+    """An adopted row's note: the ARCHIVED text, which quotes the preview run's reading
+    by METHOD, then SAMPLE's reading as the group record carries it. Nothing is added
+    when the two are by the same method."""
+    if sample["body_method"] == method:
+        return archived
+    how = ", which read the reference text together with the model" if method == 1 else ""
+    return (f"{archived}. [Added by tools/w3_record.py: the angle and offset above are the preview run's own "
+            f"reading, by measure_preview.py method {method}{how}. "
+            f"The group record {record_path} judges this sample by method {sample['body_method']}, which reads "
+            f"{sample['angle_deg']:+.1f} deg mod 180 and {sample['raw_offset_mm']:.3f} mm.]")
+
+
 def build(record_path: str, key: tuple[str, str, str, str]) -> tuple[dict, dict]:
     report = w3_groups.build()
     found = [g for g in report["groups"] if (g["footprint"], g["type"], g["mfr"], g["series"]) == key]
@@ -65,6 +94,13 @@ def build(record_path: str, key: tuple[str, str, str, str]) -> tuple[dict, dict]
     g = found[0]
     if g["status"] != "sampled":
         raise SystemExit(f"w3_record.py: group {key} is {g['status']}, not sampled")
+    # A record that only lacks readings by the rule's method may hold a failure nobody has
+    # read. The report lists it; a group record is not written over it. (A record whose land
+    # has changed has lapsed for good and stops nothing.)
+    unread = sorted({n["record"] for n in g["record_not_judged"] if n["kind"] == "method"})
+    if unread:
+        raise SystemExit(f"w3_record.py: group {key} has members on {', '.join(unread)}, which has no readings "
+                         f"by method {w3_rule.RULE['body_method']}; read it by that method first")
     frames = json.loads(FRAMES.read_text(encoding="utf-8"))
     rows = frames["rows"]
     gid = group_id(g)
@@ -81,8 +117,8 @@ def build(record_path: str, key: tuple[str, str, str, str]) -> tuple[dict, dict]
         pn = passed["pn"]
         k = (g["package"], g["package_version"], g["footprint"], pn)
         row = own.get(k)
+        candidates = [a for record in passed["records"] for a in [archived_rows(record).get(pn)] if a]
         if row is None:
-            candidates = [a for record in passed["records"] for a in [archived_rows(record).get(pn)] if a]
             if len(candidates) != 1:
                 raise SystemExit(f"w3_record.py: sample {pn} has no single own row to adopt")
             row = dict(candidates[0], package_version=g["package_version"])
@@ -92,6 +128,17 @@ def build(record_path: str, key: tuple[str, str, str, str]) -> tuple[dict, dict]
             rows.append(row)
             own[k], ids = row, ids | {row["id"]}
         sample = {"pn": pn, "row": row["id"], **{field: passed[field] for field in READING}}
+        # An adopted row (new, or adopted by an earlier run): its note is the archive's, then the
+        # reading this record judges the sample by. The sample's own reading is its first copy's,
+        # on the record the row cites.
+        source = [a for a in candidates if a["id"] == row["id"]]
+        if source:
+            cited = row["evidence"]["record"]
+            if len(source) != 1 or not sample["bias_view"].startswith(cited + "#"):
+                raise SystemExit(f"w3_record.py: sample {pn}'s own reading is not on the record its row cites")
+            ref = judged[(g["footprint"], pn)][0]["ref"]
+            row["evidence"] = dict(source[0]["evidence"], note=adopted_note(
+                source[0]["evidence"]["note"], run_method(cited, ref), sample, record_path))
         copies = []
         for c in judged[(g["footprint"], pn)]:
             made = g["views"][c["view"]]

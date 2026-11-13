@@ -8,7 +8,9 @@ import subprocess
 import sys
 import tempfile
 import unittest
+import zlib
 from pathlib import Path
+from unittest import mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "frame_boards"))
 import measure_preview as mp
@@ -238,24 +240,116 @@ class ArchivedReadingsTests(unittest.TestCase):
         self.assertEqual((one["R4"]["body_ok"], one["R4"]["body"]["offset_mm"], two["R4"]["body"]["offset_mm"],
                           two["R4"]["body"]["offset_limit_mm"]), (True, 0.07, 0.099, 0.08))
 
-    @unittest.skipUnless(os.environ.get("COHDL_REMEASURE_PREVIEWS") and shutil.which("sips"),
-                         "set COHDL_REMEASURE_PREVIEWS=1 on macOS to re-measure the archived exports (about a minute)")
+    @unittest.skipUnless(os.environ.get("COHDL_REMEASURE_PREVIEWS"),
+                         "set COHDL_REMEASURE_PREVIEWS=1 to re-measure the archived exports (a few minutes)")
     def test_each_record_reproduces_byte_for_byte_under_the_method_it_was_made_with(self):
+        """From a record's lossless pixels (`<view>.pixels.png`) where it keeps them, which needs no
+        JPEG decoder. A record that keeps only the JPEG exports is decoded by `sips`, the decoder its
+        readings were made with, so it is skipped where there is none; its pixels are then also taken
+        through `pixels` and measured from that PNG, which must read the same."""
         for name, (board, (top, bottom), method_1, _) in RECORDS.items():
             with self.subTest(record=name), tempfile.TemporaryDirectory() as td:
                 record = PREVIEWS / name
-                shots = []
+                shots, lossless = [], []
                 for shot in (top, bottom):
                     if shot is None:
                         shots.append("-")
+                        lossless.append("-")
                         continue
+                    kept = record / (Path(shot).stem + ".pixels.png")
+                    if kept.is_file():
+                        shots.append(str(kept))
+                        lossless.append(str(kept))
+                        continue
+                    if not shutil.which("sips"):
+                        self.skipTest(f"{name} keeps no lossless pixels, and this machine has no sips")
                     shots.append(str(Path(td) / (Path(shot).stem + ".bmp")))
                     subprocess.run(["sips", "-s", "format", "bmp", str(record / shot), "--out", shots[-1]],
                                    check=True, capture_output=True)
+                    lossless.append(str(Path(td) / kept.name))
+                    mp.pixels(shots[-1], lossless[-1])
                 for method, archived in ((1, method_1), (2, METHOD_2)):
-                    out = Path(td) / ("method-%d.json" % method)
-                    mp.measure(str(record / board), *shots, str(out), method=method)
-                    self.assertEqual(out.read_bytes(), (record / archived).read_bytes(), (name, method))
+                    for source in dict.fromkeys((tuple(shots), tuple(lossless))):
+                        out = Path(td) / ("method-%d.json" % method)
+                        mp.measure(str(record / board), *source, str(out), method=method)
+                        self.assertEqual(out.read_bytes(), (record / archived).read_bytes(), (name, method, source))
+
+    @unittest.skipUnless(os.environ.get("COHDL_REMEASURE_PREVIEWS"),
+                         "set COHDL_REMEASURE_PREVIEWS=1 to re-measure the archived exports (a few minutes)")
+    def test_a_record_that_keeps_its_pixels_reproduces_with_no_jpeg_decoder(self):
+        # The 2026-11-08 probe keeps the measured pixels as PNGs (written by sips, with row filters).
+        record = PREVIEWS / "2026-11-08-probe"
+        with tempfile.TemporaryDirectory() as td, mock.patch.object(subprocess, "run", side_effect=AssertionError):
+            out = Path(td) / "measurements.json"
+            mp.measure(str(record / "package/board.json"), str(record / "top.pixels.png"),
+                       str(record / "bottom.pixels.png"), str(out), method=1)
+            self.assertEqual(out.read_bytes(), (record / "measurements.json").read_bytes())
+
+
+class LosslessPixelsTests(unittest.TestCase):
+    """An export is JPEG data, so what is measured depends on the JPEG decoder. A record keeps the
+    decoded pixels losslessly and names the decoder."""
+
+    def test_the_kept_png_holds_the_bmps_pixels_and_reads_the_same(self):
+        fp, paint = footprint(37), scene(37, turn=4, shift=(0.1, 0.05))
+        with tempfile.TemporaryDirectory() as td:
+            bmp, png, again = (str(Path(td) / n) for n in ("top.bmp", "top.pixels.png", "again.pixels.png"))
+            write_bmp(bmp, paint)
+            mp.pixels(bmp, png)
+            mp.pixels(png, again)
+            self.assertEqual(Path(png).read_bytes()[:8], mp.PNG_MAGIC)
+            # The same pixels give the same file, from the BMP or from the PNG itself.
+            self.assertEqual(Path(png).read_bytes(), Path(again).read_bytes())
+            self.assertEqual(mp.load_pixels(png), mp.load_bmp(bmp))
+            outline = (0.0, 0.0, SIZE, SIZE)
+            for method in (1, 2):
+                self.assertEqual(mp.body(mp.View(png, outline, False), fp, method),
+                                 mp.body(mp.View(bmp, outline, False), fp, method))
+            Path(td, "board.json").write_text(json.dumps({"bbox": [0.05, 0.05, SIZE - 0.05, SIZE - 0.05], "fps": [fp]}))
+            for shot in (bmp, png):
+                mp.measure(str(Path(td) / "board.json"), shot, "-", shot + ".json")
+            self.assertEqual(Path(bmp + ".json").read_bytes(), Path(png + ".json").read_bytes())
+
+    def test_a_png_written_with_row_filters_is_read(self):
+        # Other writers (sips among them) filter rows; each filter type must decode to the same pixels.
+        width, rows = 5, [bytes(range(i, i + 15)) for i in (0, 40, 90, 200, 241)]
+        raw, prev = bytearray(), bytes(15)
+        for kind, row in enumerate(rows):
+            a = lambda i: row[i - 3] if i >= 3 else 0
+            c = lambda i: prev[i - 3] if i >= 3 else 0
+            def paeth(i):
+                pa, pb, pc = abs(prev[i] - c(i)), abs(a(i) - c(i)), abs(a(i) + prev[i] - 2 * c(i))
+                return a(i) if pa <= pb and pa <= pc else prev[i] if pb <= pc else c(i)
+            predict = (lambda i: 0, a, lambda i: prev[i], lambda i: (a(i) + prev[i]) >> 1, paeth)[kind]
+            raw += bytes([kind]) + bytes((row[i] - predict(i)) & 255 for i in range(15))
+            prev = row
+        chunk = lambda kind, body: struct.pack(">I", len(body)) + kind + body + struct.pack(">I", zlib.crc32(kind + body))
+        with tempfile.TemporaryDirectory() as td:
+            Path(td, "f.png").write_bytes(mp.PNG_MAGIC + chunk(b"IHDR", struct.pack(">IIBBBBB", width, 5, 8, 2, 0, 0, 0))
+                                          + chunk(b"IDAT", zlib.compress(bytes(raw))) + chunk(b"IEND", b""))
+            w, h, bpp, got = mp.load_pixels(str(Path(td) / "f.png"))
+        self.assertEqual((w, h, bpp), (5, 5, 3))
+        self.assertEqual([bytes(b for i in range(0, 15, 3) for b in row[i:i + 3][::-1]) for row in got], rows)
+
+    def test_jpeg_data_is_refused_whatever_its_name(self):
+        with tempfile.TemporaryDirectory() as td:
+            Path(td, "top.png").write_bytes(b"\xff\xd8\xff\xe0\x00\x10JFIF\x00" + bytes(64))
+            with self.assertRaises(SystemExit) as stop:
+                mp.View(str(Path(td) / "top.png"), (0, 0, 1, 1), False)
+            self.assertIn("JPEG", str(stop.exception))
+        # The archived exports are such files: the name says PNG, the data is JPEG.
+        for name, (_, shots, _, _) in RECORDS.items():
+            for shot in filter(None, shots):
+                self.assertEqual((PREVIEWS / name / shot).read_bytes()[:3], b"\xff\xd8\xff", (name, shot))
+
+    def test_the_decoder_is_named(self):
+        found = mp.decoder()
+        if shutil.which("sips"):
+            self.assertEqual(found["command"], "sips -s format bmp")
+            self.assertRegex(found["sips"], r"^sips-\d+")
+            self.assertRegex(found["os"], r"^macOS \d+(\.\d+)* \(\w+\)$")
+        else:
+            self.assertIsNone(found["command"])
 
 
 if __name__ == "__main__":

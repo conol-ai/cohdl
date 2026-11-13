@@ -235,6 +235,25 @@ class W3GroupsTests(unittest.TestCase):
         self.assertEqual(outcome(committed), outcome(first))
         self.assertEqual({g["package_version"] for g in committed["groups"]}, {"0.2.7"})
 
+    def test_the_2026_11_13_report_is_the_tree_with_the_hongjiacheng_pages(self):
+        # The same rule, records and library as 2026-11-12b, on the tree whose map cites
+        # the 2026-11-11 Hongjiacheng backfill's confirmed pages (six more parts, none of
+        # them a chip resistor or capacitor): no group, member or sample differs.
+        before = json.loads((wg.DATA / "w3_sampling/2026-11-12b/groups.json").read_text(encoding="utf-8"))
+        folder = wg.DATA / "w3_sampling/2026-11-13"
+        committed = json.loads((folder / "groups.json").read_text(encoding="utf-8"))
+        self.assertEqual((folder / "groups.md").read_text(encoding="utf-8"), wg.render(committed))
+        changed = {"lcsc_map.json", "jlc_frames.json"}
+        pages = lambda report: [name for name in report["sources"] if name.startswith("lcsc_backfill/")]
+        self.assertEqual((pages(before), pages(committed)),
+                         (["lcsc_backfill/2026-11-07-samsung-b1/confirmed.json"],
+                          ["lcsc_backfill/2026-11-11-hongjiacheng/confirmed.json"]))
+        rest = lambda report: {name: digest for name, digest in report["sources"].items()
+                               if name not in changed and not name.startswith("lcsc_backfill/")}
+        self.assertEqual(rest(committed), rest(before))
+        self.assertEqual({key: value for key, value in committed.items() if key != "sources"},
+                         {key: value for key, value in before.items() if key != "sources"})
+
     def test_samples_follow_the_rule(self):
         for g in self.report["groups"]:
             rows = {row[0]: row for row in g["member_rows"]}

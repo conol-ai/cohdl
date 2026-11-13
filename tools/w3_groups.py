@@ -39,6 +39,16 @@ judged, and a reading that names another method stops the build. Under a method
 other than 1 a drawn chip body's status is the reading's own ``body_ok``, not the
 run's ``checks.json``, which was made with method 1.
 
+A record that is not judged is never dropped without a word. The report lists it
+with the reason (``records_not_judged``: no readings by the rule's method, a land
+file changed since its preview, or another package), and each group lists its
+members placed on it (``record_not_judged``). Such a member is neither a passed
+sample nor a failure, like a direct row the rule cannot judge
+(``direct_not_judged``); the build does not stop, because a record lapsing is how
+a land change and a new reading method are meant to take effect. ``w3_record.py``
+does stop: it writes no group record while a member of the group sits on a
+record that only lacks readings by the rule's method.
+
 A member whose model a preview did not draw (and that no copy fails otherwise)
 is ``not_drawn``: it is not a passed sample and is never inferred, and by itself
 it does not pause its group. A group is ``paused`` when any member fails
@@ -136,27 +146,65 @@ def short_at_preview() -> dict[str, str]:
 SHORT_AT_PREVIEW = short_at_preview()
 
 
+def not_judged_reason(record: Path, meta: dict) -> tuple[str, str] | None:
+    """Why RECORD is not judged under the rule, as (kind, sentence), or None when it
+    is. ``package``: it previewed another package. ``land``: a land file no longer
+    hashes as it did at the preview, so its readings have lapsed. ``method``: it
+    has no readings by the rule's method yet."""
+    if meta["package"] != w3_rule.RULE["package"]:
+        return "package", f"its package is {meta['package']}, not {w3_rule.RULE['package']}"
+    changed = sorted(path for path, digest in meta["land"].items() if _sha256(ROOT / path) != digest)
+    if changed:
+        return "land", "changed since its preview: " + ", ".join(changed)
+    if not readings_file(record, meta):
+        return "method", f"no readings by method {w3_rule.RULE['body_method']}"
+    return None
+
+
+def _record_name(record: Path) -> str:
+    return str((record / "README.md").relative_to(ROOT))
+
+
+def _refs(record: Path, meta: dict) -> dict[str, tuple[str, str]]:
+    """{ref: (footprint, pn)} of RECORD's BOM."""
+    with (record / meta["bom"]).open(encoding="utf-8-sig", newline="") as handle:
+        rows = list(csv.DictReader(handle))
+    return {ref.strip(): (row["Footprint"], row["LCSC Part #"])
+            for row in rows for ref in row["Designator"].split(",")}
+
+
+def records_not_judged() -> list[dict]:
+    """Each preview record with W3 inputs that the rule does not judge:
+    {record, kind, reason, parts: {(footprint, pn): [refs]}}."""
+    found = []
+    for record, meta in preview_inputs().items():
+        why = not_judged_reason(record, meta)
+        if why is None:
+            continue
+        parts: dict[tuple[str, str], list[str]] = {}
+        for ref, part in sorted(_refs(record, meta).items()):
+            parts.setdefault(part, []).append(ref)
+        found.append({"record": _record_name(record), "kind": why[0], "reason": why[1], "parts": parts})
+    return found
+
+
 def _records():
-    """Each usable preview record: (README path, {ref: (footprint, pn)}, checks, readings).
+    """Each judged preview record: (README path, {ref: (footprint, pn)}, checks, readings).
     Only records that have readings by the rule's method, and whose land files still
-    hash as recorded, count."""
+    hash as recorded, count; the others are ``records_not_judged``."""
     method = w3_rule.RULE["body_method"]
     for record, meta in preview_inputs().items():
-        files = readings_file(record, meta)
-        if not files or meta["package"] != w3_rule.RULE["package"] or any(
-                _sha256(ROOT / path) != digest for path, digest in meta["land"].items()):
+        if not_judged_reason(record, meta) is not None:
             continue
-        with (record / meta["bom"]).open(encoding="utf-8-sig", newline="") as handle:
-            rows = list(csv.DictReader(handle))
-        refs = {ref.strip(): (row["Footprint"], row["LCSC Part #"])
-                for row in rows for ref in row["Designator"].split(",")}
+        files = readings_file(record, meta)
+        refs = _refs(record, meta)
         checks = json.loads((record / meta["checks"]).read_text(encoding="utf-8"))
         readings = {m["ref"]: m for m in json.loads((record / files[-1]).read_text(encoding="utf-8"))}
         other = sorted(m["ref"] for m in readings.values() if "body" in m and m["body"].get("method", 1) != method)
         if other:
             raise SystemExit(f"w3_groups.py: {record.name}/{files[-1]} is listed as method {method} readings, "
                              f"but {', '.join(other[:5])} {'was' if len(other) == 1 else 'were'} read another way")
-        yield str((record / "README.md").relative_to(ROOT)), refs, checks, readings
+        yield _record_name(record), refs, checks, readings
 
 
 def view_id(record: str, side: str) -> str:
@@ -302,6 +350,7 @@ def build() -> dict:
               for row in frames if row["supplier"] == "lcsc" and row["evidence"] is not None}
     judged = judged_members()
     views = view_bodies()
+    unjudged = records_not_judged()
 
     groups: dict[tuple, dict] = {}
     unmapped = 0
@@ -376,6 +425,11 @@ def build() -> dict:
                       for view, (bodies, other) in sorted(composition.items())
                       if any(c["view"] == view for copies in outcomes.values() for c in copies)},
             "direct_not_judged": sorted({d["pn"] for d in group["direct"]} - set(outcomes)),
+            # Members placed on a record the rule does not judge: not samples, not failures.
+            "record_not_judged": [{"pn": m[0], "record": r["record"], "kind": r["kind"],
+                                   "refs": r["parts"][(key[2], m[0])]}
+                                  for r in unjudged for m in sorted(members, key=lambda m: m[0])
+                                  if (key[2], m[0]) in r["parts"]],
             "sample": [m[0] for m in choose(eligible, need, lambda m: m[0] in SHORT_AT_PREVIEW)],
             "member_rows": [m[:6] for m in members],
         })
@@ -388,8 +442,9 @@ def build() -> dict:
             name_ = member_group.get(body, "no group")
             counts[name_] = counts.get(name_, 0) + 1
         made_of[view] = {"bodies": len(bodies), "groups": dict(sorted(counts.items()))}
+    in_groups = {(g["footprint"], row[0]) for g in report for row in g["member_rows"]}
     return {
-        "schema_version": 4,
+        "schema_version": 5,
         "rule": {**w3_rule.RULE, "short_at_preview": SHORT_AT_PREVIEW},
         "sources": {
             "lib/passive": version,
@@ -405,6 +460,11 @@ def build() -> dict:
         "member_columns": ["pn", "mpn", "part", "entry", "category", "stock"],
         # Per view (preview record and side): the drawn bodies its median is taken over, by group.
         "views": made_of,
+        # Preview records with W3 inputs that the rule does not judge, each with why and how
+        # many of its part numbers are group members (listed per group, ``record_not_judged``).
+        "records_not_judged": [{"record": r["record"], "kind": r["kind"], "reason": r["reason"],
+                                "part_numbers": len(r["parts"]),
+                                "members": sum(part in in_groups for part in r["parts"])} for r in unjudged],
         "groups": report,
     }
 
@@ -412,8 +472,10 @@ def build() -> dict:
 def render(report: dict) -> str:
     if report["schema_version"] == 1:
         return _render_v1(report)
-    # Schema 3 is the 2026-11-10 report (rule w3-2026-11-10b), rendered as it was.
+    # Schema 3 is the 2026-11-10 report (rule w3-2026-11-10b), rendered as it was; schema 4
+    # the reports of 2026-11-11 to 2026-11-12b, which did not list the records not judged.
     v4 = report["schema_version"] >= 4
+    v5 = report["schema_version"] >= 5
     groups = report["groups"]
     rule = report["rule"]
     total = sum(g["members"] for g in groups)
@@ -458,6 +520,11 @@ def render(report: dict) -> str:
         "cannot be inferred: its members need their own evidence.",
         "- Direct rows not judged: frame rows with their own evidence on a preview record that has no "
         "`w3.json`, so the rule cannot judge them. They do not count as samples.",
+        *([f"- Records not judged: {len(report['records_not_judged'])} of "
+           f"{sum(name.endswith('/w3.json') and name.startswith('jlc_previews/') for name in report['sources'])} "
+           "preview records with a `w3.json`. A record is not judged when it has no readings by the rule's "
+           "method, when a land file has changed since its preview, or when it previewed another package. "
+           "Its members are not samples and not failures; they are listed below."] if v5 else []),
         "",
         "| Footprint | Type | Manufacturer | Series | Members | No stock | Passed | Failed | Not drawn | "
         + ("Unsupported | " if v4 else "") + "Required | More needed | Chosen | Status |",
@@ -517,6 +584,20 @@ def render(report: dict) -> str:
                                          for n in g["bias_unsupported"]))
         if not any(g["bias_unsupported"] for g in groups):
             lines.append("- None.")
+    if v5:
+        lines += ["", "## Records not judged", "",
+                  "Preview records the rule reads nothing from, and the group members placed on them. "
+                  "None of these members is a passed sample or a failure on that record.", ""]
+        for r in report["records_not_judged"]:
+            lines.append(f"- `{r['record']}`: {r['reason']}; {r['members']} of its {r['part_numbers']} "
+                         "part numbers are group members")
+            for g in groups:
+                mine = [n for n in g["record_not_judged"] if n["record"] == r["record"]]
+                if mine:
+                    lines.append(f"  - `{g['footprint']}` {g['type']} {g['mfr']} {g['series']} ({g['status']}): "
+                                 + ", ".join(f"{n['pn']} ({', '.join(n['refs'])})" for n in mine))
+        if not report["records_not_judged"]:
+            lines.append("- None: every record with a `w3.json` is judged.")
     lines += ["", "## Offsets of passed samples", "",
               "Per group: the bias taken off in each view, and the largest raw offset and residual among its "
               "passed samples, each as a share of that sample's per-part limit.", ""]

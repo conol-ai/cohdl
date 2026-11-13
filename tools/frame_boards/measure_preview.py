@@ -9,6 +9,8 @@ with the footprint's own pad 1:
     <kicad python3> -I measure_preview.py board BOARD.kicad_pcb board.json
     # 2. screenshots to uncompressed BMP (macOS)
     sips -s format bmp top.jpg --out top.bmp
+    #    and the pixels that BMP holds, as a lossless PNG to keep with the record
+    python3 -I measure_preview.py pixels top.bmp top.pixels.png
     # 3. measure, with any Python
     python3 -I measure_preview.py measure board.json top.bmp bottom.bmp out.json
     #    (bottom.bmp may be - on a board with no bottom parts)
@@ -32,14 +34,25 @@ current one, reads the drawn model alone and writes `"method": 2` into each
 `body`. Method 1 read the model together with whatever silkscreen lay in its
 window, and wrote no method: a `body` without one is a method 1 reading.
 
+The assembler's exports are JPEG data (under a `.png` name), so the pixels
+measured are whatever the JPEG decoder made of them, and two decoders can
+differ by a pixel at an edge. A record therefore keeps the decoded pixels
+themselves (`pixels`, a `<view>.pixels.png` beside each export) and names its
+decoder (`decoder()`). Every command that takes a BMP also takes such a PNG,
+so a record's readings can be made again anywhere, with no JPEG decoder.
+
 `pegs` compares a connector's peg dots with its non-plated holes as the other
 view shows them through the board.  Both go through the same outline mapping,
 so the comparison does not depend on how well the outline calibrates.
 """
 import json
 import math
+import platform
+import shutil
 import struct
+import subprocess
 import sys
+import zlib
 
 
 def board(path, out):
@@ -76,6 +89,97 @@ def load_bmp(path):
     return w, h, bpp, rows
 
 
+PNG_MAGIC = b"\x89PNG\r\n\x1a\n"
+
+
+def load_png(path):
+    """An 8-bit RGB, non-interlaced PNG as `load_bmp` gives a BMP (rows of BGR)."""
+    with open(path, "rb") as f:
+        d = f.read()
+    pos, idat, head = 8, [], None
+    while pos < len(d):
+        size, kind = struct.unpack_from(">I4s", d, pos)
+        if kind == b"IHDR":
+            head = struct.unpack_from(">IIBBBBB", d, pos + 8)
+        elif kind == b"IDAT":
+            idat.append(d[pos + 8:pos + 8 + size])
+        pos += 12 + size
+    w, h, depth, colour, _, _, interlace = head
+    if (depth, colour, interlace) != (8, 2, 0):
+        sys.exit("measure_preview.py: %s is not an 8-bit RGB, non-interlaced PNG" % path)
+    raw = zlib.decompress(b"".join(idat))
+    stride = w * 3
+    prev, rows = bytearray(stride), []
+    for y in range(h):
+        kind = raw[y * (stride + 1)]
+        row = bytearray(raw[y * (stride + 1) + 1:(y + 1) * (stride + 1)])
+        if kind == 1:
+            for i in range(3, stride):
+                row[i] = (row[i] + row[i - 3]) & 255
+        elif kind == 2:
+            for i in range(stride):
+                row[i] = (row[i] + prev[i]) & 255
+        elif kind == 3:
+            for i in range(stride):
+                row[i] = (row[i] + (((row[i - 3] if i >= 3 else 0) + prev[i]) >> 1)) & 255
+        elif kind == 4:
+            for i in range(stride):
+                a, b, c = (row[i - 3] if i >= 3 else 0), prev[i], (prev[i - 3] if i >= 3 else 0)
+                pa, pb, pc = abs(b - c), abs(a - c), abs(a + b - 2 * c)
+                row[i] = (row[i] + (a if pa <= pb and pa <= pc else b if pb <= pc else c)) & 255
+        elif kind != 0:
+            sys.exit("measure_preview.py: %s: row %d has unknown filter %d" % (path, y, kind))
+        prev = row
+        bgr = bytearray(row)
+        bgr[0::3], bgr[2::3] = row[2::3], row[0::3]
+        rows.append(bytes(bgr))
+    return w, h, 3, rows
+
+
+def load_pixels(path):
+    """The pixels to measure: a BMP, or the lossless PNG kept of one (`pixels`).
+    Anything else is refused, a JPEG above all: decoding one is the step a record
+    has to name (`decoder`), so it is never done silently here."""
+    with open(path, "rb") as f:
+        magic = f.read(8)
+    if magic[:2] == b"BM":
+        return load_bmp(path)
+    if magic == PNG_MAGIC:
+        return load_png(path)
+    sys.exit("measure_preview.py: %s is neither a BMP nor a PNG (an export is JPEG data, whatever its name: "
+             "convert it with `sips -s format bmp`, and keep the result with `pixels`)" % path)
+
+
+def pixels(src, out):
+    """Write OUT, a lossless PNG of the pixels of SRC (a BMP, or such a PNG): 8-bit
+    RGB, alpha dropped, every row unfiltered, so the same pixels always give the
+    same file."""
+    w, h, bpp, rows = load_pixels(src)
+    raw = bytearray()
+    for row in rows:
+        rgb = bytearray(w * 3)
+        rgb[0::3], rgb[1::3], rgb[2::3] = row[2::bpp], row[1::bpp], row[0::bpp]
+        raw += b"\0" + rgb
+
+    def chunk(kind, body):
+        return struct.pack(">I", len(body)) + kind + body + struct.pack(">I", zlib.crc32(kind + body))
+
+    with open(out, "wb") as f:
+        f.write(PNG_MAGIC + chunk(b"IHDR", struct.pack(">IIBBBBB", w, h, 8, 2, 0, 0, 0))
+                + chunk(b"IDAT", zlib.compress(bytes(raw), 9)) + chunk(b"IEND", b""))
+
+
+def decoder():
+    """What turns an export's JPEG data into pixels on this machine, for a record to
+    name: `sips -s format bmp` and the versions that decide its output."""
+    if not shutil.which("sips"):
+        return {"command": None, "note": "no sips on this machine; measure a record's .pixels.png instead"}
+    def said(*argv):
+        return subprocess.run(argv, check=True, capture_output=True, text=True).stdout.strip()
+    return {"command": "sips -s format bmp", "sips": said("sips", "--version"),
+            "os": "macOS %s (%s)" % (platform.mac_ver()[0], said("sw_vers", "-buildVersion"))}
+
+
 def is_green(px):  # BGR
     return px[1] > 80 and px[1] > px[2] + 40 and px[1] > px[0] + 30
 
@@ -98,7 +202,7 @@ class View:
     def __init__(self, path, outline, bottom):
         self.outline, self.bottom = outline, bottom
         x0, y0, x1, y1 = outline
-        w, h, self.bpp, self.rows = load_bmp(path)
+        w, h, self.bpp, self.rows = load_pixels(path)
         bpp, rows = self.bpp, self.rows
         mid = rows[h // 2]
         xs = [x for x in range(w) if is_green(mid[x * bpp:x * bpp + 3])]
@@ -453,6 +557,10 @@ if __name__ == "__main__":
         measure(*sys.argv[2:])
     elif len(sys.argv) == 8 and sys.argv[1:3] == ["measure", "--method"] and sys.argv[3] in ("1", "2"):
         measure(*sys.argv[4:], method=int(sys.argv[3]))
+    elif len(sys.argv) == 4 and sys.argv[1] == "pixels":
+        pixels(sys.argv[2], sys.argv[3])
+    elif len(sys.argv) == 2 and sys.argv[1] == "decoder":
+        print(json.dumps(decoder(), indent=1))
     elif len(sys.argv) == 6 and sys.argv[1] == "pegs":
         pegs(*sys.argv[2:])
     else:

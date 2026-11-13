@@ -2,6 +2,7 @@ import hashlib
 import io
 import json
 import math
+import shutil
 import struct
 import subprocess
 import sys
@@ -292,6 +293,28 @@ class JlcPreviewTests(unittest.TestCase):
                             self.assertLess(abs(reading["delta_mod_180"]), 2)
                         elif b[2] == 90:
                             self.assertGreater(abs(reading["delta_mod_180"]), 80)
+
+    def test_an_inspected_export_keeps_the_pixels_that_were_read(self):
+        # The export is JPEG data; sips decodes it. What it decoded is kept beside the export,
+        # losslessly, and reads the same as the BMP did.
+        r1 = chip("R1", 6, 6)
+        with tempfile.TemporaryDirectory() as td:
+            export(Path(td) / "decoded.bmp", [(r1, (1.6, 0.8, 0, 0, 0))])
+            png = Path(td) / "top.png"
+            png.write_bytes(b"\xff\xd8\xff the export as downloaded")
+
+            def sips(argv, **_):
+                self.assertEqual(argv[:4] + argv[5:6], ["sips", "-s", "format", "bmp", "--out"])
+                shutil.copy(Path(td) / "decoded.bmp", argv[6])
+
+            with mock.patch.object(jp.subprocess, "run", side_effect=sips):
+                _, readings = jp.inspect(png, (0, 0, 20, 20), False, [r1])
+            kept = jp.pixels_path(png)
+            self.assertEqual(kept.name, "top.pixels.png")
+            self.assertEqual(mp.load_pixels(str(kept)), mp.load_bmp(str(Path(td) / "decoded.bmp")))
+            self.assertEqual(readings["R1"]["body"], mp.body(mp.View(str(kept), (0, 0, 20, 20), False), r1))
+            self.assertEqual(png.read_bytes(), b"\xff\xd8\xff the export as downloaded")
+            self.assertFalse((Path(td) / "top.bmp").exists())
 
     def test_a_top_only_board_is_measured_without_a_bottom_view(self):
         # The 2026-11-07 W3 pilot: a top-only board exports no bottom view.

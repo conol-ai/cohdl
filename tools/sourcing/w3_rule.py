@@ -2,17 +2,21 @@
 
 Tony accepted the rule on 2026-11-09 for the non-polar chip resistors and MLCCs of
 ``lib/passive`` only (https://github.com/conol-ai/cohdl/pull/79#issuecomment-6734040188),
-and decided on 2026-11-10 that a sample whose model is not drawn does not block its
-group. The numbers below are the ones proposed in ``docs/library-supplier-w3-sampling.md``
-§5; the sample limits, the zero-stock rule and the not-drawn rule await his
-confirmation there. (He accepted them on 2026-11-11,
-https://github.com/conol-ai/cohdl/pull/104#issuecomment-6784835520.)
+decided on 2026-11-10 that a sample whose model is not drawn does not block its
+group, and on 2026-11-11 accepted the sample limits, the zero-stock rule and the
+not-drawn rule (https://github.com/conol-ai/cohdl/pull/104#issuecomment-6784835520).
+Those accepted values are ``w3-2026-11-10b``. This version, ``w3-2026-11-12``, keeps
+them unchanged and adds three things that await his decision
+(``docs/library-supplier-w3-sampling.md`` §5 and §6):
 
-``body_method`` is proposed and awaits his decision: which reading of a chip body
-the limits apply to. Until 2026-11-11 there was one, ``measure_preview.py``'s
-method 1, which reads a part's own silkscreen reference text together with its
-model (``jlc_previews/2026-11-11-board-4/README.md``). Method 2 reads the model
-alone. The limits themselves are unchanged from ``w3-2026-11-10b``.
+- ``body_method``: which reading of a chip body the limits apply to. Until
+  2026-11-11 there was one, ``measure_preview.py``'s method 1, which reads a part's
+  own silkscreen reference text together with its model
+  (``jlc_previews/2026-11-11-board-4/README.md``). Method 2 reads the model alone.
+- ``bias_*``: in that comment he asked that the median a residual is taken against
+  include bodies of another group.
+- ``not_drawn_*``: and that a group with too many members not drawn be flagged or
+  paused.
 
 ``tests/library/supplier.rs`` holds the same numbers and rejects a group record
 whose ``rule`` differs from ``RULE``, so a record cannot loosen its own rule.
@@ -24,7 +28,7 @@ import math
 import statistics
 
 RULE = {
-    "version": "w3-2026-11-11-m2",
+    "version": "w3-2026-11-12",
     "package": "passive",
     "types": ["ChipResistor", "MLCC"],
     # At least MIN_SAMPLE members or FRACTION of them, whichever is larger.
@@ -46,10 +50,20 @@ RULE = {
     # alone. A sample read any other way is not a sample under this rule, and the
     # median is taken over readings of this method only.
     "body_method": 2,
+    # The residual means something only when that median is not the group's own: the
+    # view must hold at least this many drawn bodies that are not the sample's group ...
+    "bias_min_other_bodies": 3,
+    # ... and they must be more than this share of the median's bodies. With the
+    # group in the minority, the median lies between two bodies of other groups.
+    "bias_other_share_above": 0.5,
     # A member with no stock on its confirmed page is not bound by inference.
     "infer_zero_stock": False,
     # A member whose model a preview did not draw is not bound by inference.
     "infer_not_drawn": False,
+    # A group is paused when its part numbers not drawn are more than this share of
+    # its judged members (or of its required sample, while fewer have been judged).
+    "not_drawn_max_share": 0.1,
+    "not_drawn_excess": "pause",
 }
 
 # A record's offsets are rounded to the micrometre; its arithmetic must hold within this.
@@ -88,19 +102,25 @@ def board_bias(offsets: list[tuple[float, float]]) -> tuple[float, float]:
 
 
 def sample_reading(angle_deg: float, offset_xy_mm: tuple[float, float], offset_limit_mm: float,
-                   bias: tuple[float, float], *, body_method: int = 1) -> dict:
+                   bias: tuple[float, float], view: str | None = None, bodies: int = 0,
+                   other_bodies: int = 0, *, body_method: int = 1) -> dict:
     """The record entry for one sample: the method its body was read by, its angle,
     its raw offset (vector and size), the view's bias taken off it, and what is left
     (the residual). BODY_METHOD is the reading's own (``measure_preview.body_method``:
-    a reading that names none is method 1)."""
+    a reading that names none is method 1). With VIEW, also where the bias came
+    from: the view (a preview record and a board side), how many drawn bodies its
+    median was taken over, and how many of them are not the sample's group."""
     raw = (round(offset_xy_mm[0], 3), round(offset_xy_mm[1], 3))
-    return {"body_method": body_method,
-            "angle_deg": round(angle_deg, 1),
-            "offset_limit_mm": round(offset_limit_mm, 3),
-            "raw_offset_xy_mm": list(raw),
-            "raw_offset_mm": round(math.hypot(*raw), 3),
-            "bias_xy_mm": [bias[0], bias[1]],
-            "residual_offset_mm": round(math.hypot(raw[0] - bias[0], raw[1] - bias[1]), 3)}
+    reading = {"body_method": body_method,
+               "angle_deg": round(angle_deg, 1),
+               "offset_limit_mm": round(offset_limit_mm, 3),
+               "raw_offset_xy_mm": list(raw),
+               "raw_offset_mm": round(math.hypot(*raw), 3),
+               "bias_xy_mm": [bias[0], bias[1]],
+               "residual_offset_mm": round(math.hypot(raw[0] - bias[0], raw[1] - bias[1]), 3)}
+    if view is not None:
+        reading.update(bias_view=view, bias_bodies=bodies, bias_other_bodies=other_bodies)
+    return reading
 
 
 def sample_ok(reading: dict) -> bool:
@@ -116,3 +136,50 @@ def sample_ok(reading: dict) -> bool:
             and abs(reading["residual_offset_mm"] - math.hypot(rx - bx, ry - by)) <= ROUNDING_MM
             and reading["raw_offset_mm"] <= RULE["offset_raw_fraction"] * limit
             and reading["residual_offset_mm"] <= RULE["offset_residual_fraction"] * limit)
+
+
+def _count(value) -> bool:
+    return isinstance(value, int) and not isinstance(value, bool) and value >= 0
+
+
+def bias_supported(reading: dict) -> bool:
+    """Whether the median taken off a reading says anything about its group: the
+    view is named, and enough of the bodies in its median belong to other groups.
+
+    On a view the group fills, the median is the group's own, and a small residual
+    shows only that the group agrees with itself (Tony, 2026-11-11). While the
+    group's bodies are fewer than the others, at least one body of another group
+    lies on each side of the median, so the group cannot move it past them.
+    """
+    view, bodies, other = (reading.get("bias_view"), reading.get("bias_bodies"),
+                           reading.get("bias_other_bodies"))
+    return (isinstance(view, str) and bool(view.strip()) and _count(bodies) and _count(other)
+            and other <= bodies
+            and other >= RULE["bias_min_other_bodies"]
+            and other > RULE["bias_other_share_above"] * bodies)
+
+
+def views_consistent(samples: list[dict]) -> bool:
+    """Whether a group's samples describe each view alike: one median and one body
+    count per view, and no more samples in a view than it has bodies of the group."""
+    views: dict[str, list[dict]] = {}
+    for sample in samples:
+        views.setdefault(sample["bias_view"], []).append(sample)
+    return all(
+        all((s["bias_xy_mm"], s["bias_bodies"], s["bias_other_bodies"])
+            == (first["bias_xy_mm"], first["bias_bodies"], first["bias_other_bodies"]) for s in rest)
+        and 1 + len(rest) <= first["bias_bodies"] - first["bias_other_bodies"]
+        for first, *rest in views.values())
+
+
+def not_drawn_excess(not_drawn: int, judged: int, members: int) -> bool:
+    """Whether a group has too many part numbers not drawn: more than
+    ``not_drawn_max_share`` of its judged members. While fewer members have been
+    judged than the group's required sample, the share is taken of the required
+    sample, so one model missing among the first few readings is not yet an excess.
+
+    A part number not drawn is never inferred, but the members around it are, and a
+    library with many holes in a series is where inferring across part numbers is
+    weakest (Tony, 2026-11-11).
+    """
+    return not_drawn > RULE["not_drawn_max_share"] * max(judged, required(members))

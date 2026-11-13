@@ -2,16 +2,54 @@
 
 use std::collections::BTreeMap;
 use std::io::{Read, Write};
-use std::net::TcpListener;
+use std::net::{SocketAddr, TcpListener, TcpStream};
 use std::path::{Path, PathBuf};
 use std::process::{Command, Output};
 use std::sync::mpsc::{self, Receiver};
 use std::sync::{Arc, Mutex};
+use std::time::Duration;
 
 #[derive(Clone)]
 struct Reply {
     status: u16,
     body: String,
+}
+
+/// Request target the test process sends itself to synchronise with the
+/// server thread (see [`Requests::drain`]); never recorded.
+const BARRIER: &str = "/__barrier";
+
+/// The request log of a started [`Mock`].
+struct Requests {
+    addr: SocketAddr,
+    log: Receiver<String>,
+}
+
+impl Requests {
+    /// Every request target the server has accepted since the last call, in
+    /// order.
+    ///
+    /// The log is filled by the server thread, so reading the channel alone
+    /// would be a snapshot of however far that thread happens to have got.
+    /// The server answers one connection at a time, in accept order, so this
+    /// first sends a barrier request of its own and waits for the answer:
+    /// once it arrives, every connection made before it has been read and
+    /// recorded, whether or not its client waited for a response.
+    fn drain(&self) -> Vec<String> {
+        let mut stream = TcpStream::connect(self.addr).unwrap();
+        // Only bounds a failure (a dead or stuck server thread): the answer
+        // is otherwise awaited for exactly as long as it takes.
+        stream
+            .set_read_timeout(Some(Duration::from_secs(60)))
+            .unwrap();
+        write!(stream, "GET {BARRIER} HTTP/1.1\r\n\r\n").unwrap();
+        let mut answer = String::new();
+        stream
+            .read_to_string(&mut answer)
+            .expect("the mock registry did not answer the barrier request");
+        assert!(answer.starts_with("HTTP/1.1 204 "), "{answer:?}");
+        self.log.try_iter().collect()
+    }
 }
 
 #[derive(Clone, Default)]
@@ -37,9 +75,10 @@ impl Mock {
         );
     }
 
-    fn start(self) -> (String, Receiver<String>) {
+    fn start(self) -> (String, Requests) {
         let listener = TcpListener::bind("127.0.0.1:0").unwrap();
-        let url = format!("http://{}", listener.local_addr().unwrap());
+        let addr = listener.local_addr().unwrap();
+        let url = format!("http://{addr}");
         let (tx, rx) = mpsc::channel();
         std::thread::spawn(move || {
             for stream in listener.incoming() {
@@ -66,6 +105,13 @@ impl Mock {
                     .and_then(|line| line.split_whitespace().nth(1))
                     .unwrap_or("")
                     .to_string();
+                if target == BARRIER {
+                    let _ =
+                        stream.write_all(b"HTTP/1.1 204 No Content\r\nConnection: close\r\n\r\n");
+                    continue;
+                }
+                // Recorded before the response is written, so a client that
+                // has seen a response is already in the log.
                 let _ = tx.send(target.clone());
                 let decoded = percent_decode(&target);
                 let routes = self.routes.lock().unwrap();
@@ -108,7 +154,7 @@ impl Mock {
                 );
             }
         });
-        (url, rx)
+        (url, Requests { addr, log: rx })
     }
 }
 
@@ -324,6 +370,19 @@ fn stderr(output: &Output) -> String {
 }
 
 #[test]
+fn request_log_includes_a_request_whose_client_did_not_wait_for_the_response() {
+    let (_, requests) = Mock::default().start();
+    assert_eq!(requests.drain(), Vec::<String>::new());
+    for target in ["/first", "/second"] {
+        let mut client = TcpStream::connect(requests.addr).unwrap();
+        write!(client, "GET {target} HTTP/1.1\r\n\r\n").unwrap();
+        // Hang up without reading: the server thread may not have run yet.
+    }
+    assert_eq!(requests.drain(), ["/first", "/second"]);
+    assert_eq!(requests.drain(), Vec::<String>::new());
+}
+
+#[test]
 fn audit_ok_uses_registry_alias_keys_and_json_is_complete() {
     let dir = project(
         "ok-alias",
@@ -387,7 +446,7 @@ fn audit_ok_uses_registry_alias_keys_and_json_is_complete() {
         json["suppliers"][0]["entries"][0]["suggestions"],
         serde_json::json!([])
     );
-    let targets: Vec<String> = requests.try_iter().collect();
+    let targets = requests.drain();
     assert_eq!(targets.len(), 2);
     assert!(
         targets[0]
@@ -497,7 +556,7 @@ pub part EMPTY: D { primary { mfr: "Alt", mpn: "", footprint: FP } }"#,
             .count()
             == 2
     );
-    let targets: Vec<String> = requests.try_iter().collect();
+    let targets = requests.drain();
     assert_eq!(targets.len(), 3, "{targets:?}");
     assert!(targets
         .iter()
@@ -606,7 +665,7 @@ fn without_explicit_supplier_no_unbound_entries_or_suggestion_queries() {
         stderr(&output)
     );
     assert!(!stdout(&output).contains("unbound"));
-    assert_eq!(requests.try_iter().count(), 2);
+    assert_eq!(requests.drain().len(), 2);
 }
 
 #[test]
@@ -732,7 +791,7 @@ fn pn_and_normalize_each_split_at_one_hundred_with_stable_association() {
         stdout(&output),
         stderr(&output)
     );
-    let targets: Vec<String> = requests.try_iter().collect();
+    let targets = requests.drain();
     assert_eq!(targets.len(), 4, "{targets:?}");
     assert!(
         targets[0].to_ascii_uppercase().contains("P000%2C") && targets[0].contains("P099"),
@@ -783,7 +842,7 @@ fn repeated_unbound_mpn_reuses_one_query_for_both_entries() {
         stdout(&output),
         stderr(&output)
     );
-    let targets: Vec<String> = requests.try_iter().collect();
+    let targets = requests.drain();
     assert_eq!(
         targets
             .iter()
@@ -835,7 +894,7 @@ fn only_instantiated_parts_are_audited_and_human_output_is_sorted() {
     assert!(text.find("acme").unwrap() < text.find("bolt").unwrap());
     assert!(!text.contains("UNUSED"));
     // Two PN queries and one normalize call shared by both suppliers.
-    let targets: Vec<String> = requests.try_iter().collect();
+    let targets = requests.drain();
     assert_eq!(targets.len(), 3, "{targets:?}");
     assert_eq!(
         targets
@@ -888,7 +947,7 @@ fn an_unbindable_device_instance_fails_the_audit_offline() {
     let output = run(&dir, &url, &[]);
     assert_eq!(output.status.code(), Some(1), "{}", stderr(&output));
     assert!(stderr(&output).contains("E801"), "{}", stderr(&output));
-    assert_eq!(requests.try_iter().count(), 0);
+    assert_eq!(requests.drain().len(), 0);
 }
 
 #[test]
@@ -924,7 +983,7 @@ fn shared_pn_across_parts_is_deduplicated_and_distributed_to_each_entry() {
         stdout(&output),
         stderr(&output)
     );
-    let targets: Vec<String> = requests.try_iter().collect();
+    let targets = requests.drain();
     assert_eq!(targets[0], "/suppliers/acme/parts?pn=SHARED");
     let json: serde_json::Value = serde_json::from_str(&stdout(&output)).unwrap();
     let entries = json["suppliers"][0]["entries"].as_array().unwrap();
@@ -979,7 +1038,7 @@ fn unqueryable_values_are_not_sent_and_have_explicit_notes() {
         stdout(&output),
         stderr(&output)
     );
-    let targets: Vec<String> = requests.try_iter().collect();
+    let targets = requests.drain();
     assert!(targets
         .iter()
         .filter(|target| target.starts_with("/suppliers/"))
@@ -1071,7 +1130,7 @@ fn a_requested_supplier_is_checked_even_when_nothing_needs_a_query() {
         stdout(&typo),
         stderr(&typo)
     );
-    let targets: Vec<String> = requests.try_iter().collect();
+    let targets = requests.drain();
     assert_eq!(targets, ["/suppliers/lcsx/parts?pn=cohdl-supplier-probe"]);
 
     let listed = run(&dir, &url, &["--supplier", "acme", "--json"]);
@@ -1116,7 +1175,8 @@ fn an_oversized_mpn_batch_is_reasked_one_mpn_at_a_time() {
     assert_eq!(entries[0]["suggestions"][0]["catalog"]["pn"], "S-N1");
     assert_eq!(entries[1]["suggestions"][0]["catalog"]["pn"], "S-N2");
     let parts: Vec<String> = requests
-        .try_iter()
+        .drain()
+        .into_iter()
         .filter(|target| target.starts_with("/suppliers/"))
         .collect();
     assert_eq!(parts.len(), 3, "{parts:?}");
@@ -1165,7 +1225,8 @@ fn a_batch_over_the_parser_bounds_is_reasked_one_mpn_at_a_time() {
     assert_eq!(entries[0]["suggestions"][0]["catalog"]["pn"], "S-N1");
     assert_eq!(entries[1]["suggestions"][0]["catalog"]["pn"], "S-N2");
     let parts = requests
-        .try_iter()
+        .drain()
+        .into_iter()
         .filter(|target| target.starts_with("/suppliers/"))
         .count();
     assert_eq!(parts, 3);
@@ -1205,7 +1266,10 @@ fn a_control_character_in_a_source_value_is_a_note_not_an_abort() {
         entry["note"],
         "part number cannot be queried (contains a control character)"
     );
-    assert!(requests.try_iter().all(|target| !target.contains("%09")));
+    assert!(requests
+        .drain()
+        .iter()
+        .all(|target| !target.contains("%09")));
 }
 
 #[test]
@@ -1249,7 +1313,7 @@ fn unlisted_supplier_has_empty_bindings_and_does_not_change_exit_code() {
         "registry has no catalog for this supplier"
     );
     assert!(json["suppliers"][0].get("bindings").is_none());
-    assert_eq!(requests.try_iter().count(), 2);
+    assert_eq!(requests.drain().len(), 2);
 }
 
 #[test]

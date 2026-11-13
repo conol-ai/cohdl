@@ -12,8 +12,8 @@ hash = "sha256:956a9468933ef194e67ff3c1340d70ec6607ce2056c57ca3ca6e1e27774a881c"
 
 [[package]]
 name = "connectors"
-version = "0.3.1"
-hash = "sha256:9e34b82cb21c16072962243eb392e088e3d354c6dc61f6ae7ea874e06c6f7d4f"
+version = "0.3.2"
+hash = "sha256:3526c39b3a6f4c96225411a4178d72b41e74d9759073a5fc26aacb09c9601724"
 
 [[package]]
 name = "diode"
@@ -47,8 +47,8 @@ hash = "sha256:4e981974b3df2f29478e12113746541f1efe6797534b3c16dd17e36a128f63de"
 
 [[package]]
 name = "passive"
-version = "0.2.6"
-hash = "sha256:d1f973fb96681c1285c3080c46b607d957e5efbf894e3ca6f5a852743e6f832e"
+version = "0.2.7"
+hash = "sha256:aa64728d719bcbfc32718100b4bea3b17fb9ceb7af8c6354c0bd96680d4ae028"
 
 [[package]]
 name = "qfn"

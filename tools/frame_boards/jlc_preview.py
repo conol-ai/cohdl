@@ -562,7 +562,7 @@ def run_preview(package, run, downloads, board=None, select_matched=False):
     time.sleep(3)
     table = json.loads(js(BOM_TABLE))
     problems = check_bom_step(body_text(), table, placements)
-    forced = []
+    forced, unavailable = [], []
     if problems and select_matched and "error" not in table and "Select" in table["heads"]:
         # Opt-in, for reading orientation only: the assembler matched a part but left its
         # row unticked (no quantity to offer). Tick such rows so the part is drawn. This
@@ -580,27 +580,40 @@ def run_preview(package, run, downloads, board=None, select_matched=False):
                 if state != "clicked":
                     raise Unverified("BOM row %d (%s) is not selected and cannot be: %s" % (index + 1, pns[0], state))
                 forced.append((index + 1, pns[0]))
-        if forced:
+            elif cells[sel] not in ("__checked__", "__unchecked__") and len(pns) == 1:
+                # No tick box at all: the assembler shows a shortfall instead and the row
+                # cannot be selected. The part will not be drawn; it stays unverified.
+                unavailable.append((index + 1, pns[0], re.sub(r"\s+", " ", cells[sel]).strip()[:60]))
+        if forced or unavailable:
             time.sleep(3)
             table = json.loads(js(BOM_TABLE))
             problems = check_bom_step(body_text(), table, placements)
             for number, pn in forced:
                 print("BOM row %d (%s) was matched but not selected; selected by this run to read its placement" % (number, pn))
-            # A row ticked this way has no stock behind it: the warning is expected and is reported, not fatal.
+            for number, pn, shown in unavailable:
+                print("BOM row %d (%s) cannot be selected (%s); its part will not be drawn and stays unverified" % (number, pn, shown))
+            # Rows handled this way have no stock behind them: the warnings are expected and are reported, not fatal.
+            skip = tuple("BOM row %d " % number for number, _, _ in unavailable)
             warnings = [p for p in problems if p.startswith("stock warning: ") or p.startswith("expected ")]
-            problems = [p for p in problems if p not in warnings]
+            problems = [p for p in problems if p not in warnings and not (skip and p.startswith(skip))]
             for warning in sorted(set(warnings)):
                 print("BOM step note (orientation-only run): " + warning)
     if problems:
         raise Unverified("; ".join(problems))
     print("BOM step: %d part numbers detected%s; each of %d top and %d bottom designators once, "
           "on its side, with its part number, selected%s"
-          % (len(verification["part_numbers"]), "" if forced else " and confirmed", len(sides["Top"]), len(sides["Bottom"]),
-             "; %d row(s) selected by this run, so this is an orientation-only preview" % len(forced) if forced
-             else "; no stock warning"))
+          % (len(verification["part_numbers"]), "" if forced or unavailable else " and confirmed", len(sides["Top"]), len(sides["Bottom"]),
+             "; %d row(s) selected by this run and %d that cannot be selected, so this is an orientation-only preview"
+             % (len(forced), len(unavailable)) if forced or unavailable else "; no stock warning"))
 
     click_button("NEXT")
-    wait("String(!!document.querySelector('[class*=_download-icon_]'))", lambda v: v == "true", 60, "Component Placements")
+    try:
+        wait("String(!!document.querySelector('[class*=_download-icon_]'))", lambda v: v == "true", 60, "Component Placements")
+    except Stop as stop:
+        # With rows left unselected the page may ask before going on; say what it shows.
+        dialogs = js("""JSON.stringify([...document.querySelectorAll("[role=dialog], .el-dialog__wrapper, .el-message-box__wrapper")]
+            .filter(d => d.offsetParent !== null).map(d => (d.innerText || "").replace(/\\s+/g, " ").slice(0, 400)))""")
+        raise Stop("%s; open dialogs: %s" % (stop, dialogs[:1500]))
     # A large board can still be rendering in 3D when the switch is first clicked.
     for attempt in range(3):
         js('(() => { document.querySelector("[class*=_contentLeft_]").click(); return "ok"; })()')

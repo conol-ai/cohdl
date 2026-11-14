@@ -384,73 +384,129 @@ class CommittedTablesTests(unittest.TestCase):
         ],
     }
 
-    def test_archived_reverify_diode_rows_have_no_library_part(self):
-        # The 2026-11-08 diode rows are archived because no library source lists their
-        # part numbers. When a part is added (W4), this fails: adopt the row then,
-        # re-keyed to the package version the part ships in.
-        archive = self.DATA / "jlc_previews" / "2026-11-08-reverify" / "frames.json"
-        rows = json.loads(archive.read_text(encoding="utf-8"))["rows"]
+    # Archived rows that a library part has since adopted: archived id -> the id of
+    # its copy in jlc_frames.json. The archive keeps the row as it was read.
+    ADOPTED = {
+        "2026-11-08-probe": {
+            "probe-diom5336x265n-c19077561": "w4d-diom5336x265n-c19077561",
+            "probe-diom7959x261n-c19077609": "w4d-diom7959x261n-c19077609",
+            "probe-sodfl3818x120n-c19077510": "w4d-sodfl3818x120n-c19077510",
+        },
+        "2026-11-08-reverify": {
+            "rv1-sod2613x110n-c7420331": "w4d-sod2613x110n-c7420331",
+            "rv1-diom5026x241n-c7420365": "w4d-diom5026x241n-c7420365",
+            "rv1-sod1608x70n-c7420320": "w4d-sod1608x70n-c7420320",
+        },
+    }
+
+    def adopted_rows(self, name, source, clause_tail):
+        """Each archived row of `name` with its adopted copy, after checking the binding.
+
+        The part number must be bound exactly once in the library, in `source`, on the
+        archived row's land, with `clause_tail` after the part number; and the bound
+        table must hold exactly one row for it, re-keyed to the land package's version.
+        """
+        archive = self.DATA / "jlc_previews" / name
+        rows = json.loads((archive / "frames.json").read_text(encoding="utf-8"))["rows"]
+        self.assertEqual([row["id"] for row in rows], list(self.ADOPTED[name]))
+        frames = json.loads((self.DATA / "jlc_frames.json").read_text(encoding="utf-8"))["rows"]
+        sources = sorted((ROOT / "lib").rglob("*.cohdl"))
+        self.assertGreater(len(sources), 100)
+        pairs = []
+        for row in rows:
+            self.assertEqual(row["package_version"], "0.1.0", row["id"])
+            needle = f'"{row["pn"]}"'
+            listed = [
+                str(source.relative_to(ROOT))
+                for source in sources
+                if needle in source.read_text(encoding="utf-8")
+            ]
+            self.assertEqual(listed, [source], row["id"])
+            text = (ROOT / source).read_text(encoding="utf-8")
+            clause = f'footprint: {row["package"]}::{row["footprint"]}, supplier lcsc {needle}{clause_tail}'
+            self.assertEqual(text.count(needle), 1, row["id"])
+            self.assertIn(clause, " ".join(text.split()), row["id"])
+            bound = [
+                frame for frame in frames
+                if (frame["supplier"], frame["pn"]) == ("lcsc", row["pn"])
+            ]
+            self.assertEqual([frame["id"] for frame in bound], [self.ADOPTED[name][row["id"]]])
+            adopted = bound[0]
+            land_version = package_metadata(ROOT / "lib" / row["package"] / "cohdl.toml")[1]
+            self.assertEqual(adopted["package_version"], land_version, row["id"])
+            self.assertNotEqual(adopted["package_version"], row["package_version"], row["id"])
+            for field in ("package", "footprint", "mapping", "measured", "exception", "evidence_ref"):
+                self.assertEqual(adopted[field], row[field], (row["id"], field))
+            for field in ("method", "date", "record"):
+                self.assertEqual(adopted["evidence"][field], row["evidence"][field], (row["id"], field))
+            self.assertEqual(adopted["evidence"]["record"], str((archive / "README.md").relative_to(ROOT)))
+            note = adopted["evidence"]["note"]
+            self.assertIn(f"archived row {row['id']}", note)
+            self.assertNotIn("binds nothing", note)
+            pairs.append((row, adopted))
+        return pairs
+
+    def test_archived_reverify_diode_rows_are_adopted_by_diode_parts(self):
+        # The 2026-11-08 diode rows were archived while no library source listed their
+        # part numbers. diode 0.1.2 lists them, so each row is adopted: bound with
+        # rotate 180 on the land it was read on, with a copy in jlc_frames.json keyed
+        # to the land package's current version. The archive keeps the rows as read.
+        pairs = self.adopted_rows("2026-11-08-reverify", "lib/diode/src/hongjiacheng.cohdl", " rotate 180 }")
         self.assertEqual(
-            sorted((row["package"], row["footprint"], row["pn"]) for row in rows),
+            sorted((row["package"], row["footprint"], row["pn"]) for row, _ in pairs),
             [
                 ("do214", "DIOM5026X241N", "C7420365"),
                 ("sod", "SOD1608X70N", "C7420320"),
                 ("sod", "SOD2613X110N", "C7420331"),
             ],
         )
-        sources = sorted((ROOT / "lib").rglob("*.cohdl"))
-        self.assertGreater(len(sources), 100)
-        for row in rows:
-            self.assertEqual(row["mapping"]["rotate_deg"], 180, row["id"])
-            self.assertEqual(row["package_version"], "0.1.0", row["id"])
-            needle = f'"{row["pn"]}"'
-            listed = [
-                str(source.relative_to(ROOT))
-                for source in sources
-                if needle in source.read_text(encoding="utf-8")
-            ]
-            self.assertEqual(listed, [], row["id"])
+        for row, adopted in pairs:
+            self.assertEqual(adopted["mapping"]["rotate_deg"], 180, row["id"])
+            self.assertTrue(adopted["exception"], row["id"])
+            note = adopted["evidence"]["note"]
+            # What the evidence is, and what it is not.
+            self.assertIn("polarity read by eye with rotate 180 applied", note, row["id"])
+            self.assertIn("not: a measured angle", note, row["id"])
+        ss34 = next(adopted for row, adopted in pairs if row["pn"] == "C7420365")
+        self.assertIn("SMAJ12A", ss34["evidence"]["note"])
 
-    def test_archived_probe_tvs_rows_have_no_library_part(self):
-        # The 2026-11-08 probe's bidirectional TVS rows are archived for the same
-        # reason: no library source lists their part numbers. They were read by the
-        # body only, on a board built with zero correction, so each row is rotate 0
-        # with no offset. When a part is added (W4), this fails: adopt the row then,
-        # re-keyed to the package version the part ships in.
-        archive = self.DATA / "jlc_previews" / "2026-11-08-probe" / "frames.json"
-        rows = json.loads(archive.read_text(encoding="utf-8"))["rows"]
+    def test_archived_probe_tvs_rows_are_adopted_by_esd_parts(self):
+        # The 2026-11-08 probe's bidirectional TVS rows were archived for the same
+        # reason. esd 0.1.3 lists their part numbers, so each is adopted with no
+        # rotation and no offset. They were read by the body only, on a board built
+        # with zero correction; that is evidence only because the parts are symmetric.
+        pairs = self.adopted_rows("2026-11-08-probe", "lib/esd/src/hongjiacheng_tvs.cohdl", " }")
         self.assertEqual(
-            sorted((row["package"], row["footprint"], row["pn"]) for row in rows),
+            sorted((row["package"], row["footprint"], row["pn"]) for row, _ in pairs),
             [
                 ("do214", "DIOM5336X265N", "C19077561"),
                 ("do214", "DIOM7959X261N", "C19077609"),
                 ("sod", "SODFL3818X120N", "C19077510"),
             ],
         )
-        sources = sorted((ROOT / "lib").rglob("*.cohdl"))
-        self.assertGreater(len(sources), 100)
         zero = {"dx_mm": 0, "dy_mm": 0, "rotate_deg": 0}
-        for row in rows:
-            self.assertEqual(row["mapping"], zero, row["id"])
-            self.assertEqual(row["measured"], zero, row["id"])
-            self.assertIsNone(row["exception"], row["id"])
-            self.assertEqual(row["package_version"], "0.1.0", row["id"])
-            self.assertIn("body only", row["evidence"]["note"], row["id"])
-            needle = f'"{row["pn"]}"'
-            listed = [
-                str(source.relative_to(ROOT))
-                for source in sources
-                if needle in source.read_text(encoding="utf-8")
-            ]
-            self.assertEqual(listed, [], row["id"])
+        for row, adopted in pairs:
+            self.assertEqual(adopted["mapping"], zero, row["id"])
+            self.assertEqual(adopted["measured"], zero, row["id"])
+            self.assertIsNone(adopted["exception"], row["id"])
+            note = adopted["evidence"]["note"]
+            self.assertIn("body only", note, row["id"])
+            self.assertIn("built with zero correction", note, row["id"])
+            self.assertIn("alignment and centring only", note, row["id"])
+            self.assertIn("only because the part is symmetric", note, row["id"])
+        smc = next(adopted for row, adopted in pairs if row["pn"] == "C19077609")
+        # The SMC row keeps its wide-window caveat.
+        self.assertIn("Caveat", smc["evidence"]["note"])
+        self.assertIn("body-wide.json", smc["evidence"]["note"])
+        self.assertIn("0.8 mm wider", smc["evidence"]["note"])
 
     def test_archived_preview_rows_stay_out_of_the_bound_table(self):
         frames = json.loads((self.DATA / "jlc_frames.json").read_text(encoding="utf-8"))["rows"]
         bound_ids = {row["id"] for row in frames}
-        cited = {row["evidence"]["record"] for row in frames if row["evidence"] is not None}
         archives = sorted((self.DATA / "jlc_previews").glob("*/frames.json"))
         # Not vacuous: exactly the known archives exist, each with its expected rows.
         self.assertEqual([archive.parent.name for archive in archives], sorted(self.ARCHIVED))
+        self.assertLessEqual(set(self.ADOPTED), set(self.ARCHIVED))
         for archive in archives:
             with self.subTest(archive=str(archive.relative_to(ROOT))):
                 document = json.loads(archive.read_text(encoding="utf-8"))
@@ -469,20 +525,29 @@ class CommittedTablesTests(unittest.TestCase):
                 for row in rows:
                     self.assertEqual(set(row), FRAME_FIELDS, row["id"])
                     self.assertEqual(row["evidence"]["record"], record, row["id"])
-                # A row leaves the archive only as a W3 group record's sample, and
-                # unchanged apart from the package version it is bound at.
-                adopted = bound_ids & {row["id"] for row in rows}
+                # A row leaves the archive in one of two ways. As a W3 group record's
+                # sample it keeps its id, and is unchanged apart from the package version
+                # it is bound at. Adopted by a library part (ADOPTED), the archived row
+                # itself stays out, and a copy under its own id cites the archive's record.
+                kept = bound_ids & set(ids)
                 samples = {s["row"] for path in (self.DATA / "w3_records").glob("*.json")
                            for g in json.loads(path.read_text(encoding="utf-8"))["groups"] for s in g["samples"]}
-                self.assertLessEqual(adopted, samples)
+                self.assertLessEqual(kept, samples)
                 by_id = {row["id"]: row for row in frames}
                 for row in rows:
-                    if row["id"] in adopted:
+                    if row["id"] in kept:
                         bound = by_id[row["id"]]
                         self.assertEqual(dict(bound, package_version=row["package_version"]), row, row["id"])
                         self.assertEqual(bound["package_version"], PASSIVE_VERSION, row["id"])
-                if not adopted:
-                    self.assertNotIn(record, cited)
+                adopted = self.ADOPTED.get(archive.parent.name, {})
+                self.assertLessEqual(set(adopted), set(ids) - kept)
+                # Nothing else in the bound table may cite the archive's record.
+                citing = sorted(
+                    row["id"] for row in frames
+                    if row["evidence"] is not None and row["evidence"]["record"] == record
+                    and row["id"] not in kept
+                )
+                self.assertEqual(citing, sorted(adopted.values()))
 
     def test_committed_w3_records_are_what_the_tool_builds(self):
         records = sorted((self.DATA / "w3_records").glob("*.json"))

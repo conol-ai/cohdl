@@ -73,3 +73,12 @@ The `sf32-miniboard` example had worked around the wrong map with a local
 `SGM2554A_CORRECT` device on this land, under the same ordering code. It now
 pins load-switch 0.2.0 and uses `LOADSW_SGM2554` directly; its connectivity
 is unchanged.
+
+## LCSC binding for TPS22918 (load-switch 0.2.1)
+
+`LOADSW_TPS22918DBVR` binds its primary to LCSC C131941 with a half-turn map: `supplier lcsc "C131941" rotate 180`. The part number is in `tools/sourcing_data/lcsc_map.json` (exact rule, 2026-11-07). No land changes from 0.2.0.
+
+- **Why a map.** Preview board 4 placed C131941 with no mapping (`tools/sourcing_data/jlc_previews/2026-11-11-board-4/`): on all four copies the model's leads were on our pads with its pin 1 at our pad 4, half a turn: 183.0° and 183.0° (top, 0° and 37°) and 177.4° and 178.2° (bottom) counter-clockwise from our pad 1. `FP_TI_DBV0006A` follows TI's DBV0006A drawing and stays where it is; the binding carries the turn.
+- **Evidence.** The frame row `pb5-fptidbv0006a-c131941` cites preview board 5 (`tools/sourcing_data/jlc_previews/2026-11-14-board-5/`), which placed the part with `rotate 180` applied. Its pin 1 mark read 1.8° and 1.2° (top) and 358.1° and 357.7° (bottom), 0.10–0.11 mm from pad 1. By eye, on all four copies the model's six leads lie on our pads, three a side, with its pin 1 dimple at the pad 1 corner.
+- **Per part number, not per land.** C12044 on this same land read `rotate 270` on C2 frame board 1 (row `c2b1-sot236_dbv-c12044`, which binds nothing in this package), and C85364 on `esd::FP_SOT_23_6` read 180. A rotation proved for C131941 says nothing about another part number on `FP_TI_DBV0006A`.
+- **What changes in output.** A plain `build` writes the same BOM and CPL; the netlist gains the part's `LCSC` field. `--supplier lcsc` writes the turn into the LCSC CPL.

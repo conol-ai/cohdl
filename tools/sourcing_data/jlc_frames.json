@@ -580,7 +580,7 @@
     {
       "id": "c2b1-sot236_esd-c85364",
       "package": "esd",
-      "package_version": "0.1.2",
+      "package_version": "0.1.4",
       "footprint": "FP_SOT_23_6",
       "supplier": "lcsc",
       "pn": "C85364",
@@ -630,7 +630,7 @@
     {
       "id": "c2b1-dfn1006-c7420372",
       "package": "esd",
-      "package_version": "0.1.2",
+      "package_version": "0.1.4",
       "footprint": "FP_Hongjiacheng_DFN1006_2L",
       "supplier": "lcsc",
       "pn": "C7420372",
@@ -2087,6 +2087,240 @@
         "date": "2026-11-09",
         "record": "tools/sourcing_data/jlc_previews/2026-11-09-reverify-2/README.md",
         "note": "read from the body, not a mark angle: with rotate 270 applied the drawn body is 2.97-3.00 x 1.96-1.98 mm, its long axis within 0.4 deg of the pad 1 to pad 8 axis, centred within 0.042 mm, and its pin 1 dimple 0.28-0.29 mm from pad 1 (pad 2 0.42-0.44 mm) on all four copies, top and bottom, 0 and 37 deg (body.json). The pin 1 mark's ray reading of 353.0-6.5 deg comes from the mark sitting outside the body corner. XSON is leadless, so the model's terminals are not seen"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "pb5-fpsot236-c7519",
+      "package": "esd",
+      "package_version": "0.1.4",
+      "footprint": "FP_SOT_23_6",
+      "supplier": "lcsc",
+      "pn": "C7519",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 270
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 270
+      },
+      "exception": "Per-part mapping: the supplier's SOT-23-6 model for C7519 sits a quarter turn from this land; preview board 4 (2026-11-11-board-4), placed with no mapping, read pin 1 at 100.1 and 100.8 deg (top 0/37) and 259.7 and 259.9 deg (bottom 0/37). Other part numbers on SOT-23-6 lands read differently (C85364 180, C12044 270 on C2 board 1), so the mapping is this part number's, not the land's",
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-14",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-14-board-5/README.md",
+        "note": "with rotate 270 applied, pin 1 mark read 10.6 and 10.0 deg (top 0/37) and 349.4 and 349.2 deg (bottom 0/37), 0.53-0.56 mm from pad 1; the mark sits outside the body beside the pad 1 lead, as on board 4. By eye on all four copies the model's six leads lie on our pads, three a side, with its pin 1 dimple at the pad 1 corner"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "pb5-fptidbv0006a-c131941",
+      "package": "load-switch",
+      "package_version": "0.2.1",
+      "footprint": "FP_TI_DBV0006A",
+      "supplier": "lcsc",
+      "pn": "C131941",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 180
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 180
+      },
+      "exception": "Per-part mapping: the supplier's SOT-23-6 model for C131941 sits half a turn from this land; preview board 4 (2026-11-11-board-4), placed with no mapping, read pin 1 at 183.0 and 183.0 deg (top 0/37) and 177.4 and 178.2 deg (bottom 0/37). C12044 on this same land read 270 on C2 board 1, so the mapping is this part number's, not the land's",
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-14",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-14-board-5/README.md",
+        "note": "with rotate 180 applied, pin 1 mark read 1.8 and 1.2 deg (top 0/37) and 358.1 and 357.7 deg (bottom 0/37), 0.10-0.11 mm from pad 1. By eye on all four copies the model's six leads lie on our pads, three a side, with its pin 1 dimple at the pad 1 corner"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "pb5-sop8p65x490x110n-c189961",
+      "package": "@contrib/audio-amp",
+      "package_version": "0.2.1",
+      "footprint": "SOP8P65X490X110N",
+      "supplier": "lcsc",
+      "pn": "C189961",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 270
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 270
+      },
+      "exception": "Per-part mapping: the supplier's MSOP-8 model for C189961 sits a quarter turn from this land; preview board 4 (2026-11-11-board-4), placed with no mapping, read pin 1 at 94.8 and 95.2 deg (top 0/37) and 264.9 and 265.3 deg (bottom 0/37)",
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-14",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-14-board-5/README.md",
+        "note": "with rotate 270 applied, pin 1 mark read 4.8 and 5.0 deg (top 0/37) and 354.8 and 354.5 deg (bottom 0/37), 0.65-0.70 mm from pad 1. By eye on all four copies the model's eight leads lie on our pads, four a side, with its pin 1 dimple at the pad 1 corner"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "w4d-sod2613x110n-c7420331",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD2613X110N",
+      "supplier": "lcsc",
+      "pn": "C7420331",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 180
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 180
+      },
+      "exception": "Per-part mapping: the supplier's SOD-323 model for C7420331 has its cathode at +x, a half turn from this land's pad 1; other SOD-323 parts (C2128, C191023) read 0 on @contrib/esd's land",
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-08",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-08-reverify/README.md",
+        "note": "polarity read by eye with rotate 180 applied: the preview's minus sign and lighter cathode band sit at our cathode silk bar (pad 1) on all four copies, top and bottom, 0 and 37 deg; measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 3.3 deg of the pad axis mod 180, centred within 0.059 mm. What this is not: a measured angle, or a check of the part's identity. Adopted 2026-11-11 from archived row rv1-sod2613x110n-c7420331 (frames.json beside the record), read on the sod 0.1.0 land; sod 0.1.3 changes no pad from 0.1.0"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "w4d-diom5026x241n-c7420365",
+      "package": "do214",
+      "package_version": "0.1.2",
+      "footprint": "DIOM5026X241N",
+      "supplier": "lcsc",
+      "pn": "C7420365",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 180
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 180
+      },
+      "exception": "Per-part mapping: the supplier's SMA model for C7420365 has its cathode at +x, a half turn from this land's pad 1",
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-08",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-08-reverify/README.md",
+        "note": "polarity read by eye with rotate 180 applied: the preview's minus sign and lighter cathode band sit at our cathode silk bar (pad 1) on all four copies, top and bottom, 0 and 37 deg; measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 0.6 deg of the pad axis mod 180, centred within 0.078 mm. The preview labels the model SMAJ12A, probably a reused SMA body; this row shows the polarity of C7420365 in this preview only, not the part's identity. What this is not: a measured angle, or a check of the part's identity. Adopted 2026-11-11 from archived row rv1-diom5026x241n-c7420365 (frames.json beside the record), read on the do214 0.1.0 land; do214 0.1.2 changes no pad from 0.1.0"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "w4d-sod1608x70n-c7420320",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD1608X70N",
+      "supplier": "lcsc",
+      "pn": "C7420320",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 180
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 180
+      },
+      "exception": "Per-part mapping: the supplier's SOD-523 model for C7420320 has its cathode at +x, a half turn from this land's pad 1",
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-08",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-08-reverify/README.md",
+        "note": "polarity read by eye with rotate 180 applied: the preview's minus sign and lighter cathode band sit at our cathode silk bar (pad 1) on all four copies, top and bottom, 0 and 37 deg; measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 3.8 deg of the pad axis mod 180, centred within 0.060 mm. What this is not: a measured angle, or a check of the part's identity. Adopted 2026-11-11 from archived row rv1-sod1608x70n-c7420320 (frames.json beside the record), read on the sod 0.1.0 land; sod 0.1.3 changes no pad from 0.1.0; only the silkscreen body lines of this land differ"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "w4d-diom5336x265n-c19077561",
+      "package": "do214",
+      "package_version": "0.1.2",
+      "footprint": "DIOM5336X265N",
+      "supplier": "lcsc",
+      "pn": "C19077561",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-08",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-08-probe/README.md",
+        "note": "SMBJ6.0CA, read by the body only (bidirectional TVS rule): on all four copies (U1-U4: top and bottom, 0 and 37 deg) the drawn body's long axis lies within 0.2 deg of the pad 1 to pad 2 axis mod 180 and its centre within 0.033 mm of the footprint origin (limit 0.25 mm); body 4.48-4.49 x 3.49-3.50 mm against the datasheet's 4.25-4.85 x 3.30-3.94 mm (body.json, stock body_axes.py reach). The probe board was built with zero correction, so this is a reading of the mapping as applied, rotate 0, with no candidate tested against it. The preview draws a generic rectangular body with no band, mark or part text, so the reading shows alignment and centring only, not the part's identity, and the orientation is known mod 180 only (a bidirectional TVS has no polarity). A mirrored model on the bottom side would look the same for this symmetric two-terminal body and would place the same. Valid only because the part is symmetric: this is not a polarity or pin 1 reading. Adopted 2026-11-11 from archived row probe-diom5336x265n-c19077561 (frames.json beside the record), read on the do214 0.1.0 land; do214 0.1.2 changes no pad from 0.1.0"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "w4d-diom7959x261n-c19077609",
+      "package": "do214",
+      "package_version": "0.1.2",
+      "footprint": "DIOM7959X261N",
+      "supplier": "lcsc",
+      "pn": "C19077609",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-08",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-08-probe/README.md",
+        "note": "SMCJ36CA, read by the body only (bidirectional TVS rule): on all four copies (U5-U8: top and bottom, 0 and 37 deg) the drawn body's long axis lies within 0.2 deg of the pad 1 to pad 2 axis mod 180, its edges within 0.4 deg mod 90, and its centre within 0.027 mm of the footprint origin (limit 0.25 mm); body 6.79-6.84 x 5.75-5.78 mm against the datasheet's 6.60-7.11 x 5.59-6.22 mm. Caveat: these come from body-wide.json (tvs_body_wide.py, reach 0.8 mm wider than body_axes.py), because the stock reach of 4.05 mm clips the body corners at 4.46 mm and the body's elongation, 1.18-1.19, is under the 1.2 that body_axes.py requires before it gives a long axis; the stock run (body.json) gives edges within 0.4 deg and centre within 0.020 mm but no long axis. The probe board was built with zero correction, so this is a reading of the mapping as applied, rotate 0, with no candidate tested against it. The preview draws a generic rectangular body with no band, mark or part text, so the reading shows alignment and centring only, not the part's identity, and the orientation is known mod 180 only (a bidirectional TVS has no polarity). A mirrored model on the bottom side would look the same for this symmetric two-terminal body and would place the same. Valid only because the part is symmetric: this is not a polarity or pin 1 reading. Adopted 2026-11-11 from archived row probe-diom7959x261n-c19077609 (frames.json beside the record), read on the do214 0.1.0 land; do214 0.1.2 changes no pad from 0.1.0"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "w4d-sodfl3818x120n-c19077510",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SODFL3818X120N",
+      "supplier": "lcsc",
+      "pn": "C19077510",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-08",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-08-probe/README.md",
+        "note": "SMF15CA, read by the body only (bidirectional TVS rule): on all four copies (U29-U32: top and bottom, 0 and 37 deg) the drawn body's long axis lies within 1.0 deg of the pad 1 to pad 2 axis mod 180 and its centre within 0.045 mm of the footprint origin (limit 0.25 mm); body 2.65-2.69 x 1.63-1.74 mm against the datasheet's 2.55-2.85 x 1.60-1.90 mm (body.json, stock body_axes.py reach). The probe board was built with zero correction, so this is a reading of the mapping as applied, rotate 0, with no candidate tested against it. The preview draws a generic rectangular body with no band, mark or part text, so the reading shows alignment and centring only, not the part's identity, and the orientation is known mod 180 only (a bidirectional TVS has no polarity). A mirrored model on the bottom side would look the same for this symmetric two-terminal body and would place the same. Valid only because the part is symmetric: this is not a polarity or pin 1 reading. Adopted 2026-11-11 from archived row probe-sodfl3818x120n-c19077510 (frames.json beside the record), read on the sod 0.1.0 land; sod 0.1.3 changes no pad from 0.1.0"
       },
       "evidence_ref": null
     },

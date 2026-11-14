@@ -45,3 +45,12 @@ design that left `SD_MODE` unconnected now fails `cohdl check` after
 `cohdl update`; wire it to the logic level or pull-up for the channel it
 needs. The pin number, name and role, the part identity and the land are
 unchanged.
+
+## LCSC binding for NS4150B (0.2.1)
+
+`AMP_NS4150B` binds its primary to LCSC C189961 with a quarter-turn map: `supplier lcsc "C189961" rotate 270`. The part number is in `tools/sourcing_data/lcsc_map.json` (alias rule, 2026-11-07). No land changes from 0.2.0.
+
+- **Why a map.** Preview board 4 placed C189961 with no mapping (`tools/sourcing_data/jlc_previews/2026-11-11-board-4/`): on all four copies the assembler's MSOP-8 model lay a quarter turn from `SOP8P65X490X110N`, its leads above and below where our pads are left and right, pin 1 at 94.8° and 95.2° (top, 0° and 37°) and 264.9° and 265.3° (bottom) counter-clockwise from our pad 1. The land (`footprint-derivations.md`) keeps the datasheet's pin 1 at the upper left and stays where it is; the binding carries the turn.
+- **Evidence.** The frame row `pb5-sop8p65x490x110n-c189961` cites preview board 5 (`tools/sourcing_data/jlc_previews/2026-11-14-board-5/`), which placed the part with `rotate 270` applied. Its pin 1 mark read 4.8° and 5.0° (top) and 354.8° and 354.5° (bottom), 0.65–0.70 mm from pad 1. By eye, on all four copies the model's eight leads lie on our pads, four a side, with its pin 1 dimple at the pad 1 corner.
+- **Per part number.** The mapping is C189961's. Another part number on this land needs its own preview.
+- **What changes in output.** A plain `build` writes the same BOM and CPL; the netlist gains the part's `LCSC` field where a design uses the part. `--supplier lcsc` writes the turn into the LCSC CPL.

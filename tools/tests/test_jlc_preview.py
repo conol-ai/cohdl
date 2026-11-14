@@ -2,6 +2,8 @@ import hashlib
 import io
 import json
 import math
+import os
+import shutil
 import struct
 import subprocess
 import sys
@@ -51,6 +53,69 @@ def chip(ref, x, y, angle=0.0, half=0.8, bottom=False, fpid="passive-CHIP_0603")
     c, s = math.cos(math.radians(angle)), math.sin(math.radians(angle))
     return {"ref": ref, "fpid": fpid, "bottom": bottom, "x": x, "y": y, "angle": angle,
             "pads": [{"num": "1", "x": x - half * c, "y": y - half * s}, {"num": "2", "x": x + half * c, "y": y + half * s}]}
+
+
+def quad(ref, x, y, half=1.0, angle=0.0, bottom=False, fpid="qfn-QFN4"):
+    """A four-pad part: pads 1 to 4 at the corners of a square of half-side HALF, turned ANGLE
+    degrees as KiCad turns a footprint."""
+    c, s = math.cos(math.radians(angle)), math.sin(math.radians(angle))
+    corners = ((-half, -half), (-half, half), (half, half), (half, -half))
+    return {"ref": ref, "fpid": fpid, "bottom": bottom, "x": x, "y": y, "angle": angle,
+            "pads": [{"num": str(i + 1), "x": x + u * c + v * s, "y": y - u * s + v * c} for i, (u, v) in enumerate(corners)]}
+
+
+def at(f, num, out=0.0):
+    """A mark OUT mm beyond pad NUM of F, away from the origin."""
+    pad = next(p for p in f["pads"] if p["num"] == num)
+    d = math.hypot(pad["x"] - f["x"], pad["y"] - f["y"])
+    return (pad["x"] + (pad["x"] - f["x"]) * out / d, pad["y"] + (pad["y"] - f["y"]) * out / d, 300, 0.2, 0.5)
+
+
+FIXTURES = Path(__file__).resolve().parent / "fixtures"
+PREVIEWS = Path(__file__).resolve().parents[1] / "sourcing_data/jlc_previews"
+BODY_OK = {"delta_mod_180": 0.5, "offset_mm": 0.02, "offset_limit_mm": 0.2, "elongation": 1.8, "fill": 1.0}
+
+
+def all_drawn(fps):
+    return {f["ref"]: {"drawn": True, "body": BODY_OK if mp.is_chip(f) else None} for f in fps}
+
+
+def status(marks, fps, attribution=2, readings=None):
+    return {ref: v[0] for ref, v in jp.verdicts(marks, fps, readings or all_drawn(fps), attribution).items()}
+
+
+def crowded_board(iteration, attribution):
+    """The verdicts on the synthetic crowded board (fixtures/preview_marks/crowded-board.json)."""
+    board = json.loads((FIXTURES / "preview_marks/crowded-board.json").read_text(encoding="utf-8"))
+    out = {}
+    for side in ("top", "bottom"):
+        fps = [f for f in board["fps"] if f["bottom"] == (side == "bottom")]
+        found = [tuple(m) for m in board["marks"][iteration][side]]
+        if attribution == 1:  # every cluster, as dots() gives them
+            found = [m[:3] for m in found]
+        else:  # as marks() filters them
+            found = [m for m in found if m[3] <= mp.MARK_AREA_MAX_MM2 and m[4] <= mp.MARK_SIDE_MAX_MM]
+        out.update(jp.verdicts(found, fps, all_drawn(fps), attribution))
+    return out
+
+
+# The archived records that have checks.json: the board.json, the body method they were
+# made with, and what attribution 2 changes: every change is from "mark" to "manual review".
+# TURNED: the part's one mark is a quarter or half turn from pad 1 (the angle is the record's
+# own measurements.json delta_ccw_from_top). SEVERAL: a two-terminal diode or a BGA with two
+# or more marks, which the record read by hand.
+ARCHIVED = {
+    "2026-11-05-c2-board-3": ("board.json", {
+        "turned": "U1 U2 U3 U4 U13 U14 U15 U16 U33 U34 U35 U36 U37 U38 U39 U40",
+        "several": "U17 U18 U19 U20 U21 U22 U23 U24 U46"}),
+    "2026-11-07-w3-pilot-0402": ("board.json", {}),
+    "2026-11-08-probe": ("package/board.json", {
+        "turned": "U13 U14 U15 U16 U17 U18 U19 U20",
+        "several": "U9 U10 U11 U12 U21 U22 U23 U24 U25 U26 U27 U28 U33 U34 U35 U36 U53 U54 U55 U56"}),
+    "2026-11-08-reverify": ("package/board.json", {"several": "U5 U6 U7 U8 U9 U10 U11 U12 U13 U14 U15 U16"}),
+    "2026-11-09-reverify-2": ("package/board.json", {}),
+    "2026-11-11-board-4": ("package/board.json", {"turned": "U1 U2 U3 U4 U5 U6 U7 U8 U9 U10 U11 U12"}),
+}
 
 
 GREEN, COPPER, GREY = (32, 110, 20), (128, 128, 192), (70, 70, 70)  # BGR
@@ -183,7 +248,7 @@ class JlcPreviewTests(unittest.TestCase):
         with mock.patch.object(jp, "TAB", ("W", "T")), mock.patch.object(jp.subprocess, "run", return_value=result):
             self.assertEqual(jp.js("1"), '/quote {"a":"<b"}')
 
-    def test_every_part_needs_a_mark_of_its_own(self):
+    def test_attribution_1_counted_a_mark_for_the_nearest_origin(self):
         qfps = [fp("U%d" % i, 20.0 * i, 0, 8) for i in range(1, 5)]
         bgas = [fp("U5", 100, 0, 3), fp("U6", 120, 0, 3)]
         two = lambda f: [(f["x"] - 3, f["y"] - 3, 9), (f["x"] - 3.6, f["y"] - 3.6, 9)]
@@ -196,6 +261,226 @@ class JlcPreviewTests(unittest.TestCase):
         self.assertEqual(jp.unmarked(partial, qfps + bgas), ["U1", "U3"])
         # A mark beyond every part's reach counts for none.
         self.assertEqual(jp.unmarked([(500, 500, 9)], qfps[:1]), ["U1"])
+
+    def test_a_second_mark_does_not_stand_in_for_a_missing_one(self):
+        # A BGA shows two marks near A1. Its neighbour, 4 mm away, shows none: the BGA's second
+        # mark lies within the neighbour's margin, but nearer the BGA's own pads.
+        bga, other = quad("U1", 10, 10, 2.0), quad("U2", 15, 10, 1.0)
+        two = [at(bga, "4", 0.3), at(bga, "4", 0.9)]
+        self.assertLessEqual(mp.beyond(other, *two[1][:2]), mp.MARK_MARGIN_MM)
+        got = jp.verdicts(two, [bga, other], all_drawn([bga, other]))
+        self.assertEqual(got["U2"], ("manual review", "drawn, with no pin 1 mark of its own"))
+        self.assertEqual(got["U1"], ("manual review", "drawn, with 2 marks of its own: which is pin 1 is read by hand"))
+        # A part that is not drawn owns nothing, and a mark beyond every part's margin counts for none.
+        hidden = dict(all_drawn([bga, other]), U1={"drawn": False, "body": None})
+        self.assertEqual(status([at(bga, "1")], [bga, other], readings=hidden), {"U1": "unverified", "U2": "manual review"})
+        self.assertEqual(status([(500, 500, 9, 0.2, 0.5)], [bga]), {"U1": "manual review"})
+
+    def test_a_chip_part_or_an_inductor_never_takes_a_mark(self):
+        # The mark sits at the IC's pad 1; a capacitor's and an inductor's origins are nearer to it.
+        ic = quad("U1", 10, 10, 1.5)
+        mark = at(ic, "1", 0.4)
+        cap = chip("C1", mark[0] - 0.9, mark[1] - 0.3, half=0.5, fpid="passive-CHIP_0402")
+        coil = chip("L1", mark[0] + 0.2, mark[1] - 1.2, half=0.95, fpid="passive-FP_L_0806_2016Metric")
+        bead = chip("FB1", mark[0] - 1.4, mark[1] + 1.0, half=1.5, fpid="local-FP_BEAD_1206")
+        fps = [ic, cap, coil, bead]
+        self.assertEqual([mp.expects_mark(f) for f in fps], [True, False, False, False])
+        self.assertEqual(jp.unmarked([mark[:3]], fps), ["FB1", "L1", "U1"])  # attribution 1: the capacitor's
+        self.assertEqual(status([mark[:3]], fps, attribution=1),
+                         {"U1": "manual review", "C1": "body", "L1": "manual review", "FB1": "manual review"})
+        self.assertEqual(status([mark], fps), {"U1": "mark", "C1": "body", "L1": "manual review", "FB1": "manual review"})
+        self.assertEqual({ref: len(m) for ref, m in mp.owners([mark], fps).items()}, {"U1": 1, "C1": 0, "L1": 0, "FB1": 0})
+        # Alone with the mark, the inductor still does not take it.
+        self.assertEqual(status([mark], [coil]), {"L1": "manual review"})
+        self.assertIn("no pin 1 mark", jp.verdicts([mark], [coil], all_drawn([coil]))["L1"][1])
+        # A two-terminal part that has a pin 1 (a diode) can own a mark: one at its pad 1 passes.
+        diode = chip("D1", 30, 10, half=1.0, fpid="sod-SOD2613X110N")
+        self.assertTrue(mp.expects_mark(diode))
+        self.assertEqual(status([at(diode, "1")], [diode]), {"D1": "mark"})
+        self.assertEqual(status([at(diode, "1"), at(diode, "2")], [diode]), {"D1": "manual review"})
+
+    def test_a_mark_passes_only_at_pad_1(self):
+        for angle in (0.0, 37.0, 90.0):
+            for bottom in (False, True):
+                ic = quad("U1", 10, 10, 1.5, angle, bottom)
+                with self.subTest(angle=angle, bottom=bottom):
+                    self.assertEqual(status([at(ic, "1", 0.5)], [ic]), {"U1": "mark"})
+                    for num in "234":  # a quarter or half turn off
+                        got = jp.verdicts([at(ic, num, 0.5)], [ic], all_drawn([ic]))["U1"]
+                        self.assertEqual(got[0], "manual review", num)
+                        self.assertRegex(got[1], r"^drawn; pin 1 mark (90|180|270)\.0 deg counter-clockwise from pad 1")
+        # Either side of the limit, about the origin.
+        ic = quad("U1", 10, 10, 1.5)
+        for turn, passes in ((mp.MARK_ANGLE_TOL - 1, True), (-(mp.MARK_ANGLE_TOL - 1), True),
+                             (mp.MARK_ANGLE_TOL + 1, False), (-(mp.MARK_ANGLE_TOL + 1), False)):
+            a = math.radians(135 + turn)  # pad 1 is up and to the left: 135 deg, seen from the top
+            mark = (10 + 2.5 * math.cos(a), 10 - 2.5 * math.sin(a), 300, 0.2, 0.5)
+            with self.subTest(turn=turn):
+                self.assertEqual(status([mark], [ic]), {"U1": "mark" if passes else "manual review"})
+        self.assertEqual(jp.verdicts([at(ic, "1")], [ic], all_drawn([ic]))["U1"],
+                         ("mark", "pin 1 mark 0.0 deg counter-clockwise from pad 1 about the origin, seen from the top "
+                                  "(limit 20 either way), 0.00 mm from pad 1"))
+
+    def test_a_model_placed_with_an_offset_keeps_its_mark(self):
+        # A header whose mark sits 4.1 mm from the origin, inside attribution 1's reach of 4.36;
+        # placed with a 1.0 mm offset, the mark is 4.5 mm away and attribution 1 lost it.
+        conn = {"ref": "J3", "fpid": "local-FP_HEADER_4", "bottom": False, "x": 20.0, "y": 20.0, "angle": 0.0,
+                "pads": [{"num": n, "x": 20.0 + x, "y": 20.0 + y}
+                         for n, x, y in (("1", -1.5, -2.0), ("2", -0.5, -2.0), ("3", 0.5, -2.0), ("4", 1.5, -2.0),
+                                         ("P1", -3.0, 1.0), ("P2", 3.0, 1.0))]}
+        self.assertAlmostEqual(mp.reach(conn), 4.36, places=2)
+        mark, moved = (16.0, 20.9, 300, 0.2, 0.5), (16.0, 21.9, 300, 0.2, 0.5)
+        self.assertEqual((jp.unmarked([mark[:3]], [conn]), jp.unmarked([moved[:3]], [conn])), ([], ["J3"]))
+        self.assertEqual([len(mp.owners([m], [conn])["J3"]) for m in (mark, moved)], [1, 1])
+        # It is J3's mark, but not at pad 1: the tool does not pass it either way.
+        self.assertEqual(status([moved], [conn]), {"J3": "manual review"})
+
+    def test_a_crowded_board_gives_each_mark_to_the_part_that_owns_it(self):
+        # A synthetic board, with two imagined previews of it: in the first U3 is a half turn off,
+        # U5 a quarter turn off and J1's model is placed with an offset; in the second all are right.
+        # ref: (preview 1 by attribution 1, by 2; preview 2 by attribution 1, by 2)
+        m, r = "mark", "manual review"
+        table = {
+            "U1": (r, m, r, m),    # its mark is nearer to C1's origin than to its own
+            "U2": (m, m, m, m),    # its mark is within J1's margin too
+            "U3": (m, r, m, m),    # a half turn off, then right
+            "U4": (r, m, r, m),    # its mark is nearer to the inductor L1's origin
+            "U5": (m, r, m, m),    # a quarter turn off, then right
+            "J1": (r, m, m, m),    # placed with an offset: its mark leaves the reach about its origin
+            "J2": (m, r, m, r),    # a 3.2 mm piece of the model in magenta, not a mark
+            "J3": (m, r, m, r),    # two peg dots, no pin 1 mark
+            "L1": (m, r, m, r),    # an inductor: U4's mark
+            "L2": (r, r, r, r), "L3": (r, r, r, r),
+        }
+        got = [crowded_board(iteration, attribution) for iteration in "12" for attribution in (1, 2)]
+        self.assertEqual({ref: tuple(g[ref][0] for g in got) for ref in table}, table)
+        self.assertTrue(all(g[ref][0] == "body" for g in got for ref in g if ref not in table))
+        # What attribution 2 reads.
+        first, second = got[1], got[3]
+        deg = lambda verdict: float(verdict[1].split("pin 1 mark ")[1].split(" deg")[0])
+        self.assertEqual({ref: deg(first[ref]) for ref in ("U1", "U2", "U3", "U4", "U5", "J1")},
+                         {"U1": 3.2, "U2": 357.6, "U3": 184.1, "U4": 357.0, "U5": 92.0, "J1": 4.6})
+        self.assertEqual({ref: deg(second[ref]) for ref in ("U3", "U5", "J1")}, {"U3": 4.1, "U5": 2.0, "J1": 1.5})
+        self.assertEqual(first["J2"][1], "drawn, with no pin 1 mark of its own")
+        self.assertEqual(first["J3"][1], "drawn, with 2 marks of its own: which is pin 1 is read by hand")
+        self.assertIn("a part of this kind has no pin 1 mark", first["L1"][1])
+        board = json.loads((FIXTURES / "preview_marks/crowded-board.json").read_text(encoding="utf-8"))
+        fps = {f["ref"]: f for f in board["fps"]}
+        nearest = lambda ref, side, k="1": min(board["marks"][k][side],
+                                               key=lambda c: math.hypot(c[0] - fps[ref]["x"], c[1] - fps[ref]["y"]))
+        # The situations are the ones the table names: U1's and U4's marks are nearer to a neighbour's
+        # origin and inside its reach; J1's mark is outside J1's reach in the first preview only.
+        for ic, other in (("U1", "C1"), ("U4", "L1")):
+            mark = nearest(ic, "bottom" if fps[ic]["bottom"] else "top")
+            away = {ref: math.hypot(mark[0] - fps[ref]["x"], mark[1] - fps[ref]["y"]) for ref in (ic, other)}
+            self.assertLess(away[other], min(away[ic], mp.reach(fps[other])))
+            self.assertLess(away[ic], mp.reach(fps[ic]))
+        j1 = [math.hypot(nearest("J1", "top", k)[0] - fps["J1"]["x"], nearest("J1", "top", k)[1] - fps["J1"]["y"]) for k in "12"]
+        self.assertTrue(j1[0] > mp.reach(fps["J1"]) > j1[1])
+        # U2's mark is also within J1's margin; it is U2's by its pad.
+        mark = nearest("U2", "top")
+        self.assertLess(mp.beyond(fps["J1"], *mark[:2]), mp.MARK_MARGIN_MM)
+        self.assertEqual(len(mp.owners([tuple(mark)], [fps["J1"], fps["U2"]])["U2"]), 1)
+        # J2's piece is outside a mark's size; every other cluster is well inside it.
+        sizes = sorted((k[3], k[4]) for side in board["marks"]["1"].values() for k in side)
+        self.assertEqual(sizes[-1], (2.38, 3.2))
+        self.assertLess(sizes[-2][0], mp.MARK_AREA_MAX_MM2 / 3)
+        self.assertLess(max(k[1] for k in sizes[:-1]), mp.MARK_SIDE_MAX_MM / 2)
+
+    def test_a_check_names_its_attribution_and_attribution_1_writes_what_it_always_wrote(self):
+        ic, cap, gone = quad("U1", 10, 10, 1.5), chip("C1", 20, 10), quad("U2", 30, 10, 1.5)
+        fps = [ic, cap, gone]
+        readings = dict(all_drawn(fps), U2={"drawn": False, "body": None})
+        doc = {"bbox": [0, 0, 40, 20], "fps": fps + [quad("U9", 35, 15)]}
+        shown = [([at(ic, "1")], readings), ([at(ic, "1")[:3]], readings)]  # marks(), then dots()
+        with mock.patch.object(jp, "inspect", side_effect=shown) as inspect:
+            two = jp.recheck(doc, {"Top": Path("top.png")}, {"U1", "C1", "U2"})
+            one = jp.recheck(doc, {"Top": Path("top.png")}, {"U1", "C1", "U2"}, attribution=1, body_method=1)
+        self.assertEqual([c.args[4:] for c in inspect.call_args_list], [(2, 2), (1, 1)])
+        self.assertEqual([f["ref"] for f in inspect.call_args.args[3]], ["U1", "C1", "U2"])  # U9 was not placed
+        self.assertEqual({ref: sorted(c) for ref, c in two.items()},
+                         {"U1": ["attribution", "detail", "side", "status"], "C1": ["detail", "side", "status"],
+                          "U2": ["detail", "side", "status"]})
+        self.assertEqual((two["U1"]["attribution"], two["U1"]["status"], two["U2"]["status"]), (2, "mark", "unverified"))
+        self.assertEqual(one["U1"], {"side": "top", "status": "mark", "detail": ""})
+        self.assertEqual(jp.checks_text({"U10": one["U1"], "U2": one["U2"]}).splitlines()[1], ' "U2": {')
+
+    @unittest.skipUnless(os.environ.get("COHDL_REMEASURE_PREVIEWS") and shutil.which("sips"),
+                         "set COHDL_REMEASURE_PREVIEWS=1 on macOS to judge the archived exports again (about two minutes)")
+    def test_each_archived_check_reproduces_under_attribution_1_and_changes_only_where_it_was_wrong(self):
+        for name, (board, changes) in ARCHIVED.items():
+            with self.subTest(record=name):
+                record = PREVIEWS / name
+                archived = (record / "checks.json").read_text(encoding="utf-8")
+                doc = json.loads((record / board).read_text(encoding="utf-8"))
+                exports = {side: record / (side.lower() + ".png") for side in ("Top", "Bottom")
+                           if (record / (side.lower() + ".png")).is_file()}
+                one = jp.recheck(doc, exports, set(json.loads(archived)), attribution=1, body_method=1)
+                if name == "2026-11-07-w3-pilot-0402":
+                    # Made before a body reading had offset_xy_mm: C7's detail, which quotes its reading, lacks it.
+                    self.assertIn('"offset_xy_mm": [-0.008, -0.053]', one["C7"]["detail"])
+                    one["C7"]["detail"] = one["C7"]["detail"].replace(', "offset_xy_mm": [-0.008, -0.053]', "")
+                self.assertEqual(jp.checks_text(one), archived)
+                two = jp.recheck(doc, exports, set(json.loads(archived)), body_method=1)
+                changed = {ref: (one[ref]["status"], two[ref]["status"], two[ref]["detail"])
+                           for ref in one if one[ref]["status"] != two[ref]["status"]}
+                self.assertEqual(sorted(changed, key=jp.natural),
+                                 sorted(" ".join(changes.values()).split(), key=jp.natural))
+                self.assertTrue(all(v[:2] == ("mark", "manual review") for v in changed.values()))
+                if board.startswith("package/") and name != "2026-11-11-board-4":
+                    # measurements.json too; test_measure_preview.py re-measures the other three records.
+                    with tempfile.TemporaryDirectory() as td:
+                        for png in exports.values():
+                            subprocess.run(["sips", "-s", "format", "bmp", str(png), "--out",
+                                            str(Path(td) / (png.stem + ".bmp"))], check=True, capture_output=True)
+                        mp.measure(str(record / board), str(Path(td) / "top.bmp"), str(Path(td) / "bottom.bmp"),
+                                   str(Path(td) / "out.json"), method=1, attribution=1)
+                        self.assertEqual((Path(td) / "out.json").read_bytes(), (record / "measurements.json").read_bytes())
+                measured = {row["ref"]: row for row in json.loads((record / "measurements.json").read_text())}
+                for ref in changes.get("turned", "").split():
+                    delta = measured[ref]["delta_ccw_from_top"]
+                    self.assertGreater(min(delta, 360 - delta), 80, ref)
+                    self.assertIn("pin 1 mark %.1f deg" % delta, changed[ref][2])
+                for ref in changes.get("several", "").split():
+                    self.assertGreaterEqual(len(measured[ref]["dots"]), 2, ref)
+                    self.assertNotIn("delta_ccw_from_top", measured[ref])
+                    self.assertRegex(changed[ref][2], r"with \d marks of its own")
+                # A part that still passes has its one mark at pad 1, as the record measured it.
+                for ref, check in two.items():
+                    if check["status"] == "mark":
+                        delta = measured[ref]["delta_ccw_from_top"]
+                        self.assertLessEqual(min(delta, 360 - delta), 11.4, ref)
+
+    def test_preview_board_5_record_holds_one_mark_at_pad_1_on_every_copy(self):
+        record = PREVIEWS / "2026-11-14-board-5"
+        checks = json.loads((record / "checks.json").read_text(encoding="utf-8"))
+        measured = {row["ref"]: row for row in json.loads((record / "measurements.json").read_text())}
+        self.assertEqual(sorted(checks, key=jp.natural), ["U%d" % n for n in range(1, 13)])
+        for ref, check in checks.items():
+            with self.subTest(ref=ref):
+                self.assertEqual((check["status"], check["attribution"]), ("mark", 2))
+                row = measured[ref]
+                self.assertEqual((len(row["dots"]), row["mark_ok"], row["attribution"]), (1, True, 2))
+                delta = row["delta_ccw_from_top"]
+                self.assertLessEqual(min(delta, 360 - delta), 11.0)
+                self.assertIn("pin 1 mark %.1f deg" % delta, check["detail"])
+
+    @unittest.skipUnless(os.environ.get("COHDL_REMEASURE_PREVIEWS") and shutil.which("sips"),
+                         "set COHDL_REMEASURE_PREVIEWS=1 on macOS to judge the archived exports again")
+    def test_preview_board_5_record_reproduces_with_the_current_tools(self):
+        # Made with attribution 2 and body method 2, the defaults since 2026-11-12.
+        record = PREVIEWS / "2026-11-14-board-5"
+        archived = (record / "checks.json").read_text(encoding="utf-8")
+        doc = json.loads((record / "package/board.json").read_text(encoding="utf-8"))
+        exports = {side: record / (side.lower() + ".png") for side in ("Top", "Bottom")}
+        self.assertEqual(jp.checks_text(jp.recheck(doc, exports, set(json.loads(archived)))), archived)
+        with tempfile.TemporaryDirectory() as td:
+            for png in exports.values():
+                subprocess.run(["sips", "-s", "format", "bmp", str(png), "--out", str(Path(td) / (png.stem + ".bmp"))],
+                               check=True, capture_output=True)
+            mp.measure(str(record / "package/board.json"), str(Path(td) / "top.bmp"), str(Path(td) / "bottom.bmp"),
+                       str(Path(td) / "out.json"))
+            self.assertEqual((Path(td) / "out.json").read_bytes(), (record / "measurements.json").read_bytes())
 
     def test_the_board_must_hold_the_cpl_rows_on_their_sides(self):
         with tempfile.TemporaryDirectory() as td:
@@ -317,11 +602,12 @@ class JlcPreviewTests(unittest.TestCase):
         readings = {"U1": {"drawn": True, "body": None}, "SW1": {"drawn": True, "body": None},
                     "U2": {"drawn": False, "body": None}, "R1": {"drawn": True, "body": ok},
                     "R2": {"drawn": True, "body": turned}, "R3": {"drawn": False, "body": None}}
-        # One mark on U1; a stray mark near R1 is R1's nearest, so it covers neither SW1 nor U2.
+        # One mark on U1; a stray mark near R1 belongs to no part, so it covers neither SW1 nor U2.
         marks = [(16, 16, 9), (10.3, 40, 9)]
-        got = {ref: v[0] for ref, v in jp.verdicts(marks, fps, readings).items()}
-        self.assertEqual(got, {"U1": "mark", "SW1": "manual review", "U2": "unverified",
-                               "R1": "body", "R2": "manual review", "R3": "unverified"})
+        for attribution in (1, 2):
+            got = {ref: v[0] for ref, v in jp.verdicts(marks, fps, readings, attribution).items()}
+            self.assertEqual(got, {"U1": "mark", "SW1": "manual review", "U2": "unverified",
+                                   "R1": "body", "R2": "manual review", "R3": "unverified"})
 
     def test_main_reports_a_stop_as_exit_2_and_a_failed_check_as_exit_1(self):
         err = io.StringIO()

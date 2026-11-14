@@ -17,13 +17,18 @@ hash = "sha256:3526c39b3a6f4c96225411a4178d72b41e74d9759073a5fc26aacb09c9601724"
 
 [[package]]
 name = "diode"
-version = "0.1.1"
-hash = "sha256:fb008f4540ab035f26d2757828b90f0dc254ad71461411256f9de7339f366765"
+version = "0.1.2"
+hash = "sha256:98de50e73759749a6ef9b25b58e9196b7c860efcb37336e568037c5145fbe8bd"
+
+[[package]]
+name = "do214"
+version = "0.1.2"
+hash = "sha256:e7a19e158e33cf2ce93f4bff59181de9cf723ac6a3938cee4f320e3fc5c24a1a"
 
 [[package]]
 name = "esd"
-version = "0.1.2"
-hash = "sha256:6195444ed69f363bdc42663e34b9e9c97f0335034ea0dd763573422a4c2595f6"
+version = "0.1.4"
+hash = "sha256:57ef42b05ef98451598a38680d6f952b9f89231dc03e20a87dc679651d19f938"
 
 [[package]]
 name = "flash"
@@ -54,6 +59,11 @@ hash = "sha256:aa64728d719bcbfc32718100b4bea3b17fb9ceb7af8c6354c0bd96680d4ae028"
 name = "qfn"
 version = "0.3.0"
 hash = "sha256:602a7a2ada6975f4056d9b250a0a6b692b1a7e236257cc5e27f542e8eb82ec9f"
+
+[[package]]
+name = "sod"
+version = "0.1.3"
+hash = "sha256:5f24ff5d7235f2757e970e0dad57a562ba8cb268a804b00d393848d33239d58d"
 
 [[package]]
 name = "soic"

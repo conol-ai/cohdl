@@ -2,7 +2,8 @@
 
 Reusable DO-214 land patterns, and the flat-lead SMAF outline, for new parts
 (library plan W4, item 3c, waves 1 to 3). This package ships lands only: no device, no part and no
-supplier binding. Bindings come after the JLCPCB frame preview boards. One
+supplier binding. Parts live in the category packages; the
+first three on these lands are listed under "Preview readings" below. One
 land per standard outline is taken from one primary document and
 cross-checked against one tier-1 manufacturer document; when the primary
 gives no land, the land is derived from the cross-check document and says
@@ -15,12 +16,38 @@ CoHDL board frame: +x right, **+y down**, top view, origin at the package
 centre. **Pad 1 is the cathode (band end) at -x**; pad 2 is the anode at +x,
 the same frame as `sod`. The silkscreen carries
 `polarity_marker cathode_pin 1 shape band` (RFC-031) outboard of pad 1 and
-the two long body edges. No DO-214 or SMAF part has been read on a preview
-board yet: this orientation is the one the assembler reads as 0 degrees for
-SOD parts. do214 0.1.0 was published (2026-11-09) with it, so it remains
-unconfirmed by a frame board for SMA, SMB, SMC and SMAF; a change to pad
-numbering or rotation would be a breaking change needing a new minor version.
-Bidirectional TVS parts (`...CA`) carry no band but reuse this land.
+the two long body edges. This orientation is the one the assembler reads as
+0 degrees for some SOD parts; do214 0.1.0 was published (2026-11-09) with it
+before any DO-214 part had been read. A change to pad numbering or rotation
+would be a breaking change needing a new minor version. Bidirectional TVS
+parts (`...CA`) carry no band but reuse this land.
+
+### Preview readings on these lands (2026-11-08)
+
+Three part numbers have been read on assembler previews of these lands. The
+readings are per part number; they do not confirm the frame for the lands as
+a whole (open question 3).
+
+| Land | Part number | Reading | Library part and mapping |
+|---|---|---|---|
+| `DIOM5026X241N` (SMA) | C7420365 SS34 | Polarized. The assembler's model has its cathode at +x, a half turn from pad 1. With `rotate 180` applied, the model's minus sign and cathode band sat at the cathode silk bar on all four copies (read by eye; the measuring script gives no angle for a model with two marks). The preview labels the model SMAJ12A, so this shows the polarity of that part number in that preview, not the part's identity. | `diode::SCHOTTKY_SS34`; bound with `rotate 180` |
+| `DIOM5336X265N` (SMB) | C19077561 SMBJ6.0CA | Bidirectional TVS, read by the body only on a board with no correction: long axis within 0.2 degrees of the pad axis, centre within 0.033 mm, on all four copies. | `esd::TVS_SMBJ6V0CA`; bound with a zero mapping |
+| `DIOM7959X261N` (SMC) | C19077609 SMCJ36CA | Bidirectional TVS, read by the body only: long axis within 0.2 degrees, centre within 0.027 mm. Caveat: read with a window 0.8 mm wider than the stock body script, which clips this body's corners and gives no long axis for a body only 1.18 times as long as wide. | `esd::TVS_SMCJ36CA`; bound with a zero mapping |
+
+A body reading shows alignment and centring; the direction is known mod 180
+only, which is enough only because a bidirectional TVS is symmetric. So the
+one polarized part read on these lands is a half turn from the land, and the
+two TVS readings cannot show direction: the frame is not confirmed as the
+assembler's zero for SMA, SMB or SMC. One part number is too few to move a
+land, so the half turn is a per-part mapping. No SMAF part has been read. The
+records are `tools/sourcing_data/jlc_previews/2026-11-08-reverify/` and
+`tools/sourcing_data/jlc_previews/2026-11-08-probe/` in the repository.
+
+All three parts are bound since 2026-11-11 (SS34, SMBJ6.0CA and SMCJ36CA; `diode` 0.1.2
+and `esd` 0.1.3), with the mappings above: their part numbers reached
+`tools/sourcing_data/lcsc_map.json` through the backfill run of that date, and
+the archived rows were copied into `jlc_frames.json` keyed to this package's
+version. The bindings are per part number and still do not confirm the frame.
 
 ## Lands
 
@@ -189,11 +216,14 @@ None in the library for SMA, SMB, SMC or SMAF.
    (hundredths), giving `DIOM5026X241N` where JEDEC-fed calculators give
    about `DIOM5226X244N`. *Settled by publication:* do214 0.1.0 was
    published with this name, so it is permanent.
-3. **Frame confirmation.** The -x cathode frame is not yet measured for any
-   DO-214 part. do214 0.1.0 was published (2026-11-09) without that reading,
-   so this is an open item on a published package: the frame remains
-   unconfirmed until the wave-1 and wave-2 frame boards read SMA, SMB and
-   SMC. A change to pad numbering or rotation would be a breaking change
+3. **Frame confirmation.** do214 0.1.0 was published (2026-11-09) before
+   any DO-214 part had been read. The first readings (2026-11-08, "Preview
+   readings" above) do not confirm the -x cathode frame: the one polarized
+   part (SS34 on SMA) read a half turn from the land, and the SMB and SMC
+   readings are of bidirectional parts, which cannot show direction. So this
+   stays an open item on a published package: more polarized part numbers
+   must be read on SMA, SMB and SMC, and any on SMAF, before the frame is
+   called confirmed or the lands are turned. A change to pad numbering or rotation would be a breaking change
    needing a new minor version.
 4. **SMB heel coverage.** `DIOM5336X265N` takes the SMBJ gap at its 2.74 mm
    maximum, as the SMA land does with its K limit. With Hongjiacheng's

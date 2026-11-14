@@ -1,0 +1,15 @@
+[designators]
+"FramePreview::Cand_AMP_NS4150B_C189961_0" = "U1"
+"FramePreview::Cand_AMP_NS4150B_C189961_1" = "U2"
+"FramePreview::Cand_AMP_NS4150B_C189961_2" = "U3"
+"FramePreview::Cand_AMP_NS4150B_C189961_3" = "U4"
+"FramePreview::Cand_ESD_USBLC6_C7519_0" = "U5"
+"FramePreview::Cand_ESD_USBLC6_C7519_1" = "U6"
+"FramePreview::Cand_ESD_USBLC6_C7519_2" = "U7"
+"FramePreview::Cand_ESD_USBLC6_C7519_3" = "U8"
+"FramePreview::Cand_LOADSW_TPS22918DBVR_C131941_0" = "U9"
+"FramePreview::Cand_LOADSW_TPS22918DBVR_C131941_1" = "U10"
+"FramePreview::Cand_LOADSW_TPS22918DBVR_C131941_2" = "U11"
+"FramePreview::Cand_LOADSW_TPS22918DBVR_C131941_3" = "U12"
+
+[tombstones]

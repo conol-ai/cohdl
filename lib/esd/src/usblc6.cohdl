@@ -16,7 +16,8 @@ impl IC for USBLC6 {}
 
 #[doc("docs/st-usblc6-2-datasheet.pdf")]
 pub part ESD_USBLC6: USBLC6 {
-    primary { mfr: "STMicroelectronics", mpn: "USBLC6-2SC6", footprint: FP_SOT_23_6 }
+    primary { mfr: "STMicroelectronics", mpn: "USBLC6-2SC6", footprint: FP_SOT_23_6,
+              supplier lcsc "C7519" rotate 270 }
 }
 
 // ST Figure 19 recommends 0.60 x 1.20mm lands. This footprint rotates the

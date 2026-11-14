@@ -1,0 +1,251 @@
+{
+ "note": "Synthetic: every footprint, coordinate and mark here is invented for the tests; it is not a record of any board or preview. fps are footprints as board.json gives them (mm, bottom parts in board coordinates); marks are magenta clusters as measure_preview.clusters gives them (x, y, pixels, area in mm2, longer side in mm) for two imagined previews, \"1\" with some models misplaced and \"2\" with all of them right.",
+ "marks": {
+  "1": {
+   "top": [
+    [6.12, 6.319, 300, 0.21, 0.52],
+    [12.772, 17.165, 300, 0.21, 0.52],
+    [21.4, 21.9, 3400, 2.38, 3.2],
+    [28.0, 22.9, 280, 0.196, 0.5],
+    [34.0, 22.9, 282, 0.197, 0.5],
+    [31.981, 9.716, 300, 0.21, 0.52],
+    [5.0, 16.6, 300, 0.21, 0.52]
+   ],
+   "bottom": [
+    [8.313, 8.126, 430, 0.28, 0.61],
+    [23.453, 11.659, 430, 0.28, 0.61]
+   ]
+  },
+  "2": {
+   "top": [
+    [6.12, 6.319, 300, 0.21, 0.52],
+    [12.772, 17.165, 300, 0.21, 0.52],
+    [21.4, 21.9, 3400, 2.38, 3.2],
+    [28.0, 22.9, 280, 0.196, 0.5],
+    [34.0, 22.9, 282, 0.197, 0.5],
+    [28.019, 6.284, 300, 0.21, 0.52],
+    [5.827, 17.256, 300, 0.21, 0.52]
+   ],
+   "bottom": [
+    [8.313, 8.126, 430, 0.28, 0.61],
+    [23.341, 8.453, 430, 0.28, 0.61]
+   ]
+  }
+ },
+ "fps": [
+  {
+   "ref": "U1",
+   "fpid": "example-QUAD_4",
+   "bottom": false,
+   "x": 8,
+   "y": 8,
+   "angle": 0.0,
+   "pads": [
+    {"num": "1", "x": 6.5, "y": 6.5},
+    {"num": "2", "x": 6.5, "y": 9.5},
+    {"num": "3", "x": 9.5, "y": 9.5},
+    {"num": "4", "x": 9.5, "y": 6.5}
+   ]
+  },
+  {
+   "ref": "U2",
+   "fpid": "example-QUAD_4",
+   "bottom": false,
+   "x": 14,
+   "y": 18.5,
+   "angle": 0.0,
+   "pads": [
+    {"num": "1", "x": 13.0, "y": 17.5},
+    {"num": "2", "x": 13.0, "y": 19.5},
+    {"num": "3", "x": 15.0, "y": 19.5},
+    {"num": "4", "x": 15.0, "y": 17.5}
+   ]
+  },
+  {
+   "ref": "U3",
+   "fpid": "example-QUAD_4",
+   "bottom": false,
+   "x": 30,
+   "y": 8,
+   "angle": 0.0,
+   "pads": [
+    {"num": "1", "x": 28.5, "y": 6.5},
+    {"num": "2", "x": 28.5, "y": 9.5},
+    {"num": "3", "x": 31.5, "y": 9.5},
+    {"num": "4", "x": 31.5, "y": 6.5}
+   ]
+  },
+  {
+   "ref": "J1",
+   "fpid": "example-HEADER_4",
+   "bottom": false,
+   "x": 8,
+   "y": 20,
+   "angle": 0.0,
+   "pads": [
+    {"num": "1", "x": 6.5, "y": 18.0},
+    {"num": "2", "x": 7.5, "y": 18.0},
+    {"num": "3", "x": 8.5, "y": 18.0},
+    {"num": "4", "x": 9.5, "y": 18.0},
+    {"num": "P1", "x": 5.0, "y": 21.0},
+    {"num": "P2", "x": 11.0, "y": 21.0}
+   ]
+  },
+  {
+   "ref": "J2",
+   "fpid": "example-HEADER_4",
+   "bottom": false,
+   "x": 21,
+   "y": 21,
+   "angle": 0.0,
+   "pads": [
+    {"num": "1", "x": 19.5, "y": 19.0},
+    {"num": "2", "x": 20.5, "y": 19.0},
+    {"num": "3", "x": 21.5, "y": 19.0},
+    {"num": "4", "x": 22.5, "y": 19.0},
+    {"num": "P1", "x": 18.0, "y": 22.0},
+    {"num": "P2", "x": 24.0, "y": 22.0}
+   ]
+  },
+  {
+   "ref": "J3",
+   "fpid": "example-HEADER_4",
+   "bottom": false,
+   "x": 31,
+   "y": 21,
+   "angle": 0.0,
+   "pads": [
+    {"num": "1", "x": 29.5, "y": 19.0},
+    {"num": "2", "x": 30.5, "y": 19.0},
+    {"num": "3", "x": 31.5, "y": 19.0},
+    {"num": "4", "x": 32.5, "y": 19.0},
+    {"num": "P1", "x": 28.0, "y": 22.0},
+    {"num": "P2", "x": 34.0, "y": 22.0}
+   ]
+  },
+  {
+   "ref": "C1",
+   "fpid": "passive-CHIP_0402",
+   "bottom": false,
+   "x": 5.6,
+   "y": 6.0,
+   "angle": 0.0,
+   "pads": [
+    {"num": "1", "x": 5.1, "y": 6.0},
+    {"num": "2", "x": 6.1, "y": 6.0}
+   ]
+  },
+  {
+   "ref": "C2",
+   "fpid": "passive-CHIP_0402",
+   "bottom": false,
+   "x": 20,
+   "y": 8,
+   "angle": 0.0,
+   "pads": [
+    {"num": "1", "x": 19.5, "y": 8},
+    {"num": "2", "x": 20.5, "y": 8}
+   ]
+  },
+  {
+   "ref": "R1",
+   "fpid": "passive-CHIP_0402",
+   "bottom": false,
+   "x": 22,
+   "y": 8,
+   "angle": 90.0,
+   "pads": [
+    {"num": "1", "x": 22, "y": 7.5},
+    {"num": "2", "x": 22, "y": 8.5}
+   ]
+  },
+  {
+   "ref": "L2",
+   "fpid": "passive-FP_L_0806_2016Metric",
+   "bottom": false,
+   "x": 36,
+   "y": 26,
+   "angle": 0.0,
+   "pads": [
+    {"num": "1", "x": 35.05, "y": 26},
+    {"num": "2", "x": 36.95, "y": 26}
+   ]
+  },
+  {
+   "ref": "U4",
+   "fpid": "example-QUAD_4",
+   "bottom": true,
+   "x": 10,
+   "y": 10,
+   "angle": 0.0,
+   "pads": [
+    {"num": "1", "x": 8.5, "y": 8.5},
+    {"num": "2", "x": 8.5, "y": 11.5},
+    {"num": "3", "x": 11.5, "y": 11.5},
+    {"num": "4", "x": 11.5, "y": 8.5}
+   ]
+  },
+  {
+   "ref": "U5",
+   "fpid": "example-QUAD_4",
+   "bottom": true,
+   "x": 25,
+   "y": 10,
+   "angle": 0.0,
+   "pads": [
+    {"num": "1", "x": 23.75, "y": 8.75},
+    {"num": "2", "x": 23.75, "y": 11.25},
+    {"num": "3", "x": 26.25, "y": 11.25},
+    {"num": "4", "x": 26.25, "y": 8.75}
+   ]
+  },
+  {
+   "ref": "L1",
+   "fpid": "passive-FP_L_0806_2016Metric",
+   "bottom": true,
+   "x": 7.7,
+   "y": 7.5,
+   "angle": 90.0,
+   "pads": [
+    {"num": "1", "x": 7.7, "y": 6.55},
+    {"num": "2", "x": 7.7, "y": 8.45}
+   ]
+  },
+  {
+   "ref": "L3",
+   "fpid": "passive-FP_L_0806_2016Metric",
+   "bottom": true,
+   "x": 30,
+   "y": 22,
+   "angle": 0.0,
+   "pads": [
+    {"num": "1", "x": 29.05, "y": 22},
+    {"num": "2", "x": 30.95, "y": 22}
+   ]
+  },
+  {
+   "ref": "C3",
+   "fpid": "passive-CHIP_0402",
+   "bottom": true,
+   "x": 18,
+   "y": 20,
+   "angle": 0.0,
+   "pads": [
+    {"num": "1", "x": 17.5, "y": 20},
+    {"num": "2", "x": 18.5, "y": 20}
+   ]
+  },
+  {
+   "ref": "C4",
+   "fpid": "passive-CHIP_0402",
+   "bottom": true,
+   "x": 20,
+   "y": 20,
+   "angle": 0.0,
+   "pads": [
+    {"num": "1", "x": 19.5, "y": 20},
+    {"num": "2", "x": 20.5, "y": 20}
+   ]
+  }
+ ]
+}

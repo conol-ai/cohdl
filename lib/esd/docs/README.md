@@ -119,3 +119,13 @@ Each part binds its primary with no rotation and no offset: `supplier lcsc
   `tools/sourcing_data/jlc_previews/2026-11-08-probe/frames.json`, keyed to
   `do214` 0.1.2 and `sod` 0.1.3. The readings were made on the 0.1.0 lands;
   no pad has changed since.
+
+## LCSC binding for USBLC6 (esd 0.1.4)
+
+`ESD_USBLC6` binds its primary to LCSC C7519 with a quarter-turn map: `supplier lcsc "C7519" rotate 270`. The part number is in `tools/sourcing_data/lcsc_map.json` (exact rule, 2026-11-07). This version is `esd` 0.1.3 plus this binding and this section; no land changes.
+
+- **Why a map.** Preview board 4 placed C7519 with no mapping (`tools/sourcing_data/jlc_previews/2026-11-11-board-4/`): on all four copies the assembler's model lay a quarter turn from `FP_SOT_23_6`, pin 1 at 100.1° and 100.8° (top, 0° and 37°) and 259.7° and 259.9° (bottom) counter-clockwise from our pad 1. The land follows ST's Figure 19 and stays where it is; the binding carries the turn.
+- **Evidence.** The frame row `pb5-fpsot236-c7519` cites preview board 5 (`tools/sourcing_data/jlc_previews/2026-11-14-board-5/`), which placed the part with `rotate 270` applied. Its pin 1 mark read 10.6° and 10.0° (top) and 349.4° and 349.2° (bottom), 0.53–0.56 mm from pad 1. The mark sits outside the body beside the pad 1 lead, which is where the 10° comes from (board 4 read the same 10° past the quarter turn). By eye, on all four copies the model's six leads lie on our pads, three a side, with its pin 1 dimple at the pad 1 corner.
+- **Per part number, not per land.** Other part numbers on SOT-23-6 lands read differently on C2 frame board 1: C85364 on this land needs 180 (its row `c2b1-sot236_esd-c85364` still binds nothing here), and C12044 on `load-switch::FP_TI_DBV0006A` needs 270. A rotation proved for C7519 says nothing about another part number on `FP_SOT_23_6`.
+- **Frame rows.** All three `esd` rows now name 0.1.4.
+- **What changes in output.** A plain `build` writes the same BOM and CPL; the netlist gains the part's `LCSC` field. `--supplier lcsc` writes the turn into the LCSC CPL.

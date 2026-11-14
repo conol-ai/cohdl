@@ -473,7 +473,7 @@ class FrameBoardTests(unittest.TestCase):
         data = ROOT / "tools/sourcing_data"
         pages = {r["c"]: r for r in json.load(open(data / "lcsc_backfill/2026-11-07-samsung-b1/confirmed.json"))}
         mapped = {r["pn"]: r for r in json.load(open(data / "lcsc_map.json"))["rows"]}
-        framed = {r["pn"] for r in json.load(open(data / "jlc_frames.json"))["rows"]}
+        framed = {r["pn"]: r for r in json.load(open(data / "jlc_frames.json"))["rows"]}
         raw = {m["ref"]: m for m in json.load(open(data / "jlc_previews/2026-11-11-board-4/measurements.json"))}
         with open(data / "jlc_previews/2026-11-11-board-4/package/preview_board_4-lcsc-bom.csv", encoding="utf-8-sig") as f:
             raw_refs = {r["LCSC Part #"]: r["Designator"].split(",") for r in csv.DictReader(f)}
@@ -489,7 +489,10 @@ class FrameBoardTests(unittest.TestCase):
                 self.assertEqual([(p["rotate"], p["side"]) for p in row["placements"]], self.FOUR_COPIES)
                 self.assertEqual(row["mapping"], {"dx_mm": 0, "dy_mm": 0, "rotate_deg": row["candidate"]["rotate_deg"]})
                 self.assertNotIn("library_part", row)
-                self.assertNotIn(row["pn"], framed)  # a candidate: nothing is bound or recorded from this file
+                # Nothing is bound or recorded from this file. The board's own preview confirmed the candidate,
+                # and the one frame row for the part number cites that record with the candidate as mapping.
+                self.assertEqual((framed[row["pn"]]["evidence"]["record"], framed[row["pn"]]["mapping"]),
+                                 ("tools/sourcing_data/jlc_previews/2026-11-14-board-5/README.md", row["mapping"]))
                 # The candidate is what board 4 read raw on its four copies (top 0, top 37, bottom 0, bottom 37),
                 # to the nearest quarter turn: a bottom copy reads the mirror of a top one.
                 read = [raw[ref]["delta_ccw_from_top"] for ref in raw_refs[row["pn"]]]

@@ -451,6 +451,37 @@ class JlcPreviewTests(unittest.TestCase):
                         delta = measured[ref]["delta_ccw_from_top"]
                         self.assertLessEqual(min(delta, 360 - delta), 11.4, ref)
 
+    def test_preview_board_5_record_holds_one_mark_at_pad_1_on_every_copy(self):
+        record = PREVIEWS / "2026-11-14-board-5"
+        checks = json.loads((record / "checks.json").read_text(encoding="utf-8"))
+        measured = {row["ref"]: row for row in json.loads((record / "measurements.json").read_text())}
+        self.assertEqual(sorted(checks, key=jp.natural), ["U%d" % n for n in range(1, 13)])
+        for ref, check in checks.items():
+            with self.subTest(ref=ref):
+                self.assertEqual((check["status"], check["attribution"]), ("mark", 2))
+                row = measured[ref]
+                self.assertEqual((len(row["dots"]), row["mark_ok"], row["attribution"]), (1, True, 2))
+                delta = row["delta_ccw_from_top"]
+                self.assertLessEqual(min(delta, 360 - delta), 11.0)
+                self.assertIn("pin 1 mark %.1f deg" % delta, check["detail"])
+
+    @unittest.skipUnless(os.environ.get("COHDL_REMEASURE_PREVIEWS") and shutil.which("sips"),
+                         "set COHDL_REMEASURE_PREVIEWS=1 on macOS to judge the archived exports again")
+    def test_preview_board_5_record_reproduces_with_the_current_tools(self):
+        # Made with attribution 2 and body method 2, the defaults since 2026-11-12.
+        record = PREVIEWS / "2026-11-14-board-5"
+        archived = (record / "checks.json").read_text(encoding="utf-8")
+        doc = json.loads((record / "package/board.json").read_text(encoding="utf-8"))
+        exports = {side: record / (side.lower() + ".png") for side in ("Top", "Bottom")}
+        self.assertEqual(jp.checks_text(jp.recheck(doc, exports, set(json.loads(archived)))), archived)
+        with tempfile.TemporaryDirectory() as td:
+            for png in exports.values():
+                subprocess.run(["sips", "-s", "format", "bmp", str(png), "--out", str(Path(td) / (png.stem + ".bmp"))],
+                               check=True, capture_output=True)
+            mp.measure(str(record / "package/board.json"), str(Path(td) / "top.bmp"), str(Path(td) / "bottom.bmp"),
+                       str(Path(td) / "out.json"))
+            self.assertEqual((Path(td) / "out.json").read_bytes(), (record / "measurements.json").read_bytes())
+
     def test_the_board_must_hold_the_cpl_rows_on_their_sides(self):
         with tempfile.TemporaryDirectory() as td:
             board = Path(td) / "board.json"

@@ -14,7 +14,10 @@ Each row declares a local part with the map row's identity on the library
 entry's device type and land, as on board 4, and carries the candidate as its
 `mapping`, which `jlc_frame_board.py` writes into the supplier CPL. Each is
 placed four times: top 0 and 37 degrees, bottom 0 and 37 degrees. Nothing here
-is a binding, and no frame row is written from this file.
+is a binding, and no frame row is written from this file. The board was
+previewed on 2026-11-14 (jlc_previews/2026-11-14-board-5) and confirmed all three
+candidates, which are now bound; the generator accepts a bound or framed part
+number only where its frame row cites that record with the candidate as mapping.
 
 The board-4 record showed silkscreen reference text disturbing readings beside
 a part. The copies therefore stand 16 mm apart, and the package is to be built
@@ -32,13 +35,15 @@ HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
 DATA = ROOT / "tools/sourcing_data"
 RECORD = "tools/sourcing_data/jlc_previews/2026-11-11-board-4/README.md"
+# The record of this board's own preview, which confirmed all three candidates (2026-11-14).
+PREVIEWED = "tools/sourcing_data/jlc_previews/2026-11-14-board-5/README.md"
 with tempfile.TemporaryDirectory() as td:
     subprocess.run([sys.executable, "-I", str(HERE / "inventory.py"), str(Path(td) / "inv.json")],
                    check=True, capture_output=True)
     inv = json.load(open(Path(td) / "inv.json"))
 pages = {r["c"]: r for r in json.load(open(DATA / "lcsc_backfill/2026-11-07-samsung-b1/confirmed.json"))}
 mapped = {r["pn"]: r for r in json.load(open(DATA / "lcsc_map.json"))["rows"]}
-framed = {r["pn"] for r in json.load(open(DATA / "jlc_frames.json"))["rows"]}
+framed = {r["pn"]: r for r in json.load(open(DATA / "jlc_frames.json"))["rows"]}
 
 # (part number, library part as package::PART, candidate rotate, what board 4 read:
 # its pin 1 counter-clockwise from ours on top 0, top 37, bottom 0, bottom 37, seen from the top)
@@ -67,7 +72,8 @@ for directory, (package, _) in sorted(inv["pkgs"].items()):
             key = package + "::" + m.group(1)
             if key in parts:
                 parts[key]["entries"] = ENTRY.findall(m.group(2))
-                parts[key]["bound"] = set(re.findall(r'supplier lcsc "(C\d+)"', m.group(2)))
+                parts[key]["bound"] = {pn: int(turn or 0) for pn, turn in
+                                       re.findall(r'supplier lcsc "(C\d+)"(?: rotate (\d+))?', m.group(2))}
 
 deps, rows = {"std": "0.3.0"}, []
 for i, (pn, key, rotate, read) in enumerate(CANDIDATES):
@@ -78,8 +84,12 @@ for i, (pn, key, rotate, read) in enumerate(CANDIDATES):
     entry = next((e for e in part["entries"] if (e[1], e[2]) == (mapped[pn]["mfr"], mapped[pn]["mpn"])), None)
     if entry is None or page["mpn"] != mapped[pn]["mpn"]:
         raise SystemExit(f"{pn}: {key} has no entry {mapped[pn]['mfr']} {mapped[pn]['mpn']}")
-    if pn in part["bound"] or pn in framed:
-        raise SystemExit(f"{pn}: already bound or has a frame row; it is not a candidate any more")
+    # Since its preview a candidate may be bound and framed, but only as this board confirmed it.
+    row = framed.get(pn)
+    if row is not None and (row["evidence"]["record"] != PREVIEWED or row["mapping"] != {"dx_mm": 0, "dy_mm": 0, "rotate_deg": rotate}):
+        raise SystemExit(f"{pn}: has a frame row that is not this board's confirmation of rotate {rotate}")
+    if pn in part["bound"] and (row is None or part["bound"][pn] != rotate):
+        raise SystemExit(f"{pn}: bound otherwise than this board confirmed (rotate {rotate})")
     package, footprint = part["pkg"], part["footprint"]
     fp_package, fp_name = footprint.split("::", 1)
     cx, cy, w, h = map(float, inv["footprints"][footprint]["courtyard"])

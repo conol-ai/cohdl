@@ -2,7 +2,9 @@
 
 Preview board 4 placed three ICs with no mapping, and each read the same turn on all four copies (`tools/sourcing_data/jlc_previews/2026-11-11-board-4/`, section A). A raw reading is a candidate, not a mapping. This board places the same three part numbers **with the candidate applied**, as the re-verify boards of 2026-11-08 and 2026-11-09 did for theirs. If the preview then shows each model's leads on our pads with pin 1 at our pad 1, on all four copies, the candidate is confirmed and the part number can be bound.
 
-**Not previewed yet.** Nothing has been uploaded. An upload needs Alex's approval for the exact package (its SHA-256). No binding and no frame row comes from this board until its preview has been run and recorded.
+**Previewed on 2026-11-14; all three candidates confirmed.** The package built at `e6a0f92` (SHA-256 `f6af93dcb7028bb34a60ba9c85ff9deed99e7fadecb08b67257ddf83fb25c5a6`) went through the assembler's preview with Alex's approval and stopped at Component Placements: nothing was added to the cart. On all 12 copies the model's one pin 1 mark is at our pad 1 and its leads are on our pads. The record is `tools/sourcing_data/jlc_previews/2026-11-14-board-5/`, and the bindings it supports are `esd` 0.1.4, `load-switch` 0.2.1 and `@contrib/audio-amp` 0.2.1 ("After the preview" below).
+
+**The manifest has moved since.** It now pins those three versions, because `preview_board_5.py` reads the library's versions and `preview_package.py` requires its output. Its rows are unchanged: each still declares a local part carrying the candidate as its `mapping`, so the board's BOM and CPL are the same. The generator now accepts a part number that is bound or framed only where its frame row cites the board-5 record with the candidate as mapping. The package that was previewed, with its `manifest.json` pinning `esd` 0.1.2, `load-switch` 0.2.0 and `@contrib/audio-amp` 0.2.0, is kept unchanged in the record's `package/`.
 
 ## What it carries
 
@@ -66,3 +68,5 @@ The record goes to `tools/sourcing_data/jlc_previews/<date>-board-5/` with the e
 - the pins, manifests and locks that follow.
 
 A candidate that does not pass stays unbound, with what was read.
+
+All three passed (2026-11-14). The frame rows are `pb5-fpsot236-c7519`, `pb5-fptidbv0006a-c131941` and `pb5-sop8p65x490x110n-c189961`; the bindings are in `esd` 0.1.4 (#110's 0.1.3 plus this binding), `load-switch` 0.2.1 and `@contrib/audio-amp` 0.2.1.

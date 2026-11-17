@@ -31,7 +31,9 @@ def scan(root):
     """Every file under `root`, read as bytes, so no encoding or file type is skipped: text records,
     image metadata, and a zip's stored names. A zip's members are also inflated and scanned."""
     found, files = [], 0
-    for path in sorted(p for p in root.rglob("*") if p.is_file()):
+    # Bytecode caches are untracked build output (`.gitignore`), and a `.pyc` embeds the absolute
+    # path of its source: an evidence script imported by a test would otherwise fail this scan.
+    for path in sorted(p for p in root.rglob("*") if p.is_file() and "__pycache__" not in p.parts):
         files += 1
         data = path.read_bytes()
         rel = path.relative_to(root).as_posix()

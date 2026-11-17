@@ -1,6 +1,6 @@
 [package]
 name = "do214"
-version = "0.1.1"
+version = "0.1.2"
 license = "MIT"
 description = "Audited DO-214 (SMA, SMB, SMC) and SMAF diode land patterns, authored on the assembler's frame."
 repository = "https://github.com/conol-ai/cohdl"

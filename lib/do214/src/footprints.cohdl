@@ -4,12 +4,14 @@
 // Frame convention, shared by every footprint in this package: CoHDL's
 // board frame (+x right, +y DOWN, top view), origin at the package centre.
 // Pad 1 is the CATHODE (the band end) and sits at -x; pad 2 is the anode
-// at +x, the same frame as the `sod` package. The assembler has not yet read
-// a DO-214 part on a preview board; this orientation is the one it reads as
-// 0 degrees for SOD parts. do214 0.1.0 was published (2026-11-09) with it,
-// so it remains unconfirmed by a frame board for every land here; a change
-// to pad numbering or rotation would be a breaking change needing a new
-// minor version.
+// at +x, the same frame as the `sod` package. This orientation is the one
+// the assembler reads as 0 degrees for some SOD parts. do214 0.1.0 was
+// published (2026-11-09) with it. The first part numbers read on these
+// lands (2026-11-08) are per-part results and do not confirm the frame: SS34
+// on SMA needed a half turn, and the SMB and SMC readings are of
+// bidirectional TVS parts, read by the body only (docs/README.md, "Preview
+// readings"). A change to pad numbering or rotation would be a breaking
+// change needing a new minor version.
 //
 // Names are IPC-7351B-style (DIOM + overall length + body width X height,
 // length and width in tenths of a millimetre, height in hundredths) but

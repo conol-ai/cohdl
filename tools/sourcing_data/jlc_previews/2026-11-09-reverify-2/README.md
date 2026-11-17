@@ -99,3 +99,9 @@ The two `lib/flash` trees differ in two files only (`git diff 7200cf2 38b8434 --
 Both hashes were reproduced by a reviewer on 2026-11-11 by taking the package out of each commit and running the compiler offline with an isolated cache. `main` at `a0c5d11` differs from each tree again (it carries the C97521 binding and its README section as merged), so the published `flash` 0.3.0 has a third hash.
 
 **This does not touch the W25Q32 evidence.** `src/w25q32.cohdl` is the same blob (`5dd19dc4…`) in both commits and on `main` at `a0c5d11`: the part definition and the land `FP_W25Q32RV_XSON8_2X3` that the previews read are identical. PR #108 changes that file only by adding `supplier lcsc "C32246052" rotate 270` to the primary.
+
+## Addendum, 2026-11-12: which part a mark belongs to
+
+Everything above is the record as made. `checks.json` and `measurements.json` were made with what is now called attribution 1 (`measure_preview.ATTRIBUTION`): a mark counted for the nearest footprint origin within reach, chip parts included, and "mark" in `checks.json` said only that a part had one, not where. They are unchanged, and reproduce byte for byte with `--attribution 1` added: `measure_preview.py measure --method 1 --attribution 1 …` and `jlc_preview.py --recheck top.png bottom.png --board package/board.json --attribution 1 --body-method 1`. `tools/tests/test_jlc_preview.py` and `test_measure_preview.py` check both with `COHDL_REMEASURE_PREVIEWS=1`.
+
+Attribution 2 gives a mark to the part within 2 mm of whose pads' square it lies (the one with the nearest pad, where several qualify, and never a chip part or an inductor), drops magenta areas too large to be a mark, and passes a part only on exactly one mark of its own within 20° of pad 1. On these exports nothing changes: all eight instances have one mark of their own, at most 7.0° from pad 1, and still pass.

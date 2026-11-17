@@ -48,6 +48,7 @@ class W3GroupsTests(unittest.TestCase):
         cls.report = wg.build()
         with before_board_4():
             cls.before = wg.build()
+            cls.before_judged = wg.judged_members()
         with method_1():
             cls.report_1 = wg.build()
             with before_board_4():
@@ -235,12 +236,31 @@ class W3GroupsTests(unittest.TestCase):
         self.assertEqual(outcome(committed), outcome(first))
         self.assertEqual({g["package_version"] for g in committed["groups"]}, {"0.2.7"})
 
-    def test_the_2026_11_14_report_is_the_tree_at_passive_0_2_8(self):
+    def test_the_2026_11_18_report_is_the_tree_with_the_hongjiacheng_pages(self):
+        # The same rule, records and library as 2026-11-13, on the tree whose map cites
+        # the 2026-11-11 Hongjiacheng backfill's confirmed pages (six more parts, none of
+        # them a chip resistor or capacitor): no group, member or sample differs.
+        before = json.loads((wg.DATA / "w3_sampling/2026-11-13/groups.json").read_text(encoding="utf-8"))
+        folder = wg.DATA / "w3_sampling/2026-11-18"
+        committed = json.loads((folder / "groups.json").read_text(encoding="utf-8"))
+        self.assertEqual((folder / "groups.md").read_text(encoding="utf-8"), wg.render(committed))
+        changed = {"lcsc_map.json", "jlc_frames.json"}
+        pages = lambda report: [name for name in report["sources"] if name.startswith("lcsc_backfill/")]
+        self.assertEqual((pages(before), pages(committed)),
+                         (["lcsc_backfill/2026-11-07-samsung-b1/confirmed.json"],
+                          ["lcsc_backfill/2026-11-11-hongjiacheng/confirmed.json"]))
+        rest = lambda report: {name: digest for name, digest in report["sources"].items()
+                               if name not in changed and not name.startswith("lcsc_backfill/")}
+        self.assertEqual(rest(committed), rest(before))
+        self.assertEqual({key: value for key, value in committed.items() if key != "sources"},
+                         {key: value for key, value in before.items() if key != "sources"})
+
+    def test_the_2026_11_18b_report_is_the_tree_at_passive_0_2_8(self):
         # The same rule and records again, on the tree that binds seven part numbers by direct
         # rows on the preview board 4 record (passive 0.2.8). The rule already judged that
         # record's chip parts, so no group's outcome differs; the rows are listed as direct.
-        before = json.loads((wg.DATA / "w3_sampling/2026-11-12b/groups.json").read_text(encoding="utf-8"))
-        folder = wg.DATA / "w3_sampling/2026-11-14"
+        before = json.loads((wg.DATA / "w3_sampling/2026-11-18/groups.json").read_text(encoding="utf-8"))
+        folder = wg.DATA / "w3_sampling/2026-11-18b"
         committed = json.loads((folder / "groups.json").read_text(encoding="utf-8"))
         self.assertEqual((folder / "groups.md").read_text(encoding="utf-8"), wg.render(committed))
         self.assertEqual((before["sources"]["lib/passive"], committed["sources"]["lib/passive"]), ("0.2.7", "0.2.8"))
@@ -453,12 +473,104 @@ class W3GroupsTests(unittest.TestCase):
         # No reading of any record is unsupported: every view's median holds enough other bodies.
         self.assertFalse(any(g["bias_unsupported"] for r in (self.before, self.report) for g in r["groups"]))
 
+    def test_the_2026_11_13_report_lists_records_not_judged_and_changes_no_outcome(self):
+        # Schema 5 adds the records the rule does not judge. On this tree there are none, so
+        # every group is as in 2026-11-12b: the only other difference is jlc_frames.json's
+        # hash (the adopted rows' notes).
+        before = json.loads((wg.DATA / "w3_sampling/2026-11-12b/groups.json").read_text(encoding="utf-8"))
+        folder = wg.DATA / "w3_sampling/2026-11-13"
+        committed = json.loads((folder / "groups.json").read_text(encoding="utf-8"))
+        self.assertEqual((folder / "groups.md").read_text(encoding="utf-8"), wg.render(committed))
+        self.assertEqual((before["schema_version"], committed["schema_version"]), (4, 5))
+        self.assertEqual(committed["records_not_judged"], [])
+        self.assertEqual([dict(g, record_not_judged=[]) for g in before["groups"]], committed["groups"])
+        self.assertEqual({k: v for k, v in committed.items()
+                          if k not in ("schema_version", "records_not_judged", "groups", "sources")},
+                         {k: v for k, v in before.items() if k not in ("schema_version", "groups", "sources")})
+        self.assertEqual([name for name in before["sources"] if before["sources"][name] != committed["sources"][name]],
+                         ["jlc_frames.json"])
+        self.assertIn("- None: every record with a `w3.json` is judged.", wg.render(committed).splitlines())
+        self.assertNotIn("Records not judged", wg.render(before))
+
+    def test_the_newest_dated_report_is_under_the_rule_in_the_tree(self):
+        # docs/library-supplier-w3-sampling.md names no report as the current one: it says the
+        # newest dated folder is. So the newest must be by the rule and report format in the
+        # tree, and the documents must not name one again.
+        newest = sorted(path for path in (wg.DATA / "w3_sampling").iterdir() if path.is_dir())[-1]
+        committed = json.loads((newest / "groups.json").read_text(encoding="utf-8"))
+        self.assertEqual({k: v for k, v in committed["rule"].items() if k != "short_at_preview"}, wg.w3_rule.RULE)
+        self.assertEqual(committed["schema_version"], self.report["schema_version"])
+        self.assertEqual((newest / "groups.md").read_text(encoding="utf-8"), wg.render(committed))
+        for name, phrase in (("library-supplier-w3-sampling.md", "newest dated folder"),
+                             ("library-supplier-w3-sampling.zh-CN.md", "日期最新的那个目录")):
+            text = (wg.ROOT / "docs" / name).read_text(encoding="utf-8")
+            self.assertIn(phrase, text, name)
+            self.assertNotRegex(text, r"(?i)the current (one|report) is `|现在用的是 `", name)
+
+    def test_a_record_with_no_readings_by_the_rules_method_is_listed_not_dropped(self):
+        # Healthy tree: every record with a w3.json is judged, and nothing is listed.
+        self.assertEqual(wg.records_not_judged(), [])
+        self.assertEqual(self.report["records_not_judged"], [])
+        self.assertFalse(any(g["record_not_judged"] for g in self.report["groups"]))
+        # Board 4's record without its method 2 readings (as it was before they were made):
+        # the groups come out as they did before the record, and the record is listed with its members.
+        real = wg.readings_file
+        with mock.patch.object(wg, "readings_file", lambda record, meta, method=None:
+                               [] if record == BOARD_4 else real(record, meta, method)):
+            report = wg.build()
+        strip = lambda groups: [{k: v for k, v in g.items() if k != "record_not_judged"} for g in groups]
+        self.assertEqual(strip(report["groups"]), strip(self.before["groups"]))
+        (listed,) = report["records_not_judged"]
+        name = "tools/sourcing_data/jlc_previews/2026-11-11-board-4/README.md"
+        self.assertEqual((listed["record"], listed["kind"], listed["reason"]), (name, "method", "no readings by method 2"))
+        placed = {pn: n for g in report["groups"] for n in g["record_not_judged"] for pn in [n["pn"]]}
+        self.assertEqual(listed["members"], len(placed))
+        self.assertGreater(listed["part_numbers"], listed["members"])  # the inductors and ICs are in no group
+        # Exactly the members the record judges when it has its readings, each with its designators.
+        judged_there = {pn for g in self.report["groups"] for kind in ("passed", "failed", "not_drawn", "bias_unsupported")
+                        for n in g[kind]
+                        for records in [n.get("records") or [c["record"] for c in n["outcomes"]]] if name in records
+                        for pn in [n["pn"]]}
+        self.assertEqual(set(placed), judged_there)
+        self.assertTrue(len(placed) == 68 and all(n["refs"] and n["kind"] == "method" for n in placed.values()))
+        rc = group(report, "CHIP_0402", "ChipResistor", "Yageo", "RC")
+        self.assertEqual({n["pn"]: len(n["refs"]) for n in rc["record_not_judged"]},
+                         {"C138033": 10, "C185445": 10, "C60491": 10})
+        text = wg.render(report)
+        self.assertIn("- Records not judged: 1 of 3 preview records", text)
+        self.assertIn(f"- `{name}`: no readings by method 2; {listed['members']} of its {listed['part_numbers']} "
+                      "part numbers are group members", text)
+        self.assertIn("  - `CHIP_0402` ChipResistor Yageo RC (sampled): C138033 (", text)
+        # A record whose land has changed is listed too, as lapsed.
+        hashed = wg._sha256
+        with mock.patch.object(wg, "_sha256", lambda path: "0" * 64 if path.name == "pads.cohdl" else hashed(path)):
+            lapsed = wg.records_not_judged()
+        self.assertEqual([(r["kind"], r["reason"]) for r in lapsed],
+                         [("land", "changed since its preview: lib/passive/src/pads.cohdl")] * 3)
+
+    def test_no_group_record_is_written_over_a_record_that_lacks_the_rules_readings(self):
+        import w3_record
+        key = ("CHIP_0402", "ChipResistor", "Yageo", "RC")
+        path = "tools/sourcing_data/w3_records/2026-11-10-chip0402-yageo-rc.json"
+        real = wg.readings_file
+        # The group is still `sampled` from the pilot and board 3, but board 4 placed three of
+        # its samples and has not been read by the rule's method: stop, naming the record.
+        with mock.patch.object(wg, "readings_file", lambda record, meta, method=None:
+                               [] if record == BOARD_4 else real(record, meta, method)):
+            self.assertEqual(group(wg.build(), *key)["status"], "sampled")
+            with self.assertRaisesRegex(SystemExit, "2026-11-11-board-4/README.md, which has no readings by method 2"):
+                w3_record.build(path, key)
+        # Healthy tree: the committed record and frame table are what the tool builds.
+        record, frames = w3_record.build(path, key)
+        self.assertEqual(record, json.loads((wg.ROOT / path).read_text(encoding="utf-8")))
+        self.assertEqual(frames, json.loads(w3_record.FRAMES.read_text(encoding="utf-8")))
+
     def test_readings_by_another_method_are_not_read_as_the_rules(self):
         # A record with no readings by the rule's method is not judged ...
         real = wg.readings_file
         with mock.patch.object(wg, "readings_file", lambda record, meta, method=None:
                                [] if record == BOARD_4 else real(record, meta, method)):
-            self.assertEqual(wg.build()["groups"], self.before["groups"])
+            self.assertEqual(wg.judged_members(), {k: v for k, v in self.before_judged.items()})
         # ... and a file listed for the rule's method that holds another method's readings stops the build.
         with mock.patch.object(wg, "readings_file", lambda record, meta, method=None: [meta["measurements"]]):
             with self.assertRaisesRegex(SystemExit, "listed as method 2 readings"):

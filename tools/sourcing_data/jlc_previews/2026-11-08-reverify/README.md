@@ -82,3 +82,21 @@ The three rows were first added to `tools/sourcing_data/jlc_frames.json`, in an 
 Adopting a row is W4 discretes work: add a library part for the MPN (B5819WS, SS34 or 1N4148WT) on the same land, with `supplier lcsc "<C number>" rotate 180`, and move the row into `jlc_frames.json`.
 
 The rows were read against the `sod` and `do214` **0.1.0** lands and carry `package_version` 0.1.0. PR #102 moves both packages to 0.1.1. Its copper is unchanged; only the SOD1608X70N silkscreen and comments differ. So adoption must re-key each row's `package_version` to the version the new part ships in, after checking that version's land copper is still the copper read here.
+
+## Since 2026-11-11: library parts exist, still unbound
+
+`diode` 0.1.2 adds `SCHOTTKY_B5819WS`, `SCHOTTKY_SS34` and `D_1N4148WT` on these three lands, without a supplier clause. The rows stay archived here, and the statements above still hold: no library source lists C7420331, C7420365 or C7420320.
+
+What is missing is the map row. A binding's part number must be in `tools/sourcing_data/lcsc_map.json`, and rows reach it only through a reviewed `lcsc_backfill.py` run that reads every candidate page for the MPN. On 2026-11-11 the fetch cache held 1 or 2 of the 51 (B5819WS), 81 (SS34) and 53 (1N4148WT) candidate pages, and nothing was fetched. Once the rows are promoted, adoption is as described above: add the clause with `rotate 180`, and move each row into `jlc_frames.json` with `package_version` 0.1.1 (`sod` and `do214` 0.1.1 change no pad from 0.1.0; on these three lands only the SOD1608X70N silkscreen body lines differ).
+
+## Since the backfill run of 2026-11-11: adopted
+
+The section above describes the state before the map rows existed. The backfill run in `../../lcsc_backfill/2026-11-11-hongjiacheng/` read every candidate page for the three MPNs and its rows were promoted, so C7420331, C7420365 and C7420320 are in `lcsc_map.json`. `diode` 0.1.2 now binds them with `supplier lcsc "<part number>" rotate 180`, and `jlc_frames.json` holds a copy of each archived row: `w4d-sod2613x110n-c7420331`, `w4d-diom5026x241n-c7420365` and `w4d-sod1608x70n-c7420320`, keyed to `sod` 0.1.3 and `do214` 0.1.2 after checking that no pad of these lands has changed since 0.1.0. Each copy's note says what the reading is and is not, and names the archived row it came from.
+
+`frames.json` here is unchanged: it keeps the rows as they were read, with their 0.1.0 key and their original notes, including the sentence that no library part lists the part number, which was true when it was written. `tools/tests/test_generator_bindings.py` now checks the adoption: each part number is bound once, on the land it was read on, and only the adopted copies cite this record.
+
+## Addendum, 2026-11-12: which part a mark belongs to
+
+Everything above is the record as made. `checks.json` and `measurements.json` were made with what is now called attribution 1 (`measure_preview.ATTRIBUTION`): a mark counted for the nearest footprint origin within reach, chip parts included, and "mark" in `checks.json` said only that a part had one, not where. They are unchanged, and reproduce byte for byte with `--attribution 1` added: `measure_preview.py measure --method 1 --attribution 1 …` and `jlc_preview.py --recheck top.png bottom.png --board package/board.json --attribution 1 --body-method 1`. `tools/tests/test_jlc_preview.py` and `test_measure_preview.py` check both with `COHDL_REMEASURE_PREVIEWS=1`.
+
+Attribution 2 gives a mark to the part within 2 mm of whose pads' square it lies (the one with the nearest pad, where several qualify, and never a chip part or an inductor), drops magenta areas too large to be a mark, and passes a part only on exactly one mark of its own within 20° of pad 1. On these exports no mark changes owner and no angle changes. U1–U4 still pass (at most 3.3° from pad 1). U5–U16, the diodes, passed as "mark" and go to manual review: each shows two magenta signs, the model's "+" and "−", one at each end, and neither is a pin 1 mark. "Manual review and limits" above already says that they are read by hand and are not to be turned into an automatic pass; `checks.json` passed them all the same.

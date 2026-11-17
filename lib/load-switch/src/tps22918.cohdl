@@ -18,7 +18,8 @@ impl IC for TPS22918 {}
 
 #[doc("docs/tps22918.evidence.md")]
 pub part LOADSW_TPS22918DBVR: TPS22918 {
-    primary { mfr: "Texas Instruments", mpn: "TPS22918DBVR", footprint: FP_TI_DBV0006A }
+    primary { mfr: "Texas Instruments", mpn: "TPS22918DBVR", footprint: FP_TI_DBV0006A,
+              supplier lcsc "C131941" rotate 180 }
 }
 
 // TI DBV0006A example board layout: six 1.1x0.6mm lands, 0.95mm pitch,

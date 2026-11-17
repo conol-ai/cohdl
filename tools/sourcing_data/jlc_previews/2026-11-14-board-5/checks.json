@@ -1,0 +1,74 @@
+{
+ "U1": {
+  "side": "top",
+  "status": "mark",
+  "detail": "pin 1 mark 4.8 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.66 mm from pad 1",
+  "attribution": 2
+ },
+ "U2": {
+  "side": "top",
+  "status": "mark",
+  "detail": "pin 1 mark 5.0 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.65 mm from pad 1",
+  "attribution": 2
+ },
+ "U3": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": "pin 1 mark 354.8 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.70 mm from pad 1",
+  "attribution": 2
+ },
+ "U4": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": "pin 1 mark 354.5 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.70 mm from pad 1",
+  "attribution": 2
+ },
+ "U5": {
+  "side": "top",
+  "status": "mark",
+  "detail": "pin 1 mark 10.6 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.56 mm from pad 1",
+  "attribution": 2
+ },
+ "U6": {
+  "side": "top",
+  "status": "mark",
+  "detail": "pin 1 mark 10.0 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.53 mm from pad 1",
+  "attribution": 2
+ },
+ "U7": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": "pin 1 mark 349.4 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.53 mm from pad 1",
+  "attribution": 2
+ },
+ "U8": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": "pin 1 mark 349.2 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.54 mm from pad 1",
+  "attribution": 2
+ },
+ "U9": {
+  "side": "top",
+  "status": "mark",
+  "detail": "pin 1 mark 1.8 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.11 mm from pad 1",
+  "attribution": 2
+ },
+ "U10": {
+  "side": "top",
+  "status": "mark",
+  "detail": "pin 1 mark 1.2 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.10 mm from pad 1",
+  "attribution": 2
+ },
+ "U11": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": "pin 1 mark 358.1 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.10 mm from pad 1",
+  "attribution": 2
+ },
+ "U12": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": "pin 1 mark 357.7 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.11 mm from pad 1",
+  "attribution": 2
+ }
+}

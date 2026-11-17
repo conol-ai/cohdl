@@ -460,6 +460,78 @@ class FrameBoardTests(unittest.TestCase):
                                                 ("Bottom", 323.0), ("Top", 0.0), ("Top", 37.0), ("Top", 90.0),
                                                 ("Top", 180.0), ("Top", 270.0)])
 
+    BOARD_5 = ROOT / "tools/frame_boards/preview-board-5/manifest.json"
+    # pn: (the candidate rotation, the land it is applied on)
+    BOARD_5_CANDIDATES = {"C7519": (270, "esd::FP_SOT_23_6"), "C131941": (180, "load_switch::FP_TI_DBV0006A"),
+                          "C189961": (270, "contrib_audio_amp::SOP8P65X490X110N")}
+
+    def test_preview_board_5_places_each_candidate_with_its_rotation_applied(self):
+        with tempfile.TemporaryDirectory() as td:
+            subprocess.run(["python3", "-I", str(ROOT / "tools/frame_boards/preview_board_5.py"), str(Path(td) / "m.json")],
+                           check=True, capture_output=True)
+            self.assertEqual((Path(td) / "m.json").read_bytes(), self.BOARD_5.read_bytes())
+        data = ROOT / "tools/sourcing_data"
+        pages = {r["c"]: r for r in json.load(open(data / "lcsc_backfill/2026-11-07-samsung-b1/confirmed.json"))}
+        mapped = {r["pn"]: r for r in json.load(open(data / "lcsc_map.json"))["rows"]}
+        framed = {r["pn"]: r for r in json.load(open(data / "jlc_frames.json"))["rows"]}
+        raw = {m["ref"]: m for m in json.load(open(data / "jlc_previews/2026-11-11-board-4/measurements.json"))}
+        with open(data / "jlc_previews/2026-11-11-board-4/package/preview_board_4-lcsc-bom.csv", encoding="utf-8-sig") as f:
+            raw_refs = {r["LCSC Part #"]: r["Designator"].split(",") for r in csv.DictReader(f)}
+        manifest = json.loads(self.BOARD_5.read_text())
+        self.assertEqual({r["pn"]: (r["mapping"]["rotate_deg"], r["footprint"]) for r in manifest["rows"]},
+                         self.BOARD_5_CANDIDATES)
+        for row in manifest["rows"]:
+            with self.subTest(row=row["name"]):
+                page = pages[row["pn"]]
+                self.assertGreaterEqual(page["stock"], max(30, 5 * len(row["placements"])))
+                self.assertEqual((row["stock"], row["page_fetched"]), (page["stock"], page["fetched_date"][:10]))
+                self.assertEqual((mapped[row["pn"]]["mfr"], mapped[row["pn"]]["mpn"]), (row["mfr"], row["mpn"]))
+                self.assertEqual([(p["rotate"], p["side"]) for p in row["placements"]], self.FOUR_COPIES)
+                self.assertEqual(row["mapping"], {"dx_mm": 0, "dy_mm": 0, "rotate_deg": row["candidate"]["rotate_deg"]})
+                self.assertNotIn("library_part", row)
+                # Nothing is bound or recorded from this file. The board's own preview confirmed the candidate,
+                # and the one frame row for the part number cites that record with the candidate as mapping.
+                self.assertEqual((framed[row["pn"]]["evidence"]["record"], framed[row["pn"]]["mapping"]),
+                                 ("tools/sourcing_data/jlc_previews/2026-11-14-board-5/README.md", row["mapping"]))
+                # The candidate is what board 4 read raw on its four copies (top 0, top 37, bottom 0, bottom 37),
+                # to the nearest quarter turn: a bottom copy reads the mirror of a top one.
+                read = [raw[ref]["delta_ccw_from_top"] for ref in raw_refs[row["pn"]]]
+                self.assertEqual(list(row["candidate"]["read_raw_deg"].values()), read)
+                turn = row["mapping"]["rotate_deg"]
+                for value, expected in zip(read, (360 - turn, 360 - turn, turn, turn)):
+                    self.assertLessEqual(abs((value - expected + 180) % 360 - 180), 15)
+        # The copies stand clear of each other: 16 mm apart, where the largest land's courtyard is under 8 mm across.
+        spots = [tuple(p["at_mm"]) + (p["side"],) for r in manifest["rows"] for p in r["placements"]]
+        self.assertEqual(len(set(spots)), 12)
+        self.assertGreaterEqual(min(math.hypot(a[0] - b[0], a[1] - b[1]) for a in spots for b in spots if a != b), 16)
+        jb.expand(jb.load_manifest(self.BOARD_5)["rows"], 5)  # no two boxes overlap
+
+    def test_preview_board_5_supplier_cpl_carries_the_candidate_rotations(self):
+        manifest = json.loads(self.BOARD_5.read_text())
+        with tempfile.TemporaryDirectory() as td:
+            out = Path(td) / "board"
+            subprocess.run(["python3", "-I", str(ROOT / "tools/jlc_frame_board.py"), str(self.BOARD_5), "-o", str(out),
+                            "--cohdl", str(COHDL), "--skip-kicad"], check=True, capture_output=True)
+            supplier = {r["Designator"]: r for r in csv.DictReader(io.StringIO((out / "out/preview_board_5-lcsc-cpl.csv").read_text()))}
+            neutral = {r["Designator"]: r for r in csv.DictReader(io.StringIO((out / "out/preview_board_5-cpl.csv").read_text()))}
+            bom = list(csv.DictReader(io.StringIO((out / "out/preview_board_5-lcsc-bom.csv").read_text())))
+            maps = json.loads((out / "out/preview_board_5-lcsc-map.json").read_text())
+        self.assertEqual((len(supplier), len(bom)), (12, 3))
+        by_pn = {r["LCSC Part #"]: r["Designator"].split(",") for r in bom}
+        for row in manifest["rows"]:
+            turn = self.BOARD_5_CANDIDATES[row["pn"]][0]
+            refs = by_pn[row["pn"]]
+            with self.subTest(row=row["name"]):
+                self.assertEqual({(tuple(maps["designators"][ref]["at"]), maps["designators"][ref]["rotate"]) for ref in refs},
+                                 {(("0mm", "0mm"), turn)})
+                # Top: the authored angle plus the candidate. Bottom: the same seen from below.
+                self.assertEqual(sorted((supplier[ref]["Layer"], float(supplier[ref]["Rotation"])) for ref in refs),
+                                 sorted([("Top", float(turn)), ("Top", float((37 + turn) % 360)),
+                                         ("Bottom", float(turn)), ("Bottom", float((turn - 37) % 360))]))
+                # Without the mapping the supplier CPL would be the neutral one: the candidate is what differs.
+                self.assertEqual(sorted(float(neutral[ref]["Rotation"]) for ref in refs if neutral[ref]["Layer"] == "Top"),
+                                 [0.0, 37.0])
+
     def test_cpl_check_compares_position_side_and_top_angle(self):
         cpl = ("Designator,Mid X,Mid Y,Layer,Rotation\n"
                "U1,1.0000mm,2.0000mm,Top,37\nU2,3.0000mm,4.0000mm,Bottom,217\n")

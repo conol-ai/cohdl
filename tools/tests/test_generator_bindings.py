@@ -469,20 +469,52 @@ class CommittedTablesTests(unittest.TestCase):
                 for row in rows:
                     self.assertEqual(set(row), FRAME_FIELDS, row["id"])
                     self.assertEqual(row["evidence"]["record"], record, row["id"])
-                # A row leaves the archive only as a W3 group record's sample, and
-                # unchanged apart from the package version it is bound at.
+                # A row leaves the archive only as a W3 group record's sample, and unchanged
+                # apart from the package version it is bound at and one addition to its note:
+                # the archive's text quotes the run's method 1 reading, and the adopted row
+                # appends the method 2 reading its group record judges the sample by.
                 adopted = bound_ids & {row["id"] for row in rows}
-                samples = {s["row"] for path in (self.DATA / "w3_records").glob("*.json")
+                samples = {s["row"]: (s, str(path.relative_to(ROOT)))
+                           for path in (self.DATA / "w3_records").glob("*.json")
                            for g in json.loads(path.read_text(encoding="utf-8"))["groups"] for s in g["samples"]}
-                self.assertLessEqual(adopted, samples)
+                self.assertLessEqual(adopted, set(samples))
                 by_id = {row["id"]: row for row in frames}
                 for row in rows:
                     if row["id"] in adopted:
                         bound = by_id[row["id"]]
-                        self.assertEqual(dict(bound, package_version=row["package_version"]), row, row["id"])
+                        sample, record_path = samples[row["id"]]
+                        note = bound["evidence"]["note"]
+                        added = (". [Added by tools/w3_record.py: the angle and offset above are the preview run's own "
+                                 "reading, by measure_preview.py method 1, which read the reference text together with "
+                                 f"the model. The group record {record_path} judges this sample by method 2, which "
+                                 f"reads {sample['angle_deg']:+.1f} deg mod 180 and {sample['raw_offset_mm']:.3f} mm.]")
+                        self.assertEqual(note, row["evidence"]["note"] + added, row["id"])
+                        self.assertEqual(dict(bound, package_version=row["package_version"],
+                                              evidence=dict(bound["evidence"], note=row["evidence"]["note"])),
+                                         row, row["id"])
                         self.assertEqual(bound["package_version"], PASSIVE_VERSION, row["id"])
+                if archive.parent.name == "2026-11-07-w3-pilot-0402":
+                    self.assertEqual(len(adopted), 44)
+                    # Tony's example on #107: the archive says +4.2 deg and 0.114 mm, the record -0.1 and 0.014.
+                    note = by_id["w3p-chip0402-c105637"]["evidence"]["note"]
+                    self.assertIn("(+4.2 deg mod 180) and is centred on them (0.114 mm)", note)
+                    self.assertTrue(note.endswith("by method 2, which reads -0.1 deg mod 180 and 0.014 mm.]"), note)
                 if not adopted:
                     self.assertNotIn(record, cited)
+
+    def test_an_adopted_note_names_both_readings_only_when_their_methods_differ(self):
+        sys.path.insert(0, str(TOOLS))
+        import w3_record
+        sample = {"body_method": 2, "angle_deg": -0.1, "raw_offset_mm": 0.014}
+        self.assertEqual(w3_record.adopted_note("as archived", 2, sample, "r.json"), "as archived")
+        self.assertEqual(w3_record.adopted_note("as archived", 1, dict(sample, body_method=1), "r.json"), "as archived")
+        note = w3_record.adopted_note("as archived", 1, sample, "r.json")
+        self.assertTrue(note.startswith("as archived. [Added by tools/w3_record.py:"))
+        self.assertIn("method 1, which read the reference text together with the model. The group record r.json "
+                      "judges this sample by method 2, which reads -0.1 deg mod 180 and 0.014 mm.]", note)
+        # The pilot's run read its bodies by method 1 (its measurements name no method).
+        pilot = "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md"
+        self.assertEqual(w3_record.run_method(pilot, "R1"), 1)
 
     def test_committed_w3_records_are_what_the_tool_builds(self):
         records = sorted((self.DATA / "w3_records").glob("*.json"))

@@ -6,8 +6,10 @@ decided on 2026-11-10 that a sample whose model is not drawn does not block its
 group, and on 2026-11-11 accepted the sample limits, the zero-stock rule and the
 not-drawn rule (https://github.com/conol-ai/cohdl/pull/104#issuecomment-6784835520).
 Those accepted values are ``w3-2026-11-10b``. This version, ``w3-2026-11-12``, keeps
-them unchanged and adds three things that await his decision
-(``docs/library-supplier-w3-sampling.md`` §5 and §6):
+them unchanged and adds three things, which he accepted on 2026-11-13
+(https://github.com/conol-ai/cohdl/pull/112#issuecomment-6845382803 and
+https://github.com/conol-ai/cohdl/pull/115#issuecomment-6845382375;
+``docs/library-supplier-w3-sampling.md`` §5 and §6):
 
 - ``body_method``: which reading of a chip body the limits apply to. Until
   2026-11-11 there was one, ``measure_preview.py``'s method 1, which reads a part's

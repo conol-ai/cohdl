@@ -2112,7 +2112,7 @@
         "method": "preview",
         "date": "2026-11-07",
         "record": "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md",
-        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copy (+4.2 deg mod 180) and is centred on them (0.114 mm), so the orientation is known mod 180 only. W3 pilot sample: its own evidence, not inference"
+        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copy (+4.2 deg mod 180) and is centred on them (0.114 mm), so the orientation is known mod 180 only. W3 pilot sample: its own evidence, not inference. [Added by tools/w3_record.py: the angle and offset above are the preview run's own reading, by measure_preview.py method 1, which read the reference text together with the model. The group record tools/sourcing_data/w3_records/2026-11-10-chip0402-yageo-rc.json judges this sample by method 2, which reads -0.1 deg mod 180 and 0.014 mm.]"
       },
       "evidence_ref": null
     },
@@ -2138,7 +2138,7 @@
         "method": "preview",
         "date": "2026-11-07",
         "record": "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md",
-        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copy (+0.7 deg mod 180) and is centred on them (0.068 mm), so the orientation is known mod 180 only. W3 pilot sample: its own evidence, not inference"
+        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copy (+0.7 deg mod 180) and is centred on them (0.068 mm), so the orientation is known mod 180 only. W3 pilot sample: its own evidence, not inference. [Added by tools/w3_record.py: the angle and offset above are the preview run's own reading, by measure_preview.py method 1, which read the reference text together with the model. The group record tools/sourcing_data/w3_records/2026-11-10-chip0402-yageo-rc.json judges this sample by method 2, which reads +1.0 deg mod 180 and 0.023 mm.]"
       },
       "evidence_ref": null
     },
@@ -2164,7 +2164,7 @@
         "method": "preview",
         "date": "2026-11-07",
         "record": "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md",
-        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copy (-0.6 deg mod 180) and is centred on them (0.035 mm), so the orientation is known mod 180 only. W3 pilot sample: its own evidence, not inference"
+        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copy (-0.6 deg mod 180) and is centred on them (0.035 mm), so the orientation is known mod 180 only. W3 pilot sample: its own evidence, not inference. [Added by tools/w3_record.py: the angle and offset above are the preview run's own reading, by measure_preview.py method 1, which read the reference text together with the model. The group record tools/sourcing_data/w3_records/2026-11-10-chip0402-yageo-rc.json judges this sample by method 2, which reads -0.0 deg mod 180 and 0.016 mm.]"
       },
       "evidence_ref": null
     },
@@ -2190,7 +2190,7 @@
         "method": "preview",
         "date": "2026-11-07",
         "record": "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md",
-        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copy (-0.2 deg mod 180) and is centred on them (0.087 mm), so the orientation is known mod 180 only. W3 pilot sample: its own evidence, not inference"
+        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copy (-0.2 deg mod 180) and is centred on them (0.087 mm), so the orientation is known mod 180 only. W3 pilot sample: its own evidence, not inference. [Added by tools/w3_record.py: the angle and offset above are the preview run's own reading, by measure_preview.py method 1, which read the reference text together with the model. The group record tools/sourcing_data/w3_records/2026-11-10-chip0402-yageo-rc.json judges this sample by method 2, which reads -0.3 deg mod 180 and 0.022 mm.]"
       },
       "evidence_ref": null
     },
@@ -2216,7 +2216,7 @@
         "method": "preview",
         "date": "2026-11-07",
         "record": "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md",
-        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copy (-3.8 deg mod 180) and is centred on them (0.028 mm), so the orientation is known mod 180 only. W3 pilot sample: its own evidence, not inference"
+        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copy (-3.8 deg mod 180) and is centred on them (0.028 mm), so the orientation is known mod 180 only. W3 pilot sample: its own evidence, not inference. [Added by tools/w3_record.py: the angle and offset above are the preview run's own reading, by measure_preview.py method 1, which read the reference text together with the model. The group record tools/sourcing_data/w3_records/2026-11-10-chip0402-yageo-rc.json judges this sample by method 2, which reads -1.9 deg mod 180 and 0.015 mm.]"
       },
       "evidence_ref": null
     },
@@ -2242,7 +2242,7 @@
         "method": "preview",
         "date": "2026-11-07",
         "record": "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md",
-        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copy (+3.2 deg mod 180) and is centred on them (0.087 mm), so the orientation is known mod 180 only. W3 pilot sample: its own evidence, not inference"
+        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copy (+3.2 deg mod 180) and is centred on them (0.087 mm), so the orientation is known mod 180 only. W3 pilot sample: its own evidence, not inference. [Added by tools/w3_record.py: the angle and offset above are the preview run's own reading, by measure_preview.py method 1, which read the reference text together with the model. The group record tools/sourcing_data/w3_records/2026-11-10-chip0402-yageo-rc.json judges this sample by method 2, which reads -0.8 deg mod 180 and 0.016 mm.]"
       },
       "evidence_ref": null
     },
@@ -2268,7 +2268,7 @@
         "method": "preview",
         "date": "2026-11-07",
         "record": "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md",
-        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copy (+2.6 deg mod 180) and is centred on them (0.111 mm), so the orientation is known mod 180 only. W3 pilot sample: its own evidence, not inference"
+        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copy (+2.6 deg mod 180) and is centred on them (0.111 mm), so the orientation is known mod 180 only. W3 pilot sample: its own evidence, not inference. [Added by tools/w3_record.py: the angle and offset above are the preview run's own reading, by measure_preview.py method 1, which read the reference text together with the model. The group record tools/sourcing_data/w3_records/2026-11-10-chip0402-yageo-rc.json judges this sample by method 2, which reads -0.5 deg mod 180 and 0.016 mm.]"
       },
       "evidence_ref": null
     },
@@ -2294,7 +2294,7 @@
         "method": "preview",
         "date": "2026-11-07",
         "record": "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md",
-        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copy (+0.3 deg mod 180) and is centred on them (0.041 mm), so the orientation is known mod 180 only. W3 pilot sample: its own evidence, not inference"
+        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copy (+0.3 deg mod 180) and is centred on them (0.041 mm), so the orientation is known mod 180 only. W3 pilot sample: its own evidence, not inference. [Added by tools/w3_record.py: the angle and offset above are the preview run's own reading, by measure_preview.py method 1, which read the reference text together with the model. The group record tools/sourcing_data/w3_records/2026-11-10-chip0402-yageo-rc.json judges this sample by method 2, which reads -2.6 deg mod 180 and 0.008 mm.]"
       },
       "evidence_ref": null
     },
@@ -2320,7 +2320,7 @@
         "method": "preview",
         "date": "2026-11-07",
         "record": "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md",
-        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copy (+1.3 deg mod 180) and is centred on them (0.087 mm), so the orientation is known mod 180 only. W3 pilot sample: its own evidence, not inference"
+        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copy (+1.3 deg mod 180) and is centred on them (0.087 mm), so the orientation is known mod 180 only. W3 pilot sample: its own evidence, not inference. [Added by tools/w3_record.py: the angle and offset above are the preview run's own reading, by measure_preview.py method 1, which read the reference text together with the model. The group record tools/sourcing_data/w3_records/2026-11-10-chip0402-yageo-rc.json judges this sample by method 2, which reads +0.1 deg mod 180 and 0.016 mm.]"
       },
       "evidence_ref": null
     },
@@ -2346,7 +2346,7 @@
         "method": "preview",
         "date": "2026-11-07",
         "record": "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md",
-        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copy (+2.4 deg mod 180) and is centred on them (0.037 mm), so the orientation is known mod 180 only. W3 pilot sample: its own evidence, not inference"
+        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copy (+2.4 deg mod 180) and is centred on them (0.037 mm), so the orientation is known mod 180 only. W3 pilot sample: its own evidence, not inference. [Added by tools/w3_record.py: the angle and offset above are the preview run's own reading, by measure_preview.py method 1, which read the reference text together with the model. The group record tools/sourcing_data/w3_records/2026-11-10-chip0402-yageo-rc.json judges this sample by method 2, which reads -0.2 deg mod 180 and 0.009 mm.]"
       },
       "evidence_ref": null
     },
@@ -2372,7 +2372,7 @@
         "method": "preview",
         "date": "2026-11-07",
         "record": "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md",
-        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copy (-1.1 deg mod 180) and is centred on them (0.085 mm), so the orientation is known mod 180 only. W3 pilot sample: its own evidence, not inference"
+        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copy (-1.1 deg mod 180) and is centred on them (0.085 mm), so the orientation is known mod 180 only. W3 pilot sample: its own evidence, not inference. [Added by tools/w3_record.py: the angle and offset above are the preview run's own reading, by measure_preview.py method 1, which read the reference text together with the model. The group record tools/sourcing_data/w3_records/2026-11-10-chip0402-yageo-rc.json judges this sample by method 2, which reads -0.9 deg mod 180 and 0.028 mm.]"
       },
       "evidence_ref": null
     },
@@ -2398,7 +2398,7 @@
         "method": "preview",
         "date": "2026-11-07",
         "record": "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md",
-        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copy (-1.1 deg mod 180) and is centred on them (0.085 mm), so the orientation is known mod 180 only. W3 pilot sample: its own evidence, not inference"
+        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copy (-1.1 deg mod 180) and is centred on them (0.085 mm), so the orientation is known mod 180 only. W3 pilot sample: its own evidence, not inference. [Added by tools/w3_record.py: the angle and offset above are the preview run's own reading, by measure_preview.py method 1, which read the reference text together with the model. The group record tools/sourcing_data/w3_records/2026-11-10-chip0402-yageo-rc.json judges this sample by method 2, which reads -0.5 deg mod 180 and 0.014 mm.]"
       },
       "evidence_ref": null
     },
@@ -2424,7 +2424,7 @@
         "method": "preview",
         "date": "2026-11-07",
         "record": "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md",
-        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copy (+2.4 deg mod 180) and is centred on them (0.098 mm), so the orientation is known mod 180 only. W3 pilot sample: its own evidence, not inference"
+        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copy (+2.4 deg mod 180) and is centred on them (0.098 mm), so the orientation is known mod 180 only. W3 pilot sample: its own evidence, not inference. [Added by tools/w3_record.py: the angle and offset above are the preview run's own reading, by measure_preview.py method 1, which read the reference text together with the model. The group record tools/sourcing_data/w3_records/2026-11-10-chip0402-yageo-rc.json judges this sample by method 2, which reads +0.8 deg mod 180 and 0.032 mm.]"
       },
       "evidence_ref": null
     },
@@ -2450,7 +2450,7 @@
         "method": "preview",
         "date": "2026-11-07",
         "record": "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md",
-        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copy (-2.0 deg mod 180) and is centred on them (0.099 mm), so the orientation is known mod 180 only. W3 pilot sample: its own evidence, not inference"
+        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copy (-2.0 deg mod 180) and is centred on them (0.099 mm), so the orientation is known mod 180 only. W3 pilot sample: its own evidence, not inference. [Added by tools/w3_record.py: the angle and offset above are the preview run's own reading, by measure_preview.py method 1, which read the reference text together with the model. The group record tools/sourcing_data/w3_records/2026-11-10-chip0402-yageo-rc.json judges this sample by method 2, which reads -0.7 deg mod 180 and 0.029 mm.]"
       },
       "evidence_ref": null
     },
@@ -2476,7 +2476,7 @@
         "method": "preview",
         "date": "2026-11-07",
         "record": "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md",
-        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copy (-1.7 deg mod 180) and is centred on them (0.055 mm), so the orientation is known mod 180 only. W3 pilot sample: its own evidence, not inference"
+        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copy (-1.7 deg mod 180) and is centred on them (0.055 mm), so the orientation is known mod 180 only. W3 pilot sample: its own evidence, not inference. [Added by tools/w3_record.py: the angle and offset above are the preview run's own reading, by measure_preview.py method 1, which read the reference text together with the model. The group record tools/sourcing_data/w3_records/2026-11-10-chip0402-yageo-rc.json judges this sample by method 2, which reads +2.0 deg mod 180 and 0.031 mm.]"
       },
       "evidence_ref": null
     },
@@ -2502,7 +2502,7 @@
         "method": "preview",
         "date": "2026-11-07",
         "record": "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md",
-        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copy (-4.9 deg mod 180) and is centred on them (0.045 mm), so the orientation is known mod 180 only. W3 pilot sample: its own evidence, not inference"
+        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copy (-4.9 deg mod 180) and is centred on them (0.045 mm), so the orientation is known mod 180 only. W3 pilot sample: its own evidence, not inference. [Added by tools/w3_record.py: the angle and offset above are the preview run's own reading, by measure_preview.py method 1, which read the reference text together with the model. The group record tools/sourcing_data/w3_records/2026-11-10-chip0402-yageo-rc.json judges this sample by method 2, which reads +0.6 deg mod 180 and 0.019 mm.]"
       },
       "evidence_ref": null
     },
@@ -2528,7 +2528,7 @@
         "method": "preview",
         "date": "2026-11-07",
         "record": "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md",
-        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copy (-0.0 deg mod 180) and is centred on them (0.094 mm), so the orientation is known mod 180 only. W3 pilot sample: its own evidence, not inference"
+        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copy (-0.0 deg mod 180) and is centred on them (0.094 mm), so the orientation is known mod 180 only. W3 pilot sample: its own evidence, not inference. [Added by tools/w3_record.py: the angle and offset above are the preview run's own reading, by measure_preview.py method 1, which read the reference text together with the model. The group record tools/sourcing_data/w3_records/2026-11-10-chip0402-yageo-rc.json judges this sample by method 2, which reads -0.4 deg mod 180 and 0.023 mm.]"
       },
       "evidence_ref": null
     },
@@ -2554,7 +2554,7 @@
         "method": "preview",
         "date": "2026-11-07",
         "record": "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md",
-        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copy (+9.9 deg mod 180) and is centred on them (0.117 mm), so the orientation is known mod 180 only. W3 pilot sample: its own evidence, not inference"
+        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copy (+9.9 deg mod 180) and is centred on them (0.117 mm), so the orientation is known mod 180 only. W3 pilot sample: its own evidence, not inference. [Added by tools/w3_record.py: the angle and offset above are the preview run's own reading, by measure_preview.py method 1, which read the reference text together with the model. The group record tools/sourcing_data/w3_records/2026-11-10-chip0402-yageo-rc.json judges this sample by method 2, which reads +1.3 deg mod 180 and 0.027 mm.]"
       },
       "evidence_ref": null
     },
@@ -2580,7 +2580,7 @@
         "method": "preview",
         "date": "2026-11-07",
         "record": "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md",
-        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copy (-6.6 deg mod 180) and is centred on them (0.112 mm), so the orientation is known mod 180 only. W3 pilot sample: its own evidence, not inference"
+        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copy (-6.6 deg mod 180) and is centred on them (0.112 mm), so the orientation is known mod 180 only. W3 pilot sample: its own evidence, not inference. [Added by tools/w3_record.py: the angle and offset above are the preview run's own reading, by measure_preview.py method 1, which read the reference text together with the model. The group record tools/sourcing_data/w3_records/2026-11-10-chip0402-yageo-rc.json judges this sample by method 2, which reads -1.0 deg mod 180 and 0.022 mm.]"
       },
       "evidence_ref": null
     },
@@ -2606,7 +2606,7 @@
         "method": "preview",
         "date": "2026-11-07",
         "record": "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md",
-        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copy (-3.5 deg mod 180) and is centred on them (0.079 mm), so the orientation is known mod 180 only. W3 pilot sample: its own evidence, not inference"
+        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copy (-3.5 deg mod 180) and is centred on them (0.079 mm), so the orientation is known mod 180 only. W3 pilot sample: its own evidence, not inference. [Added by tools/w3_record.py: the angle and offset above are the preview run's own reading, by measure_preview.py method 1, which read the reference text together with the model. The group record tools/sourcing_data/w3_records/2026-11-10-chip0402-yageo-rc.json judges this sample by method 2, which reads -0.5 deg mod 180 and 0.017 mm.]"
       },
       "evidence_ref": null
     },
@@ -2632,7 +2632,7 @@
         "method": "preview",
         "date": "2026-11-07",
         "record": "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md",
-        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copy (+2.5 deg mod 180) and is centred on them (0.042 mm), so the orientation is known mod 180 only. W3 pilot sample: its own evidence, not inference"
+        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copy (+2.5 deg mod 180) and is centred on them (0.042 mm), so the orientation is known mod 180 only. W3 pilot sample: its own evidence, not inference. [Added by tools/w3_record.py: the angle and offset above are the preview run's own reading, by measure_preview.py method 1, which read the reference text together with the model. The group record tools/sourcing_data/w3_records/2026-11-10-chip0402-yageo-rc.json judges this sample by method 2, which reads +0.5 deg mod 180 and 0.029 mm.]"
       },
       "evidence_ref": null
     },
@@ -2658,7 +2658,7 @@
         "method": "preview",
         "date": "2026-11-07",
         "record": "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md",
-        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copy (-1.7 deg mod 180) and is centred on them (0.070 mm), so the orientation is known mod 180 only. W3 pilot sample: its own evidence, not inference"
+        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copy (-1.7 deg mod 180) and is centred on them (0.070 mm), so the orientation is known mod 180 only. W3 pilot sample: its own evidence, not inference. [Added by tools/w3_record.py: the angle and offset above are the preview run's own reading, by measure_preview.py method 1, which read the reference text together with the model. The group record tools/sourcing_data/w3_records/2026-11-10-chip0402-yageo-rc.json judges this sample by method 2, which reads -0.6 deg mod 180 and 0.012 mm.]"
       },
       "evidence_ref": null
     },
@@ -2684,7 +2684,7 @@
         "method": "preview",
         "date": "2026-11-07",
         "record": "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md",
-        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copy (+0.7 deg mod 180) and is centred on them (0.097 mm), so the orientation is known mod 180 only. W3 pilot sample: its own evidence, not inference"
+        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copy (+0.7 deg mod 180) and is centred on them (0.097 mm), so the orientation is known mod 180 only. W3 pilot sample: its own evidence, not inference. [Added by tools/w3_record.py: the angle and offset above are the preview run's own reading, by measure_preview.py method 1, which read the reference text together with the model. The group record tools/sourcing_data/w3_records/2026-11-10-chip0402-yageo-rc.json judges this sample by method 2, which reads +0.1 deg mod 180 and 0.020 mm.]"
       },
       "evidence_ref": null
     },
@@ -2710,7 +2710,7 @@
         "method": "preview",
         "date": "2026-11-07",
         "record": "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md",
-        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copy (+0.1 deg mod 180) and is centred on them (0.116 mm), so the orientation is known mod 180 only. W3 pilot sample: its own evidence, not inference"
+        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copy (+0.1 deg mod 180) and is centred on them (0.116 mm), so the orientation is known mod 180 only. W3 pilot sample: its own evidence, not inference. [Added by tools/w3_record.py: the angle and offset above are the preview run's own reading, by measure_preview.py method 1, which read the reference text together with the model. The group record tools/sourcing_data/w3_records/2026-11-10-chip0402-yageo-rc.json judges this sample by method 2, which reads +1.2 deg mod 180 and 0.022 mm.]"
       },
       "evidence_ref": null
     },
@@ -2736,7 +2736,7 @@
         "method": "preview",
         "date": "2026-11-07",
         "record": "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md",
-        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copy (-4.4 deg mod 180) and is centred on them (0.045 mm), so the orientation is known mod 180 only. W3 pilot sample: its own evidence, not inference"
+        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copy (-4.4 deg mod 180) and is centred on them (0.045 mm), so the orientation is known mod 180 only. W3 pilot sample: its own evidence, not inference. [Added by tools/w3_record.py: the angle and offset above are the preview run's own reading, by measure_preview.py method 1, which read the reference text together with the model. The group record tools/sourcing_data/w3_records/2026-11-10-chip0402-yageo-rc.json judges this sample by method 2, which reads -0.3 deg mod 180 and 0.031 mm.]"
       },
       "evidence_ref": null
     },
@@ -2762,7 +2762,7 @@
         "method": "preview",
         "date": "2026-11-07",
         "record": "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md",
-        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copy (+3.1 deg mod 180) and is centred on them (0.035 mm), so the orientation is known mod 180 only. W3 pilot sample: its own evidence, not inference"
+        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copy (+3.1 deg mod 180) and is centred on them (0.035 mm), so the orientation is known mod 180 only. W3 pilot sample: its own evidence, not inference. [Added by tools/w3_record.py: the angle and offset above are the preview run's own reading, by measure_preview.py method 1, which read the reference text together with the model. The group record tools/sourcing_data/w3_records/2026-11-10-chip0402-yageo-rc.json judges this sample by method 2, which reads +0.1 deg mod 180 and 0.009 mm.]"
       },
       "evidence_ref": null
     },
@@ -2788,7 +2788,7 @@
         "method": "preview",
         "date": "2026-11-07",
         "record": "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md",
-        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copy (+4.6 deg mod 180) and is centred on them (0.107 mm), so the orientation is known mod 180 only. W3 pilot sample: its own evidence, not inference"
+        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copy (+4.6 deg mod 180) and is centred on them (0.107 mm), so the orientation is known mod 180 only. W3 pilot sample: its own evidence, not inference. [Added by tools/w3_record.py: the angle and offset above are the preview run's own reading, by measure_preview.py method 1, which read the reference text together with the model. The group record tools/sourcing_data/w3_records/2026-11-10-chip0402-yageo-rc.json judges this sample by method 2, which reads -0.3 deg mod 180 and 0.024 mm.]"
       },
       "evidence_ref": null
     },
@@ -2814,7 +2814,7 @@
         "method": "preview",
         "date": "2026-11-07",
         "record": "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md",
-        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copy (+8.1 deg mod 180) and is centred on them (0.121 mm), so the orientation is known mod 180 only. W3 pilot sample: its own evidence, not inference"
+        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copy (+8.1 deg mod 180) and is centred on them (0.121 mm), so the orientation is known mod 180 only. W3 pilot sample: its own evidence, not inference. [Added by tools/w3_record.py: the angle and offset above are the preview run's own reading, by measure_preview.py method 1, which read the reference text together with the model. The group record tools/sourcing_data/w3_records/2026-11-10-chip0402-yageo-rc.json judges this sample by method 2, which reads +0.9 deg mod 180 and 0.021 mm.]"
       },
       "evidence_ref": null
     },
@@ -2840,7 +2840,7 @@
         "method": "preview",
         "date": "2026-11-07",
         "record": "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md",
-        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copy (+5.0 deg mod 180) and is centred on them (0.048 mm), so the orientation is known mod 180 only. W3 pilot sample: its own evidence, not inference"
+        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copy (+5.0 deg mod 180) and is centred on them (0.048 mm), so the orientation is known mod 180 only. W3 pilot sample: its own evidence, not inference. [Added by tools/w3_record.py: the angle and offset above are the preview run's own reading, by measure_preview.py method 1, which read the reference text together with the model. The group record tools/sourcing_data/w3_records/2026-11-10-chip0402-yageo-rc.json judges this sample by method 2, which reads -0.7 deg mod 180 and 0.021 mm.]"
       },
       "evidence_ref": null
     },
@@ -2866,7 +2866,7 @@
         "method": "preview",
         "date": "2026-11-07",
         "record": "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md",
-        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copy (-4.3 deg mod 180) and is centred on them (0.095 mm), so the orientation is known mod 180 only. W3 pilot sample: its own evidence, not inference"
+        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copy (-4.3 deg mod 180) and is centred on them (0.095 mm), so the orientation is known mod 180 only. W3 pilot sample: its own evidence, not inference. [Added by tools/w3_record.py: the angle and offset above are the preview run's own reading, by measure_preview.py method 1, which read the reference text together with the model. The group record tools/sourcing_data/w3_records/2026-11-10-chip0402-yageo-rc.json judges this sample by method 2, which reads +0.5 deg mod 180 and 0.033 mm.]"
       },
       "evidence_ref": null
     },
@@ -2892,7 +2892,7 @@
         "method": "preview",
         "date": "2026-11-07",
         "record": "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md",
-        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copy (+2.4 deg mod 180) and is centred on them (0.038 mm), so the orientation is known mod 180 only. W3 pilot sample: its own evidence, not inference"
+        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copy (+2.4 deg mod 180) and is centred on them (0.038 mm), so the orientation is known mod 180 only. W3 pilot sample: its own evidence, not inference. [Added by tools/w3_record.py: the angle and offset above are the preview run's own reading, by measure_preview.py method 1, which read the reference text together with the model. The group record tools/sourcing_data/w3_records/2026-11-10-chip0402-yageo-rc.json judges this sample by method 2, which reads +1.0 deg mod 180 and 0.010 mm.]"
       },
       "evidence_ref": null
     },
@@ -2918,7 +2918,7 @@
         "method": "preview",
         "date": "2026-11-07",
         "record": "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md",
-        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copy (-2.1 deg mod 180) and is centred on them (0.080 mm), so the orientation is known mod 180 only. W3 pilot sample: its own evidence, not inference"
+        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copy (-2.1 deg mod 180) and is centred on them (0.080 mm), so the orientation is known mod 180 only. W3 pilot sample: its own evidence, not inference. [Added by tools/w3_record.py: the angle and offset above are the preview run's own reading, by measure_preview.py method 1, which read the reference text together with the model. The group record tools/sourcing_data/w3_records/2026-11-10-chip0402-yageo-rc.json judges this sample by method 2, which reads -1.8 deg mod 180 and 0.011 mm.]"
       },
       "evidence_ref": null
     },
@@ -2944,7 +2944,7 @@
         "method": "preview",
         "date": "2026-11-07",
         "record": "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md",
-        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copy (-2.0 deg mod 180) and is centred on them (0.092 mm), so the orientation is known mod 180 only. W3 pilot sample: its own evidence, not inference"
+        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copy (-2.0 deg mod 180) and is centred on them (0.092 mm), so the orientation is known mod 180 only. W3 pilot sample: its own evidence, not inference. [Added by tools/w3_record.py: the angle and offset above are the preview run's own reading, by measure_preview.py method 1, which read the reference text together with the model. The group record tools/sourcing_data/w3_records/2026-11-10-chip0402-yageo-rc.json judges this sample by method 2, which reads -0.4 deg mod 180 and 0.028 mm.]"
       },
       "evidence_ref": null
     },
@@ -2970,7 +2970,7 @@
         "method": "preview",
         "date": "2026-11-07",
         "record": "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md",
-        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copy (-1.9 deg mod 180) and is centred on them (0.077 mm), so the orientation is known mod 180 only. W3 pilot sample: its own evidence, not inference"
+        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copy (-1.9 deg mod 180) and is centred on them (0.077 mm), so the orientation is known mod 180 only. W3 pilot sample: its own evidence, not inference. [Added by tools/w3_record.py: the angle and offset above are the preview run's own reading, by measure_preview.py method 1, which read the reference text together with the model. The group record tools/sourcing_data/w3_records/2026-11-10-chip0402-yageo-rc.json judges this sample by method 2, which reads -0.3 deg mod 180 and 0.005 mm.]"
       },
       "evidence_ref": null
     },
@@ -2996,7 +2996,7 @@
         "method": "preview",
         "date": "2026-11-07",
         "record": "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md",
-        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copy (-2.2 deg mod 180) and is centred on them (0.089 mm), so the orientation is known mod 180 only. W3 pilot sample: its own evidence, not inference"
+        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copy (-2.2 deg mod 180) and is centred on them (0.089 mm), so the orientation is known mod 180 only. W3 pilot sample: its own evidence, not inference. [Added by tools/w3_record.py: the angle and offset above are the preview run's own reading, by measure_preview.py method 1, which read the reference text together with the model. The group record tools/sourcing_data/w3_records/2026-11-10-chip0402-yageo-rc.json judges this sample by method 2, which reads -0.8 deg mod 180 and 0.036 mm.]"
       },
       "evidence_ref": null
     },
@@ -3022,7 +3022,7 @@
         "method": "preview",
         "date": "2026-11-07",
         "record": "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md",
-        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copy (-2.7 deg mod 180) and is centred on them (0.104 mm), so the orientation is known mod 180 only. W3 pilot sample: its own evidence, not inference"
+        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copy (-2.7 deg mod 180) and is centred on them (0.104 mm), so the orientation is known mod 180 only. W3 pilot sample: its own evidence, not inference. [Added by tools/w3_record.py: the angle and offset above are the preview run's own reading, by measure_preview.py method 1, which read the reference text together with the model. The group record tools/sourcing_data/w3_records/2026-11-10-chip0402-yageo-rc.json judges this sample by method 2, which reads +0.2 deg mod 180 and 0.025 mm.]"
       },
       "evidence_ref": null
     },
@@ -3048,7 +3048,7 @@
         "method": "preview",
         "date": "2026-11-07",
         "record": "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md",
-        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copy (-6.6 deg mod 180) and is centred on them (0.115 mm), so the orientation is known mod 180 only. W3 pilot sample: its own evidence, not inference"
+        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copy (-6.6 deg mod 180) and is centred on them (0.115 mm), so the orientation is known mod 180 only. W3 pilot sample: its own evidence, not inference. [Added by tools/w3_record.py: the angle and offset above are the preview run's own reading, by measure_preview.py method 1, which read the reference text together with the model. The group record tools/sourcing_data/w3_records/2026-11-10-chip0402-yageo-rc.json judges this sample by method 2, which reads -1.4 deg mod 180 and 0.019 mm.]"
       },
       "evidence_ref": null
     },
@@ -3074,7 +3074,7 @@
         "method": "preview",
         "date": "2026-11-07",
         "record": "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md",
-        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copy (+4.7 deg mod 180) and is centred on them (0.114 mm), so the orientation is known mod 180 only. W3 pilot sample: its own evidence, not inference"
+        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copy (+4.7 deg mod 180) and is centred on them (0.114 mm), so the orientation is known mod 180 only. W3 pilot sample: its own evidence, not inference. [Added by tools/w3_record.py: the angle and offset above are the preview run's own reading, by measure_preview.py method 1, which read the reference text together with the model. The group record tools/sourcing_data/w3_records/2026-11-10-chip0402-yageo-rc.json judges this sample by method 2, which reads +0.5 deg mod 180 and 0.020 mm.]"
       },
       "evidence_ref": null
     },
@@ -3100,7 +3100,7 @@
         "method": "preview",
         "date": "2026-11-07",
         "record": "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md",
-        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copy (-1.8 deg mod 180) and is centred on them (0.115 mm), so the orientation is known mod 180 only. W3 pilot sample: its own evidence, not inference"
+        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copy (-1.8 deg mod 180) and is centred on them (0.115 mm), so the orientation is known mod 180 only. W3 pilot sample: its own evidence, not inference. [Added by tools/w3_record.py: the angle and offset above are the preview run's own reading, by measure_preview.py method 1, which read the reference text together with the model. The group record tools/sourcing_data/w3_records/2026-11-10-chip0402-yageo-rc.json judges this sample by method 2, which reads -0.0 deg mod 180 and 0.025 mm.]"
       },
       "evidence_ref": null
     },
@@ -3126,7 +3126,7 @@
         "method": "preview",
         "date": "2026-11-07",
         "record": "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md",
-        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copy (+5.2 deg mod 180) and is centred on them (0.115 mm), so the orientation is known mod 180 only. W3 pilot sample: its own evidence, not inference"
+        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copy (+5.2 deg mod 180) and is centred on them (0.115 mm), so the orientation is known mod 180 only. W3 pilot sample: its own evidence, not inference. [Added by tools/w3_record.py: the angle and offset above are the preview run's own reading, by measure_preview.py method 1, which read the reference text together with the model. The group record tools/sourcing_data/w3_records/2026-11-10-chip0402-yageo-rc.json judges this sample by method 2, which reads +0.9 deg mod 180 and 0.031 mm.]"
       },
       "evidence_ref": null
     },
@@ -3152,7 +3152,7 @@
         "method": "preview",
         "date": "2026-11-07",
         "record": "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md",
-        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copy (+4.1 deg mod 180) and is centred on them (0.046 mm), so the orientation is known mod 180 only. W3 pilot sample: its own evidence, not inference"
+        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copy (+4.1 deg mod 180) and is centred on them (0.046 mm), so the orientation is known mod 180 only. W3 pilot sample: its own evidence, not inference. [Added by tools/w3_record.py: the angle and offset above are the preview run's own reading, by measure_preview.py method 1, which read the reference text together with the model. The group record tools/sourcing_data/w3_records/2026-11-10-chip0402-yageo-rc.json judges this sample by method 2, which reads +0.1 deg mod 180 and 0.024 mm.]"
       },
       "evidence_ref": null
     },
@@ -3178,7 +3178,7 @@
         "method": "preview",
         "date": "2026-11-07",
         "record": "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md",
-        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copy (-4.0 deg mod 180) and is centred on them (0.040 mm), so the orientation is known mod 180 only. W3 pilot sample: its own evidence, not inference"
+        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copy (-4.0 deg mod 180) and is centred on them (0.040 mm), so the orientation is known mod 180 only. W3 pilot sample: its own evidence, not inference. [Added by tools/w3_record.py: the angle and offset above are the preview run's own reading, by measure_preview.py method 1, which read the reference text together with the model. The group record tools/sourcing_data/w3_records/2026-11-10-chip0402-yageo-rc.json judges this sample by method 2, which reads +1.4 deg mod 180 and 0.026 mm.]"
       },
       "evidence_ref": null
     },
@@ -3204,7 +3204,7 @@
         "method": "preview",
         "date": "2026-11-07",
         "record": "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md",
-        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copy (+1.2 deg mod 180) and is centred on them (0.082 mm), so the orientation is known mod 180 only. W3 pilot sample: its own evidence, not inference"
+        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copy (+1.2 deg mod 180) and is centred on them (0.082 mm), so the orientation is known mod 180 only. W3 pilot sample: its own evidence, not inference. [Added by tools/w3_record.py: the angle and offset above are the preview run's own reading, by measure_preview.py method 1, which read the reference text together with the model. The group record tools/sourcing_data/w3_records/2026-11-10-chip0402-yageo-rc.json judges this sample by method 2, which reads +0.1 deg mod 180 and 0.007 mm.]"
       },
       "evidence_ref": null
     },
@@ -3230,7 +3230,7 @@
         "method": "preview",
         "date": "2026-11-07",
         "record": "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md",
-        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copy (-3.0 deg mod 180) and is centred on them (0.070 mm), so the orientation is known mod 180 only. W3 pilot sample: its own evidence, not inference"
+        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copy (-3.0 deg mod 180) and is centred on them (0.070 mm), so the orientation is known mod 180 only. W3 pilot sample: its own evidence, not inference. [Added by tools/w3_record.py: the angle and offset above are the preview run's own reading, by measure_preview.py method 1, which read the reference text together with the model. The group record tools/sourcing_data/w3_records/2026-11-10-chip0402-yageo-rc.json judges this sample by method 2, which reads +0.5 deg mod 180 and 0.019 mm.]"
       },
       "evidence_ref": null
     },

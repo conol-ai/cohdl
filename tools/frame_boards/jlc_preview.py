@@ -35,6 +35,9 @@ AppleScript ``execute javascript``:
    is taken again. After the last attempt, an instance whose model is not drawn
    is "unverified", and a drawn one without its evidence is for "manual review";
    neither passes. ``preview/checks.json`` records each instance's verdict.
+   The exports are JPEG data; beside each, ``<side>.pixels.png`` keeps the
+   decoded pixels the verdicts were read from, losslessly, and
+   ``preview/pixels.json`` names the decoder and both files' SHA-256.
 
 It stops there. It never clicks anything that saves to the cart, quotes, orders or
 pays, and it never ticks the assembly terms on the person's behalf. It reads the
@@ -321,14 +324,33 @@ def load_board(upload, board, placements):
     return doc
 
 
-def inspect(png, outline, bottom, fps, attribution=measure_preview.ATTRIBUTION, body_method=measure_preview.BODY_METHOD):
+def pixels_path(png):
+    """Where the lossless copy of an export's decoded pixels is kept: beside it."""
+    return png.with_name(png.stem + ".pixels.png")
+
+
+def inspect(png, outline, bottom, fps, attribution=measure_preview.ATTRIBUTION, body_method=measure_preview.BODY_METHOD,
+            keep_pixels=False):
     """What an export shows of each of FPS: the pin 1 marks (``measure_preview.marks``;
     under attribution 1 every magenta cluster), and per part whether its model is
-    drawn and, for a chip part, its body reading."""
+    drawn and, for a chip part, its body reading.
+
+    The export is JPEG data. It is decoded once, by ``sips``. A run (KEEP_PIXELS)
+    keeps the pixels that were read beside it as a lossless PNG (``pixels_path``),
+    so the readings do not depend on which JPEG decoder a later reader has; a
+    recheck of an archived export reads that PNG when it is there, needs no
+    ``sips`` for it, and never writes into the archive."""
+    png = Path(png)
     with tempfile.TemporaryDirectory() as td:
-        bmp = Path(td) / "export.bmp"
-        subprocess.run(["sips", "-s", "format", "bmp", str(png), "--out", str(bmp)], check=True, capture_output=True)
-        view = measure_preview.View(str(bmp), outline, bottom)
+        if not keep_pixels and pixels_path(png).exists():
+            source = str(pixels_path(png))
+        else:
+            bmp = Path(td) / "export.bmp"
+            subprocess.run(["sips", "-s", "format", "bmp", str(png), "--out", str(bmp)], check=True, capture_output=True)
+            if keep_pixels:
+                measure_preview.pixels(str(bmp), str(pixels_path(png)))
+            source = str(bmp)
+        view = measure_preview.View(source, outline, bottom)
         readings = {}
         for fp in fps:
             shown = measure_preview.drawn(view, fp)
@@ -381,6 +403,9 @@ def verdicts(marks, fps, readings, attribution=measure_preview.ATTRIBUTION):
             out[ref] = ("manual review", "drawn, with no pin 1 mark of its own")
         elif len(owned[ref]) > 1:
             out[ref] = ("manual review", "drawn, with %d marks of its own: which is pin 1 is read by hand" % len(owned[ref]))
+        elif not measure_preview.angle_readable(fp, measure_preview.pad_1(fp)):
+            out[ref] = ("manual review", "drawn, with one mark of its own; pad 1 sits at the footprint origin, "
+                        "so the mark's angle from it is not read here")
         else:
             mark, pad = owned[ref][0], measure_preview.pad_1(fp)
             delta = measure_preview.delta_ccw(fp, pad, mark)
@@ -470,7 +495,7 @@ def export_capture(side, downloads, out, fps, outline, attempts=3, settle=15, ti
                 js(EXPORT)
                 again = None
             time.sleep(1)
-        marks, readings = inspect(out, outline, side == "Bottom", fps)
+        marks, readings = inspect(out, outline, side == "Bottom", fps, keep_pixels=True)
         found = verdicts(marks, fps, readings)
         last, short = short, sorted((ref for ref, (status, _) in found.items() if status not in PASS), key=natural)
         if not short:
@@ -626,7 +651,7 @@ def run_preview(package, run, downloads, board=None, select_matched=False):
                 raise
     preview = run / "preview"
     preview.mkdir(exist_ok=True)
-    checks = {}
+    checks, kept = {}, {}
     for side_name in ("Top", "Bottom"):
         if sides[side_name]:
             fps = [fp for fp in doc["fps"] if fp["ref"] in sides[side_name]]
@@ -634,6 +659,13 @@ def run_preview(package, run, downloads, board=None, select_matched=False):
                                          measure_preview.outline(doc))
             checks.update(entries(side_name, found, fps))
             print("%s export: %s (sha256 %s)" % (side_name, path, hashlib.sha256(path.read_bytes()).hexdigest()))
+            kept[side_name.lower()] = {
+                "export": path.name, "export_sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+                "pixels": pixels_path(path).name,
+                "pixels_sha256": hashlib.sha256(pixels_path(path).read_bytes()).hexdigest()}
+    # Which decoder made the pixels the checks were read from, and the lossless copy of them.
+    (preview / "pixels.json").write_text(json.dumps({"decoder": measure_preview.decoder(), "views": kept},
+                                                    indent=1) + "\n", encoding="utf-8")
     (preview / "checks.json").write_text(checks_text(checks), encoding="utf-8")
     count = {s: sorted((r for r, c in checks.items() if c["status"] == s), key=natural)
              for s in ("mark", "body", "unverified", "manual review")}

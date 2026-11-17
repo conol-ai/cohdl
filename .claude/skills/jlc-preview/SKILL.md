@@ -34,11 +34,13 @@ The flow builds the preview package, works the assembler's web pages in the pers
    - uploads the Gerber, then switches on PCBA (Both Sides when there are bottom parts);
    - uploads the BOM and CPL;
    - reads the BOM step row by row. Each designator must appear exactly once, on its CPL side, in a selected row matched to its BOM part number. The counts of parts detected and confirmed must match, and no stock warning may show;
-   - exports the 2D top and bottom views into `~/.cache/cohdl-preview/runs/<package>/preview/`.
+   - exports the 2D top and bottom views into `~/.cache/cohdl-preview/runs/<package>/preview/`. The exports are JPEG data under a `.png` name. Beside each, the script keeps the decoded pixels it read as a lossless PNG (`top.pixels.png`, `bottom.pixels.png`), and it writes `preview/pixels.json`: the decoder (`sips` and macOS versions) and the SHA-256 of each export and of its pixels.
 
    Each instance on the side (`board.json`) needs evidence of its own, or the export is taken again:
    - **Non-polar chip parts** (`measure_preview.is_chip`: the library's `passive` `CHIP_*` lands, two pads) get no pin 1 mark from the preview. Their drawn body must lie along the pads' axis, mod 180 (within 10°), and be centred on its pads (within the lesser of 0.25 mm and a quarter of the pad half-spacing).
-   - **Every other part** needs a pin 1 mark. Each mark counts once, for the nearest footprint within its reach, so a BGA's second mark cannot cover for a part that was not drawn.
+   - **Every other part** needs exactly one pin 1 mark of its own, at its pad 1: within 20° of pad 1's direction from the footprint origin (`measure_preview.MARK_ANGLE_TOL`). A mark belongs to a part when it lies within 2 mm of the square about the part's pads; where that holds for several parts, it belongs to the one with a pad nearest to it (`measure_preview.owners`). Chip parts, and two-terminal resistors, inductors and ferrite beads, never own a mark, however near they are. A magenta area larger than 1.5 mm² or longer than 2 mm is a piece of a model, not a mark. A part with no mark, with several (a BGA, a diode with a mark at each end, a connector's peg dots) or with its mark away from pad 1 goes to manual review; so does a two-terminal part that is not a chip part, which has no evidence type here.
+
+   `python3 -I tools/frame_boards/jlc_preview.py --recheck top.png bottom.png --board board.json --cpl <package>-lcsc-cpl.csv` prints the same verdicts from exports already taken, without a browser. A record made before 2026-11-12 was judged by attribution 1 (a mark counted for the nearest footprint origin within reach, and its position was not checked): it reproduces with `--attribution 1` there and on `measure_preview.py measure`.
 
    A retake stops early when two exports in a row leave the same instances without evidence: a model that is not drawn will not be drawn by a third. A large board's export can take minutes to land in Downloads; the script waits up to 8 minutes and clicks the export once more after 4. After the last retake the run goes on to the other side. An instance whose model is not drawn (bare pads and the checkered centroid marker) is **unverified**. A drawn instance without its evidence (no mark, or a chip body not along or not centred on its pads) goes to **manual review**. Neither passes. Each instance's verdict is in `preview/checks.json`. A package from before `board.json` was added takes `--board`, the output of `measure_preview.py board` for the package's `.kicad_pcb`.
    - **Exit 2:** a person must take over (sign-in, captcha, a dialog, a page the script cannot place). Say what it printed, wait, then rerun.
@@ -47,18 +49,18 @@ The flow builds the preview package, works the assembler's web pages in the pers
 3. **Measure:**
    ```sh
    R=~/.cache/cohdl-preview/runs/<package>
-   (cd $R/preview && sips -s format bmp top.png --out top.bmp && sips -s format bmp bottom.png --out bottom.bmp)
-   python3 -I tools/frame_boards/measure_preview.py measure $R/upload/board.json $R/preview/top.bmp $R/preview/bottom.bmp $R/measurements.json
+   python3 -I tools/frame_boards/measure_preview.py measure $R/upload/board.json $R/preview/top.pixels.png $R/preview/bottom.pixels.png $R/measurements.json
    ```
-   `board.json` comes in the package. For an older package, use the file passed as `--board`.
+   `board.json` comes in the package. For an older package, use the file passed as `--board`. Measure the `.pixels.png` files, not a fresh decode: they are the pixels the run's checks were read from, and `measure_preview.py` refuses JPEG data. (For an export that has no pixels file, `sips -s format bmp top.png --out top.bmp`, then `measure_preview.py pixels top.bmp top.pixels.png`, and record `measure_preview.py decoder`.)
 4. **Read the results.**
-   - `delta_ccw_from_top` is the preview's pin 1, counter-clockwise from ours, seen from the top. The binding's `rotate` should leave it near 0; single readings scatter by up to about 10°.
+   - `delta_ccw_from_top` is the preview's pin 1, counter-clockwise from ours, seen from the top. The binding's `rotate` should leave it near 0; single readings scatter by up to about 10°. `mark_ok` is the check above (within 20°). A row's `dots` are the marks that are that part's own. A mark that is this part's but not at pad 1 on a model placed right (a connector whose mark is drawn elsewhere) stays in manual review: read the leads on the pads.
    - A BGA shows two marks near A1, and the script leaves its angle empty. Read it by hand from the mark nearest our ball A1, and check that no mark sits near another corner. Record it as manual review, and say so in the results table.
    - A chip part's row carries `body`: `delta_mod_180` (the body's long axis against the pads', mod 180), `offset_mm` and `body_ok`. A non-polar part's orientation is only known mod 180, and its frame row says so.
    - A part not placed (stock), a model not drawn (`"drawn": false`), a missing or ambiguous mark, or a failed measurement is **unverified**, never passed. Opening the preview is not a pass.
 5. **Record** in `tools/sourcing_data/jlc_previews/<date>-<board>/`. Follow `2026-11-04-lcsc-batch-1/`:
    - `README.md`: what was uploaded, with hashes; the settings; the BOM step; the method; a results table; what it shows; and a section headed "Manual review and limits";
-   - `top.png` and `bottom.png`, the exports as downloaded, with their SHA-256, so `measurements.json` can be reproduced value for value (a re-encoded JPEG shifts readings by about 0.1°);
+   - `top.png` and `bottom.png`, the exports as downloaded, with their SHA-256 (a re-encoded JPEG shifts readings by about 0.1°);
+   - `top.pixels.png`, `bottom.pixels.png` and `pixels.json` from the run's `preview/` directory, with the SHA-256 of each `.pixels.png`. The exports are JPEG, and two JPEG decoders can differ by a pixel at an edge; the lossless pixels are what `measurements.json` reproduces from, value for value, on any machine. In the README, name the decoder from `pixels.json`. Records from before 2026-11-13 keep only the JPEG and reproduce with `sips` (the 2026-11-08 probe record is the exception and the model);
    - `measurements.json`.
 
    Then update the frame rows or bindings the record supports, and say which.

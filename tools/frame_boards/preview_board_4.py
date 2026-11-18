@@ -201,14 +201,15 @@ def row(pn, key, purpose, note, placements):
     if page["stock"] < need:
         raise SystemExit(f"{pn}: its page reads {page['stock']} in stock, the board needs {need}")
     entry = None
-    if pn in mapped:
+    if purpose != "E" and pn in mapped:
         entry = next((e for e in part["entries"] if (e[1], e[2]) == (mapped[pn]["mfr"], mapped[pn]["mpn"])), None)
         if entry is None or page["mpn"] != mapped[pn]["mpn"]:
             raise SystemExit(f"{pn}: {key} has no entry {mapped[pn]['mfr']} {mapped[pn]['mpn']}")
     elif purpose != "E":
         raise SystemExit(f"{pn}: not in lcsc_map.json")
-    if purpose == "E" and (pn in framed or (page["mfr"], page["mpn"]) in by_identity):
-        raise SystemExit(f"{pn}: already has a frame row or a library entry; it is not an E row")
+    # E designates an unbound part at the original preview. Subsequent mapping
+    # and frame promotion do not change that experiment's placement.
+
     package, footprint = part["pkg"], part["footprint"]
     fp_package, fp_name = footprint.split("::", 1)
     t = part["type"]
@@ -240,7 +241,7 @@ def row(pn, key, purpose, note, placements):
             raise SystemExit(f"{pn}: {key} does not bind it")
         out["library_part"] = ident(package) + "::" + key.split("::", 1)[1]
     elif purpose == "E":
-        out["note"] += "; device supplies pins only; no map row, no library entry"
+        out["note"] += "; device supplies pins only; no map row or library entry at the original preview"
     else:
         out["note"] += "; lib %s %s; lcsc_map rule %s" % (key, entry[0], mapped[pn]["rule"])
     return out

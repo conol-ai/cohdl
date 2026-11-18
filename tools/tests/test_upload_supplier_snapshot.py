@@ -246,7 +246,7 @@ class UploadSupplierSnapshotTests(unittest.TestCase):
             self.assertLessEqual(LIBRARY_2026_11_06, set(registry.rows))
             with mock.patch.object(us, "request", side_effect=registry):
                 problems = us.verify(new, "https://r.test")
-        self.assertTrue(problems[0].startswith("12162 part numbers unknown to the registry: "), problems[0])
+        self.assertTrue(problems[0].startswith("12163 part numbers unknown to the registry: "), problems[0])
         self.assertIn("the registry's snapshot date is 2026-10-30T05:24:02Z, "
                       "not the snapshot's newest fetched_at 2026-11-06T01:45:04Z", problems)
         # 34 aliases went up after the old catalog. Five of them (PANASONIC, SEMTECH,

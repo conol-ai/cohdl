@@ -357,9 +357,10 @@ class FrameBoardTests(unittest.TestCase):
                 self.assertGreaterEqual(page["stock"], max(30, 5 * len(row["placements"])))
                 mfr = page["mfr"]
                 if row["purpose"] == "E":
-                    self.assertNotIn(row["pn"], mapped)
-                    self.assertNotIn(row["pn"], framed)
-                else:
+                    original = json.loads((data / "registry_uploads/2026-11-07-lcsc/lcsc_map.json").read_text())["rows"]
+                    self.assertNotIn(row["pn"], {item["pn"] for item in original})
+                    self.assertNotIn("library_part", row)
+                if row["pn"] in mapped:
                     mfr = aliases.get(page["mfr"], page["mfr"])
                     self.assertEqual((mapped[row["pn"]]["mfr"], mapped[row["pn"]]["mpn"]), (mfr, page["mpn"]))
                 self.assertEqual((row["mfr"], row["mpn"], row["jlc_package"]), (mfr, page["mpn"], page["package"]))

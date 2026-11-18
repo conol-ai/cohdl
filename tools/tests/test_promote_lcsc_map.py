@@ -62,7 +62,7 @@ class PromoteTests(unittest.TestCase):
         self.assertIn("108 rows, 0 changed", out)
 
     def test_the_committed_map_is_the_full_runs_promoted_over_it(self):
-        current = ROOT / "tools/sourcing_data/mfr_aliases.json"
+        current = RECORD.parent / "2026-11-07-lcsc/mfr_aliases.json"
         shutil.copy(RECORD / "lcsc_map.json", self.map)
         # The full run's first pass used the old table; only its offline rerun is promotable.
         code, _, err = self.promote("--aliases", str(current), run=FULL.parent / "2026-11-06-full")
@@ -84,6 +84,9 @@ class PromoteTests(unittest.TestCase):
         code, out, _ = self.promote("--aliases", str(current), run=HONGJIACHENG)
         self.assertEqual(code, 0)
         self.assertIn("12327 rows, 12327 changed", out)
+        code, out, _ = self.promote("--aliases", str(pm.ALIASES), run=FULL.parent / "2026-11-18-uniroyal")
+        self.assertEqual(code, 0)
+        self.assertIn("12616 rows, 12616 changed", out)
         self.assertEqual(self.map.read_bytes(), (ROOT / "tools/sourcing_data/lcsc_map.json").read_bytes())
 
     def test_check_writes_nothing(self):

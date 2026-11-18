@@ -1,15 +1,8 @@
 # Manufacturer alias review: `UNI-ROYAL(Uniroyal Elec)`
 
-**Decided by the maintainer on 2026-11-13: the library's name for this manufacturer is `UNI-ROYAL`. NOT APPLIED YET.** The alias review itself goes through an issue, which a person will open; its link is pending (see Review, below). Until that issue and the reviewer's comment exist, `tools/sourcing_data/mfr_aliases.json` has no entry for this supplier name, and this record does not add one: every alias in that table cites the issue comment that accepted it (`2026-11-05-mfr-aliases.md`, `2026-11-06-b2-full-aliases.md`), and this one has none to cite yet. Nothing reads this file. (It keeps the file name it had as a proposal.)
+**Decided by the maintainer on 2026-11-13:** use `UNI-ROYAL` in the library. On 2026-11-18 Tony accepted the supplier spelling in [issue #125](https://github.com/conol-ai/cohdl/issues/125). This decoder PR records the decision. A separate mapping change applies it.
 
 An alias lets a supplier's manufacturer name stand for the library's. It is applied by `lcsc_backfill.py` and `promote_lcsc_map.py`, uploaded to the registry's `manufacturer_aliases` table (plan D2), and used by `cohdl suppliers` when it compares a binding with the catalog. A wrong alias would let a binding to another company's part pass the audit, so it needs a human decision before it is added.
-
-## Why there is no alias yet
-
-The earlier records review aliases that a backfill run proposed for names the library already uses. This one differs: **the library has no part by this manufacturer**, so there was no library name to map to. Two decisions were needed, in this order:
-
-1. The library's name for the manufacturer, used as `mfr:` when a UNI-ROYAL alternate is first emitted. **Decided 2026-11-13: `UNI-ROYAL`.**
-2. The alias from the supplier's spelling to that name. **To be accepted in the review issue; not applied.**
 
 ## The alias
 
@@ -34,8 +27,4 @@ The alias would apply to every part number whose page shows that supplier name, 
 
 ## Review
 
-The name was decided by the maintainer on 2026-11-13. The review issue has not been opened yet: a person opens it, and its link and the reviewer's comment go in the table below. Applying the alias is a later change: add the entry to `mfr_aliases.json`, repeat the backfill run offline with the new table (a run records the alias table's hash, so earlier runs are not promotable under a new one), and promote its rows.
-
-| Row | Issue | Decision |
-|---|---|---|
-| 1 | link pending (to be opened by a person) | Name `UNI-ROYAL` decided by the maintainer, 2026-11-13; alias not applied |
+[Decision #125](https://github.com/conol-ai/cohdl/issues/125) covers this exact spelling and groups the chip resistors by size and rated-power prefix (`0402WG`, `0603WA`, `0805W8`, `1206W4`). Start with 0402. The other three groups need additional samples.

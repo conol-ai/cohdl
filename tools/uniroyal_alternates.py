@@ -55,7 +55,7 @@ OUT = ROOT / "tools/passive_data/uniroyal_dry_run.json"
 ORIGIN = "https://jlcpcb.com"
 # The snapshot's own spelling. It is a filter on snapshot rows, not an alias:
 # mfr_aliases.json has no entry for it. The maintainer decided the library's name
-# on 2026-11-13 (LIBRARY_MFR); the alias itself still waits for its review issue
+# on 2026-11-13 (LIBRARY_MFR); #125 records the accepted alias
 # (alias_reviews/2026-11-11-uni-royal-proposal.md) and is not applied here.
 CATALOG_MFR = "UNI-ROYAL(Uniroyal Elec)"
 LIBRARY_MFR = "UNI-ROYAL"
@@ -216,7 +216,7 @@ def build() -> dict:
             "by": "the maintainer",
             "library_mfr": LIBRARY_MFR,
             "alias": f"'{CATALOG_MFR}' -> '{LIBRARY_MFR}': decided, not applied; mfr_aliases.json is unchanged "
-                     "until the review issue exists "
+                     "in this dry run (https://github.com/conol-ai/cohdl/issues/125) "
                      "(tools/sourcing_data/alias_reviews/2026-11-11-uni-royal-proposal.md)",
             "jumpers": "the four F-lettered zero-ohm jumpers may be alternates of R_0R_J_<size>, with a note; "
                        "each 'zero_ohm' row carries it",

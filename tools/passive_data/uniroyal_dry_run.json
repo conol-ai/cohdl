@@ -10,7 +10,7 @@
   "date": "2026-11-13",
   "by": "the maintainer",
   "library_mfr": "UNI-ROYAL",
-  "alias": "'UNI-ROYAL(Uniroyal Elec)' -> 'UNI-ROYAL': decided, not applied; mfr_aliases.json is unchanged until the review issue exists (tools/sourcing_data/alias_reviews/2026-11-11-uni-royal-proposal.md)",
+  "alias": "'UNI-ROYAL(Uniroyal Elec)' -> 'UNI-ROYAL': decided, not applied; mfr_aliases.json is unchanged in this dry run (https://github.com/conol-ai/cohdl/issues/125) (tools/sourcing_data/alias_reviews/2026-11-11-uni-royal-proposal.md)",
   "jumpers": "the four F-lettered zero-ohm jumpers may be alternates of R_0R_J_<size>, with a note; each 'zero_ohm' row carries it"
  },
  "counts": {

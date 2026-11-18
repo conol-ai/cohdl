@@ -294,8 +294,8 @@ class DryRunTests(unittest.TestCase):
     def test_the_alias_review_record_is_decided_and_not_applied(self):
         record = (ur.ROOT / "tools/sourcing_data/alias_reviews/2026-11-11-uni-royal-proposal.md").read_text(encoding="utf-8")
         self.assertIn("Decided by the maintainer on 2026-11-13", record)
-        self.assertIn("NOT APPLIED YET", record)
-        self.assertIn("link pending", record)
+        self.assertIn("Tony accepted", record)
+        self.assertIn("https://github.com/conol-ai/cohdl/issues/125", record)
         self.assertNotIn("PROPOSAL", record)
         aliases = json.loads((ur.ROOT / "tools/sourcing_data/mfr_aliases.json").read_text(encoding="utf-8"))["aliases"]
         self.assertNotIn(ur.CATALOG_MFR, aliases)

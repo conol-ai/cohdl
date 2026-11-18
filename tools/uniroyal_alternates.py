@@ -3,8 +3,8 @@
 
 ``python3 -I tools/uniroyal_alternates.py [--check]``. Nothing is fetched.
 
-DRY RUN. gen_passive.py does not read the file this writes, no part gains an
-alternate, and nothing is bound. It answers one question ahead of plan W4:
+DRY RUN. gen_passive.py does not read the file this writes, this report itself writes no bindings. The 0402 generator uses the B1 catalog directly.
+The report answers:
 which UNI-ROYAL part numbers JLCPCB stocks as Basic or Preferred are the same
 resistor as a part the library already has, and which would be new values.
 
@@ -196,7 +196,7 @@ def build() -> dict:
     }
     return {
         "_provenance": {
-            "status": "dry run: gen_passive.py does not read this file; no alternate is emitted and nothing is bound",
+            "status": "dry-run comparison across sizes; the 0402 generator independently reads the B1 catalog",
             "source": "B1 snapshot tools/sourcing_data/jlc_catalog/2026-10-30/catalog.json (confirmed JLCPCB pages), "
                       f"rows whose manufacturer reads '{CATALOG_MFR}'",
             "rules": "transcribed from UNI-ROYAL's datasheet 'Thick Film Chip Resistors' SMD-SP-001 V.11 "
@@ -215,8 +215,8 @@ def build() -> dict:
             "date": DECIDED,
             "by": "the maintainer",
             "library_mfr": LIBRARY_MFR,
-            "alias": f"'{CATALOG_MFR}' -> '{LIBRARY_MFR}': decided, not applied; mfr_aliases.json is unchanged "
-                     "in this dry run (https://github.com/conol-ai/cohdl/issues/125) "
+            "alias": f"'{CATALOG_MFR}' -> '{LIBRARY_MFR}': applied to mfr_aliases.json under decision "
+                     "(https://github.com/conol-ai/cohdl/issues/125) "
                      "(tools/sourcing_data/alias_reviews/2026-11-11-uni-royal-proposal.md)",
             "jumpers": "the four F-lettered zero-ohm jumpers may be alternates of R_0R_J_<size>, with a note; "
                        "each 'zero_ohm' row carries it",

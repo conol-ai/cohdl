@@ -2,6 +2,7 @@ import contextlib
 import hashlib
 import io
 import json
+import re
 import sys
 import tempfile
 import unittest
@@ -289,7 +290,7 @@ class DryRunTests(unittest.TestCase):
         self.assertEqual(self.report["counts"]["alternates_with_jumpers"], 288)
         decisions = self.report["decisions"]
         self.assertEqual((decisions["date"], decisions["library_mfr"]), ("2026-11-13", "UNI-ROYAL"))
-        self.assertIn("not applied", decisions["alias"])
+        self.assertIn("issues/125", decisions["alias"])
 
     def test_the_alias_review_record_is_approved_and_applied(self):
         record = (ur.ROOT / "tools/sourcing_data/alias_reviews/2026-11-11-uni-royal-proposal.md").read_text(encoding="utf-8")
@@ -329,6 +330,21 @@ class DryRunTests(unittest.TestCase):
         rows = json.loads((ur.ROOT / "tools/sourcing_data/lcsc_map.json").read_text())["rows"]
         self.assertEqual({(r["mpn"], r["pn"]) for r in rows if r["mfr"] == ur.LIBRARY_MFR}, expected)
         self.assertEqual(len(expected), 289)
+
+    def test_emitted_0402_alternates_and_evidence(self):
+        expected = {(r["part"], r["mpn"], r["pn"]) for key in ("alternates", "zero_ohm")
+                    for r in self.report[key] if r["size"] == "0402"}
+        actual = set()
+        for path in SOURCES.glob("resistors_*.cohdl"):
+            for part, block in re.findall(r"^pub part (\w+):([^}]*?\n.*?^})", path.read_text(), re.M | re.S):
+                for mpn, pn in re.findall(r'alt \{ mfr: "UNI-ROYAL", mpn: "([^"]+)",\s*supplier lcsc "(C\d+)"', block):
+                    actual.add((part, mpn, pn))
+        self.assertEqual(len(expected), 58)
+        self.assertEqual(actual, expected)
+        frames = json.loads((ur.ROOT / "tools/sourcing_data/jlc_frames.json").read_text())["rows"]
+        members = {pn for _, _, pn in actual}
+        self.assertEqual(sum(bool(r["evidence"]) for r in frames if r["pn"] in members), 9)
+        self.assertEqual(sum(bool(r.get("sampled")) for r in frames if r["pn"] in members), 49)
 
     def test_the_openwalkietalkie_rows(self):
         rows = {row["mpn"]: row for row in self.report["openwalkietalkie_rev_b"]}

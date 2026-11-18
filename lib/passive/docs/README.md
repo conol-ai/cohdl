@@ -174,3 +174,11 @@ All three have a zero map. That makes 36 bindings: 25 resistors and 11 MLCCs, wi
 - **What changes in a build.** A plain `build` writes the same neutral BOM and CPL. The KiCad netlist gains an `LCSC` field for each instance whose primary entry is newly bound.
 
 **Read on the same board, not bound here.** C52923 (`CL05A105KA5NQNC`, an alternate of `C_1u_25V_X5R_0402`) and C23630 (`CL10A225KO8NNNC`, an alternate of `C_2u2_16V_X5R_0603`) read along their lands on all four copies too. They have an identity and an entry and are left for a change of their own. The three ICs on the board read a quarter or half turn off and are not `passive` parts: their bindings wait for a re-verify board that places them with the candidate rotations.
+
+## UNI-ROYAL 0402 resistors in 0.2.9
+
+The 58 new LCSC bindings are alternates of existing 0402 resistors. Primary parts and land geometry are unchanged. Eight have four method-2 body measurements each on board 4, C25744 has its own board 1 frame, and 49 use the 0402WG W3 sample record. Orientation is known modulo 180°. The 886 earlier bindings remain available (944 total).
+
+The F-lettered jumper C17168 is an alternate of `R_0R_J_0402`. UNI-ROYAL rates its 0402 jumper at <50 mΩ, 1 A rated and 2 A overload. Its datasheet gives no jumper tolerance. The part name retains the primary manufacturer's ordering convention. C25760, the Extended 180 kΩ order line, is outside this B1 alternate set.
+
+[Group record](../../../tools/sourcing_data/w3_records/2026-11-18-chip0402-uniroyal.json) · [Datasheet evidence](../../../tools/passive_data/uniroyal_chip_series.evidence.md)

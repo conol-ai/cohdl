@@ -1,0 +1,53 @@
+{
+  "budget_exhausted": false,
+  "counts": {
+    "avl_entries": 21060,
+    "cache_hits": 12583,
+    "confirmed_pages": 12820,
+    "fetch_failures": 1,
+    "mapped_identities": 12327,
+    "partdetail_urls": 12823,
+    "requests": 387,
+    "review_identities": 8731,
+    "unique_identities": 21058
+  },
+  "date": "2026-11-11",
+  "elapsed_seconds": 998.037866,
+  "fetch_failed": [
+    {
+      "candidates": [],
+      "mfr": "SGMICRO",
+      "mpn": "SGM2554AYN5G/TR",
+      "reason": "fetch_failed"
+    }
+  ],
+  "match_rate": {
+    "denominator": 21058,
+    "method": "mapped_identities / unique_identities; unique key is exact (mfr, mpn) after selecting confirmed candidates",
+    "numerator": 12327,
+    "value": 0.5853832272770444
+  },
+  "max_requests": 387,
+  "not_fetched": [],
+  "parser_status": "real_sample_2026-10-30",
+  "request_count": 387,
+  "run_stopped": false,
+  "run_stopped_reason": null,
+  "schema_version": 1,
+  "sha256": {
+    "alias_proposals.json": "6fcefb1e12988c0017c208125261ee4158d9eaf6f84c7dc639d9a481c30d9bd7",
+    "confirmed.json": "8a9b7ee4603b210710ca4250dac0557fa65d51977c9f1bece2f5a9863c094575",
+    "lcsc_map.json": "5bec55387adac47b60e48f5c8a86bc65cf27de74342230c76f734e76ac109ca4",
+    "requests.json": "1ae26de2eff3cf4f32152b9fcb3d7cca43674b9f1086d56e961cf189b0b89a71",
+    "review.json": "de96501d8a2d7c3546f18d467f1b76cc601fb66019871b24da4799a50d4ec2dd"
+  },
+  "snapshot_sha256": "8a9b7ee4603b210710ca4250dac0557fa65d51977c9f1bece2f5a9863c094575",
+  "sources": {
+    "aliases": "tools/sourcing_data/mfr_aliases.json",
+    "aliases_sha256": "b69b272ebac9402b45e64db470154066f978b4dcf25fd91dea0fa37d03d2af0e",
+    "candidates": "tools/sourcing_data/jlcparts/2026-10-27/basic_preferred.json",
+    "candidates_sha256": "c0a9b92b1bcf56cdf9b4585489b8cbde2e9dd7e2cd9a700e55783a4a69448adf",
+    "lib_dir": "lib",
+    "origin": "https://jlcpcb.com"
+  }
+}

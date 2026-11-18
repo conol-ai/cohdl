@@ -5,9 +5,12 @@
 // board frame (+x right, +y DOWN, top view), origin at the package centre.
 // Pad 1 is the CATHODE (the band end) and sits at -x; pad 2 is the anode
 // at +x. The assembler has read this orientation as 0 degrees for SOD-123
-// and SOD-323 parts on earlier preview boards (library plan section 4), so
-// the lands are authored on that frame from the start. No SOD-123FL or
-// SOD-523 part has been read yet; those lands use the same frame.
+// and SOD-323 parts on other packages' lands (library plan section 4), so
+// the lands are authored on that frame from the start. The first part
+// numbers read on these lands (2026-11-08) are per-part results and do not
+// confirm the frame: two polarized parts needed a half turn and one
+// bidirectional TVS was read by its body only (docs/README.md, "Preview
+// readings").
 //
 // These names are IPC-7351B-style (SOD + lead span + body width X height,
 // spans and widths in tenths of a millimetre, height in hundredths) but SOD

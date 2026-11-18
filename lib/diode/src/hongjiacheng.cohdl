@@ -1,0 +1,93 @@
+// Zhuhai Hongjiacheng discrete diodes on the shared `sod` and `do214` lands.
+// Every device keeps the library convention: pad 1 is the cathode (the band
+// end, at -x on the land) and pad 2 the anode. Each sheet's page 1 says
+// "Polarity: Cathode line denotes the cathode end".
+//
+// The LCSC bindings carry `rotate 180`: on the 2026-11-08 re-verify preview
+// the assembler's model for each of these three part numbers had its
+// cathode at +x, a half turn from the land. That is a polarity reading by
+// eye, not a measured angle. See docs/README.md ("LCSC bindings").
+
+// ---- B5819WS: 40V 1A Schottky rectifier, SOD-323 ----
+// Datasheet "B5817WS THRU B5819WS" Rev 2.0, page 1 (B5819WS column): VRRM
+// 40V, VDC 40V, IF(AV) 1.0A, IFSM 10A (8.3ms half sine), Pd 250mW. Page 2:
+// VF 0.6V max at 1.0A and 0.9V max at 3.0A, IR 1.0mA max at VDC, CJ 120pF
+// typ at 4.0V / 1MHz.
+#[doc("docs/hongjiacheng-b5819ws.evidence.md")]
+pub device Schottky_B5819WS {
+    pins {
+        required Cathode: 1 [passive]
+        required Anode: 2 [passive]
+    }
+}
+
+impl Polarized for Schottky_B5819WS {
+    pins {
+        Anode: Anode
+        Cathode: Cathode
+    }
+}
+
+impl Diode for Schottky_B5819WS {}
+
+#[doc("docs/hongjiacheng-b5819ws.evidence.md")]
+pub part SCHOTTKY_B5819WS: Schottky_B5819WS {
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "B5819WS", footprint: sod::SOD2613X110N,
+              supplier lcsc "C7420331" rotate 180 }
+}
+
+// ---- SS34: 40V 3A Schottky rectifier, SMA (DO-214AC) ----
+// Datasheet "SS32 THRU SS320" Rev 2.0, page 1 (SS34 column): VRRM 40V, VDC
+// 40V, IF(AV) 3.0A, IFSM 80A (8.3ms half sine). Page 2 (SS32-SS34 column):
+// VF 0.55V max at 3.0A, IR 0.5mA max at VDC and 25C (50mA at 100C), CJ
+// 500pF typ at 4.0V / 1MHz.
+#[doc("docs/hongjiacheng-ss34.evidence.md")]
+pub device Schottky_SS34 {
+    pins {
+        required Cathode: 1 [passive]
+        required Anode: 2 [passive]
+    }
+}
+
+impl Polarized for Schottky_SS34 {
+    pins {
+        Anode: Anode
+        Cathode: Cathode
+    }
+}
+
+impl Diode for Schottky_SS34 {}
+
+#[doc("docs/hongjiacheng-ss34.evidence.md")]
+pub part SCHOTTKY_SS34: Schottky_SS34 {
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "SS34", footprint: do214::DIOM5026X241N,
+              supplier lcsc "C7420365" rotate 180 }
+}
+
+// ---- 1N4148WT: 100V 150mA fast switching diode, SOD-523 ----
+// Datasheet "1N4148WT" Rev 2.0, page 1: VRRM 100V, V(BR)R 100V at 100uA,
+// IF(AV) 150mA, IFRM 300mA, Pd 150mW. Page 2: VF 0.715V max at 1mA, 0.855V
+// at 10mA, 1.0V at 50mA, 1.25V at 150mA; IR 25nA max at 20V and 1.0uA max at
+// 75V; CT 2.0pF max at 0V / 1MHz; trr 4.0ns max.
+#[doc("docs/hongjiacheng-1n4148wt.evidence.md")]
+pub device Diode_1N4148WT {
+    pins {
+        required Cathode: 1 [passive]
+        required Anode: 2 [passive]
+    }
+}
+
+impl Polarized for Diode_1N4148WT {
+    pins {
+        Anode: Anode
+        Cathode: Cathode
+    }
+}
+
+impl Diode for Diode_1N4148WT {}
+
+#[doc("docs/hongjiacheng-1n4148wt.evidence.md")]
+pub part D_1N4148WT: Diode_1N4148WT {
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "1N4148WT", footprint: sod::SOD1608X70N,
+              supplier lcsc "C7420320" rotate 180 }
+}

@@ -24,14 +24,14 @@
  },
  "built_by": "tools/w3_record.py",
  "stock_source": {
-  "path": "tools/sourcing_data/lcsc_backfill/2026-11-07-samsung-b1/confirmed.json",
-  "sha256": "643ee6d3e2ec221e6c1da2368f1af246244830d13599f969f7e793c59db93320"
+  "path": "tools/sourcing_data/lcsc_backfill/2026-11-11-hongjiacheng/confirmed.json",
+  "sha256": "8a9b7ee4603b210710ca4250dac0557fa65d51977c9f1bece2f5a9863c094575"
  },
  "groups": [
   {
-   "id": "passive-0.2.7-CHIP_0402-ChipResistor-Yageo-RC",
+   "id": "passive-0.2.8-CHIP_0402-ChipResistor-Yageo-RC",
    "package": "passive",
-   "package_version": "0.2.7",
+   "package_version": "0.2.8",
    "footprint": "CHIP_0402",
    "type": "ChipResistor",
    "mfr": "Yageo",

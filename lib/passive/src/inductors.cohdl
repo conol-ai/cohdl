@@ -18,7 +18,8 @@ impl Inductor for ChipInductor {}
 
 #[doc("docs/murata_dfe201612e_detailed_specification.pdf")]
 pub part IND_2U2: ChipInductor<2.2uH> {
-    primary { mfr: "Murata", mpn: "DFE201612E-2R2M=P2", footprint: FP_L_0806_2016Metric }
+    primary { mfr: "Murata", mpn: "DFE201612E-2R2M=P2", footprint: FP_L_0806_2016Metric,
+              supplier lcsc "C337893" }
 }
 
 #[doc("docs/murata_lqh2mcn_detailed_specification.pdf")]
@@ -32,7 +33,8 @@ pub part IND_3U3: ChipInductor<3.3uH> {
 // requirements.
 #[doc("docs/sunlord_wpn_series.pdf")]
 pub part IND_4U7_WPN201610U: ChipInductor<4.7uH> {
-    primary { mfr: "Sunlord", mpn: "WPN201610U4R7MT", footprint: FP_L_WPN201610U_2016Metric }
+    primary { mfr: "Sunlord", mpn: "WPN201610U4R7MT", footprint: FP_L_WPN201610U_2016Metric,
+              supplier lcsc "C97018" }
 }
 
 // Coilcraft 0402DC high-Q wirewound inductors. The J suffix selects +/-5%

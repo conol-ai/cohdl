@@ -1,0 +1,225 @@
+{
+ "name": "preview_board_5",
+ "dependencies": {
+  "std": "0.3.0",
+  "esd": "0.1.4",
+  "load-switch": "0.2.1",
+  "@contrib/audio-amp": "0.2.1"
+ },
+ "rows": [
+  {
+   "name": "Cand_ESD_USBLC6_C7519",
+   "footprint": "esd::FP_SOT_23_6",
+   "part": "esd::USBLC6",
+   "pn": "C7519",
+   "mfr": "STMicroelectronics",
+   "mpn": "USBLC6-2SC6",
+   "pins": [
+    "IO1_A",
+    "GND",
+    "IO2_A",
+    "IO2_B",
+    "VBUS",
+    "IO1_B"
+   ],
+   "width_mm": 14.0,
+   "height_mm": 14.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      10.0,
+      10.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      26.0,
+      10.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      10.0,
+      26.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      26.0,
+      26.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "mapping": {
+    "dx_mm": 0,
+    "dy_mm": 0,
+    "rotate_deg": 270
+   },
+   "candidate": {
+    "rotate_deg": 270,
+    "read_raw_deg": {
+     "top_0": 100.1,
+     "top_37": 100.8,
+     "bottom_0": 259.7,
+     "bottom_37": 259.9
+    },
+    "record": "tools/sourcing_data/jlc_previews/2026-11-11-board-4/README.md"
+   },
+   "note": "Candidate supplier rotation 270 for re-verification; not a binding. lib esd::ESD_USBLC6 primary; lcsc_map rule exact",
+   "jlc_package": "SOT-23-6L",
+   "category": "extended",
+   "stock": 30009,
+   "page_fetched": "2026-11-05"
+  },
+  {
+   "name": "Cand_LOADSW_TPS22918DBVR_C131941",
+   "footprint": "load_switch::FP_TI_DBV0006A",
+   "part": "load_switch::TPS22918",
+   "pn": "C131941",
+   "mfr": "Texas Instruments",
+   "mpn": "TPS22918DBVR",
+   "pins": [
+    "VIN",
+    "GND",
+    "ON",
+    "VOUT"
+   ],
+   "width_mm": 14.0,
+   "height_mm": 14.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      45.0,
+      10.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      61.0,
+      10.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      45.0,
+      26.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      61.0,
+      26.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "mapping": {
+    "dx_mm": 0,
+    "dy_mm": 0,
+    "rotate_deg": 180
+   },
+   "candidate": {
+    "rotate_deg": 180,
+    "read_raw_deg": {
+     "top_0": 183.0,
+     "top_37": 183.0,
+     "bottom_0": 177.4,
+     "bottom_37": 178.2
+    },
+    "record": "tools/sourcing_data/jlc_previews/2026-11-11-board-4/README.md"
+   },
+   "note": "Candidate supplier rotation 180 for re-verification; not a binding. lib load-switch::LOADSW_TPS22918DBVR primary; lcsc_map rule exact",
+   "jlc_package": "SOT-23-6",
+   "category": "extended",
+   "stock": 71324,
+   "page_fetched": "2026-11-05"
+  },
+  {
+   "name": "Cand_AMP_NS4150B_C189961",
+   "footprint": "contrib_audio_amp::SOP8P65X490X110N",
+   "part": "contrib_audio_amp::NS4150B",
+   "pn": "C189961",
+   "mfr": "NSIWAY",
+   "mpn": "NS4150B",
+   "pins": [
+    "CTRL",
+    "VCC",
+    "GND"
+   ],
+   "width_mm": 14.0,
+   "height_mm": 14.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      80.0,
+      10.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      96.0,
+      10.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      80.0,
+      26.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      96.0,
+      26.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "mapping": {
+    "dx_mm": 0,
+    "dy_mm": 0,
+    "rotate_deg": 270
+   },
+   "candidate": {
+    "rotate_deg": 270,
+    "read_raw_deg": {
+     "top_0": 94.8,
+     "top_37": 95.2,
+     "bottom_0": 264.9,
+     "bottom_37": 265.3
+    },
+    "record": "tools/sourcing_data/jlc_previews/2026-11-11-board-4/README.md"
+   },
+   "note": "Candidate supplier rotation 270 for re-verification; not a binding. lib @contrib/audio-amp::AMP_NS4150B primary; lcsc_map rule alias",
+   "jlc_package": "MSOP-8",
+   "category": "extended",
+   "stock": 176882,
+   "page_fetched": "2026-11-05"
+  }
+ ]
+}

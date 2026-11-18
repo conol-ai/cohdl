@@ -182,3 +182,19 @@ The 58 new LCSC bindings are alternates of existing 0402 resistors. Primary part
 The F-lettered jumper C17168 is an alternate of `R_0R_J_0402`. UNI-ROYAL rates its 0402 jumper at <50 mΩ, 1 A rated and 2 A overload. Its datasheet gives no jumper tolerance. The part name retains the primary manufacturer's ordering convention. C25760, the Extended 180 kΩ order line, is outside this B1 alternate set.
 
 [Group record](../../../tools/sourcing_data/w3_records/2026-11-18-chip0402-uniroyal.json) · [Datasheet evidence](../../../tools/passive_data/uniroyal_chip_series.evidence.md)
+
+## UNI-ROYAL 0603, 0805 and 1206 resistors in 0.2.10
+
+This release adds 230 LCSC bindings on alternate entries of existing resistors. All 944 prior bindings carry forward, for 1,174 total. Each new entry has a confirmed manufacturer and part number in the formal map and positive stock on its archived page.
+
+| Series | Direct evidence | Inferred by W3 | Total |
+|---|---:|---:|---:|
+| 0603WA | 7 | 109 | 116 |
+| 0805W8 | 6 | 91 | 97 |
+| 1206W4 | 4 | 13 | 17 |
+
+Board 6 supplied six, five and three distinct samples respectively. Each passed method 2 on both sides at 0° and 37°. Each group also has one earlier direct frame. The group records pin the same pads and footprints used on the preview board at 0.2.8. For these nonpolar bodies the measured axis is known modulo 180°.
+
+The jumpers C21189 (0603), C17477 (0805) and C17888 (1206) are rated below 50 mΩ. Rated and overload currents are 1/2 A, 2/5 A and 2/10 A respectively. UNI-ROYAL specifies no tolerance for its jumpers.
+
+[Board 6 evidence](../../../tools/sourcing_data/jlc_previews/2026-11-19-board-6/README.md) · [W3 group report](../../../tools/sourcing_data/w3_sampling/2026-11-19/groups.md)

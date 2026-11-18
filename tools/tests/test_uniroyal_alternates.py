@@ -331,20 +331,27 @@ class DryRunTests(unittest.TestCase):
         self.assertEqual({(r["mpn"], r["pn"]) for r in rows if r["mfr"] == ur.LIBRARY_MFR}, expected)
         self.assertEqual(len(expected), 289)
 
-    def test_emitted_0402_alternates_and_evidence(self):
-        expected = {(r["part"], r["mpn"], r["pn"]) for key in ("alternates", "zero_ohm")
-                    for r in self.report[key] if r["size"] == "0402"}
-        actual = set()
-        for path in SOURCES.glob("resistors_*.cohdl"):
-            for part, block in re.findall(r"^pub part (\w+):([^}]*?\n.*?^})", path.read_text(), re.M | re.S):
-                for mpn, pn in re.findall(r'alt \{ mfr: "UNI-ROYAL", mpn: "([^"]+)",\s*supplier lcsc "(C\d+)"', block):
-                    actual.add((part, mpn, pn))
-        self.assertEqual(len(expected), 58)
-        self.assertEqual(actual, expected)
+    def test_emitted_alternates_and_evidence(self):
         frames = json.loads((ur.ROOT / "tools/sourcing_data/jlc_frames.json").read_text())["rows"]
-        members = {pn for _, _, pn in actual}
-        self.assertEqual(sum(bool(r["evidence"]) for r in frames if r["pn"] in members), 9)
-        self.assertEqual(sum(bool(r.get("sampled")) for r in frames if r["pn"] in members), 49)
+        counts = {"0402": (9, 49), "0603": (7, 109), "0805": (6, 91), "1206": (4, 13)}
+        for size, (direct, inferred) in counts.items():
+            with self.subTest(size=size):
+                expected = {(r["part"], r["mpn"], r["pn"]) for key in ("alternates", "zero_ohm")
+                            for r in self.report[key] if r["size"] == size}
+                actual = set()
+                source = (SOURCES / f"resistors_{size}.cohdl").read_text()
+                for part, block in re.findall(r"^pub part (\w+):([^}]*?\n.*?^})", source, re.M | re.S):
+                    for mpn, pn in re.findall(r'alt \{ mfr: "UNI-ROYAL", mpn: "([^"]+)",\s*supplier lcsc "(C\d+)"', block):
+                        actual.add((part, mpn, pn))
+                self.assertEqual(actual, expected)
+                self.assertEqual(len(actual), direct + inferred)
+                pns = {pn for _, _, pn in actual}
+                selected = [r for r in frames if r["pn"] in pns]
+                self.assertEqual(len(selected), len(pns))
+                self.assertEqual(sum(bool(r["evidence"]) for r in selected), direct)
+                self.assertEqual(sum(bool(r.get("sampled")) for r in selected), inferred)
+                self.assertTrue(all(r["mapping"] == {"dx_mm": 0, "dy_mm": 0, "rotate_deg": 0}
+                                    for r in selected))
 
     def test_the_openwalkietalkie_rows(self):
         rows = {row["mpn"]: row for row in self.report["openwalkietalkie_rev_b"]}

@@ -374,25 +374,25 @@ def alternate_entry(mfr, mpn, footprint, bindings):
     return avl_entry(bindings, OUT.parent / "cohdl.toml", "alt", mfr, mpn, footprint, footprint)
 
 
-def uniroyal_0402_alternates():
-    """Catalog-confirmed B1 0402 resistors keyed by the library value grid."""
+def uniroyal_alternates(size):
+    """Catalog-confirmed B1 resistors of this size keyed by the library value grid."""
     catalog = ROOT / "tools/sourcing_data/jlc_catalog/2026-10-30/catalog.json"
     alternates = {}
     for page in json.loads(catalog.read_text(encoding="utf-8")):
-        if page["mfr"] != "UNI-ROYAL(Uniroyal Elec)" or page["package"] != "0402":
+        if page["mfr"] != "UNI-ROYAL(Uniroyal Elec)" or page["package"] != size:
             continue
         part = uniroyal_decode(page["mpn"])
-        if part is None or part["size"] != "0402":
+        if part is None or part["size"] != size:
             continue
         key = (part["tolerance"], part["mantissa"], part["decade"])
         if key in alternates:
-            raise ValueError(f"two UNI-ROYAL 0402 catalog entries for {key}")
+            raise ValueError(f"two UNI-ROYAL {size} catalog entries for {key}")
         alternates[key] = page["mpn"]
     return alternates
 
 
 def emit_resistors(size, verified, bindings):
-    candidates = uniroyal_0402_alternates() if size == "0402" else {}
+    candidates = uniroyal_alternates(size) if size in ("0402", "0603", "0805", "1206") else {}
 
     def uniroyal_entry(tol, mantissa, decade):
         mpn = candidates.get((tol, mantissa, decade))
@@ -443,7 +443,7 @@ def emit_resistors(size, verified, bindings):
 # --------------------------------------------------------------------------
 # Resistors — UNI-ROYAL (UniOhm) thick-film chip resistors
 #
-# Shared by the 0402 alternate generator and the catalog dry-run report.
+# Shared by the B1 alternate generator and the catalog dry-run report.
 #
 # The rule is transcribed from UNI-ROYAL's datasheet "Thick Film Chip
 # Resistors", Chip Series, file SMD-SP-001, V.11 of Mar.17,2026 (12 pages).

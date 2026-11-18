@@ -3,7 +3,7 @@
 
 ``python3 -I tools/uniroyal_alternates.py [--check]``. Nothing is fetched.
 
-DRY RUN. gen_passive.py does not read the file this writes, this report itself writes no bindings. The 0402 generator uses the B1 catalog directly.
+DRY RUN. gen_passive.py does not read the file this writes, this report itself writes no bindings. The resistor generator uses the B1 catalog directly.
 The report answers:
 which UNI-ROYAL part numbers JLCPCB stocks as Basic or Preferred are the same
 resistor as a part the library already has, and which would be new values.
@@ -54,9 +54,8 @@ CATALOG = ROOT / "tools/sourcing_data/jlc_catalog/2026-10-30/catalog.json"
 OUT = ROOT / "tools/passive_data/uniroyal_dry_run.json"
 ORIGIN = "https://jlcpcb.com"
 # The snapshot's own spelling. It is a filter on snapshot rows, not an alias:
-# mfr_aliases.json has no entry for it. The maintainer decided the library's name
-# on 2026-11-13 (LIBRARY_MFR); #125 records the accepted alias
-# (alias_reviews/2026-11-11-uni-royal-proposal.md) and is not applied here.
+# the report filters the original B1 spelling. Issue #125 records the accepted
+# alias to LIBRARY_MFR, used downstream by the formal identity map.
 CATALOG_MFR = "UNI-ROYAL(Uniroyal Elec)"
 LIBRARY_MFR = "UNI-ROYAL"
 DECIDED = "2026-11-13"
@@ -196,7 +195,7 @@ def build() -> dict:
     }
     return {
         "_provenance": {
-            "status": "dry-run comparison across sizes; the 0402 generator independently reads the B1 catalog",
+            "status": "dry-run comparison across sizes; the resistor generator independently reads the B1 catalog",
             "source": "B1 snapshot tools/sourcing_data/jlc_catalog/2026-10-30/catalog.json (confirmed JLCPCB pages), "
                       f"rows whose manufacturer reads '{CATALOG_MFR}'",
             "rules": "transcribed from UNI-ROYAL's datasheet 'Thick Film Chip Resistors' SMD-SP-001 V.11 "

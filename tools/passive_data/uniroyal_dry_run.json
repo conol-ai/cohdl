@@ -1,6 +1,6 @@
 {
  "_provenance": {
-  "status": "dry-run comparison across sizes; the 0402 generator independently reads the B1 catalog",
+  "status": "dry-run comparison across sizes; the resistor generator independently reads the B1 catalog",
   "source": "B1 snapshot tools/sourcing_data/jlc_catalog/2026-10-30/catalog.json (confirmed JLCPCB pages), rows whose manufacturer reads 'UNI-ROYAL(Uniroyal Elec)'",
   "rules": "transcribed from UNI-ROYAL's datasheet 'Thick Film Chip Resistors' SMD-SP-001 V.11 (tools/passive_data/uniroyal_chip_series.evidence.md) and checked against JLCPCB's pages; the zero-ohm jumper's part number is not in that datasheet and is still inferred from the snapshot (tools/gen_passive.py, UNI-ROYAL section)",
   "meaning": "'alternates' decode to the resistance, tolerance, case size and rated power of the named library part; 'zero_ohm' are jumpers lettered F, alternates of the library's 5% R_0R_J part by the maintainer's decision (see 'decisions'), each with its note, and 'jumper_ratings' is the datasheet's p.5 rating of each size's jumper (it states no tolerance for a jumper); 'new_values' decode but the library emits no such part; 'not_decoded' are refused by the rule",

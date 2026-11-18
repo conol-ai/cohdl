@@ -24,8 +24,8 @@
  },
  "built_by": "tools/w3_record.py",
  "stock_source": {
-  "path": "tools/sourcing_data/lcsc_backfill/2026-11-11-hongjiacheng/confirmed.json",
-  "sha256": "8a9b7ee4603b210710ca4250dac0557fa65d51977c9f1bece2f5a9863c094575"
+  "path": "tools/sourcing_data/lcsc_backfill/2026-11-18-uniroyal/confirmed.json",
+  "sha256": "cdd3614e23c3a8289d5d726f4ca40d3e95db77e19c9f8fc962af8eb33a4fffec"
  },
  "groups": [
   {

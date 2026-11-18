@@ -1,6 +1,6 @@
 # Manufacturer alias review: `UNI-ROYAL(Uniroyal Elec)`
 
-**Decided by the maintainer on 2026-11-13:** use `UNI-ROYAL` in the library. On 2026-11-18 Tony accepted the supplier spelling in [issue #125](https://github.com/conol-ai/cohdl/issues/125). This decoder PR records the decision. A separate mapping change applies it.
+**Decided by the maintainer on 2026-11-13:** use `UNI-ROYAL` in the library. On 2026-11-18 Tony accepted the supplier spelling in [issue #125](https://github.com/conol-ai/cohdl/issues/125). This decoder PR records the decision. The 2026-11-18 backfill applies it in `mfr_aliases.json`.
 
 An alias lets a supplier's manufacturer name stand for the library's. It is applied by `lcsc_backfill.py` and `promote_lcsc_map.py`, uploaded to the registry's `manufacturer_aliases` table (plan D2), and used by `cohdl suppliers` when it compares a binding with the catalog. A wrong alias would let a binding to another company's part pass the audit, so it needs a human decision before it is added.
 

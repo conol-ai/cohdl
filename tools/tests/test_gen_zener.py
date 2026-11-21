@@ -30,7 +30,11 @@ class GenZenerTests(unittest.TestCase):
         text = gz.OUT.read_text(encoding="utf-8")
         rows = [r for s in d["series"] for r in s["parts"]]
         self.assertEqual({s["key"]: len(s["parts"]) for s in d["series"]},
-                         {"bzt52c": 38, "bzt52b": 33, "mmsz": 47, "mm1z": 39, "mm1w": 50})
+                         {"bzt52c": 38, "bzt52b": 33, "mmsz": 47, "mm1z": 39, "mm1w": 50,
+                          "mm1z_plain": 38, "mmsz46": 40})
+        self.assertNotIn("pub part D_MM1Z43:", text)  # printed twice with different values
+        self.assertIn("pub part D_MMSZ4685: Zener<3.6V, 500mW> {", text)
+        self.assertIn("IZT 50uA", text)
         self.assertEqual(text.count("pub part D_"), len(rows))
         self.assertEqual(text.count("footprint: sod::SOD3716X135N"), len(rows))
         self.assertNotIn("supplier", re.sub(r"//.*", "", text))
@@ -54,6 +58,8 @@ class GenZenerTests(unittest.TestCase):
             "encodes": lambda d: d["series"][0]["parts"][0].update(vz_nom_v="2.2", vz_max_v="2.3"),
             "numbering": lambda d: d["series"][0]["parts"][0].update(mpn="BZT52X2V0"),
             "no parts": lambda d: d["series"][1].update(parts=[]),
+            "both a part and omitted": lambda d: d["series"][0].update(
+                omitted=[{"mpn": d["series"][0]["parts"][0]["mpn"], "reason": "x"}]),
         }
         for message, change in cases.items():
             with self.subTest(message=message):

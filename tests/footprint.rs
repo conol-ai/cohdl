@@ -186,6 +186,32 @@ design MiscDesignators {
 }
 
 #[test]
+fn misc_locked_test_point_keeps_its_u_designator_new_ones_get_tp() {
+    // A board locked before misc 0.1.2 holds `tp_x = U7`. Re-building it
+    // against the TP-prefixed library keeps U7 (RFC-005: a prior assignment
+    // is never renumbered); only the newly-added test point takes TP1.
+    let prior = LockState::parse("[designators]\n\"MiscDesignators::tp_x\" = \"U7\"\n")
+        .expect("lock parses");
+    let consumer = r#"
+design MiscDesignators {
+    inst tp_x: TEST_POINT_ROUND_1MM
+    inst tp_new: TEST_POINT_ROUND_1MM
+    nc: tp_x.SIGNAL, tp_new.SIGNAL
+}
+"#;
+    let (checked, artifacts) = build_misc_consumer(consumer, &prior);
+    let artifacts = artifacts.unwrap_or_else(|| panic!("{}", checked.diags.render(&checked.sm)));
+    let d = &artifacts.lock.designators;
+    assert_eq!(d["MiscDesignators::tp_x"], "U7", "{d:?}");
+    assert_eq!(d["MiscDesignators::tp_new"], "TP1", "{d:?}");
+    assert!(
+        artifacts.netlist.contains("(ref \"U7\")") && artifacts.netlist.contains("(ref \"TP1\")"),
+        "netlist must carry both designators:\n{}",
+        artifacts.netlist
+    );
+}
+
+#[test]
 fn misc_library_exports_locked_public_fabrication_contract() {
     let (checked, artifacts) = build_misc_library();
     let rendered = checked.diags.render(&checked.sm);

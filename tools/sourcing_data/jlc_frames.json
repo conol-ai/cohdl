@@ -3651,6 +3651,3204 @@
       "evidence_ref": null
     },
     {
+      "id": "zb8-sod3716x135n-c19077392",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C19077392",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-8/README.md",
+        "note": "BZT52B3V3, polarity read by eye with no mapping: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D17-D20: top and bottom, 0 and 37 deg). measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 0.8 deg of the pad axis mod 180, centred within 0.080 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb8-sod3716x135n-c19077393",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C19077393",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-8/README.md",
+        "note": "BZT52B5V1, polarity read by eye with no mapping: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D21-D24: top and bottom, 0 and 37 deg). measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 0.3 deg of the pad axis mod 180, centred within 0.063 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb8-sod3716x135n-c19077394",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C19077394",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-8/README.md",
+        "note": "BZT52C2V7, polarity read by eye with no mapping: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D81-D84: top and bottom, 0 and 37 deg). measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 0.5 deg of the pad axis mod 180, centred within 0.079 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb8-sod3716x135n-c19077395",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C19077395",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-8/README.md",
+        "note": "BZT52C3V0, polarity read by eye with no mapping: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D97-D100: top and bottom, 0 and 37 deg). measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 0.3 deg of the pad axis mod 180, centred within 0.065 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb8-sod3716x135n-c19077396",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C19077396",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-8/README.md",
+        "note": "BZT52C3V3, polarity read by eye with no mapping: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D101-D104: top and bottom, 0 and 37 deg). measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 0.8 deg of the pad axis mod 180, centred within 0.072 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb8-sod3716x135n-c19077398",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C19077398",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-8/README.md",
+        "note": "BZT52C3V9, polarity read by eye with no mapping: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D105-D108: top and bottom, 0 and 37 deg). measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 0.7 deg of the pad axis mod 180, centred within 0.071 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb8-sod3716x135n-c19077399",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C19077399",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-8/README.md",
+        "note": "BZT52C4V3, polarity read by eye with no mapping: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D117-D120: top and bottom, 0 and 37 deg). measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 0.3 deg of the pad axis mod 180, centred within 0.062 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb8-sod3716x135n-c19077400",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C19077400",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-8/README.md",
+        "note": "BZT52C4V7, polarity read by eye with no mapping: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D121-D124: top and bottom, 0 and 37 deg). measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 0.4 deg of the pad axis mod 180, centred within 0.071 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb8-sod3716x135n-c19077401",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C19077401",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-8/README.md",
+        "note": "BZT52C5V1, polarity read by eye with no mapping: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D125-D128: top and bottom, 0 and 37 deg). measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 0.4 deg of the pad axis mod 180, centred within 0.079 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb8-sod3716x135n-c19077402",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C19077402",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-8/README.md",
+        "note": "BZT52C5V6, polarity read by eye with no mapping: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D129-D132: top and bottom, 0 and 37 deg). measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 0.6 deg of the pad axis mod 180, centred within 0.082 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb8-sod3716x135n-c19077403",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C19077403",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-8/README.md",
+        "note": "BZT52C6V2, polarity read by eye with no mapping: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D133-D136: top and bottom, 0 and 37 deg). measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 0.9 deg of the pad axis mod 180, centred within 0.059 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb8-sod3716x135n-c19077404",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C19077404",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-8/README.md",
+        "note": "BZT52C6V8, polarity read by eye with no mapping: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D137-D140: top and bottom, 0 and 37 deg). measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 0.6 deg of the pad axis mod 180, centred within 0.052 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb8-sod3716x135n-c19077405",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C19077405",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-8/README.md",
+        "note": "BZT52C7V5, polarity read by eye with no mapping: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D145-D148: top and bottom, 0 and 37 deg). measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 0.3 deg of the pad axis mod 180, centred within 0.059 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb8-sod3716x135n-c19077406",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C19077406",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-8/README.md",
+        "note": "BZT52C8V2, polarity read by eye with no mapping: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D149-D152: top and bottom, 0 and 37 deg). measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 0.6 deg of the pad axis mod 180, centred within 0.057 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb8-sod3716x135n-c19077407",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C19077407",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-8/README.md",
+        "note": "BZT52C9V1, polarity read by eye with no mapping: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D153-D156: top and bottom, 0 and 37 deg). measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 0.6 deg of the pad axis mod 180, centred within 0.057 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb8-sod3716x135n-c19077408",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C19077408",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-8/README.md",
+        "note": "BZT52C10, polarity read by eye with no mapping: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D33-D36: top and bottom, 0 and 37 deg). measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 0.2 deg of the pad axis mod 180, centred within 0.064 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb8-sod3716x135n-c19077409",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C19077409",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-8/README.md",
+        "note": "BZT52C11, polarity read by eye with no mapping: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D37-D40: top and bottom, 0 and 37 deg). measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 0.5 deg of the pad axis mod 180, centred within 0.066 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb8-sod3716x135n-c19077410",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C19077410",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-8/README.md",
+        "note": "BZT52C12, polarity read by eye with no mapping: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D41-D44: top and bottom, 0 and 37 deg). measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 0.6 deg of the pad axis mod 180, centred within 0.084 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb8-sod3716x135n-c19077411",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C19077411",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-8/README.md",
+        "note": "BZT52C13, polarity read by eye with no mapping: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D45-D48: top and bottom, 0 and 37 deg). measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 0.6 deg of the pad axis mod 180, centred within 0.060 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb8-sod3716x135n-c19077412",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C19077412",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-8/README.md",
+        "note": "BZT52C15, polarity read by eye with no mapping: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D49-D52: top and bottom, 0 and 37 deg). measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 0.6 deg of the pad axis mod 180, centred within 0.042 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb8-sod3716x135n-c19077413",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C19077413",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-8/README.md",
+        "note": "BZT52C16, polarity read by eye with no mapping: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D53-D56: top and bottom, 0 and 37 deg). measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 0.9 deg of the pad axis mod 180, centred within 0.052 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb8-sod3716x135n-c19077414",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C19077414",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-8/README.md",
+        "note": "BZT52C18, polarity read by eye with no mapping: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D57-D60: top and bottom, 0 and 37 deg). measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 0.5 deg of the pad axis mod 180, centred within 0.051 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb8-sod3716x135n-c19077415",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C19077415",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-8/README.md",
+        "note": "BZT52C20, polarity read by eye with no mapping: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D61-D64: top and bottom, 0 and 37 deg). measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 0.3 deg of the pad axis mod 180, centred within 0.046 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb8-sod3716x135n-c19077416",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C19077416",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-8/README.md",
+        "note": "BZT52C24, polarity read by eye with no mapping: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D69-D72: top and bottom, 0 and 37 deg). measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 0.4 deg of the pad axis mod 180, centred within 0.059 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb8-sod3716x135n-c19077417",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C19077417",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-8/README.md",
+        "note": "BZT52C27, polarity read by eye with no mapping: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D73-D76: top and bottom, 0 and 37 deg). measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 0.5 deg of the pad axis mod 180, centred within 0.067 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb8-sod3716x135n-c19077418",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C19077418",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-8/README.md",
+        "note": "BZT52C30, polarity read by eye with no mapping: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D85-D88: top and bottom, 0 and 37 deg). measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 0.6 deg of the pad axis mod 180, centred within 0.068 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb8-sod3716x135n-c19077419",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C19077419",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-8/README.md",
+        "note": "BZT52C33, polarity read by eye with no mapping: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D89-D92: top and bottom, 0 and 37 deg). measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 0.6 deg of the pad axis mod 180, centred within 0.060 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb8-sod3716x135n-c19077420",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C19077420",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-8/README.md",
+        "note": "BZT52C36, polarity read by eye with no mapping: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D93-D96: top and bottom, 0 and 37 deg). measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 0.5 deg of the pad axis mod 180, centred within 0.049 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb8-sod3716x135n-c22375295",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C22375295",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-8/README.md",
+        "note": "BZT52C22, polarity read by eye with no mapping: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D65-D68: top and bottom, 0 and 37 deg). measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 0.8 deg of the pad axis mod 180, centred within 0.078 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb8-sod3716x135n-c22375296",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C22375296",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-8/README.md",
+        "note": "BZT52C2V4, polarity read by eye with no mapping: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D77-D80: top and bottom, 0 and 37 deg). measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 0.6 deg of the pad axis mod 180, centred within 0.060 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb8-sod3716x135n-c22375297",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C22375297",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-8/README.md",
+        "note": "BZT52C75, polarity read by eye with no mapping: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D141-D144: top and bottom, 0 and 37 deg). measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 0.7 deg of the pad axis mod 180, centred within 0.044 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb8-sod3716x135n-c22395523",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C22395523",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-8/README.md",
+        "note": "MM1W3V3, polarity read by eye with no mapping: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D201-D204: top and bottom, 0 and 37 deg). measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 0.6 deg of the pad axis mod 180, centred within 0.073 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb8-sod3716x135n-c22395524",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C22395524",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-8/README.md",
+        "note": "MM1W3V6, polarity read by eye with no mapping: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D205-D208: top and bottom, 0 and 37 deg). measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 0.5 deg of the pad axis mod 180, centred within 0.058 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb8-sod3716x135n-c22395525",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C22395525",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-8/README.md",
+        "note": "MM1W3V9, polarity read by eye with no mapping: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D209-D212: top and bottom, 0 and 37 deg). measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 0.3 deg of the pad axis mod 180, centred within 0.037 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb8-sod3716x135n-c22395526",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C22395526",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-8/README.md",
+        "note": "MM1W5V1, polarity read by eye with no mapping: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D217-D220: top and bottom, 0 and 37 deg). measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 0.5 deg of the pad axis mod 180, centred within 0.056 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb8-sod3716x135n-c22395527",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C22395527",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-8/README.md",
+        "note": "MM1W10, polarity read by eye with no mapping: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D161-D164: top and bottom, 0 and 37 deg). measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 0.2 deg of the pad axis mod 180, centred within 0.039 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb8-sod3716x135n-c22395528",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C22395528",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-8/README.md",
+        "note": "MM1W11, polarity read by eye with no mapping: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D165-D168: top and bottom, 0 and 37 deg). measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 0.7 deg of the pad axis mod 180, centred within 0.037 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb8-sod3716x135n-c22395568",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C22395568",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-8/README.md",
+        "note": "BZT52B10, polarity read by eye with no mapping: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D1-D4: top and bottom, 0 and 37 deg). measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 0.4 deg of the pad axis mod 180, centred within 0.040 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb8-sod3716x135n-c22395569",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C22395569",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-8/README.md",
+        "note": "BZT52B12, polarity read by eye with no mapping: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D5-D8: top and bottom, 0 and 37 deg). measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 0.6 deg of the pad axis mod 180, centred within 0.052 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb8-sod3716x135n-c22395570",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C22395570",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-8/README.md",
+        "note": "BZT52B15, polarity read by eye with no mapping: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D13-D16: top and bottom, 0 and 37 deg). measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 0.8 deg of the pad axis mod 180, centred within 0.047 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb8-sod3716x135n-c22395571",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C22395571",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-8/README.md",
+        "note": "BZT52C43, polarity read by eye with no mapping: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D109-D112: top and bottom, 0 and 37 deg). measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 0.5 deg of the pad axis mod 180, centred within 0.060 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb8-sod3716x135n-c22399881",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C22399881",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-8/README.md",
+        "note": "BZT52B5V6, polarity read by eye with no mapping: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D25-D28: top and bottom, 0 and 37 deg). measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 0.7 deg of the pad axis mod 180, centred within 0.033 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb8-sod3716x135n-c22399882",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C22399882",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-8/README.md",
+        "note": "BZT52B8V2, polarity read by eye with no mapping: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D29-D32: top and bottom, 0 and 37 deg). measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 0.9 deg of the pad axis mod 180, centred within 0.045 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb8-sod3716x135n-c22399883",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C22399883",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-8/README.md",
+        "note": "BZT52B13, polarity read by eye with no mapping: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D9-D12: top and bottom, 0 and 37 deg). measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 1.3 deg of the pad axis mod 180, centred within 0.059 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb8-sod3716x135n-c22399887",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C22399887",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-8/README.md",
+        "note": "BZT52C47, polarity read by eye with no mapping: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D113-D116: top and bottom, 0 and 37 deg). measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 0.8 deg of the pad axis mod 180, centred within 0.068 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb8-sod3716x135n-c22435086",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C22435086",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-8/README.md",
+        "note": "MM1W5V6, polarity read by eye with no mapping: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D221-D224: top and bottom, 0 and 37 deg). measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 0.4 deg of the pad axis mod 180, centred within 0.036 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb8-sod3716x135n-c22435087",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C22435087",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-8/README.md",
+        "note": "MM1W6V8, polarity read by eye with no mapping: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D229-D232: top and bottom, 0 and 37 deg). measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 0.2 deg of the pad axis mod 180, centred within 0.027 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb8-sod3716x135n-c22435088",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C22435088",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-8/README.md",
+        "note": "MM1W91, polarity read by eye with no mapping: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D249-D252: top and bottom, 0 and 37 deg). measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 0.6 deg of the pad axis mod 180, centred within 0.039 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb8-sod3716x135n-c22435089",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C22435089",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-8/README.md",
+        "note": "MM1W36, polarity read by eye with no mapping: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D197-D200: top and bottom, 0 and 37 deg). measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 0.7 deg of the pad axis mod 180, centred within 0.053 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb8-sod3716x135n-c22435090",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C22435090",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-8/README.md",
+        "note": "MM1W100, polarity read by eye with no mapping: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D157-D160: top and bottom, 0 and 37 deg). measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 0.6 deg of the pad axis mod 180, centred within 0.069 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb8-sod3716x135n-c22435091",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C22435091",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-8/README.md",
+        "note": "MM1W6V2, polarity read by eye with no mapping: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D225-D228: top and bottom, 0 and 37 deg). measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 0.5 deg of the pad axis mod 180, centred within 0.061 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb8-sod3716x135n-c22435092",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C22435092",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-8/README.md",
+        "note": "MM1W12, polarity read by eye with no mapping: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D169-D172: top and bottom, 0 and 37 deg). measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 0.5 deg of the pad axis mod 180, centred within 0.043 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb8-sod3716x135n-c22435093",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C22435093",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-8/README.md",
+        "note": "MM1W20, polarity read by eye with no mapping: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D181-D184: top and bottom, 0 and 37 deg). measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 0.3 deg of the pad axis mod 180, centred within 0.051 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb8-sod3716x135n-c22435094",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C22435094",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-8/README.md",
+        "note": "MM1W9V1, polarity read by eye with no mapping: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D253-D256: top and bottom, 0 and 37 deg). measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 0.7 deg of the pad axis mod 180, centred within 0.046 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb8-sod3716x135n-c22435095",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C22435095",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-8/README.md",
+        "note": "MM1W15, polarity read by eye with no mapping: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D173-D176: top and bottom, 0 and 37 deg). measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 0.9 deg of the pad axis mod 180, centred within 0.034 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb8-sod3716x135n-c22435096",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C22435096",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-8/README.md",
+        "note": "MM1W4V7, polarity read by eye with no mapping: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D213-D216: top and bottom, 0 and 37 deg). measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 0.5 deg of the pad axis mod 180, centred within 0.127 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb8-sod3716x135n-c22435097",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C22435097",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-8/README.md",
+        "note": "MM1W7V5, polarity read by eye with no mapping: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D237-D240: top and bottom, 0 and 37 deg). measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 0.4 deg of the pad axis mod 180, centred within 0.064 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb8-sod3716x135n-c22435098",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C22435098",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-8/README.md",
+        "note": "MM1W8V2, polarity read by eye with no mapping: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D245-D248: top and bottom, 0 and 37 deg). measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 1.0 deg of the pad axis mod 180, centred within 0.070 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb9-sod3716x135n-c19077421",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C19077421",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-9/README.md",
+        "note": "MMSZ5226B, polarity read by eye with no mapping: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D133-D136: top and bottom, 0 and 37 deg). The export draws the red reference text over the models, covering most of the signs, so the band was the main mark read. measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 1.0 deg of the pad axis mod 180, centred within 0.086 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb9-sod3716x135n-c19077422",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C19077422",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-9/README.md",
+        "note": "MMSZ5231B, polarity read by eye with no mapping: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D153-D156: top and bottom, 0 and 37 deg). The export draws the red reference text over the models, covering most of the signs, so the band was the main mark read. measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 1.3 deg of the pad axis mod 180, centred within 0.058 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb9-sod3716x135n-c19077423",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C19077423",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-9/README.md",
+        "note": "MMSZ5232B, polarity read by eye with no mapping: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D157-D160: top and bottom, 0 and 37 deg). The export draws the red reference text over the models, covering most of the signs, so the band was the main mark read. measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 1.4 deg of the pad axis mod 180, centred within 0.085 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb9-sod3716x135n-c19077424",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C19077424",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-9/README.md",
+        "note": "MMSZ5235B, polarity read by eye with no mapping: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D165-D168: top and bottom, 0 and 37 deg). The export draws the red reference text over the models, covering most of the signs, so the band was the main mark read. measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 1.0 deg of the pad axis mod 180, centred within 0.080 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb9-sod3716x135n-c19077425",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C19077425",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-9/README.md",
+        "note": "MMSZ5240B, polarity read by eye with no mapping: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D185-D188: top and bottom, 0 and 37 deg). The export draws the red reference text over the models, covering most of the signs, so the band was the main mark read. measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 0.9 deg of the pad axis mod 180, centred within 0.088 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb9-sod3716x135n-c19077426",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C19077426",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-9/README.md",
+        "note": "MMSZ5242B, polarity read by eye with no mapping: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D193-D196: top and bottom, 0 and 37 deg). The export draws the red reference text over the models, covering most of the signs, so the band was the main mark read. measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 1.3 deg of the pad axis mod 180, centred within 0.098 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb9-sod3716x135n-c19077427",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C19077427",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-9/README.md",
+        "note": "MMSZ5243B, polarity read by eye with no mapping: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D197-D200: top and bottom, 0 and 37 deg). The export draws the red reference text over the models, covering most of the signs, so the band was the main mark read. measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 1.3 deg of the pad axis mod 180, centred within 0.096 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb9-sod3716x135n-c19077428",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C19077428",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-9/README.md",
+        "note": "MMSZ5245B, polarity read by eye with no mapping: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D201-D204: top and bottom, 0 and 37 deg). The export draws the red reference text over the models, covering most of the signs, so the band was the main mark read. measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 1.1 deg of the pad axis mod 180, centred within 0.097 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb9-sod3716x135n-c19077429",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C19077429",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-9/README.md",
+        "note": "MMSZ5246B, polarity read by eye with no mapping: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D205-D208: top and bottom, 0 and 37 deg). The export draws the red reference text over the models, covering most of the signs, so the band was the main mark read. measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 1.3 deg of the pad axis mod 180, centred within 0.086 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb9-sod3716x135n-c19077430",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C19077430",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-9/README.md",
+        "note": "MMSZ5248B, polarity read by eye with no mapping: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D209-D212: top and bottom, 0 and 37 deg). The export draws the red reference text over the models, covering most of the signs, so the band was the main mark read. measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 1.4 deg of the pad axis mod 180, centred within 0.071 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb9-sod3716x135n-c19077431",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C19077431",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-9/README.md",
+        "note": "MMSZ5250B, polarity read by eye with no mapping: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D213-D216: top and bottom, 0 and 37 deg). The export draws the red reference text over the models, covering most of the signs, so the band was the main mark read. measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 1.6 deg of the pad axis mod 180, centred within 0.096 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb9-sod3716x135n-c19077432",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C19077432",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-9/README.md",
+        "note": "MMSZ5252B, polarity read by eye with no mapping: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D221-D224: top and bottom, 0 and 37 deg). The export draws the red reference text over the models, covering most of the signs, so the band was the main mark read. measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 0.9 deg of the pad axis mod 180, centred within 0.068 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb9-sod3716x135n-c19077433",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C19077433",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-9/README.md",
+        "note": "MMSZ5256B, polarity read by eye with no mapping: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D229-D232: top and bottom, 0 and 37 deg). The export draws the red reference text over the models, covering most of the signs, so the band was the main mark read. measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 1.3 deg of the pad axis mod 180, centred within 0.080 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb9-sod3716x135n-c22379455",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C22379455",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-9/README.md",
+        "note": "MM1Z18B, polarity read by eye with no mapping: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D21-D24: top and bottom, 0 and 37 deg). The export draws the red reference text over the models, covering most of the signs, so the band was the main mark read. measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 0.7 deg of the pad axis mod 180, centred within 0.078 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb9-sod3716x135n-c22379456",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C22379456",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-9/README.md",
+        "note": "MM1Z3V3, polarity read by eye with no mapping: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D53-D56: top and bottom, 0 and 37 deg). The export draws the red reference text over the models, covering most of the signs, so the band was the main mark read. measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 0.8 deg of the pad axis mod 180, centred within 0.070 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb9-sod3716x135n-c22379457",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C22379457",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-9/README.md",
+        "note": "MM1Z3V6, polarity read by eye with no mapping: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D57-D60: top and bottom, 0 and 37 deg). The export draws the red reference text over the models, covering most of the signs, so the band was the main mark read. measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 0.9 deg of the pad axis mod 180, centred within 0.062 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb9-sod3716x135n-c22379458",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C22379458",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-9/README.md",
+        "note": "MM1Z4V7, polarity read by eye with no mapping: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D65-D68: top and bottom, 0 and 37 deg). The export draws the red reference text over the models, covering most of the signs, so the band was the main mark read. measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 1.1 deg of the pad axis mod 180, centred within 0.072 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb9-sod3716x135n-c22379459",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C22379459",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-9/README.md",
+        "note": "MM1Z12, polarity read by eye with no mapping: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D9-D12: top and bottom, 0 and 37 deg). The export draws the red reference text over the models, covering most of the signs, so the band was the main mark read. measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 1.1 deg of the pad axis mod 180, centred within 0.071 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb9-sod3716x135n-c22379460",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C22379460",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-9/README.md",
+        "note": "MM1Z6V8, polarity read by eye with no mapping: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D101-D104: top and bottom, 0 and 37 deg). The export draws the red reference text over the models, covering most of the signs, so the band was the main mark read. measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 0.5 deg of the pad axis mod 180, centred within 0.064 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb9-sod3716x135n-c22379461",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C22379461",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-9/README.md",
+        "note": "MM1Z16, polarity read by eye with no mapping: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D17-D20: top and bottom, 0 and 37 deg). The export draws the red reference text over the models, covering most of the signs, so the band was the main mark read. measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 0.6 deg of the pad axis mod 180, centred within 0.114 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb9-sod3716x135n-c22379462",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C22379462",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-9/README.md",
+        "note": "MM1Z15, polarity read by eye with no mapping: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D13-D16: top and bottom, 0 and 37 deg). The export draws the red reference text over the models, covering most of the signs, so the band was the main mark read. measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 0.4 deg of the pad axis mod 180, centred within 0.101 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb9-sod3716x135n-c22379463",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C22379463",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-9/README.md",
+        "note": "MM1Z3V0, polarity read by eye with no mapping: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D49-D52: top and bottom, 0 and 37 deg). The export draws the red reference text over the models, covering most of the signs, so the band was the main mark read. measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 0.7 deg of the pad axis mod 180, centred within 0.079 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb9-sod3716x135n-c22379464",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C22379464",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-9/README.md",
+        "note": "MM1Z6V2, polarity read by eye with no mapping: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D97-D100: top and bottom, 0 and 37 deg). The export draws the red reference text over the models, covering most of the signs, so the band was the main mark read. measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 1.9 deg of the pad axis mod 180, centred within 0.089 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb9-sod3716x135n-c22379465",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C22379465",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-9/README.md",
+        "note": "MM1Z24, polarity read by eye with no mapping: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D33-D36: top and bottom, 0 and 37 deg). The export draws the red reference text over the models, covering most of the signs, so the band was the main mark read. measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 1.0 deg of the pad axis mod 180, centred within 0.036 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb9-sod3716x135n-c22379466",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C22379466",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-9/README.md",
+        "note": "MM1Z18, polarity read by eye with no mapping: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D25-D28: top and bottom, 0 and 37 deg). The export draws the red reference text over the models, covering most of the signs, so the band was the main mark read. measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 1.8 deg of the pad axis mod 180, centred within 0.098 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb9-sod3716x135n-c22379467",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C22379467",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-9/README.md",
+        "note": "MM1Z20, polarity read by eye with no mapping: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D29-D32: top and bottom, 0 and 37 deg). The export draws the red reference text over the models, covering most of the signs, so the band was the main mark read. measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 0.7 deg of the pad axis mod 180, centred within 0.075 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb9-sod3716x135n-c22379468",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C22379468",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-9/README.md",
+        "note": "MM1Z2V7, polarity read by eye with no mapping: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D41-D44: top and bottom, 0 and 37 deg). The export draws the red reference text over the models, covering most of the signs, so the band was the main mark read. measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 0.6 deg of the pad axis mod 180, centred within 0.038 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb9-sod3716x135n-c22379469",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C22379469",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-9/README.md",
+        "note": "MM1Z27, polarity read by eye with no mapping: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D37-D40: top and bottom, 0 and 37 deg). The export draws the red reference text over the models, covering most of the signs, so the band was the main mark read. measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 0.9 deg of the pad axis mod 180, centred within 0.096 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb9-sod3716x135n-c22395537",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C22395537",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-9/README.md",
+        "note": "MM1Z7V5B, polarity read by eye with no mapping: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D105-D108: top and bottom, 0 and 37 deg). The export draws the red reference text over the models, covering most of the signs, so the band was the main mark read. measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 0.7 deg of the pad axis mod 180, centred within 0.064 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb9-sod3716x135n-c22395546",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C22395546",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-9/README.md",
+        "note": "MMSZ4685, polarity read by eye with no mapping: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D109-D112: top and bottom, 0 and 37 deg). The export draws the red reference text over the models, covering most of the signs, so the band was the main mark read. measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 1.3 deg of the pad axis mod 180, centred within 0.069 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb9-sod3716x135n-c22395549",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C22395549",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-9/README.md",
+        "note": "MMSZ4691, polarity read by eye with no mapping: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D117-D120: top and bottom, 0 and 37 deg). The export draws the red reference text over the models, covering most of the signs, so the band was the main mark read. measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 2.4 deg of the pad axis mod 180, centred within 0.169 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb9-sod3716x135n-c22395550",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C22395550",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-9/README.md",
+        "note": "MMSZ4692, polarity read by eye with no mapping: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D121-D124: top and bottom, 0 and 37 deg). The export draws the red reference text over the models, covering most of the signs, so the band was the main mark read. measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 0.6 deg of the pad axis mod 180, centred within 0.111 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb9-sod3716x135n-c22395551",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C22395551",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-9/README.md",
+        "note": "MMSZ4699, polarity read by eye with no mapping: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D125-D128: top and bottom, 0 and 37 deg). The export draws the red reference text over the models, covering most of the signs, so the band was the main mark read. measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 1.6 deg of the pad axis mod 180, centred within 0.176 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb9-sod3716x135n-c22395557",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C22395557",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-9/README.md",
+        "note": "MMSZ5237B, polarity read by eye with no mapping: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D173-D176: top and bottom, 0 and 37 deg). The export draws the red reference text over the models, covering most of the signs, so the band was the main mark read. measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 2.0 deg of the pad axis mod 180, centred within 0.064 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb9-sod3716x135n-c22466338",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C22466338",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-9/README.md",
+        "note": "MM1Z62B, polarity read by eye with no mapping: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D85-D88: top and bottom, 0 and 37 deg). The export draws the red reference text over the models, covering most of the signs, so the band was the main mark read. measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 0.4 deg of the pad axis mod 180, centred within 0.066 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb9-sod3716x135n-c22466339",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C22466339",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-9/README.md",
+        "note": "MM1Z30B, polarity read by eye with no mapping: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D45-D48: top and bottom, 0 and 37 deg). The export draws the red reference text over the models, covering most of the signs, so the band was the main mark read. measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 0.8 deg of the pad axis mod 180, centred within 0.075 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb9-sod3716x135n-c22466341",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C22466341",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-9/README.md",
+        "note": "MM1Z10B, polarity read by eye with no mapping: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D1-D4: top and bottom, 0 and 37 deg). The export draws the red reference text over the models, covering most of the signs, so the band was the main mark read. measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 0.6 deg of the pad axis mod 180, centred within 0.062 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb9-sod3716x135n-c22466342",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C22466342",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-9/README.md",
+        "note": "MM1Z12B, polarity read by eye with no mapping: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D5-D8: top and bottom, 0 and 37 deg). The export draws the red reference text over the models, covering most of the signs, so the band was the main mark read. measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 0.5 deg of the pad axis mod 180, centred within 0.039 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb9-sod3716x135n-c22466343",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C22466343",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-9/README.md",
+        "note": "MM1Z5V1B, polarity read by eye with no mapping: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D69-D72: top and bottom, 0 and 37 deg). The export draws the red reference text over the models, covering most of the signs, so the band was the main mark read. measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 1.5 deg of the pad axis mod 180, centred within 0.075 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb9-sod3716x135n-c22466345",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C22466345",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-9/README.md",
+        "note": "MM1Z47B, polarity read by eye with no mapping: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D61-D64: top and bottom, 0 and 37 deg). The export draws the red reference text over the models, covering most of the signs, so the band was the main mark read. measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 0.7 deg of the pad axis mod 180, centred within 0.122 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb10-sod3716x135n-c22395529",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C22395529",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 180
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 180
+      },
+      "exception": "Per-part mapping: the supplier's larger SOD-123 model for C22395529 has its cathode at +x, a half turn from this land's pad 1; other Hongjiacheng SOD-123 Zeners on this land read 0 (boards 8 and 9)",
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-10/README.md",
+        "note": "MM1W18, polarity read by eye with rotate 180 applied: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D1-D4: top and bottom, 0 and 37 deg); with no mapping, board 8 read them at pad 2 on all four copies (D177-D180, ../2026-11-21-board-8/). measurements.json gives no angle because the model carries two marks; the smaller mark (the minus) is the one toward pad 1 on every copy. Body (body.json): long axis within 0.7 deg of the pad axis mod 180, centred within 0.116 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb10-sod3716x135n-c22395530",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C22395530",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 180
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 180
+      },
+      "exception": "Per-part mapping: the supplier's larger SOD-123 model for C22395530 has its cathode at +x, a half turn from this land's pad 1; other Hongjiacheng SOD-123 Zeners on this land read 0 (boards 8 and 9)",
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-10/README.md",
+        "note": "MM1W22, polarity read by eye with rotate 180 applied: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D5-D8: top and bottom, 0 and 37 deg); with no mapping, board 8 read them at pad 2 on all four copies (D185-D188, ../2026-11-21-board-8/). measurements.json gives no angle because the model carries two marks; the smaller mark (the minus) is the one toward pad 1 on every copy. Body (body.json): long axis within 0.6 deg of the pad axis mod 180, centred within 0.094 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb10-sod3716x135n-c22395531",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C22395531",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 180
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 180
+      },
+      "exception": "Per-part mapping: the supplier's larger SOD-123 model for C22395531 has its cathode at +x, a half turn from this land's pad 1; other Hongjiacheng SOD-123 Zeners on this land read 0 (boards 8 and 9)",
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-10/README.md",
+        "note": "MM1W24, polarity read by eye with rotate 180 applied: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D9-D12: top and bottom, 0 and 37 deg); with no mapping, board 8 read them at pad 2 on all four copies (D189-D192, ../2026-11-21-board-8/). measurements.json gives no angle because the model carries two marks; the smaller mark (the minus) is the one toward pad 1 on every copy. Body (body.json): long axis within 0.3 deg of the pad axis mod 180, centred within 0.127 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb10-sod3716x135n-c22395532",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C22395532",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 180
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 180
+      },
+      "exception": "Per-part mapping: the supplier's larger SOD-123 model for C22395532 has its cathode at +x, a half turn from this land's pad 1; other Hongjiacheng SOD-123 Zeners on this land read 0 (boards 8 and 9)",
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-10/README.md",
+        "note": "MM1W30, polarity read by eye with rotate 180 applied: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D13-D16: top and bottom, 0 and 37 deg); with no mapping, board 8 read them at pad 2 on all four copies (D193-D196, ../2026-11-21-board-8/). measurements.json gives no angle because the model carries two marks; the smaller mark (the minus) is the one toward pad 1 on every copy. Body (body.json): long axis within 0.6 deg of the pad axis mod 180, centred within 0.107 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb10-sod3716x135n-c22395533",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C22395533",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 180
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 180
+      },
+      "exception": "Per-part mapping: the supplier's larger SOD-123 model for C22395533 has its cathode at +x, a half turn from this land's pad 1; other Hongjiacheng SOD-123 Zeners on this land read 0 (boards 8 and 9)",
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-10/README.md",
+        "note": "MM1W82, polarity read by eye with rotate 180 applied: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D21-D24: top and bottom, 0 and 37 deg); with no mapping, board 8 read them at pad 2 on all four copies (D241-D244, ../2026-11-21-board-8/). measurements.json gives no angle because the model carries two marks; the smaller mark (the minus) is the one toward pad 1 on every copy. Body (body.json): long axis within 0.4 deg of the pad axis mod 180, centred within 0.118 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb10-sod3716x135n-c22395536",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C22395536",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 180
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 180
+      },
+      "exception": "Per-part mapping: the supplier's larger SOD-123 model for C22395536 has its cathode at +x, a half turn from this land's pad 1; other Hongjiacheng SOD-123 Zeners on this land read 0 (boards 8 and 9)",
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-10/README.md",
+        "note": "MM1Z5V6B, polarity read by eye with rotate 180 applied: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D29-D32: top and bottom, 0 and 37 deg); with no mapping, board 9 read them at pad 2 on all four copies (D77-D80, ../2026-11-21-board-9/). measurements.json gives no angle because the model carries two marks; the smaller mark (the minus) is the one toward pad 1 on every copy. Body (body.json): long axis within 0.4 deg of the pad axis mod 180, centred within 0.119 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb10-sod3716x135n-c22395538",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C22395538",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 180
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 180
+      },
+      "exception": "Per-part mapping: the supplier's larger SOD-123 model for C22395538 has its cathode at +x, a half turn from this land's pad 1; other Hongjiacheng SOD-123 Zeners on this land read 0 (boards 8 and 9)",
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-10/README.md",
+        "note": "MM1Z5V1, polarity read by eye with rotate 180 applied: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D25-D28: top and bottom, 0 and 37 deg); with no mapping, board 9 read them at pad 2 on all four copies (D73-D76, ../2026-11-21-board-9/). measurements.json gives no angle because the model carries two marks; the smaller mark (the minus) is the one toward pad 1 on every copy. Body (body.json): long axis within 0.5 deg of the pad axis mod 180, centred within 0.127 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb10-sod3716x135n-c22395539",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C22395539",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 180
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 180
+      },
+      "exception": "Per-part mapping: the supplier's larger SOD-123 model for C22395539 has its cathode at +x, a half turn from this land's pad 1; other Hongjiacheng SOD-123 Zeners on this land read 0 (boards 8 and 9)",
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-10/README.md",
+        "note": "MM1Z5V6, polarity read by eye with rotate 180 applied: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D33-D36: top and bottom, 0 and 37 deg); with no mapping, board 9 read them at pad 2 on all four copies (D81-D84, ../2026-11-21-board-9/). measurements.json gives no angle because the model carries two marks; the smaller mark (the minus) is the one toward pad 1 on every copy. Body (body.json): long axis within 0.5 deg of the pad axis mod 180, centred within 0.128 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb10-sod3716x135n-c22395540",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C22395540",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 180
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 180
+      },
+      "exception": "Per-part mapping: the supplier's larger SOD-123 model for C22395540 has its cathode at +x, a half turn from this land's pad 1; other Hongjiacheng SOD-123 Zeners on this land read 0 (boards 8 and 9)",
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-10/README.md",
+        "note": "MM1Z62, polarity read by eye with rotate 180 applied: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D37-D40: top and bottom, 0 and 37 deg); with no mapping, board 9 read them at pad 2 on all four copies (D89-D92, ../2026-11-21-board-9/). measurements.json gives no angle because the model carries two marks; the smaller mark (the minus) is the one toward pad 1 on every copy. Body (body.json): long axis within 0.8 deg of the pad axis mod 180, centred within 0.123 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb10-sod3716x135n-c22395541",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C22395541",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 180
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 180
+      },
+      "exception": "Per-part mapping: the supplier's larger SOD-123 model for C22395541 has its cathode at +x, a half turn from this land's pad 1; other Hongjiacheng SOD-123 Zeners on this land read 0 (boards 8 and 9)",
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-10/README.md",
+        "note": "MM1W75, polarity read by eye with rotate 180 applied: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D17-D20: top and bottom, 0 and 37 deg); with no mapping, board 8 read them at pad 2 on all four copies (D233-D236, ../2026-11-21-board-8/). measurements.json gives no angle because the model carries two marks; the smaller mark (the minus) is the one toward pad 1 on every copy. Body (body.json): long axis within 0.6 deg of the pad axis mod 180, centred within 0.098 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb10-sod3716x135n-c22395547",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C22395547",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 180
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 180
+      },
+      "exception": "Per-part mapping: the supplier's larger SOD-123 model for C22395547 has its cathode at +x, a half turn from this land's pad 1; other Hongjiacheng SOD-123 Zeners on this land read 0 (boards 8 and 9)",
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-10/README.md",
+        "note": "MMSZ4688, polarity read by eye with rotate 180 applied: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D41-D44: top and bottom, 0 and 37 deg); with no mapping, board 9 read them at pad 2 on all four copies (D113-D116, ../2026-11-21-board-9/). measurements.json gives no angle because the model carries two marks; the smaller mark (the minus) is the one toward pad 1 on every copy. Body (body.json): long axis within 0.2 deg of the pad axis mod 180, centred within 0.129 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb10-sod3716x135n-c22395553",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C22395553",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 180
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 180
+      },
+      "exception": "Per-part mapping: the supplier's larger SOD-123 model for C22395553 has its cathode at +x, a half turn from this land's pad 1; other Hongjiacheng SOD-123 Zeners on this land read 0 (boards 8 and 9)",
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-10/README.md",
+        "note": "MMSZ5227B, polarity read by eye with rotate 180 applied: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D49-D52: top and bottom, 0 and 37 deg); with no mapping, board 9 read them at pad 2 on all four copies (D137-D140, ../2026-11-21-board-9/). measurements.json gives no angle because the model carries two marks; the smaller mark (the minus) is the one toward pad 1 on every copy. Body (body.json): long axis within 0.3 deg of the pad axis mod 180, centred within 0.100 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb10-sod3716x135n-c22395554",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C22395554",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 180
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 180
+      },
+      "exception": "Per-part mapping: the supplier's larger SOD-123 model for C22395554 has its cathode at +x, a half turn from this land's pad 1; other Hongjiacheng SOD-123 Zeners on this land read 0 (boards 8 and 9)",
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-10/README.md",
+        "note": "MMSZ5230B, polarity read by eye with rotate 180 applied: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D61-D64: top and bottom, 0 and 37 deg); with no mapping, board 9 read them at pad 2 on all four copies (D149-D152, ../2026-11-21-board-9/). measurements.json gives no angle because the model carries two marks; the smaller mark (the minus) is the one toward pad 1 on every copy. Body (body.json): long axis within 0.3 deg of the pad axis mod 180, centred within 0.107 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb10-sod3716x135n-c22395555",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C22395555",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 180
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 180
+      },
+      "exception": "Per-part mapping: the supplier's larger SOD-123 model for C22395555 has its cathode at +x, a half turn from this land's pad 1; other Hongjiacheng SOD-123 Zeners on this land read 0 (boards 8 and 9)",
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-10/README.md",
+        "note": "MMSZ5234B, polarity read by eye with rotate 180 applied: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D65-D68: top and bottom, 0 and 37 deg); with no mapping, board 9 read them at pad 2 on all four copies (D161-D164, ../2026-11-21-board-9/). measurements.json gives no angle because the model carries two marks; the smaller mark (the minus) is the one toward pad 1 on every copy. Body (body.json): long axis within 0.4 deg of the pad axis mod 180, centred within 0.124 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb10-sod3716x135n-c22395556",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C22395556",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 180
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 180
+      },
+      "exception": "Per-part mapping: the supplier's larger SOD-123 model for C22395556 has its cathode at +x, a half turn from this land's pad 1; other Hongjiacheng SOD-123 Zeners on this land read 0 (boards 8 and 9)",
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-10/README.md",
+        "note": "MMSZ5236B, polarity read by eye with rotate 180 applied: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D69-D72: top and bottom, 0 and 37 deg); with no mapping, board 9 read them at pad 2 on all four copies (D169-D172, ../2026-11-21-board-9/). measurements.json gives no angle because the model carries two marks; the smaller mark (the minus) is the one toward pad 1 on every copy. Body (body.json): long axis within 0.3 deg of the pad axis mod 180, centred within 0.120 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb10-sod3716x135n-c22395558",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C22395558",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 180
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 180
+      },
+      "exception": "Per-part mapping: the supplier's larger SOD-123 model for C22395558 has its cathode at +x, a half turn from this land's pad 1; other Hongjiacheng SOD-123 Zeners on this land read 0 (boards 8 and 9)",
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-10/README.md",
+        "note": "MMSZ5239B, polarity read by eye with rotate 180 applied: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D77-D80: top and bottom, 0 and 37 deg); with no mapping, board 9 read them at pad 2 on all four copies (D181-D184, ../2026-11-21-board-9/). measurements.json gives no angle because the model carries two marks; the smaller mark (the minus) is the one toward pad 1 on every copy. Body (body.json): long axis within 0.8 deg of the pad axis mod 180, centred within 0.128 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb10-sod3716x135n-c22395559",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C22395559",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 180
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 180
+      },
+      "exception": "Per-part mapping: the supplier's larger SOD-123 model for C22395559 has its cathode at +x, a half turn from this land's pad 1; other Hongjiacheng SOD-123 Zeners on this land read 0 (boards 8 and 9)",
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-10/README.md",
+        "note": "MMSZ5241B, polarity read by eye with rotate 180 applied: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D81-D84: top and bottom, 0 and 37 deg); with no mapping, board 9 read them at pad 2 on all four copies (D189-D192, ../2026-11-21-board-9/). measurements.json gives no angle because the model carries two marks; the smaller mark (the minus) is the one toward pad 1 on every copy. Body (body.json): long axis within 0.5 deg of the pad axis mod 180, centred within 0.116 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb10-sod3716x135n-c22395560",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C22395560",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 180
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 180
+      },
+      "exception": "Per-part mapping: the supplier's larger SOD-123 model for C22395560 has its cathode at +x, a half turn from this land's pad 1; other Hongjiacheng SOD-123 Zeners on this land read 0 (boards 8 and 9)",
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-10/README.md",
+        "note": "MMSZ5251B, polarity read by eye with rotate 180 applied: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D85-D88: top and bottom, 0 and 37 deg); with no mapping, board 9 read them at pad 2 on all four copies (D217-D220, ../2026-11-21-board-9/). measurements.json gives no angle because the model carries two marks; the smaller mark (the minus) is the one toward pad 1 on every copy. Body (body.json): long axis within 0.5 deg of the pad axis mod 180, centred within 0.101 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb10-sod3716x135n-c22395561",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C22395561",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 180
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 180
+      },
+      "exception": "Per-part mapping: the supplier's larger SOD-123 model for C22395561 has its cathode at +x, a half turn from this land's pad 1; other Hongjiacheng SOD-123 Zeners on this land read 0 (boards 8 and 9)",
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-10/README.md",
+        "note": "MMSZ5254B, polarity read by eye with rotate 180 applied: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D89-D92: top and bottom, 0 and 37 deg); with no mapping, board 9 read them at pad 2 on all four copies (D225-D228, ../2026-11-21-board-9/). measurements.json gives no angle because the model carries two marks; the smaller mark (the minus) is the one toward pad 1 on every copy. Body (body.json): long axis within 0.4 deg of the pad axis mod 180, centred within 0.123 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb10-sod3716x135n-c22399894",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C22399894",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 180
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 180
+      },
+      "exception": "Per-part mapping: the supplier's larger SOD-123 model for C22399894 has its cathode at +x, a half turn from this land's pad 1; other Hongjiacheng SOD-123 Zeners on this land read 0 (boards 8 and 9)",
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-10/README.md",
+        "note": "MMSZ5225B, polarity read by eye with rotate 180 applied: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D45-D48: top and bottom, 0 and 37 deg); with no mapping, board 9 read them at pad 2 on all four copies (D129-D132, ../2026-11-21-board-9/). measurements.json gives no angle because the model carries two marks; the smaller mark (the minus) is the one toward pad 1 on every copy. Body (body.json): long axis within 0.4 deg of the pad axis mod 180, centred within 0.096 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb10-sod3716x135n-c22399895",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C22399895",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 180
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 180
+      },
+      "exception": "Per-part mapping: the supplier's larger SOD-123 model for C22399895 has its cathode at +x, a half turn from this land's pad 1; other Hongjiacheng SOD-123 Zeners on this land read 0 (boards 8 and 9)",
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-10/README.md",
+        "note": "MMSZ5228B, polarity read by eye with rotate 180 applied: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D53-D56: top and bottom, 0 and 37 deg); with no mapping, board 9 read them at pad 2 on all four copies (D141-D144, ../2026-11-21-board-9/). measurements.json gives no angle because the model carries two marks; the smaller mark (the minus) is the one toward pad 1 on every copy. Body (body.json): long axis within 0.2 deg of the pad axis mod 180, centred within 0.098 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb10-sod3716x135n-c22399896",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C22399896",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 180
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 180
+      },
+      "exception": "Per-part mapping: the supplier's larger SOD-123 model for C22399896 has its cathode at +x, a half turn from this land's pad 1; other Hongjiacheng SOD-123 Zeners on this land read 0 (boards 8 and 9)",
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-10/README.md",
+        "note": "MMSZ5229B, polarity read by eye with rotate 180 applied: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D57-D60: top and bottom, 0 and 37 deg); with no mapping, board 9 read them at pad 2 on all four copies (D145-D148, ../2026-11-21-board-9/). measurements.json gives no angle because the model carries two marks; the smaller mark (the minus) is the one toward pad 1 on every copy. Body (body.json): long axis within 0.6 deg of the pad axis mod 180, centred within 0.120 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb10-sod3716x135n-c22399897",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C22399897",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 180
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 180
+      },
+      "exception": "Per-part mapping: the supplier's larger SOD-123 model for C22399897 has its cathode at +x, a half turn from this land's pad 1; other Hongjiacheng SOD-123 Zeners on this land read 0 (boards 8 and 9)",
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-10/README.md",
+        "note": "MMSZ5238B, polarity read by eye with rotate 180 applied: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D73-D76: top and bottom, 0 and 37 deg); with no mapping, board 9 read them at pad 2 on all four copies (D177-D180, ../2026-11-21-board-9/). measurements.json gives no angle because the model carries two marks; the smaller mark (the minus) is the one toward pad 1 on every copy. Body (body.json): long axis within 1.1 deg of the pad axis mod 180, centred within 0.125 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb10-sod3716x135n-c22399899",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C22399899",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 180
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 180
+      },
+      "exception": "Per-part mapping: the supplier's larger SOD-123 model for C22399899 has its cathode at +x, a half turn from this land's pad 1; other Hongjiacheng SOD-123 Zeners on this land read 0 (boards 8 and 9)",
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-10/README.md",
+        "note": "MMSZ5258B, polarity read by eye with rotate 180 applied: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D93-D96: top and bottom, 0 and 37 deg); with no mapping, board 9 read them at pad 2 on all four copies (D233-D236, ../2026-11-21-board-9/). measurements.json gives no angle because the model carries two marks; the smaller mark (the minus) is the one toward pad 1 on every copy. Body (body.json): long axis within 0.4 deg of the pad axis mod 180, centred within 0.121 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "zb10-sod3716x135n-c22399900",
+      "package": "sod",
+      "package_version": "0.1.3",
+      "footprint": "SOD3716X135N",
+      "supplier": "lcsc",
+      "pn": "C22399900",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 180
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 180
+      },
+      "exception": "Per-part mapping: the supplier's larger SOD-123 model for C22399900 has its cathode at +x, a half turn from this land's pad 1; other Hongjiacheng SOD-123 Zeners on this land read 0 (boards 8 and 9)",
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-21",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-21-board-10/README.md",
+        "note": "MMSZ5259B, polarity read by eye with rotate 180 applied: the preview model's cathode band and minus sign sit at our pad 1 (the land's band end, beside our silkscreen bar) on all four copies (D97-D100: top and bottom, 0 and 37 deg); with no mapping, board 9 read them at pad 2 on all four copies (D237-D240, ../2026-11-21-board-9/). measurements.json gives no angle because the model carries two marks; the smaller mark (the minus) is the one toward pad 1 on every copy. Body (body.json): long axis within 0.6 deg of the pad axis mod 180, centred within 0.122 mm of the footprint origin (limit 0.25 mm). What this is not: a measured angle, or a check of the part's identity."
+      },
+      "evidence_ref": null
+    },
+    {
       "id": "w3-chip0402-rc-c105870",
       "package": "passive",
       "package_version": "0.2.8",

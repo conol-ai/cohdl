@@ -24,6 +24,11 @@ The page's identity is the snapshot's (each C number confirmed on its own
 part page on 2026-10-30); the BOM step of the preview shows the stock of the
 day. A page must read at least 30 in stock and five per placement.
 
+Board 10 re-verifies the 25 part numbers boards 8 and 9 read reversed on all
+four copies: the same placements with the candidate `rotate 180` as the row's
+`mapping`, which `jlc_frame_board.py` writes into the supplier CPL. It passes
+when each copy shows the band at our pad 1.
+
 The copies stand 10 mm apart, and the package is built with reference
 designators left out of the Gerber silkscreen, as board 5 was.
 """
@@ -48,6 +53,10 @@ SERIES = {
 # here so a changed snapshot cannot silently drop or add one.
 LEFT_OUT = {"C19077397": 6, "C22395534": 9, "C22395535": 12, "C22466340": 9}
 COUNTS = {"preview_board_8": 65, "preview_board_9": 63}
+# Board 10 re-verifies the part numbers boards 8 and 9 read reversed, with the candidate applied.
+REVERIFY = {"preview_board_10": ("tools/sourcing_data/jlc_previews/2026-11-21-board-8",
+                                 "tools/sourcing_data/jlc_previews/2026-11-21-board-9")}
+REVERIFY_COUNT = 25
 
 
 def library_parts():
@@ -74,11 +83,20 @@ def build(board):
         raise SystemExit(f"{FOOTPRINT}: the land does not fit its {BOX} mm box at every angle")
     pages = [r for r in json.loads(CATALOG.read_text(encoding="utf-8"))
              if r["package"] == "SOD-123" and r["mfr"] == "hongjiacheng"]
-    chosen = []
-    for rx in SERIES[board]:
-        chosen += sorted((r for r in pages if re.fullmatch(rx, r["mpn"])), key=lambda r: r["c"])
-    if len(chosen) != COUNTS[board] or len({r["c"] for r in chosen}) != len(chosen):
-        raise SystemExit(f"{board}: expected {COUNTS[board]} distinct part numbers, found {len(chosen)}")
+    chosen, candidate = [], {}
+    if board in REVERIFY:
+        for record in REVERIFY[board]:
+            for part in json.loads((ROOT / record / "readings.json").read_text())["parts"]:
+                if part["reading"] == "reversed":
+                    candidate[part["pn"]] = record + "/README.md"
+        chosen = sorted((r for r in pages if r["c"] in candidate), key=lambda r: r["c"])
+        if len(chosen) != REVERIFY_COUNT or len(candidate) != REVERIFY_COUNT:
+            raise SystemExit(f"{board}: expected {REVERIFY_COUNT} reversed part numbers, found {len(chosen)}")
+    else:
+        for rx in SERIES[board]:
+            chosen += sorted((r for r in pages if re.fullmatch(rx, r["mpn"])), key=lambda r: r["c"])
+        if len(chosen) != COUNTS[board] or len({r["c"] for r in chosen}) != len(chosen):
+            raise SystemExit(f"{board}: expected {COUNTS[board]} distinct part numbers, found {len(chosen)}")
     need = max(30, 5 * len(FOUR))
     short = {r["c"]: r["stock"] for r in chosen if r["stock"] < need}
     if any(LEFT_OUT.get(c) != s for c, s in short.items()):
@@ -95,14 +113,20 @@ def build(board):
         bx, by = MARGIN + (i % BLOCKS_PER_ROW) * 2 * PITCH, MARGIN + (i // BLOCKS_PER_ROW) * 2 * PITCH
         places = [{"at_mm": [bx + (j % 2) * PITCH, by + (j // 2) * PITCH], "rotate": angle, "side": side}
                   for j, (side, angle) in enumerate(FOUR)]
-        rows.append({"name": "Zener_%s_%s" % (page["mpn"], page["c"]), "footprint": FOOTPRINT,
-                     "part": package + "::" + part_type, "pn": page["c"], "mfr": "Zhuhai Hongjiacheng Technology",
-                     "mpn": page["mpn"], "pins": pins, "width_mm": BOX, "height_mm": BOX, "covers_rotation": True,
-                     "placements": places,
-                     "note": "First reading of a polarized part, no mapping; not a binding. Identity from the "
-                             "B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
-                     "jlc_package": page["package"], "category": page["category"], "stock": page["stock"],
-                     "page_fetched": "2026-10-30"})
+        row = {"name": "Zener_%s_%s" % (page["mpn"], page["c"]), "footprint": FOOTPRINT,
+               "part": package + "::" + part_type, "pn": page["c"], "mfr": "Zhuhai Hongjiacheng Technology",
+               "mpn": page["mpn"], "pins": pins, "width_mm": BOX, "height_mm": BOX, "covers_rotation": True,
+               "placements": places,
+               "note": "First reading of a polarized part, no mapping; not a binding. Identity from the "
+                       "B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+               "jlc_package": page["package"], "category": page["category"], "stock": page["stock"],
+               "page_fetched": "2026-10-30"}
+        if page["c"] in candidate:
+            row["mapping"] = {"dx_mm": 0, "dy_mm": 0, "rotate_deg": 180}
+            row["candidate"] = {"rotate_deg": 180, "record": candidate[page["c"]]}
+            row["note"] = ("Candidate supplier rotation 180 for re-verification; not a binding. Read reversed "
+                           "on all four copies in the candidate's record")
+        rows.append(row)
     return {"name": board, "dependencies": deps, "rows": rows}
 
 

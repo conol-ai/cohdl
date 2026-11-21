@@ -10,8 +10,10 @@
 // band end, at -x), pad 2 the anode. `Zener<VZ, P>` states the nominal Zener
 // voltage and the sheet's rated power; the tolerance, test current and
 // impedance differ between series, so each part's comment keeps its row.
-// No part carries a supplier binding yet: a polarized part is bound only
-// with its own preview evidence.
+// A part carries a supplier binding only with its own preview reading: a
+// polarized part is outside W3 sampled inference. The clause comes from
+// tools/sourcing_data/lcsc_map.json and the part number's row in
+// tools/sourcing_data/jlc_frames.json, as in tools/gen_passive.py.
 
 #[doc("docs/hongjiacheng-zener.evidence.md")]
 pub device Zener<VZ: Voltage, P: Power> {
@@ -42,29 +44,29 @@ pub part D_BZT52C2V0: Zener<2V, 350mW> {
 // VZ 2.28-2.52V (nom 2.4V) at IZT 5mA; ZZT 100ohm; IR 50uA at 1.0V; marking WX; page 2
 #[doc("docs/hongjiacheng-zener.evidence.md")]
 pub part D_BZT52C2V4: Zener<2.4V, 350mW> {
-    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "BZT52C2V4",
-              footprint: sod::SOD3716X135N }
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "BZT52C2V4", footprint: sod::SOD3716X135N,
+              supplier lcsc "C22375296" }
 }
 
 // VZ 2.57-2.84V (nom 2.7V) at IZT 5mA; ZZT 100ohm; IR 20uA at 1.0V; marking W1; page 2
 #[doc("docs/hongjiacheng-zener.evidence.md")]
 pub part D_BZT52C2V7: Zener<2.7V, 350mW> {
-    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "BZT52C2V7",
-              footprint: sod::SOD3716X135N }
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "BZT52C2V7", footprint: sod::SOD3716X135N,
+              supplier lcsc "C19077394" }
 }
 
 // VZ 2.85-3.15V (nom 3.0V) at IZT 5mA; ZZT 95ohm; IR 10uA at 1.0V; marking W2; page 2
 #[doc("docs/hongjiacheng-zener.evidence.md")]
 pub part D_BZT52C3V0: Zener<3V, 350mW> {
-    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "BZT52C3V0",
-              footprint: sod::SOD3716X135N }
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "BZT52C3V0", footprint: sod::SOD3716X135N,
+              supplier lcsc "C19077395" }
 }
 
 // VZ 3.14-3.47V (nom 3.3V) at IZT 5mA; ZZT 95ohm; IR 5uA at 1.0V; marking W3; page 2
 #[doc("docs/hongjiacheng-zener.evidence.md")]
 pub part D_BZT52C3V3: Zener<3.3V, 350mW> {
-    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "BZT52C3V3",
-              footprint: sod::SOD3716X135N }
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "BZT52C3V3", footprint: sod::SOD3716X135N,
+              supplier lcsc "C19077396" }
 }
 
 // VZ 3.42-3.78V (nom 3.6V) at IZT 5mA; ZZT 90ohm; IR 5uA at 1.0V; marking W4; page 2
@@ -77,155 +79,169 @@ pub part D_BZT52C3V6: Zener<3.6V, 350mW> {
 // VZ 3.71-4.10V (nom 3.9V) at IZT 5mA; ZZT 90ohm; IR 3uA at 1.0V; marking W5; page 2
 #[doc("docs/hongjiacheng-zener.evidence.md")]
 pub part D_BZT52C3V9: Zener<3.9V, 350mW> {
-    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "BZT52C3V9",
-              footprint: sod::SOD3716X135N }
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "BZT52C3V9", footprint: sod::SOD3716X135N,
+              supplier lcsc "C19077398" }
 }
 
 // VZ 4.09-4.52V (nom 4.3V) at IZT 5mA; ZZT 90ohm; IR 3uA at 1.0V; marking W6; page 2
 #[doc("docs/hongjiacheng-zener.evidence.md")]
 pub part D_BZT52C4V3: Zener<4.3V, 350mW> {
-    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "BZT52C4V3",
-              footprint: sod::SOD3716X135N }
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "BZT52C4V3", footprint: sod::SOD3716X135N,
+              supplier lcsc "C19077399" }
 }
 
 // VZ 4.47-4.94V (nom 4.7V) at IZT 5mA; ZZT 80ohm; IR 3uA at 2.0V; marking W7; page 2
 #[doc("docs/hongjiacheng-zener.evidence.md")]
 pub part D_BZT52C4V7: Zener<4.7V, 350mW> {
-    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "BZT52C4V7",
-              footprint: sod::SOD3716X135N }
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "BZT52C4V7", footprint: sod::SOD3716X135N,
+              supplier lcsc "C19077400" }
 }
 
 // VZ 4.85-5.36V (nom 5.1V) at IZT 5mA; ZZT 60ohm; IR 2uA at 2.0V; marking W8; page 2
 #[doc("docs/hongjiacheng-zener.evidence.md")]
 pub part D_BZT52C5V1: Zener<5.1V, 350mW> {
-    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "BZT52C5V1",
-              footprint: sod::SOD3716X135N }
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "BZT52C5V1", footprint: sod::SOD3716X135N,
+              supplier lcsc "C19077401" }
 }
 
 // VZ 5.32-5.88V (nom 5.6V) at IZT 5mA; ZZT 40ohm; IR 1uA at 2.0V; marking W9; page 2
 #[doc("docs/hongjiacheng-zener.evidence.md")]
 pub part D_BZT52C5V6: Zener<5.6V, 350mW> {
-    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "BZT52C5V6",
-              footprint: sod::SOD3716X135N }
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "BZT52C5V6", footprint: sod::SOD3716X135N,
+              supplier lcsc "C19077402" }
 }
 
 // VZ 5.89-6.51V (nom 6.2V) at IZT 5mA; ZZT 10ohm; IR 3uA at 4.0V; marking WA; page 2
 #[doc("docs/hongjiacheng-zener.evidence.md")]
 pub part D_BZT52C6V2: Zener<6.2V, 350mW> {
-    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "BZT52C6V2",
-              footprint: sod::SOD3716X135N }
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "BZT52C6V2", footprint: sod::SOD3716X135N,
+              supplier lcsc "C19077403" }
 }
 
 // VZ 6.46-7.14V (nom 6.8V) at IZT 5mA; ZZT 15ohm; IR 2uA at 4.0V; marking WB; page 2
 #[doc("docs/hongjiacheng-zener.evidence.md")]
 pub part D_BZT52C6V8: Zener<6.8V, 350mW> {
-    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "BZT52C6V8",
-              footprint: sod::SOD3716X135N }
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "BZT52C6V8", footprint: sod::SOD3716X135N,
+              supplier lcsc "C19077404" }
 }
 
 // VZ 7.13-7.88V (nom 7.5V) at IZT 5mA; ZZT 15ohm; IR 1uA at 5.0V; marking WC; page 2
 #[doc("docs/hongjiacheng-zener.evidence.md")]
 pub part D_BZT52C7V5: Zener<7.5V, 350mW> {
-    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "BZT52C7V5",
-              footprint: sod::SOD3716X135N }
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "BZT52C7V5", footprint: sod::SOD3716X135N,
+              supplier lcsc "C19077405" }
 }
 
 // VZ 7.79-8.61V (nom 8.2V) at IZT 5mA; ZZT 15ohm; IR 0.7uA at 5.0V; marking WD; page 2
 #[doc("docs/hongjiacheng-zener.evidence.md")]
 pub part D_BZT52C8V2: Zener<8.2V, 350mW> {
-    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "BZT52C8V2",
-              footprint: sod::SOD3716X135N }
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "BZT52C8V2", footprint: sod::SOD3716X135N,
+              supplier lcsc "C19077406" }
 }
 
 // VZ 8.65-9.56V (nom 9.1V) at IZT 5mA; ZZT 15ohm; IR 0.5uA at 6.0V; marking WE; page 2
 #[doc("docs/hongjiacheng-zener.evidence.md")]
 pub part D_BZT52C9V1: Zener<9.1V, 350mW> {
-    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "BZT52C9V1",
-              footprint: sod::SOD3716X135N }
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "BZT52C9V1", footprint: sod::SOD3716X135N,
+              supplier lcsc "C19077407" }
 }
 
 // VZ 9.50-10.50V (nom 10V) at IZT 5mA; ZZT 20ohm; IR 0.2uA at 7.0V; marking WF; page 2
 #[doc("docs/hongjiacheng-zener.evidence.md")]
 pub part D_BZT52C10: Zener<10V, 350mW> {
-    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "BZT52C10", footprint: sod::SOD3716X135N }
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "BZT52C10", footprint: sod::SOD3716X135N,
+              supplier lcsc "C19077408" }
 }
 
 // VZ 10.45-11.55V (nom 11V) at IZT 5mA; ZZT 20ohm; IR 0.1uA at 8.0V; marking WG; page 2
 #[doc("docs/hongjiacheng-zener.evidence.md")]
 pub part D_BZT52C11: Zener<11V, 350mW> {
-    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "BZT52C11", footprint: sod::SOD3716X135N }
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "BZT52C11", footprint: sod::SOD3716X135N,
+              supplier lcsc "C19077409" }
 }
 
 // VZ 11.40-12.60V (nom 12V) at IZT 5mA; ZZT 25ohm; IR 0.1uA at 8.0V; marking WH; page 2
 #[doc("docs/hongjiacheng-zener.evidence.md")]
 pub part D_BZT52C12: Zener<12V, 350mW> {
-    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "BZT52C12", footprint: sod::SOD3716X135N }
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "BZT52C12", footprint: sod::SOD3716X135N,
+              supplier lcsc "C19077410" }
 }
 
 // VZ 12.35-13.65V (nom 13V) at IZT 5mA; ZZT 30ohm; IR 0.1uA at 8.0V; marking WI; page 2
 #[doc("docs/hongjiacheng-zener.evidence.md")]
 pub part D_BZT52C13: Zener<13V, 350mW> {
-    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "BZT52C13", footprint: sod::SOD3716X135N }
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "BZT52C13", footprint: sod::SOD3716X135N,
+              supplier lcsc "C19077411" }
 }
 
 // VZ 14.25-15.75V (nom 15V) at IZT 5mA; ZZT 30ohm; IR 0.1uA at 10.5V; marking WJ; page 2
 #[doc("docs/hongjiacheng-zener.evidence.md")]
 pub part D_BZT52C15: Zener<15V, 350mW> {
-    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "BZT52C15", footprint: sod::SOD3716X135N }
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "BZT52C15", footprint: sod::SOD3716X135N,
+              supplier lcsc "C19077412" }
 }
 
 // VZ 15.20-16.80V (nom 16V) at IZT 5mA; ZZT 40ohm; IR 0.1uA at 11.2V; marking WK; page 2
 #[doc("docs/hongjiacheng-zener.evidence.md")]
 pub part D_BZT52C16: Zener<16V, 350mW> {
-    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "BZT52C16", footprint: sod::SOD3716X135N }
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "BZT52C16", footprint: sod::SOD3716X135N,
+              supplier lcsc "C19077413" }
 }
 
 // VZ 17.10-18.90V (nom 18V) at IZT 5mA; ZZT 45ohm; IR 0.1uA at 12.6V; marking WL; page 2
 #[doc("docs/hongjiacheng-zener.evidence.md")]
 pub part D_BZT52C18: Zener<18V, 350mW> {
-    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "BZT52C18", footprint: sod::SOD3716X135N }
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "BZT52C18", footprint: sod::SOD3716X135N,
+              supplier lcsc "C19077414" }
 }
 
 // VZ 19.00-21.00V (nom 20V) at IZT 5mA; ZZT 55ohm; IR 0.1uA at 14.0V; marking WM; page 2
 #[doc("docs/hongjiacheng-zener.evidence.md")]
 pub part D_BZT52C20: Zener<20V, 350mW> {
-    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "BZT52C20", footprint: sod::SOD3716X135N }
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "BZT52C20", footprint: sod::SOD3716X135N,
+              supplier lcsc "C19077415" }
 }
 
 // VZ 20.90-23.10V (nom 22V) at IZT 5mA; ZZT 55ohm; IR 0.1uA at 15.4V; marking WN; page 2
 #[doc("docs/hongjiacheng-zener.evidence.md")]
 pub part D_BZT52C22: Zener<22V, 350mW> {
-    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "BZT52C22", footprint: sod::SOD3716X135N }
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "BZT52C22", footprint: sod::SOD3716X135N,
+              supplier lcsc "C22375295" }
 }
 
 // VZ 22.80-25.20V (nom 24V) at IZT 5mA; ZZT 70ohm; IR 0.1uA at 16.8V; marking WO; page 2
 #[doc("docs/hongjiacheng-zener.evidence.md")]
 pub part D_BZT52C24: Zener<24V, 350mW> {
-    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "BZT52C24", footprint: sod::SOD3716X135N }
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "BZT52C24", footprint: sod::SOD3716X135N,
+              supplier lcsc "C19077416" }
 }
 
 // VZ 25.65-28.35V (nom 27V) at IZT 2mA; ZZT 80ohm; IR 0.1uA at 18.9V; marking WP; page 2
 #[doc("docs/hongjiacheng-zener.evidence.md")]
 pub part D_BZT52C27: Zener<27V, 350mW> {
-    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "BZT52C27", footprint: sod::SOD3716X135N }
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "BZT52C27", footprint: sod::SOD3716X135N,
+              supplier lcsc "C19077417" }
 }
 
 // VZ 28.50-31.50V (nom 30V) at IZT 2mA; ZZT 80ohm; IR 0.1uA at 21.0V; marking WQ; page 2
 #[doc("docs/hongjiacheng-zener.evidence.md")]
 pub part D_BZT52C30: Zener<30V, 350mW> {
-    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "BZT52C30", footprint: sod::SOD3716X135N }
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "BZT52C30", footprint: sod::SOD3716X135N,
+              supplier lcsc "C19077418" }
 }
 
 // VZ 31.35-34.65V (nom 33V) at IZT 2mA; ZZT 80ohm; IR 0.1uA at 23.1V; marking WR; page 2
 #[doc("docs/hongjiacheng-zener.evidence.md")]
 pub part D_BZT52C33: Zener<33V, 350mW> {
-    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "BZT52C33", footprint: sod::SOD3716X135N }
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "BZT52C33", footprint: sod::SOD3716X135N,
+              supplier lcsc "C19077419" }
 }
 
 // VZ 34.20-37.80V (nom 36V) at IZT 2mA; ZZT 90ohm; IR 0.1uA at 25.2V; marking WS; page 2
 #[doc("docs/hongjiacheng-zener.evidence.md")]
 pub part D_BZT52C36: Zener<36V, 350mW> {
-    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "BZT52C36", footprint: sod::SOD3716X135N }
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "BZT52C36", footprint: sod::SOD3716X135N,
+              supplier lcsc "C19077420" }
 }
 
 // VZ 37.05-40.95V (nom 39V) at IZT 2mA; ZZT 130ohm; IR 0.1uA at 27.3V; marking WT; page 2
@@ -237,13 +253,15 @@ pub part D_BZT52C39: Zener<39V, 350mW> {
 // VZ 40.85-45.15V (nom 43V) at IZT 5mA; ZZT 100ohm; IR 0.1uA at 32.0V; marking WU; page 2
 #[doc("docs/hongjiacheng-zener.evidence.md")]
 pub part D_BZT52C43: Zener<43V, 350mW> {
-    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "BZT52C43", footprint: sod::SOD3716X135N }
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "BZT52C43", footprint: sod::SOD3716X135N,
+              supplier lcsc "C22395571" }
 }
 
 // VZ 44.65-49.35V (nom 47V) at IZT 5mA; ZZT 100ohm; IR 0.1uA at 35.0V; marking WV; page 2
 #[doc("docs/hongjiacheng-zener.evidence.md")]
 pub part D_BZT52C47: Zener<47V, 350mW> {
-    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "BZT52C47", footprint: sod::SOD3716X135N }
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "BZT52C47", footprint: sod::SOD3716X135N,
+              supplier lcsc "C22399887" }
 }
 
 // VZ 48.45-53.55V (nom 51V) at IZT 5mA; ZZT 100ohm; IR 0.1uA at 38.0V; marking WW; page 2
@@ -273,7 +291,8 @@ pub part D_BZT52C68: Zener<68V, 350mW> {
 // VZ 70.0-79.0V (nom 75V) at IZT 5mA; ZZT 300ohm; IR 0.2uA at 57V; marking 6H; page 2
 #[doc("docs/hongjiacheng-zener.evidence.md")]
 pub part D_BZT52C75: Zener<75V, 350mW> {
-    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "BZT52C75", footprint: sod::SOD3716X135N }
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "BZT52C75", footprint: sod::SOD3716X135N,
+              supplier lcsc "C22375297" }
 }
 
 // ---- BZT52B2V4 THRU BZT52B51 Surface Mount Zener Diodes, Rev 2.1: PD 500mW ----
@@ -302,8 +321,8 @@ pub part D_BZT52B3V0: Zener<3V, 500mW> {
 // VZ 3.23-3.37V (nom 3.3V) at IZT 5mA; ZZT 95ohm; IR 5uA at 1.0V; marking 2W3; page 2
 #[doc("docs/hongjiacheng-zener.evidence.md")]
 pub part D_BZT52B3V3: Zener<3.3V, 500mW> {
-    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "BZT52B3V3",
-              footprint: sod::SOD3716X135N }
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "BZT52B3V3", footprint: sod::SOD3716X135N,
+              supplier lcsc "C19077392" }
 }
 
 // VZ 3.53-3.67V (nom 3.6V) at IZT 5mA; ZZT 90ohm; IR 5uA at 1.0V; marking 2W4; page 2
@@ -337,15 +356,15 @@ pub part D_BZT52B4V7: Zener<4.7V, 500mW> {
 // VZ 5.00-5.20V (nom 5.1V) at IZT 5mA; ZZT 60ohm; IR 2uA at 2.0V; marking 2W8; page 2
 #[doc("docs/hongjiacheng-zener.evidence.md")]
 pub part D_BZT52B5V1: Zener<5.1V, 500mW> {
-    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "BZT52B5V1",
-              footprint: sod::SOD3716X135N }
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "BZT52B5V1", footprint: sod::SOD3716X135N,
+              supplier lcsc "C19077393" }
 }
 
 // VZ 5.49-5.71V (nom 5.6V) at IZT 5mA; ZZT 40ohm; IR 1uA at 2.0V; marking 2W9; page 2
 #[doc("docs/hongjiacheng-zener.evidence.md")]
 pub part D_BZT52B5V6: Zener<5.6V, 500mW> {
-    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "BZT52B5V6",
-              footprint: sod::SOD3716X135N }
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "BZT52B5V6", footprint: sod::SOD3716X135N,
+              supplier lcsc "C22399881" }
 }
 
 // VZ 6.08-6.32V (nom 6.2V) at IZT 5mA; ZZT 10ohm; IR 3uA at 4.0V; marking 2WA; page 2
@@ -372,8 +391,8 @@ pub part D_BZT52B7V5: Zener<7.5V, 500mW> {
 // VZ 8.04-8.36V (nom 8.2V) at IZT 5mA; ZZT 15ohm; IR 0.7uA at 5.0V; marking 2WD; page 2
 #[doc("docs/hongjiacheng-zener.evidence.md")]
 pub part D_BZT52B8V2: Zener<8.2V, 500mW> {
-    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "BZT52B8V2",
-              footprint: sod::SOD3716X135N }
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "BZT52B8V2", footprint: sod::SOD3716X135N,
+              supplier lcsc "C22399882" }
 }
 
 // VZ 8.92-9.28V (nom 9.1V) at IZT 5mA; ZZT 15ohm; IR 0.5uA at 6.0V; marking 2WE; page 2
@@ -386,7 +405,8 @@ pub part D_BZT52B9V1: Zener<9.1V, 500mW> {
 // VZ 9.80-10.20V (nom 10V) at IZT 5mA; ZZT 20ohm; IR 0.2uA at 7.0V; marking 2WF; page 2
 #[doc("docs/hongjiacheng-zener.evidence.md")]
 pub part D_BZT52B10: Zener<10V, 500mW> {
-    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "BZT52B10", footprint: sod::SOD3716X135N }
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "BZT52B10", footprint: sod::SOD3716X135N,
+              supplier lcsc "C22395568" }
 }
 
 // VZ 10.78-11.22V (nom 11V) at IZT 5mA; ZZT 20ohm; IR 0.1uA at 8.0V; marking 2WG; page 2
@@ -398,19 +418,22 @@ pub part D_BZT52B11: Zener<11V, 500mW> {
 // VZ 11.76-12.24V (nom 12V) at IZT 5mA; ZZT 25ohm; IR 0.1uA at 8.0V; marking 2WH; page 2
 #[doc("docs/hongjiacheng-zener.evidence.md")]
 pub part D_BZT52B12: Zener<12V, 500mW> {
-    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "BZT52B12", footprint: sod::SOD3716X135N }
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "BZT52B12", footprint: sod::SOD3716X135N,
+              supplier lcsc "C22395569" }
 }
 
 // VZ 12.74-13.26V (nom 13V) at IZT 5mA; ZZT 30ohm; IR 0.1uA at 8.0V; marking 2WI; page 2
 #[doc("docs/hongjiacheng-zener.evidence.md")]
 pub part D_BZT52B13: Zener<13V, 500mW> {
-    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "BZT52B13", footprint: sod::SOD3716X135N }
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "BZT52B13", footprint: sod::SOD3716X135N,
+              supplier lcsc "C22399883" }
 }
 
 // VZ 14.70-15.30V (nom 15V) at IZT 5mA; ZZT 30ohm; IR 0.1uA at 10.5V; marking 2WJ; page 2
 #[doc("docs/hongjiacheng-zener.evidence.md")]
 pub part D_BZT52B15: Zener<15V, 500mW> {
-    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "BZT52B15", footprint: sod::SOD3716X135N }
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "BZT52B15", footprint: sod::SOD3716X135N,
+              supplier lcsc "C22395570" }
 }
 
 // VZ 15.68-16.32V (nom 16V) at IZT 5mA; ZZT 40ohm; IR 0.1uA at 11.2V; marking 2WK; page 2
@@ -531,8 +554,8 @@ pub part D_MMSZ5225B: Zener<3V, 500mW> {
 // VZ 3.14-3.47V (nom 3.3V) at IZT 20mA; ZZT 28ohm; IR 25uA at 1.0V; marking G1; page 2
 #[doc("docs/hongjiacheng-zener.evidence.md")]
 pub part D_MMSZ5226B: Zener<3.3V, 500mW> {
-    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MMSZ5226B",
-              footprint: sod::SOD3716X135N }
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MMSZ5226B", footprint: sod::SOD3716X135N,
+              supplier lcsc "C19077421" }
 }
 
 // VZ 3.42-3.78V (nom 3.6V) at IZT 20mA; ZZT 24ohm; IR 15uA at 1.0V; marking G2; page 2
@@ -566,15 +589,15 @@ pub part D_MMSZ5230B: Zener<4.7V, 500mW> {
 // VZ 4.85-5.36V (nom 5.1V) at IZT 20mA; ZZT 17ohm; IR 5.0uA at 2.0V; marking E1; page 2
 #[doc("docs/hongjiacheng-zener.evidence.md")]
 pub part D_MMSZ5231B: Zener<5.1V, 500mW> {
-    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MMSZ5231B",
-              footprint: sod::SOD3716X135N }
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MMSZ5231B", footprint: sod::SOD3716X135N,
+              supplier lcsc "C19077422" }
 }
 
 // VZ 5.32-5.88V (nom 5.6V) at IZT 20mA; ZZT 11ohm; IR 5.0uA at 3.0V; marking E2; page 2
 #[doc("docs/hongjiacheng-zener.evidence.md")]
 pub part D_MMSZ5232B: Zener<5.6V, 500mW> {
-    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MMSZ5232B",
-              footprint: sod::SOD3716X135N }
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MMSZ5232B", footprint: sod::SOD3716X135N,
+              supplier lcsc "C19077423" }
 }
 
 // VZ 5.70-6.30V (nom 6.0V) at IZT 20mA; ZZT 7ohm; IR 5.0uA at 3.5V; marking E3; page 2
@@ -594,8 +617,8 @@ pub part D_MMSZ5234B: Zener<6.2V, 500mW> {
 // VZ 6.46-7.14V (nom 6.8V) at IZT 20mA; ZZT 5ohm; IR 3uA at 5.0V; marking E5; page 2
 #[doc("docs/hongjiacheng-zener.evidence.md")]
 pub part D_MMSZ5235B: Zener<6.8V, 500mW> {
-    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MMSZ5235B",
-              footprint: sod::SOD3716X135N }
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MMSZ5235B", footprint: sod::SOD3716X135N,
+              supplier lcsc "C19077424" }
 }
 
 // VZ 7.13-7.88V (nom 7.5V) at IZT 20mA; ZZT 6ohm; IR 3uA at 6.0V; marking F1; page 2
@@ -608,8 +631,8 @@ pub part D_MMSZ5236B: Zener<7.5V, 500mW> {
 // VZ 7.79-8.61V (nom 8.2V) at IZT 20mA; ZZT 8ohm; IR 3uA at 6.5V; marking F2; page 2
 #[doc("docs/hongjiacheng-zener.evidence.md")]
 pub part D_MMSZ5237B: Zener<8.2V, 500mW> {
-    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MMSZ5237B",
-              footprint: sod::SOD3716X135N }
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MMSZ5237B", footprint: sod::SOD3716X135N,
+              supplier lcsc "C22395557" }
 }
 
 // VZ 8.27-9.14V (nom 8.7V) at IZT 20mA; ZZT 8ohm; IR 3uA at 6.5V; marking F3; page 2
@@ -629,8 +652,8 @@ pub part D_MMSZ5239B: Zener<9.1V, 500mW> {
 // VZ 9.50-10.50V (nom 10.0V) at IZT 20mA; ZZT 17ohm; IR 3uA at 8.0V; marking F5; page 2
 #[doc("docs/hongjiacheng-zener.evidence.md")]
 pub part D_MMSZ5240B: Zener<10V, 500mW> {
-    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MMSZ5240B",
-              footprint: sod::SOD3716X135N }
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MMSZ5240B", footprint: sod::SOD3716X135N,
+              supplier lcsc "C19077425" }
 }
 
 // VZ 10.45-11.55V (nom 11.0V) at IZT 20mA; ZZT 22ohm; IR 2.0uA at 8.4V; marking H1; page 2
@@ -643,15 +666,15 @@ pub part D_MMSZ5241B: Zener<11V, 500mW> {
 // VZ 11.40-12.60V (nom 12.0V) at IZT 20mA; ZZT 30ohm; IR 1.0uA at 9.1V; marking H2; page 2
 #[doc("docs/hongjiacheng-zener.evidence.md")]
 pub part D_MMSZ5242B: Zener<12V, 500mW> {
-    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MMSZ5242B",
-              footprint: sod::SOD3716X135N }
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MMSZ5242B", footprint: sod::SOD3716X135N,
+              supplier lcsc "C19077426" }
 }
 
 // VZ 12.35-13.65V (nom 13.0V) at IZT 9.5mA; ZZT 13ohm; IR 0.5uA at 9.9V; marking H3; page 2
 #[doc("docs/hongjiacheng-zener.evidence.md")]
 pub part D_MMSZ5243B: Zener<13V, 500mW> {
-    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MMSZ5243B",
-              footprint: sod::SOD3716X135N }
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MMSZ5243B", footprint: sod::SOD3716X135N,
+              supplier lcsc "C19077427" }
 }
 
 // VZ 13.30-14.70V (nom 14.0V) at IZT 9.0mA; ZZT 15ohm; IR 0.1uA at 10.0V; marking H4; page 2
@@ -664,15 +687,15 @@ pub part D_MMSZ5244B: Zener<14V, 500mW> {
 // VZ 14.25-15.75V (nom 15.0V) at IZT 8.5mA; ZZT 16ohm; IR 0.1uA at 11.0V; marking H5; page 2
 #[doc("docs/hongjiacheng-zener.evidence.md")]
 pub part D_MMSZ5245B: Zener<15V, 500mW> {
-    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MMSZ5245B",
-              footprint: sod::SOD3716X135N }
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MMSZ5245B", footprint: sod::SOD3716X135N,
+              supplier lcsc "C19077428" }
 }
 
 // VZ 15.20-16.80V (nom 16.0V) at IZT 7.8mA; ZZT 17ohm; IR 0.1uA at 12.0V; marking J1; page 2
 #[doc("docs/hongjiacheng-zener.evidence.md")]
 pub part D_MMSZ5246B: Zener<16V, 500mW> {
-    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MMSZ5246B",
-              footprint: sod::SOD3716X135N }
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MMSZ5246B", footprint: sod::SOD3716X135N,
+              supplier lcsc "C19077429" }
 }
 
 // VZ 16.15-17.85V (nom 17.0V) at IZT 7.5mA; ZZT 19ohm; IR 0.1uA at 13.0V; marking J2; page 2
@@ -685,8 +708,8 @@ pub part D_MMSZ5247B: Zener<17V, 500mW> {
 // VZ 17.10-18.90V (nom 18.0V) at IZT 7.0mA; ZZT 21ohm; IR 0.1uA at 14.0V; marking J3; page 2
 #[doc("docs/hongjiacheng-zener.evidence.md")]
 pub part D_MMSZ5248B: Zener<18V, 500mW> {
-    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MMSZ5248B",
-              footprint: sod::SOD3716X135N }
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MMSZ5248B", footprint: sod::SOD3716X135N,
+              supplier lcsc "C19077430" }
 }
 
 // VZ 18.05-19.95V (nom 19.0V) at IZT 6.6mA; ZZT 23ohm; IR 0.1uA at 14.0V; marking J4; page 2
@@ -699,8 +722,8 @@ pub part D_MMSZ5249B: Zener<19V, 500mW> {
 // VZ 19.00-21.00V (nom 20.0V) at IZT 6.2mA; ZZT 25ohm; IR 0.1uA at 15.0V; marking J5; page 2
 #[doc("docs/hongjiacheng-zener.evidence.md")]
 pub part D_MMSZ5250B: Zener<20V, 500mW> {
-    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MMSZ5250B",
-              footprint: sod::SOD3716X135N }
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MMSZ5250B", footprint: sod::SOD3716X135N,
+              supplier lcsc "C19077431" }
 }
 
 // VZ 20.90-23.10V (nom 22.0V) at IZT 5.6mA; ZZT 29ohm; IR 0.1uA at 17.0V; marking K1; page 2
@@ -713,8 +736,8 @@ pub part D_MMSZ5251B: Zener<22V, 500mW> {
 // VZ 22.80-25.20V (nom 24.0V) at IZT 5.2mA; ZZT 33ohm; IR 0.1uA at 18.0V; marking K2; page 2
 #[doc("docs/hongjiacheng-zener.evidence.md")]
 pub part D_MMSZ5252B: Zener<24V, 500mW> {
-    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MMSZ5252B",
-              footprint: sod::SOD3716X135N }
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MMSZ5252B", footprint: sod::SOD3716X135N,
+              supplier lcsc "C19077432" }
 }
 
 // VZ 23.75-26.25V (nom 25.0V) at IZT 5.0mA; ZZT 35ohm; IR 0.1uA at 19.0V; marking K3; page 2
@@ -741,8 +764,8 @@ pub part D_MMSZ5255B: Zener<28V, 500mW> {
 // VZ 28.50-31.50V (nom 30.0V) at IZT 4.2mA; ZZT 600ohm; IR 0.1uA at 23V; marking M1; page 3
 #[doc("docs/hongjiacheng-zener.evidence.md")]
 pub part D_MMSZ5256B: Zener<30V, 500mW> {
-    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MMSZ5256B",
-              footprint: sod::SOD3716X135N }
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MMSZ5256B", footprint: sod::SOD3716X135N,
+              supplier lcsc "C19077433" }
 }
 
 // VZ 31.35-34.65V (nom 33.0V) at IZT 3.8mA; ZZT 700ohm; IR 0.1uA at 25V; marking M2; page 3
@@ -887,7 +910,8 @@ pub part D_MM1Z4V7B: Zener<4.7V, 500mW> {
 // VZ 5-5.20V (nom 5.1V) at IZT 5mA; ZZT 130ohm; IR 2uA at 1.5V; marking N4; page 2
 #[doc("docs/hongjiacheng-zener.evidence.md")]
 pub part D_MM1Z5V1B: Zener<5.1V, 500mW> {
-    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MM1Z5V1B", footprint: sod::SOD3716X135N }
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MM1Z5V1B", footprint: sod::SOD3716X135N,
+              supplier lcsc "C22466343" }
 }
 
 // VZ 5.49-5.71V (nom 5.6V) at IZT 5mA; ZZT 80ohm; IR 1uA at 2.5V; marking P4; page 2
@@ -911,7 +935,8 @@ pub part D_MM1Z6V8B: Zener<6.8V, 500mW> {
 // VZ 7.35-7.65V (nom 7.5V) at IZT 5mA; ZZT 30ohm; IR 0.5uA at 4V; marking Y4; page 2
 #[doc("docs/hongjiacheng-zener.evidence.md")]
 pub part D_MM1Z7V5B: Zener<7.5V, 500mW> {
-    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MM1Z7V5B", footprint: sod::SOD3716X135N }
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MM1Z7V5B", footprint: sod::SOD3716X135N,
+              supplier lcsc "C22395537" }
 }
 
 // VZ 8.04-8.36V (nom 8.2V) at IZT 5mA; ZZT 30ohm; IR 0.5uA at 5V; marking Z4; page 2
@@ -929,7 +954,8 @@ pub part D_MM1Z9V1B: Zener<9.1V, 500mW> {
 // VZ 9.8-10.2V (nom 10V) at IZT 5mA; ZZT 30ohm; IR 0.1uA at 7V; marking B5; page 2
 #[doc("docs/hongjiacheng-zener.evidence.md")]
 pub part D_MM1Z10B: Zener<10V, 500mW> {
-    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MM1Z10B", footprint: sod::SOD3716X135N }
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MM1Z10B", footprint: sod::SOD3716X135N,
+              supplier lcsc "C22466341" }
 }
 
 // VZ 10.78-11.22V (nom 11V) at IZT 5mA; ZZT 30ohm; IR 0.1uA at 8V; marking C5; page 2
@@ -941,7 +967,8 @@ pub part D_MM1Z11B: Zener<11V, 500mW> {
 // VZ 11.76-12.24V (nom 12V) at IZT 5mA; ZZT 35ohm; IR 0.1uA at 9V; marking D5; page 2
 #[doc("docs/hongjiacheng-zener.evidence.md")]
 pub part D_MM1Z12B: Zener<12V, 500mW> {
-    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MM1Z12B", footprint: sod::SOD3716X135N }
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MM1Z12B", footprint: sod::SOD3716X135N,
+              supplier lcsc "C22466342" }
 }
 
 // VZ 12.74-13.26V (nom 13V) at IZT 5mA; ZZT 35ohm; IR 0.1uA at 10V; marking E5; page 2
@@ -965,7 +992,8 @@ pub part D_MM1Z16B: Zener<16V, 500mW> {
 // VZ 17.64-18.36V (nom 18V) at IZT 5mA; ZZT 45ohm; IR 0.1uA at 13V; marking J5; page 2
 #[doc("docs/hongjiacheng-zener.evidence.md")]
 pub part D_MM1Z18B: Zener<18V, 500mW> {
-    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MM1Z18B", footprint: sod::SOD3716X135N }
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MM1Z18B", footprint: sod::SOD3716X135N,
+              supplier lcsc "C22379455" }
 }
 
 // VZ 19.6-20.4V (nom 20V) at IZT 5mA; ZZT 50ohm; IR 0.1uA at 15V; marking K5; page 2
@@ -995,7 +1023,8 @@ pub part D_MM1Z27B: Zener<27V, 500mW> {
 // VZ 29.4-30.6V (nom 30V) at IZT 5mA; ZZT 80ohm; IR 0.1uA at 23V; marking R5; page 2
 #[doc("docs/hongjiacheng-zener.evidence.md")]
 pub part D_MM1Z30B: Zener<30V, 500mW> {
-    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MM1Z30B", footprint: sod::SOD3716X135N }
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MM1Z30B", footprint: sod::SOD3716X135N,
+              supplier lcsc "C22466339" }
 }
 
 // VZ 32.34-33.66V (nom 33V) at IZT 5mA; ZZT 80ohm; IR 0.1uA at 25V; marking X5; page 2
@@ -1025,7 +1054,8 @@ pub part D_MM1Z43B: Zener<43V, 500mW> {
 // VZ 46.06-47.94V (nom 47V) at IZT 2.5mA; ZZT 150ohm; IR 2uA at 36V; marking B6; page 3
 #[doc("docs/hongjiacheng-zener.evidence.md")]
 pub part D_MM1Z47B: Zener<47V, 500mW> {
-    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MM1Z47B", footprint: sod::SOD3716X135N }
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MM1Z47B", footprint: sod::SOD3716X135N,
+              supplier lcsc "C22466345" }
 }
 
 // VZ 49.98-52.02V (nom 51V) at IZT 2.5mA; ZZT 180ohm; IR 1uA at 39V; marking C6; page 3
@@ -1043,7 +1073,8 @@ pub part D_MM1Z56B: Zener<56V, 500mW> {
 // VZ 60.76-63.24V (nom 62V) at IZT 2.5mA; ZZT 200ohm; IR 0.2uA at 47V; marking E6; page 3
 #[doc("docs/hongjiacheng-zener.evidence.md")]
 pub part D_MM1Z62B: Zener<62V, 500mW> {
-    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MM1Z62B", footprint: sod::SOD3716X135N }
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MM1Z62B", footprint: sod::SOD3716X135N,
+              supplier lcsc "C22466338" }
 }
 
 // VZ 66.64-69.36V (nom 68V) at IZT 2.5mA; ZZT 250ohm; IR 0.2uA at 52V; marking F6; page 3
@@ -1063,19 +1094,22 @@ pub part D_MM1Z75B: Zener<75V, 500mW> {
 // VZ 3.10-3.50V (nom 3.3V) at IZT 75mA; ZZT 10ohm; IR 100uA at 1V; marking FHD; page 2
 #[doc("docs/hongjiacheng-zener.evidence.md")]
 pub part D_MM1W3V3: Zener<3.3V, 1W> {
-    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MM1W3V3", footprint: sod::SOD3716X135N }
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MM1W3V3", footprint: sod::SOD3716X135N,
+              supplier lcsc "C22395523" }
 }
 
 // VZ 3.40-3.80V (nom 3.6V) at IZT 69mA; ZZT 10ohm; IR 100uA at 1V; marking FHE; page 2
 #[doc("docs/hongjiacheng-zener.evidence.md")]
 pub part D_MM1W3V6: Zener<3.6V, 1W> {
-    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MM1W3V6", footprint: sod::SOD3716X135N }
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MM1W3V6", footprint: sod::SOD3716X135N,
+              supplier lcsc "C22395524" }
 }
 
 // VZ 3.70-4.10V (nom 3.9V) at IZT 64mA; ZZT 9.0ohm; IR 50uA at 1V; marking FHF; page 2
 #[doc("docs/hongjiacheng-zener.evidence.md")]
 pub part D_MM1W3V9: Zener<3.9V, 1W> {
-    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MM1W3V9", footprint: sod::SOD3716X135N }
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MM1W3V9", footprint: sod::SOD3716X135N,
+              supplier lcsc "C22395525" }
 }
 
 // VZ 4.06-4.56V (nom 4.3V) at IZT 58mA; ZZT 9.0ohm; IR 25uA at 1V; marking FHG; page 2
@@ -1087,67 +1121,78 @@ pub part D_MM1W4V3: Zener<4.3V, 1W> {
 // VZ 4.50-4.93V (nom 4.7V) at IZT 53mA; ZZT 8.0ohm; IR 10uA at 1V; marking FHJ; page 2
 #[doc("docs/hongjiacheng-zener.evidence.md")]
 pub part D_MM1W4V7: Zener<4.7V, 1W> {
-    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MM1W4V7", footprint: sod::SOD3716X135N }
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MM1W4V7", footprint: sod::SOD3716X135N,
+              supplier lcsc "C22435096" }
 }
 
 // VZ 4.84-5.36V (nom 5.1V) at IZT 49mA; ZZT 7.0ohm; IR 10uA at 1V; marking FHK; page 2
 #[doc("docs/hongjiacheng-zener.evidence.md")]
 pub part D_MM1W5V1: Zener<5.1V, 1W> {
-    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MM1W5V1", footprint: sod::SOD3716X135N }
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MM1W5V1", footprint: sod::SOD3716X135N,
+              supplier lcsc "C22395526" }
 }
 
 // VZ 5.32-5.92V (nom 5.6V) at IZT 45mA; ZZT 5.0ohm; IR 10uA at 2V; marking FHL; page 2
 #[doc("docs/hongjiacheng-zener.evidence.md")]
 pub part D_MM1W5V6: Zener<5.6V, 1W> {
-    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MM1W5V6", footprint: sod::SOD3716X135N }
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MM1W5V6", footprint: sod::SOD3716X135N,
+              supplier lcsc "C22435086" }
 }
 
 // VZ 5.86-6.51V (nom 6.2V) at IZT 41mA; ZZT 2.0ohm; IR 10uA at 3V; marking FHN; page 2
 #[doc("docs/hongjiacheng-zener.evidence.md")]
 pub part D_MM1W6V2: Zener<6.2V, 1W> {
-    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MM1W6V2", footprint: sod::SOD3716X135N }
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MM1W6V2", footprint: sod::SOD3716X135N,
+              supplier lcsc "C22435091" }
 }
 
 // VZ 6.46-7.18V (nom 6.8V) at IZT 37mA; ZZT 3.5ohm; IR 10uA at 4V; marking FHO; page 2
 #[doc("docs/hongjiacheng-zener.evidence.md")]
 pub part D_MM1W6V8: Zener<6.8V, 1W> {
-    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MM1W6V8", footprint: sod::SOD3716X135N }
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MM1W6V8", footprint: sod::SOD3716X135N,
+              supplier lcsc "C22435087" }
 }
 
 // VZ 7.12-7.88V (nom 7.5V) at IZT 34mA; ZZT 4.0ohm; IR 10uA at 5V; marking FHQ; page 2
 #[doc("docs/hongjiacheng-zener.evidence.md")]
 pub part D_MM1W7V5: Zener<7.5V, 1W> {
-    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MM1W7V5", footprint: sod::SOD3716X135N }
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MM1W7V5", footprint: sod::SOD3716X135N,
+              supplier lcsc "C22435097" }
 }
 
 // VZ 7.79-8.67V (nom 8.2V) at IZT 31mA; ZZT 4.5ohm; IR 10uA at 6V; marking FHR; page 2
 #[doc("docs/hongjiacheng-zener.evidence.md")]
 pub part D_MM1W8V2: Zener<8.2V, 1W> {
-    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MM1W8V2", footprint: sod::SOD3716X135N }
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MM1W8V2", footprint: sod::SOD3716X135N,
+              supplier lcsc "C22435098" }
 }
 
 // VZ 8.60-9.59V (nom 9.1V) at IZT 28mA; ZZT 5.0ohm; IR 10uA at 7V; marking FHT; page 2
 #[doc("docs/hongjiacheng-zener.evidence.md")]
 pub part D_MM1W9V1: Zener<9.1V, 1W> {
-    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MM1W9V1", footprint: sod::SOD3716X135N }
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MM1W9V1", footprint: sod::SOD3716X135N,
+              supplier lcsc "C22435094" }
 }
 
 // VZ 9.50-10.5V (nom 10V) at IZT 25mA; ZZT 7.0ohm; IR 10uA at 7V; marking FHU; page 2
 #[doc("docs/hongjiacheng-zener.evidence.md")]
 pub part D_MM1W10: Zener<10V, 1W> {
-    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MM1W10", footprint: sod::SOD3716X135N }
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MM1W10", footprint: sod::SOD3716X135N,
+              supplier lcsc "C22395527" }
 }
 
 // VZ 10.4-11.6V (nom 11V) at IZT 23mA; ZZT 8.0ohm; IR 5uA at 8V; marking FHV; page 2
 #[doc("docs/hongjiacheng-zener.evidence.md")]
 pub part D_MM1W11: Zener<11V, 1W> {
-    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MM1W11", footprint: sod::SOD3716X135N }
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MM1W11", footprint: sod::SOD3716X135N,
+              supplier lcsc "C22395528" }
 }
 
 // VZ 11.4-12.6V (nom 12V) at IZT 21mA; ZZT 9.0ohm; IR 5uA at 9V; marking FHW; page 2
 #[doc("docs/hongjiacheng-zener.evidence.md")]
 pub part D_MM1W12: Zener<12V, 1W> {
-    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MM1W12", footprint: sod::SOD3716X135N }
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MM1W12", footprint: sod::SOD3716X135N,
+              supplier lcsc "C22435092" }
 }
 
 // VZ 12.4-14.1V (nom 13V) at IZT 19mA; ZZT 10ohm; IR 5uA at 10V; marking FHX; page 2
@@ -1159,7 +1204,8 @@ pub part D_MM1W13: Zener<13V, 1W> {
 // VZ 13.8-15.8V (nom 15V) at IZT 17mA; ZZT 14ohm; IR 5uA at 11V; marking FHZ; page 2
 #[doc("docs/hongjiacheng-zener.evidence.md")]
 pub part D_MM1W15: Zener<15V, 1W> {
-    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MM1W15", footprint: sod::SOD3716X135N }
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MM1W15", footprint: sod::SOD3716X135N,
+              supplier lcsc "C22435095" }
 }
 
 // VZ 15.2-17.1V (nom 16V) at IZT 16mA; ZZT 16ohm; IR 5uA at 12V; marking FJA; page 2
@@ -1177,7 +1223,8 @@ pub part D_MM1W18: Zener<18V, 1W> {
 // VZ 19.0-21.2V (nom 20V) at IZT 13mA; ZZT 22ohm; IR 5uA at 15V; marking FJG; page 2
 #[doc("docs/hongjiacheng-zener.evidence.md")]
 pub part D_MM1W20: Zener<20V, 1W> {
-    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MM1W20", footprint: sod::SOD3716X135N }
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MM1W20", footprint: sod::SOD3716X135N,
+              supplier lcsc "C22435093" }
 }
 
 // VZ 20.8-23.3V (nom 22V) at IZT 12mA; ZZT 23ohm; IR 5uA at 17V; marking FJK; page 2
@@ -1213,7 +1260,8 @@ pub part D_MM1W33: Zener<33V, 1W> {
 // VZ 34.2-37.9V (nom 36V) at IZT 7.0mA; ZZT 50ohm; IR 5uA at 27V; marking FJS; page 2
 #[doc("docs/hongjiacheng-zener.evidence.md")]
 pub part D_MM1W36: Zener<36V, 1W> {
-    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MM1W36", footprint: sod::SOD3716X135N }
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MM1W36", footprint: sod::SOD3716X135N,
+              supplier lcsc "C22435089" }
 }
 
 // VZ 37.2-41.5V (nom 39V) at IZT 6.5mA; ZZT 60ohm; IR 5uA at 30V; marking FJT; page 2
@@ -1273,13 +1321,15 @@ pub part D_MM1W82: Zener<82V, 1W> {
 // VZ 86.0-96.0V (nom 91V) at IZT 2.8mA; ZZT 250ohm; IR 1uA at 69V; marking FLT; page 3
 #[doc("docs/hongjiacheng-zener.evidence.md")]
 pub part D_MM1W91: Zener<91V, 1W> {
-    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MM1W91", footprint: sod::SOD3716X135N }
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MM1W91", footprint: sod::SOD3716X135N,
+              supplier lcsc "C22435088" }
 }
 
 // VZ 95.0-105V (nom 100V) at IZT 2.5mA; ZZT 350ohm; IR 1uA at 76V; marking FLU; page 3
 #[doc("docs/hongjiacheng-zener.evidence.md")]
 pub part D_MM1W100: Zener<100V, 1W> {
-    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MM1W100", footprint: sod::SOD3716X135N }
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MM1W100", footprint: sod::SOD3716X135N,
+              supplier lcsc "C22435090" }
 }
 
 // VZ 104-116V (nom 110V) at IZT 2.3mA; ZZT 450ohm; IR 1uA at 84V; marking FLV; page 3
@@ -1383,25 +1433,29 @@ pub part D_MM1Z2V4: Zener<2.4V, 500mW> {
 // VZ 2.5-2.9V (nom 2.7V) at IZT 5mA; ZZT 110ohm; IR 120uA at 1V; marking 4D; page 2
 #[doc("docs/hongjiacheng-zener.evidence.md")]
 pub part D_MM1Z2V7: Zener<2.7V, 500mW> {
-    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MM1Z2V7", footprint: sod::SOD3716X135N }
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MM1Z2V7", footprint: sod::SOD3716X135N,
+              supplier lcsc "C22379468" }
 }
 
 // VZ 2.8-3.2V (nom 3.0V) at IZT 5mA; ZZT 120ohm; IR 50uA at 1V; marking 4E; page 2
 #[doc("docs/hongjiacheng-zener.evidence.md")]
 pub part D_MM1Z3V0: Zener<3V, 500mW> {
-    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MM1Z3V0", footprint: sod::SOD3716X135N }
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MM1Z3V0", footprint: sod::SOD3716X135N,
+              supplier lcsc "C22379463" }
 }
 
 // VZ 3.1-3.5V (nom 3.3V) at IZT 5mA; ZZT 130ohm; IR 20uA at 1V; marking 4F; page 2
 #[doc("docs/hongjiacheng-zener.evidence.md")]
 pub part D_MM1Z3V3: Zener<3.3V, 500mW> {
-    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MM1Z3V3", footprint: sod::SOD3716X135N }
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MM1Z3V3", footprint: sod::SOD3716X135N,
+              supplier lcsc "C22379456" }
 }
 
 // VZ 3.4-3.8V (nom 3.6V) at IZT 5mA; ZZT 130ohm; IR 10uA at 1V; marking 4H; page 2
 #[doc("docs/hongjiacheng-zener.evidence.md")]
 pub part D_MM1Z3V6: Zener<3.6V, 500mW> {
-    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MM1Z3V6", footprint: sod::SOD3716X135N }
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MM1Z3V6", footprint: sod::SOD3716X135N,
+              supplier lcsc "C22379457" }
 }
 
 // VZ 3.7-4.1V (nom 3.9V) at IZT 5mA; ZZT 130ohm; IR 5uA at 1V; marking 4J; page 2
@@ -1419,7 +1473,8 @@ pub part D_MM1Z4V3: Zener<4.3V, 500mW> {
 // VZ 4.4-5V (nom 4.7V) at IZT 5mA; ZZT 130ohm; IR 2uA at 1V; marking 4M; page 2
 #[doc("docs/hongjiacheng-zener.evidence.md")]
 pub part D_MM1Z4V7: Zener<4.7V, 500mW> {
-    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MM1Z4V7", footprint: sod::SOD3716X135N }
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MM1Z4V7", footprint: sod::SOD3716X135N,
+              supplier lcsc "C22379458" }
 }
 
 // VZ 4.8-5.4V (nom 5.1V) at IZT 5mA; ZZT 130ohm; IR 2uA at 1.5V; marking 4N; page 2
@@ -1437,13 +1492,15 @@ pub part D_MM1Z5V6: Zener<5.6V, 500mW> {
 // VZ 5.8-6.6V (nom 6.2V) at IZT 5mA; ZZT 50ohm; IR 1uA at 3V; marking 4R; page 2
 #[doc("docs/hongjiacheng-zener.evidence.md")]
 pub part D_MM1Z6V2: Zener<6.2V, 500mW> {
-    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MM1Z6V2", footprint: sod::SOD3716X135N }
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MM1Z6V2", footprint: sod::SOD3716X135N,
+              supplier lcsc "C22379464" }
 }
 
 // VZ 6.4-7.2V (nom 6.8V) at IZT 5mA; ZZT 30ohm; IR 0.5uA at 3.5V; marking 4X; page 2
 #[doc("docs/hongjiacheng-zener.evidence.md")]
 pub part D_MM1Z6V8: Zener<6.8V, 500mW> {
-    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MM1Z6V8", footprint: sod::SOD3716X135N }
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MM1Z6V8", footprint: sod::SOD3716X135N,
+              supplier lcsc "C22379460" }
 }
 
 // VZ 7-7.9V (nom 7.5V) at IZT 5mA; ZZT 30ohm; IR 0.5uA at 4V; marking 4Y; page 2
@@ -1479,7 +1536,8 @@ pub part D_MM1Z11: Zener<11V, 500mW> {
 // VZ 11.4-12.7V (nom 12V) at IZT 5mA; ZZT 35ohm; IR 0.1uA at 9V; marking 5D; page 2
 #[doc("docs/hongjiacheng-zener.evidence.md")]
 pub part D_MM1Z12: Zener<12V, 500mW> {
-    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MM1Z12", footprint: sod::SOD3716X135N }
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MM1Z12", footprint: sod::SOD3716X135N,
+              supplier lcsc "C22379459" }
 }
 
 // VZ 12.4-14.1V (nom 13V) at IZT 5mA; ZZT 35ohm; IR 0.1uA at 10V; marking 5E; page 2
@@ -1491,25 +1549,29 @@ pub part D_MM1Z13: Zener<13V, 500mW> {
 // VZ 13.8-15.6V (nom 15V) at IZT 5mA; ZZT 40ohm; IR 0.1uA at 11V; marking 5F; page 2
 #[doc("docs/hongjiacheng-zener.evidence.md")]
 pub part D_MM1Z15: Zener<15V, 500mW> {
-    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MM1Z15", footprint: sod::SOD3716X135N }
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MM1Z15", footprint: sod::SOD3716X135N,
+              supplier lcsc "C22379462" }
 }
 
 // VZ 15.3-17.1V (nom 16V) at IZT 5mA; ZZT 40ohm; IR 0.1uA at 12V; marking 5H; page 2
 #[doc("docs/hongjiacheng-zener.evidence.md")]
 pub part D_MM1Z16: Zener<16V, 500mW> {
-    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MM1Z16", footprint: sod::SOD3716X135N }
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MM1Z16", footprint: sod::SOD3716X135N,
+              supplier lcsc "C22379461" }
 }
 
 // VZ 16.8-19.1V (nom 18V) at IZT 5mA; ZZT 45ohm; IR 0.1uA at 13V; marking 5J; page 2
 #[doc("docs/hongjiacheng-zener.evidence.md")]
 pub part D_MM1Z18: Zener<18V, 500mW> {
-    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MM1Z18", footprint: sod::SOD3716X135N }
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MM1Z18", footprint: sod::SOD3716X135N,
+              supplier lcsc "C22379466" }
 }
 
 // VZ 18.8-21.2V (nom 20V) at IZT 5mA; ZZT 50ohm; IR 0.1uA at 15V; marking 5K; page 2
 #[doc("docs/hongjiacheng-zener.evidence.md")]
 pub part D_MM1Z20: Zener<20V, 500mW> {
-    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MM1Z20", footprint: sod::SOD3716X135N }
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MM1Z20", footprint: sod::SOD3716X135N,
+              supplier lcsc "C22379467" }
 }
 
 // VZ 20.8-23.3V (nom 22V) at IZT 5mA; ZZT 55ohm; IR 0.1uA at 17V; marking 5M; page 2
@@ -1521,13 +1583,15 @@ pub part D_MM1Z22: Zener<22V, 500mW> {
 // VZ 22.8-25.6V (nom 24V) at IZT 5mA; ZZT 60ohm; IR 0.1uA at 19V; marking 5N; page 2
 #[doc("docs/hongjiacheng-zener.evidence.md")]
 pub part D_MM1Z24: Zener<24V, 500mW> {
-    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MM1Z24", footprint: sod::SOD3716X135N }
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MM1Z24", footprint: sod::SOD3716X135N,
+              supplier lcsc "C22379465" }
 }
 
 // VZ 25.1-28.9V (nom 27V) at IZT 5mA; ZZT 70ohm; IR 0.1uA at 21V; marking 5P; page 2
 #[doc("docs/hongjiacheng-zener.evidence.md")]
 pub part D_MM1Z27: Zener<27V, 500mW> {
-    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MM1Z27", footprint: sod::SOD3716X135N }
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MM1Z27", footprint: sod::SOD3716X135N,
+              supplier lcsc "C22379469" }
 }
 
 // VZ 28-32V (nom 30V) at IZT 5mA; ZZT 80ohm; IR 0.1uA at 23V; marking 5R; page 2
@@ -1637,7 +1701,8 @@ pub part D_MMSZ4684: Zener<3.3V, 500mW> {
 // VZ 3.42-3.78V (nom 3.6V) at IZT 50uA; IR 7.5uA at 2.0V; marking CM; page 2
 #[doc("docs/hongjiacheng-zener.evidence.md")]
 pub part D_MMSZ4685: Zener<3.6V, 500mW> {
-    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MMSZ4685", footprint: sod::SOD3716X135N }
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MMSZ4685", footprint: sod::SOD3716X135N,
+              supplier lcsc "C22395546" }
 }
 
 // VZ 3.70-4.10V (nom 3.9V) at IZT 50uA; IR 5uA at 2.0V; marking CN; page 2
@@ -1673,13 +1738,15 @@ pub part D_MMSZ4690: Zener<5.6V, 500mW> {
 // VZ 5.89-6.51V (nom 6.2V) at IZT 50uA; IR 10uA at 5.0V; marking CA; page 2
 #[doc("docs/hongjiacheng-zener.evidence.md")]
 pub part D_MMSZ4691: Zener<6.2V, 500mW> {
-    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MMSZ4691", footprint: sod::SOD3716X135N }
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MMSZ4691", footprint: sod::SOD3716X135N,
+              supplier lcsc "C22395549" }
 }
 
 // VZ 6.46-7.14V (nom 6.8V) at IZT 50uA; IR 10uA at 5.1V; marking CX; page 2
 #[doc("docs/hongjiacheng-zener.evidence.md")]
 pub part D_MMSZ4692: Zener<6.8V, 500mW> {
-    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MMSZ4692", footprint: sod::SOD3716X135N }
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MMSZ4692", footprint: sod::SOD3716X135N,
+              supplier lcsc "C22395550" }
 }
 
 // VZ 7.13-7.88V (nom 7.5V) at IZT 50uA; IR 10uA at 5.7V; marking CY; page 2
@@ -1721,7 +1788,8 @@ pub part D_MMSZ4698: Zener<11V, 500mW> {
 // VZ 11.40-12.60V (nom 12V) at IZT 50uA; IR 0.05uA at 9.1V; marking DH; page 2
 #[doc("docs/hongjiacheng-zener.evidence.md")]
 pub part D_MMSZ4699: Zener<12V, 500mW> {
-    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MMSZ4699", footprint: sod::SOD3716X135N }
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MMSZ4699", footprint: sod::SOD3716X135N,
+              supplier lcsc "C22395551" }
 }
 
 // VZ 12.35-13.65V (nom 13V) at IZT 50uA; IR 0.05uA at 9.8V; marking DJ; page 2

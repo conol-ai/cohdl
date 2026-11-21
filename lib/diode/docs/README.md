@@ -100,9 +100,42 @@ MM1Z43 twice with different values; it is left out and the record says why. The 
 - **Land.** All seven sheets print the outline and suggested pad layout the
   `sod::SOD3716X135N` land was drawn from, so every part uses it. No land changes.
 - **Pins.** Pad 1 is the cathode (the band end), as for the other parts here.
-- **No bindings.** The Hongjiacheng parts above needed a half turn on their
-  SOD-323, SOD-523 and SMA lands. A Zener is polarized and outside W3 sampled
-  inference, so each part number is bound only with its own preview reading.
 - **Sources.** `hongjiacheng-zener.evidence.md` records each sheet's URL,
   revision and SHA-256, and the page of every value.
+
+### LCSC bindings (98 of the 285)
+
+A Zener is polarized and outside W3 sampled inference, so each part number is
+bound only with its own preview reading. 98 parts bind their primary with no
+mapping: `supplier lcsc "<part number>"`.
+
+- **Map rows.** The B1 snapshot lists 128 of these MPNs on the SOD-123
+  package. Their part numbers are in `tools/sourcing_data/lcsc_map.json` from
+  the backfill run of 2026-11-21
+  (`tools/sourcing_data/lcsc_backfill/2026-11-21-hongjiacheng-zener/`), which
+  read every candidate page for each MPN (2 to 46 pages). For each MPN exactly
+  one page names the manufacturer "hongjiacheng", matched through the
+  reviewed alias; the catalog class is Preferred.
+- **Placement evidence, and its limits.** Preview boards 8 and 9
+  (`tools/sourcing_data/jlc_previews/2026-11-21-board-8/` and `-board-9/`)
+  placed 124 of the 128 four times each (top and bottom, 0 and 37 degrees)
+  with no mapping. For 98 the assembler's model showed its cathode band and
+  minus sign at our pad 1 on all four copies, its long axis within 2.4 degrees
+  of the pad axis and its centre within 0.176 mm of the footprint origin
+  (`body.json` in each record). This was read by eye: the measuring script
+  gives no angle for a model that carries two marks. It is a polarity reading
+  for that part number in that preview, not a measured angle and not a check
+  of the part's identity.
+- **Frame rows.** One row per part number in
+  `tools/sourcing_data/jlc_frames.json` (`zb8-…` and `zb9-…`), keyed to
+  `sod` 0.1.3, the land version the boards placed.
+- **Not bound.**
+  - 25 part numbers read reversed on all four copies (the assembler's larger
+    SOD-123 model, in consecutive part-number runs). Each has the candidate
+    `rotate 180`, which preview board 10 re-verifies before any binding.
+  - C22466344 (MM1Z6V2B) was not drawn on board 9.
+  - Four were left out of the boards for low stock and have no reading:
+    C19077397 (BZT52C3V6), C22395534 (MM1Z2V0B), C22395535 (MM1Z2V7B)
+    and C22466340 (MM1Z3V3B).
+  - The other 157 parts have no map row: the snapshot does not list them.
 

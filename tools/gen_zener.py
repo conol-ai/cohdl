@@ -30,6 +30,11 @@ from decimal import Decimal
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
+# `python3 -I` does not put the script's directory on sys.path.
+sys.path.insert(0, str(ROOT / "tools"))
+from sourcing.bindings import Bindings, avl_entry  # noqa: E402
+
+MANIFEST = ROOT / "lib" / "diode" / "cohdl.toml"
 DATA = ROOT / "tools" / "diode_data" / "hongjiacheng_zener.json"
 OUT = ROOT / "lib" / "diode" / "src" / "zener.cohdl"
 EVIDENCE = ROOT / "lib" / "diode" / "docs" / "hongjiacheng-zener.evidence.md"
@@ -91,7 +96,8 @@ def comment(row: dict) -> str:
     return "// " + "; ".join(parts)
 
 
-def render(data: dict) -> str:
+def render(data: dict, bindings: Bindings | None = None) -> str:
+    bindings = Bindings(ROOT) if bindings is None else bindings
     out = [
         "// Zhuhai Hongjiacheng SOD-123 Zener diodes (library plan W4, item 3d).",
         "//",
@@ -105,8 +111,10 @@ def render(data: dict) -> str:
         "// band end, at -x), pad 2 the anode. `Zener<VZ, P>` states the nominal Zener",
         "// voltage and the sheet's rated power; the tolerance, test current and",
         "// impedance differ between series, so each part's comment keeps its row.",
-        "// No part carries a supplier binding yet: a polarized part is bound only",
-        "// with its own preview evidence.",
+        "// A part carries a supplier binding only with its own preview reading: a",
+        "// polarized part is outside W3 sampled inference. The clause comes from",
+        "// tools/sourcing_data/lcsc_map.json and the part number's row in",
+        "// tools/sourcing_data/jlc_frames.json, as in tools/gen_passive.py.",
         "",
         f'#[doc("{DOC}")]',
         "pub device Zener<VZ: Voltage, P: Power> {",
@@ -138,12 +146,8 @@ def render(data: dict) -> str:
             if row["mpn"] in {o["mpn"] for o in series.get("omitted", [])}:
                 raise DataError(f"gen_zener.py: {row['mpn']} is both a part and omitted")
             args = f"{literal(row['vz_nom_v'], 'V')}, {power(series['power_mw'])}"
-            # `cohdl fmt` breaks an entry wider than 100 columns before `footprint:`.
-            one = f'    primary {{ mfr: "{mfr}", mpn: "{row["mpn"]}", footprint: {footprint} }}'
-            entry = [one] if len(one) <= 100 else [
-                f'    primary {{ mfr: "{mfr}", mpn: "{row["mpn"]}",',
-                f"              footprint: {footprint} }}",
-            ]
+            # Laid out as `cohdl fmt` does, with the supplier clause when the part number has one.
+            entry = avl_entry(bindings, MANIFEST, "primary", mfr, row["mpn"], footprint).rstrip("\n").split("\n")
             out += [
                 "",
                 comment(row),

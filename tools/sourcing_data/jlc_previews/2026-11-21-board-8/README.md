@@ -33,3 +33,17 @@ The last command writes the contact sheets the readings were made from (64 per s
 ## Limits
 
 These readings establish polarity on the assembler's model for each part number in this preview, not the part's identity. The BOM stock result describes this session. No binding or frame row is written here; bindings need these readings and map rows from a reviewed backfill.
+
+## Body readings and bindings (added 2026-11-21)
+
+The bindings came after the map rows: the backfill run `../../lcsc_backfill/2026-11-21-hongjiacheng-zener/` confirmed each part number on its own page and was promoted into `lcsc_map.json`.
+
+**Body readings.** `body.json` reads the 232 copies of the 58 part numbers read with the cathode at pad 1, with `body.py` (the stock `../2026-11-09-reverify-2/body_axes.py` with this land's axis added) on the archived lossless pixels. On every copy the drawn body's long axis lies within 1.3 degrees of the pad 1 to pad 2 axis (mod 180) and its centre within 0.127 mm of the footprint origin (limit 0.25 mm). To reproduce, from the repository root:
+
+```sh
+D=tools/sourcing_data/jlc_previews/2026-11-21-board-8
+python3 -I tools/sourcing_data/jlc_previews/2026-11-21-board-8/body.py "$D" /tmp/board8-body.json
+cmp "$D/body.json" /tmp/board8-body.json
+```
+
+**Bindings.** `diode` 0.1.3 binds those 58 part numbers with `supplier lcsc "<part number>"` and no mapping, each through one row of `tools/sourcing_data/jlc_frames.json` (`zb8-sod3716x135n-<part number>`) keyed to `sod` 0.1.3, the land this board placed. Each row's note names the copies, the body figures and what the reading is not. The reversed part numbers are not bound; preview board 10 re-verifies them with the candidate `rotate 180`.

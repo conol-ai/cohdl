@@ -37,7 +37,7 @@ class GenZenerTests(unittest.TestCase):
         self.assertIn("IZT 50uA", text)
         self.assertEqual(text.count("pub part D_"), len(rows))
         self.assertEqual(text.count("footprint: sod::SOD3716X135N"), len(rows))
-        self.assertEqual(len(re.findall(r'supplier lcsc "C\d+" \}', text)), 98)
+        self.assertEqual(len(re.findall(r'supplier lcsc "C\d+"( rotate 180)? \}', text)), 123)
         self.assertIn('pub part D_BZT52C5V6: Zener<5.6V, 350mW> {', text)
         self.assertIn('pub part D_MMSZ5232B: Zener<5.6V, 500mW> {', text)
         self.assertIn('pub part D_MM1W330: Zener<330V, 1W> {', text)
@@ -70,46 +70,59 @@ class GenZenerTests(unittest.TestCase):
                 self.assertIn(message, str(raised.exception))
 
     def test_bound_exactly_the_part_numbers_read_with_the_cathode_at_pad_1(self):
-        # Boards 8 and 9 read each part number on four copies with no mapping. Only those
-        # read "cathode at pad 1" are bound, with no rotation, each through one row of
-        # jlc_frames.json on the land the boards placed, citing its record; the reversed
-        # ones wait for board 10, and the undrawn one and the two left out are not bound.
+        # Boards 8 and 9 read each part number on four copies with no mapping; board 10 read
+        # again, with rotate 180 applied, the 25 they read reversed. A part number is bound
+        # only where every copy showed the cathode at pad 1: with no rotation from boards 8
+        # and 9, with rotate 180 from board 10. Each binding goes through one row of
+        # jlc_frames.json on the land the boards placed, citing its record. The undrawn
+        # one and the four left out are not bound.
         text = gz.OUT.read_text(encoding="utf-8")
-        bound = dict(re.findall(r'mpn: "(\w+)",[^}]*?supplier lcsc "(C\d+)" \}', text))
-        self.assertTrue(all("rotate" not in line for line in text.splitlines() if "supplier" in line))
+        bound = {mpn: (pn, rotate) for mpn, pn, rotate in re.findall(
+            r'mpn: "(\w+)",[^}]*?supplier lcsc "(C\d+)"( rotate 180)? \}', text)}
+        self.assertEqual(text.count("supplier lcsc"), len(bound))
         frames = json.loads((gz.ROOT / "tools/sourcing_data/jlc_frames.json").read_text(encoding="utf-8"))["rows"]
         by_pn = {}
         for row in frames:
             by_pn.setdefault(row["pn"], []).append(row)
         sod = re.search(r'^version = "([^"]+)"', (gz.ROOT / "lib/sod/cohdl.toml").read_text(), re.M)[1]
-        readings = {}
-        for board in (8, 9):
+
+        def readings(board):
             record = f"tools/sourcing_data/jlc_previews/2026-11-21-board-{board}"
             manifest = json.loads((gz.ROOT / record / "package/manifest.json").read_text(encoding="utf-8"))
             self.assertEqual(manifest["dependencies"]["sod"], sod)
-            for part in json.loads((gz.ROOT / record / "readings.json").read_text(encoding="utf-8"))["parts"]:
-                readings[part["pn"]] = (part["mpn"], part["reading"], record + "/README.md")
-        self.assertEqual(len(readings), 124)
-        right = {pn: v for pn, v in readings.items() if v[1] == "cathode at pad 1"}
-        self.assertEqual(len(right), 98)
-        self.assertEqual(sorted(bound.items()), sorted((mpn, pn) for pn, (mpn, _, _) in right.items()))
-        for pn, (mpn, _, record) in right.items():
+            parts = json.loads((gz.ROOT / record / "readings.json").read_text(encoding="utf-8"))["parts"]
+            return {p["pn"]: (p["mpn"], p["reading"], record + "/README.md") for p in parts}
+
+        first = {**readings(8), **readings(9)}
+        again = readings(10)
+        self.assertEqual(len(first), 124)
+        reversed_ = {pn for pn, v in first.items() if v[1] == "reversed"}
+        self.assertEqual(len(reversed_), 25)
+        self.assertEqual(set(again), reversed_)
+        expected = {pn: (mpn, 0, record) for pn, (mpn, reading, record) in first.items()
+                    if reading == "cathode at pad 1"}
+        expected.update({pn: (mpn, 180, record) for pn, (mpn, reading, record) in again.items()
+                         if reading == "cathode at pad 1"})
+        self.assertEqual(len(expected), 123)
+        self.assertEqual(bound, {mpn: (pn, " rotate 180" if rotate else "")
+                                 for pn, (mpn, rotate, _) in expected.items()})
+        for pn, (mpn, rotate, record) in expected.items():
             with self.subTest(pn=pn):
                 [row] = by_pn[pn]
                 self.assertEqual((row["package"], row["package_version"], row["footprint"]),
                                  ("sod", sod, "SOD3716X135N"))
-                self.assertEqual(row["mapping"], {"dx_mm": 0, "dy_mm": 0, "rotate_deg": 0})
+                self.assertEqual(row["mapping"], {"dx_mm": 0, "dy_mm": 0, "rotate_deg": rotate})
                 self.assertEqual(row["evidence"]["record"], record)
-                self.assertIn(mpn + ", polarity read by eye with no mapping", row["evidence"]["note"])
+                applied = "rotate 180 applied" if rotate else "no mapping"
+                self.assertIn(f"{mpn}, polarity read by eye with {applied}", row["evidence"]["note"])
                 self.assertIn("not: a measured angle", row["evidence"]["note"])
-        for pn, (_, reading, _) in readings.items():
-            if reading != "cathode at pad 1":
-                self.assertNotIn(f'"{pn}"', text)
+        for pn in set(first) - set(expected):
+            self.assertNotIn(f'"{pn}"', text)
 
     @unittest.skipUnless(os.environ.get("COHDL_REMEASURE_PREVIEWS"), "set COHDL_REMEASURE_PREVIEWS=1")
     def test_the_body_readings_reproduce(self):
         script = gz.ROOT / "tools/sourcing_data/jlc_previews/2026-11-21-board-8/body.py"
-        for board in (8, 9):
+        for board in (8, 9, 10):
             record = gz.ROOT / f"tools/sourcing_data/jlc_previews/2026-11-21-board-{board}"
             with self.subTest(board=board), tempfile.TemporaryDirectory() as directory:
                 out = Path(directory, "body.json")

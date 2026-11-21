@@ -46,4 +46,4 @@ python3 -I tools/sourcing_data/jlc_previews/2026-11-21-board-8/body.py "$D" /tmp
 cmp "$D/body.json" /tmp/board9-body.json
 ```
 
-**Bindings.** `diode` 0.1.3 binds those 40 part numbers with `supplier lcsc "<part number>"` and no mapping, each through one row of `tools/sourcing_data/jlc_frames.json` (`zb9-sod3716x135n-<part number>`) keyed to `sod` 0.1.3, the land this board placed. Each row's note names the copies, the body figures and what the reading is not. The reversed part numbers are not bound; preview board 10 re-verifies them with the candidate `rotate 180`.
+**Bindings.** `diode` 0.1.3 binds those 40 part numbers with `supplier lcsc "<part number>"` and no mapping, each through one row of `tools/sourcing_data/jlc_frames.json` (`zb9-sod3716x135n-<part number>`) keyed to `sod` 0.1.3, the land this board placed. Each row's note names the copies, the body figures and what the reading is not. The reversed part numbers were placed again on preview board 10 (`../2026-11-21-board-10/`) with the candidate `rotate 180` applied; every copy read with the cathode at pad 1, so they are bound there with `rotate 180`.

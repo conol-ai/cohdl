@@ -103,11 +103,12 @@ MM1Z43 twice with different values; it is left out and the record says why. The 
 - **Sources.** `hongjiacheng-zener.evidence.md` records each sheet's URL,
   revision and SHA-256, and the page of every value.
 
-### LCSC bindings (98 of the 285)
+### LCSC bindings (123 of the 285)
 
 A Zener is polarized and outside W3 sampled inference, so each part number is
-bound only with its own preview reading. 98 parts bind their primary with no
-mapping: `supplier lcsc "<part number>"`.
+bound only with its own preview reading. 123 parts bind their primary: 98 with
+no mapping, `supplier lcsc "<part number>"`, and 25 with a half turn,
+`supplier lcsc "<part number>" rotate 180`.
 
 - **Map rows.** The B1 snapshot lists 128 of these MPNs on the SOD-123
   package. Their part numbers are in `tools/sourcing_data/lcsc_map.json` from
@@ -126,13 +127,17 @@ mapping: `supplier lcsc "<part number>"`.
   gives no angle for a model that carries two marks. It is a polarity reading
   for that part number in that preview, not a measured angle and not a check
   of the part's identity.
+- **The 25 with `rotate 180`.** On boards 8 and 9 these part numbers' model
+  (the assembler's larger SOD-123 model, in consecutive part-number runs) had
+  its band and minus sign at our pad 2 on all four copies. Preview board 10
+  (`tools/sourcing_data/jlc_previews/2026-11-21-board-10/`) placed them again
+  with `rotate 180` applied: on all four copies of each the band and minus
+  sign sat at our pad 1, the body within 1.1 degrees and 0.129 mm. The half
+  turn belongs to these part numbers' model, not to the series or the land.
 - **Frame rows.** One row per part number in
-  `tools/sourcing_data/jlc_frames.json` (`zb8-…` and `zb9-…`), keyed to
-  `sod` 0.1.3, the land version the boards placed.
+  `tools/sourcing_data/jlc_frames.json` (`zb8-…`, `zb9-…` and `zb10-…`),
+  keyed to `sod` 0.1.3, the land version the boards placed.
 - **Not bound.**
-  - 25 part numbers read reversed on all four copies (the assembler's larger
-    SOD-123 model, in consecutive part-number runs). Each has the candidate
-    `rotate 180`, which preview board 10 re-verifies before any binding.
   - C22466344 (MM1Z6V2B) was not drawn on board 9.
   - Four were left out of the boards for low stock and have no reading:
     C19077397 (BZT52C3V6), C22395534 (MM1Z2V0B), C22395535 (MM1Z2V7B)

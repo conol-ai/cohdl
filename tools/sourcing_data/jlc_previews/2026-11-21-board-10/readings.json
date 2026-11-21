@@ -1,0 +1,284 @@
+{
+ "schema_version": 1,
+ "method": "read by eye from contact_sheet.py sheets of the lossless exports, with the candidate rotate 180 applied in the supplier CPL: the model's cathode band and its '-' sign against our pad 1 (the land's band end, where our silkscreen bar is), on each of the four copies",
+ "readings": {
+  "cathode at pad 1": "band and '-' at our pad 1 on all four copies with rotate 180 applied: the candidate is confirmed, mapping (0, 0, 180)"
+ },
+ "parts": [
+  {
+   "pn": "C22395529",
+   "mpn": "MM1W18",
+   "designators": [
+    "D1",
+    "D2",
+    "D3",
+    "D4"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C22395530",
+   "mpn": "MM1W22",
+   "designators": [
+    "D5",
+    "D6",
+    "D7",
+    "D8"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C22395531",
+   "mpn": "MM1W24",
+   "designators": [
+    "D9",
+    "D10",
+    "D11",
+    "D12"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C22395532",
+   "mpn": "MM1W30",
+   "designators": [
+    "D13",
+    "D14",
+    "D15",
+    "D16"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C22395533",
+   "mpn": "MM1W82",
+   "designators": [
+    "D21",
+    "D22",
+    "D23",
+    "D24"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C22395536",
+   "mpn": "MM1Z5V6B",
+   "designators": [
+    "D29",
+    "D30",
+    "D31",
+    "D32"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C22395538",
+   "mpn": "MM1Z5V1",
+   "designators": [
+    "D25",
+    "D26",
+    "D27",
+    "D28"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C22395539",
+   "mpn": "MM1Z5V6",
+   "designators": [
+    "D33",
+    "D34",
+    "D35",
+    "D36"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C22395540",
+   "mpn": "MM1Z62",
+   "designators": [
+    "D37",
+    "D38",
+    "D39",
+    "D40"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C22395541",
+   "mpn": "MM1W75",
+   "designators": [
+    "D17",
+    "D18",
+    "D19",
+    "D20"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C22395547",
+   "mpn": "MMSZ4688",
+   "designators": [
+    "D41",
+    "D42",
+    "D43",
+    "D44"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C22395553",
+   "mpn": "MMSZ5227B",
+   "designators": [
+    "D49",
+    "D50",
+    "D51",
+    "D52"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C22395554",
+   "mpn": "MMSZ5230B",
+   "designators": [
+    "D61",
+    "D62",
+    "D63",
+    "D64"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C22395555",
+   "mpn": "MMSZ5234B",
+   "designators": [
+    "D65",
+    "D66",
+    "D67",
+    "D68"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C22395556",
+   "mpn": "MMSZ5236B",
+   "designators": [
+    "D69",
+    "D70",
+    "D71",
+    "D72"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C22395558",
+   "mpn": "MMSZ5239B",
+   "designators": [
+    "D77",
+    "D78",
+    "D79",
+    "D80"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C22395559",
+   "mpn": "MMSZ5241B",
+   "designators": [
+    "D81",
+    "D82",
+    "D83",
+    "D84"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C22395560",
+   "mpn": "MMSZ5251B",
+   "designators": [
+    "D85",
+    "D86",
+    "D87",
+    "D88"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C22395561",
+   "mpn": "MMSZ5254B",
+   "designators": [
+    "D89",
+    "D90",
+    "D91",
+    "D92"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C22399894",
+   "mpn": "MMSZ5225B",
+   "designators": [
+    "D45",
+    "D46",
+    "D47",
+    "D48"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C22399895",
+   "mpn": "MMSZ5228B",
+   "designators": [
+    "D53",
+    "D54",
+    "D55",
+    "D56"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C22399896",
+   "mpn": "MMSZ5229B",
+   "designators": [
+    "D57",
+    "D58",
+    "D59",
+    "D60"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C22399897",
+   "mpn": "MMSZ5238B",
+   "designators": [
+    "D73",
+    "D74",
+    "D75",
+    "D76"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C22399899",
+   "mpn": "MMSZ5258B",
+   "designators": [
+    "D93",
+    "D94",
+    "D95",
+    "D96"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C22399900",
+   "mpn": "MMSZ5259B",
+   "designators": [
+    "D97",
+    "D98",
+    "D99",
+    "D100"
+   ],
+   "reading": "cathode at pad 1"
+  }
+ ]
+}

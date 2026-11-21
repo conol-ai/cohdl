@@ -24,8 +24,8 @@
  },
  "built_by": "tools/w3_record.py",
  "stock_source": {
-  "path": "tools/sourcing_data/lcsc_backfill/2026-11-11-hongjiacheng/confirmed.json",
-  "sha256": "8a9b7ee4603b210710ca4250dac0557fa65d51977c9f1bece2f5a9863c094575"
+  "path": "tools/sourcing_data/lcsc_backfill/2026-11-21-hongjiacheng-zener/confirmed.json",
+  "sha256": "fcceb8260b2262c8459dd84b1ec2ded4896ad5f78c7c0b6bb8efc5d3bac9fbf9"
  },
  "groups": [
   {

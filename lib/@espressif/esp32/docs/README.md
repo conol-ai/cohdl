@@ -73,8 +73,9 @@ Only the `qfn` dependency pin changed, from 0.2.1 to 0.3.0. `qfn` 0.3.0 removes 
 
 ## ESP32-S3-WROOM-1 thermal-via lands in 0.3.3
 
-The twelve plated thermal vias in pad 41 of `FP_ESP32_S3_WROOM_1` have 0.55mm copper lands, up from 0.50mm, around
-the same 0.25mm drills. That gives a 0.15mm annular ring, where 0.50mm left 0.125mm and failed JLCPCB's plated-hole
-ring on every hole. Espressif's DXF fixes only the drills. At 0.55mm the lands reach 0.025mm into the neighbouring
-islands, so pad 41's copper and mask opening are one region, as Espressif's own 0.508mm PADS vias already make them.
-Paste is unchanged. Its share of the exposed copper goes from 80.5% to 77.1%. No other part, pin or land changed.
+The twelve plated thermal vias in pad 41 of `FP_ESP32_S3_WROOM_1` have 0.575mm copper lands, up from 0.50mm, around
+the same 0.25mm drills. That gives a 0.1625mm annular ring, 0.0125mm above JLCPCB's 0.15mm plated-hole ring; 0.50mm
+left 0.125mm and failed it on every hole, and 0.55mm would have met it with no margin. Espressif's DXF fixes only the
+drills. At 0.575mm the lands reach 0.0375mm into the neighbouring islands, so pad 41's copper and mask opening are one
+region, as Espressif's own 0.508mm PADS vias already make them; the mask left inside is four 0.67mm-wide dams.
+Paste is unchanged. Its share of the exposed copper goes from 80.5% to 75.6%. No other part, pin or land changed.

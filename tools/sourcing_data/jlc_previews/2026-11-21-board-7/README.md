@@ -34,8 +34,8 @@ python3 -I tools/frame_boards/measure_preview.py measure "$D/package/board.json"
 cmp "$D/measurements.json" /tmp/board7-measurements.json
 ```
 
-`w3-evaluation.json` contains every designator, its C number, group, original check and method-2 W3 reading. The median is computed over all drawn chip bodies on the corresponding side. Each passing copy satisfies both `sample_ok` and `bias_supported` in `tools/sourcing/w3_rule.py`. The record's `w3.json`, which lets `tools/w3_groups.py` judge it, is added with the bindings that cite it, together with the regenerated group records and the tests that count records.
+`w3-evaluation.json` contains every designator, its C number, group, original check and method-2 W3 reading. The median is computed over all drawn chip bodies on the corresponding side. Each passing copy satisfies both `sample_ok` and `bias_supported` in `tools/sourcing/w3_rule.py`. The record's `w3.json`, which lets `tools/w3_groups.py` judge it, was added on 2026-11-22 with the bindings that cite it (passive 0.2.11). The 16 Samsung C numbers with no earlier row have their own frame rows (`pb7-`). C19702 is the third sample of the Samsung CL 0603 group (`w3_records/2026-11-22-chip0603-samsung-cl.json`).
 
 ## Manual review and limits
 
-The preview produced no missing models or placements needing manual review. The visual measurement establishes the body axis modulo 180° for these nonpolar samples. The 0603 group's other 21 members still need the normal W3 membership and stock checks before inferred bindings can be emitted. The BOM stock result describes this preview session.
+The preview produced no missing models or placements needing manual review. The visual measurement establishes the body axis modulo 180° for these nonpolar samples. The 0603 group's other 21 members are inferred under the W3 rule in that group record. The BOM stock result describes this preview session.

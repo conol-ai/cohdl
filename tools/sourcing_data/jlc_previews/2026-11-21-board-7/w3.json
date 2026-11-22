@@ -1,0 +1,15 @@
+{
+ "schema_version": 1,
+ "note": "Original board 7 readings use method 2 on archived lossless pixels.",
+ "package": "passive",
+ "package_version": "0.2.8",
+ "land": {
+  "lib/passive/src/footprints.cohdl": "e1bb40b6077130cc37f7c1d9962f9d57a15e45cbf17689d183f5f74e51e37f96",
+  "lib/passive/src/pads.cohdl": "6e9f4bdd4345a52e14a05ac241c441dd44c9a1ee8f545bcd83a890f40db9ceff"
+ },
+ "bom": "package/preview_board_7-lcsc-bom.csv",
+ "checks": "checks.json",
+ "measurements": "measurements.json",
+ "short_at_preview": {},
+ "body_method": 2
+}

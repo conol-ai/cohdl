@@ -39,12 +39,22 @@ pub pad P_ESP32_S3_WROOM_EP_ISLAND {
 }
 
 // Twelve plated thermal vias join the pad-41 grid to the ground planes. The
-// official CAD fixes the 0.25mm round drills; this implementation pairs them
-// with conservative 0.50mm copper lands that fit the documented 0.50mm island
-// gaps. Every via is another physical placement of electrical pin 41.
+// official DXF (ESP32-S3-WROOM-1 PCB Footprint.dxf, sha256 565cb080…, docs/
+// README.md) draws only their 0.25mm drills: twelve 0.25mm circles and no land,
+// and no paste for them. The copper land is ours. It is 0.55mm, which gives a
+// 0.15mm annular ring, the plated-hole ring JLCPCB's process lists. The 0.50mm
+// used before 0.3.3 left 0.125mm and failed that ring on every hole
+// (cohdl-ai staging, 2026-11-22). At 0.55mm each land reaches 0.025mm into its
+// two neighbouring islands, so pad 41's copper and solder-mask opening become
+// one region, as Espressif's own PADS thermal vias (VIA20_10, a 0.508mm land,
+// docs/generated-footprints.md) already make them on its other modules.
+// Paste still follows the nine islands only (7.29mm2). Its share of the exposed
+// copper goes from 80.5% to 77.1%, inside the usual 50-80% for an exposed pad;
+// the production stencil still needs assembly-process review. Every via is
+// another physical placement of electrical pin 41.
 pub pad P_ESP32_S3_WROOM_EP_VIA {
     shape: circle
-    size: (0.5mm)
+    size: (0.55mm)
     layer: through_all
     plating: plated_through_hole
     drill: 0.25mm

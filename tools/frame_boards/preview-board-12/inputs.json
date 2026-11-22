@@ -1,0 +1,14 @@
+{
+  "packages": {
+    "std": {
+      "version": "0.3.0",
+      "tree": "c912e0eca24542b85fc850e34010de6b2f1cf2fd"
+    },
+    "passive": {
+      "version": "0.2.8",
+      "tree": "e003840b5230c0acc2a22627f8ec357e8dab2f60"
+    }
+  },
+  "report": "tools/sourcing_data/w3_sampling/2026-11-22/groups.json",
+  "report_sha256": "3ff1378452089cfba2632c0653b1b72557d3230f4ea4fb13ecafcb73d3ad3c3b"
+}

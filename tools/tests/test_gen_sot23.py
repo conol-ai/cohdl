@@ -53,5 +53,20 @@ class GenSot23Tests(unittest.TestCase):
         self.assertEqual(gen_sot23.literal(300, "mW"), "300mW")
 
 
+    def test_preview_boards_15_and_16_place_every_part_four_times(self):
+        sys.path.insert(0, str(ROOT / "tools/frame_boards"))
+        import sot23_boards
+        seen = []
+        for board in sot23_boards.BOARDS:
+            path = ROOT / "tools/frame_boards" / board.replace("_", "-") / "manifest.json"
+            built = sot23_boards.build(board)
+            self.assertEqual(json.loads(path.read_text(encoding="utf-8")), built)
+            for row in built["rows"]:
+                self.assertEqual(len(row["placements"]), 4)
+                self.assertNotIn("mapping", row)
+                seen.append(row["pn"])
+        self.assertEqual(sorted(seen), sorted(r["c"] for r in self.data["parts"]))
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -22,6 +22,9 @@ BOARD_4 = wg.PREVIEWS / "2026-11-11-board-4"
 
 BOARD_6 = wg.PREVIEWS / "2026-11-19-board-6"
 BOARD_7 = wg.PREVIEWS / "2026-11-21-board-7"
+BOARD_12 = wg.PREVIEWS / "2026-11-23-board-12"
+# Short at board 12's first BOM step; its record keeps them.
+BOARD_12_SHORT = {"C137563", "C163413", "C185290", "C273881", "C274065"}
 
 
 def previews_through(last):
@@ -447,9 +450,10 @@ class W3GroupsTests(unittest.TestCase):
                 self.assertEqual((g["status"], g["required"], g["more_needed"]), ("sampled", required, 0))
                 self.assertEqual(len(g["passed"]), required)
                 for sample in g["passed"]:
-                    # Board 6 is each sample's own record; three of them came back as controls on board 7.
+                    # Board 6 is each sample's own record; some came back as controls on boards 7 and 12.
                     self.assertEqual(sample["records"][0], origin)
-                    self.assertLessEqual(set(sample["records"][1:]), {str((BOARD_7 / "README.md").relative_to(wg.ROOT))})
+                    self.assertLessEqual(set(sample["records"][1:]),
+                                         {str((b / "README.md").relative_to(wg.ROOT)) for b in (BOARD_7, BOARD_12)})
                     copies = [c for c in judged[(g["footprint"], sample["pn"])] if c["record"] == origin]
                     self.assertEqual(len(copies), 4)
                     self.assertTrue(all(copy["ok"] for copy in judged[(g["footprint"], sample["pn"])]))
@@ -558,7 +562,7 @@ class W3GroupsTests(unittest.TestCase):
         self.assertEqual({n["pn"]: len(n["refs"]) for n in rc["record_not_judged"]},
                          {"C138033": 10, "C185445": 10, "C60491": 10})
         text = wg.render(report)
-        self.assertIn("- Records not judged: 1 of 5 preview records", text)
+        self.assertIn("- Records not judged: 1 of 6 preview records", text)
         self.assertIn(f"- `{name}`: no readings by method 2; {listed['members']} of its {listed['part_numbers']} "
                       "part numbers are group members", text)
         self.assertIn("  - `CHIP_0402` ChipResistor Yageo RC (sampled): C138033 (", text)
@@ -567,7 +571,7 @@ class W3GroupsTests(unittest.TestCase):
         with mock.patch.object(wg, "_sha256", lambda path: "0" * 64 if path.name == "pads.cohdl" else hashed(path)):
             lapsed = wg.records_not_judged()
         self.assertEqual([(r["kind"], r["reason"]) for r in lapsed],
-                         [("land", "changed since its preview: lib/passive/src/pads.cohdl")] * 5)
+                         [("land", "changed since its preview: lib/passive/src/pads.cohdl")] * 6)
 
     def test_no_group_record_is_written_over_a_record_that_lacks_the_rules_readings(self):
         import w3_record
@@ -600,7 +604,7 @@ class W3GroupsTests(unittest.TestCase):
             with self.assertRaisesRegex(SystemExit, "listed as method 2 readings"):
                 wg.judged_members()
         for record, meta in wg.preview_inputs().items():
-            if record in (BOARD_6, BOARD_7):
+            if record in (BOARD_6, BOARD_7, BOARD_12):
                 self.assertEqual(wg.readings_file(record, meta, 1), [])
                 self.assertEqual(wg.readings_file(record, meta, 2), ["measurements.json"])
             else:
@@ -744,19 +748,26 @@ class W3GroupsTests(unittest.TestCase):
 
     def test_short_at_preview_lives_in_the_dated_record(self):
         records = {pn for meta in wg.preview_inputs().values() for pn in meta["short_at_preview"]}
-        self.assertEqual(records, {"C185414", "C185430", "C470029", "C875102"})
+        self.assertEqual(records, {"C185414", "C185430", "C470029", "C875102"} | BOARD_12_SHORT)
         self.assertNotIn("C185414", (wg.ROOT / "tools/w3_groups.py").read_text(encoding="utf-8"))
 
     def test_a_board_short_at_its_bom_step_hands_the_fact_to_its_preview_record(self):
         # Board 4's first package (2026-11-11) stopped at the BOM step with no preview, so
         # the board's own w3.json carried the two numbers. Its second package was previewed
         # the same day; the record's w3.json holds the list now, and the board's is removed.
-        # Boards 11 and 12 (2026-11-23) are in the state board 4 was in before its record:
-        # their packages stopped at the BOM step, and each board's own w3.json keeps the fact.
+        # Board 12 (2026-11-23) went the same way: its first package stopped at the BOM step,
+        # its second was previewed, and its record holds the five. Board 11 is in the state
+        # board 4 was in before its record: two packages stopped at the BOM step, and the
+        # board's own w3.json keeps the fact.
         boards = wg.board_inputs()
-        self.assertEqual(set(boards), {wg.BOARDS / "preview-board-11/w3.json", wg.BOARDS / "preview-board-12/w3.json"})
+        self.assertEqual(set(boards), {wg.BOARDS / "preview-board-11/w3.json"})
         pending = {pn for meta in boards.values() for pn in meta["short_at_preview"]}
-        self.assertEqual(len(pending), 17)
+        self.assertEqual(len(pending), 12)
+        self.assertFalse((wg.BOARDS / "preview-board-12/w3.json").exists())
+        board_12 = wg.preview_inputs()[BOARD_12]
+        self.assertEqual(set(board_12["short_at_preview"]), BOARD_12_SHORT)
+        bom = (BOARD_12 / board_12["bom"]).read_text(encoding="utf-8")
+        self.assertFalse(any(pn in bom for pn in BOARD_12_SHORT))
         self.assertFalse((wg.BOARDS / "preview-board-4/w3.json").exists())
         record = wg.PREVIEWS / "2026-11-11-board-4"
         self.assertEqual(list(wg.PREVIEWS.glob("*board-4*")), [record])
@@ -770,7 +781,7 @@ class W3GroupsTests(unittest.TestCase):
         # Neither number is on the package this record previewed.
         bom = (record / meta["bom"]).read_text(encoding="utf-8")
         self.assertFalse(any(pn in bom for pn in short))
-        self.assertEqual(set(wg.SHORT_AT_PREVIEW), {"C185414", "C185430", "C470029", "C875102"} | pending)
+        self.assertEqual(set(wg.SHORT_AT_PREVIEW), {"C185414", "C185430", "C470029", "C875102"} | BOARD_12_SHORT | pending)
         self.assertNotIn("C470029", (wg.ROOT / "tools/w3_groups.py").read_text(encoding="utf-8"))
         # A report built before the record's readings counted passes over both and takes each
         # one's nearest eligible neighbour (the package this record previewed); the committed

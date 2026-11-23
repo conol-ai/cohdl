@@ -495,7 +495,7 @@
      "bias_view": "tools/sourcing_data/jlc_previews/2026-11-11-board-4/README.md#top",
      "bias_bodies": 120,
      "bias_other_bodies": 104,
-     "copies": 12,
+     "copies": 16,
      "other_copies": [
       {
        "ref": "C6",
@@ -705,6 +705,82 @@
        "bias_view": "tools/sourcing_data/jlc_previews/2026-11-21-board-7/README.md#bottom",
        "bias_bodies": 48,
        "bias_other_bodies": 46
+      },
+      {
+       "ref": "C1",
+       "body_method": 2,
+       "angle_deg": -1.0,
+       "offset_limit_mm": 0.127,
+       "raw_offset_xy_mm": [
+        -0.025,
+        -0.041
+       ],
+       "raw_offset_mm": 0.048,
+       "bias_xy_mm": [
+        -0.015,
+        -0.017
+       ],
+       "residual_offset_mm": 0.026,
+       "bias_view": "tools/sourcing_data/jlc_previews/2026-11-23-board-12/README.md#top",
+       "bias_bodies": 150,
+       "bias_other_bodies": 148
+      },
+      {
+       "ref": "C2",
+       "body_method": 2,
+       "angle_deg": -3.1,
+       "offset_limit_mm": 0.128,
+       "raw_offset_xy_mm": [
+        -0.044,
+        -0.036
+       ],
+       "raw_offset_mm": 0.057,
+       "bias_xy_mm": [
+        -0.015,
+        -0.017
+       ],
+       "residual_offset_mm": 0.035,
+       "bias_view": "tools/sourcing_data/jlc_previews/2026-11-23-board-12/README.md#top",
+       "bias_bodies": 150,
+       "bias_other_bodies": 148
+      },
+      {
+       "ref": "C3",
+       "body_method": 2,
+       "angle_deg": -0.4,
+       "offset_limit_mm": 0.127,
+       "raw_offset_xy_mm": [
+        -0.006,
+        -0.047
+       ],
+       "raw_offset_mm": 0.047,
+       "bias_xy_mm": [
+        0.009,
+        -0.012
+       ],
+       "residual_offset_mm": 0.038,
+       "bias_view": "tools/sourcing_data/jlc_previews/2026-11-23-board-12/README.md#bottom",
+       "bias_bodies": 150,
+       "bias_other_bodies": 148
+      },
+      {
+       "ref": "C4",
+       "body_method": 2,
+       "angle_deg": 0.6,
+       "offset_limit_mm": 0.128,
+       "raw_offset_xy_mm": [
+        -0.004,
+        -0.037
+       ],
+       "raw_offset_mm": 0.037,
+       "bias_xy_mm": [
+        0.009,
+        -0.012
+       ],
+       "residual_offset_mm": 0.028,
+       "bias_view": "tools/sourcing_data/jlc_previews/2026-11-23-board-12/README.md#bottom",
+       "bias_bodies": 150,
+       "bias_other_bodies": 148
       }
      ]
     },

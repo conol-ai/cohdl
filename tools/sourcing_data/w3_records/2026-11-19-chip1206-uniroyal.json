@@ -29,9 +29,9 @@
  },
  "groups": [
   {
-   "id": "passive-0.2.11-CHIP_1206-ChipResistor-UNI-ROYAL-1206W4",
+   "id": "passive-0.2.12-CHIP_1206-ChipResistor-UNI-ROYAL-1206W4",
    "package": "passive",
-   "package_version": "0.2.11",
+   "package_version": "0.2.12",
    "footprint": "CHIP_1206",
    "type": "ChipResistor",
    "mfr": "UNI-ROYAL",

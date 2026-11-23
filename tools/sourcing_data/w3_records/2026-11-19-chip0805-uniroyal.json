@@ -29,9 +29,9 @@
  },
  "groups": [
   {
-   "id": "passive-0.2.11-CHIP_0805-ChipResistor-UNI-ROYAL-0805W8",
+   "id": "passive-0.2.12-CHIP_0805-ChipResistor-UNI-ROYAL-0805W8",
    "package": "passive",
-   "package_version": "0.2.11",
+   "package_version": "0.2.12",
    "footprint": "CHIP_0805",
    "type": "ChipResistor",
    "mfr": "UNI-ROYAL",

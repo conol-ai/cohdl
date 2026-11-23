@@ -756,7 +756,7 @@ class W3GroupsTests(unittest.TestCase):
         boards = wg.board_inputs()
         self.assertEqual(set(boards), {wg.BOARDS / "preview-board-11/w3.json", wg.BOARDS / "preview-board-12/w3.json"})
         pending = {pn for meta in boards.values() for pn in meta["short_at_preview"]}
-        self.assertEqual(len(pending), 16)
+        self.assertEqual(len(pending), 17)
         self.assertFalse((wg.BOARDS / "preview-board-4/w3.json").exists())
         record = wg.PREVIEWS / "2026-11-11-board-4"
         self.assertEqual(list(wg.PREVIEWS.glob("*board-4*")), [record])

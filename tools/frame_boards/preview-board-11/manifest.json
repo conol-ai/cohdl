@@ -3196,18 +3196,18 @@
    ]
   },
   {
-   "pn": "C163370",
-   "mpn": "RC1206FR-076R2L",
+   "pn": "C488919",
+   "mpn": "RC1206FR-076R49L",
    "mfr": "Yageo",
-   "part": "passive::ChipResistor<6.2ohm, 1%>[R1206]",
+   "part": "passive::ChipResistor<6.49ohm, 1%>[R1206]",
    "footprint": "passive::CHIP_1206",
    "group": "CHIP_1206 ChipResistor Yageo RC",
    "purpose": "sample",
    "jlc_package": "1206",
-   "stock": 30,
-   "page_fetched": "2026-11-05T23:59:28Z",
+   "stock": 61,
+   "page_fetched": "2026-11-05T23:59:32Z",
    "category": "extended",
-   "name": "sample_C163370",
+   "name": "sample_C488919",
    "pins": [
     "A",
     "B"

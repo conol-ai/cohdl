@@ -11,6 +11,8 @@ sys.path.insert(0, str(ROOT / "tools"))
 import gen_sot23_tvs as gen  # noqa: E402
 
 
+from test_gen_sot23 import bound_as_read  # noqa: E402
+
 class GenSot23TvsTests(unittest.TestCase):
     def setUp(self):
         self.rows = json.loads(gen.DATA.read_text(encoding="utf-8"))["parts"]
@@ -24,7 +26,9 @@ class GenSot23TvsTests(unittest.TestCase):
         text = gen.OUT.read_text(encoding="utf-8")
         self.assertEqual(text.count("pub part "), 13)
         self.assertEqual(text.count("pub part "), text.count("footprint: sot::SOT3P190X290X130N"))
-        self.assertNotIn("supplier lcsc", text)
+        bound, built = bound_as_read("esd")
+        self.assertEqual(bound, built)
+        self.assertEqual(len(bound), 12)  # all but ProTek PSM712-LF-T7, which waits for its map row
         self.assertIn("TVS2Asym_SOT23<12V, 7V>", text)
         self.assertNotIn('"SM712"', text)
 

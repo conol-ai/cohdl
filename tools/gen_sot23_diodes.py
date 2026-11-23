@@ -27,7 +27,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "tools"))
-from gen_sot23 import LAND, MFR_SHORT, WIDTH, DataError, literal  # noqa: E402
+from gen_sot23 import LAND, MFR_SHORT, DataError, literal, primary  # noqa: E402
 
 DATA = ROOT / "tools" / "discrete_data" / "sot23_diodes.json"
 OUT = ROOT / "lib" / "diode" / "src" / "sot23.cohdl"
@@ -108,10 +108,6 @@ def check(rows: list[dict]) -> None:
         args(row)
 
 
-def primary(row: dict) -> list[str]:
-    head = f'    primary {{ mfr: "{row["mfr"]}", mpn: "{row["mpn"]}",'
-    line = f"{head} footprint: {LAND} }}"
-    return [line] if len(line) <= WIDTH else [head, f"              footprint: {LAND} }}"]
 
 
 def source(rows: list[dict]) -> str:
@@ -123,9 +119,10 @@ def source(rows: list[dict]) -> str:
            "// sheet draws between the numbered SOT-23 pins; the sheets and their",
            "// checksums are in docs/sot23.evidence.md. Every part sits on",
            "// sot::SOT3P190X290X130N, the audited SOT-23-3 land on the assembler's frame",
-           "// (pin 1 lower right, pins 1 and 2 the +x column, pin 3 alone at -x). No part",
-           "// carries a supplier binding yet: a polarized part is bound only with its",
-           "// own preview reading.",
+           "// (pin 1 lower right, pins 1 and 2 the +x column, pin 3 alone at -x). A",
+           "// polarized part carries a supplier binding only with its own preview",
+           "// reading: the clause comes from tools/sourcing_data/lcsc_map.json and the",
+           "// part number's row in tools/sourcing_data/jlc_frames.json.",
            "",
            "// Two diodes in one package: neither a single anode nor a single cathode, so",
            "// not `Polarized`; the trait carries the designator prefix.",
@@ -155,7 +152,7 @@ def source(rows: list[dict]) -> str:
         out += [f"// ---- {name}: {len(members)} parts ----", ""]
         for row in members:
             out += [comment(row), '#[doc("docs/sot23.evidence.md")]',
-                    f"pub part {part_name(row)}: {name}<{args(row)}> {{", *primary(row), "}", ""]
+                    f"pub part {part_name(row)}: {name}<{args(row)}> {{", *primary(row, "diode"), "}", ""]
     return "\n".join(out)
 
 

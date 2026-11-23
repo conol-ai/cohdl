@@ -27,7 +27,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "tools"))
-from gen_sot23 import LAND, MFR_SHORT, WIDTH, DataError, literal  # noqa: E402
+from gen_sot23 import LAND, MFR_SHORT, DataError, literal, primary  # noqa: E402
 
 DATA = ROOT / "tools" / "discrete_data" / "sot23_tvs.json"
 OUT = ROOT / "lib" / "esd" / "src" / "sot23.cohdl"
@@ -82,10 +82,6 @@ def check(rows: list[dict]) -> None:
         args(row)
 
 
-def primary(row: dict) -> list[str]:
-    head = f'    primary {{ mfr: "{row["mfr"]}", mpn: "{row["mpn"]}",'
-    line = f"{head} footprint: {LAND} }}"
-    return [line] if len(line) <= WIDTH else [head, f"              footprint: {LAND} }}"]
 
 
 def source(rows: list[dict]) -> str:
@@ -96,8 +92,10 @@ def source(rows: list[dict]) -> str:
            "// between its numbered SOT-23 pins: the two protected lines on pins 1 and 2,",
            "// the common terminal on pin 3. The sheets and their checksums are in",
            "// docs/sot23.evidence.md. Every part sits on sot::SOT3P190X290X130N, the",
-           "// audited SOT-23-3 land on the assembler's frame. No part carries a supplier",
-           "// binding yet: it is bound only with its own preview reading.",
+           "// audited SOT-23-3 land on the assembler's frame. A part carries a supplier",
+           "// binding only with its own preview reading: the clause comes from",
+           "// tools/sourcing_data/lcsc_map.json and the part number's row in",
+           "// tools/sourcing_data/jlc_frames.json.",
            ""]
     for config, (name, generics, what) in DEVICES.items():
         if not any(r["config"] == config for r in rows):
@@ -113,7 +111,7 @@ def source(rows: list[dict]) -> str:
         out += [f"// ---- {name}: {len(members)} parts ----", ""]
         for row in members:
             out += [comment(row), '#[doc("docs/sot23.evidence.md")]',
-                    f"pub part {part_name(row)}: {name}<{args(row)}> {{", *primary(row), "}", ""]
+                    f"pub part {part_name(row)}: {name}<{args(row)}> {{", *primary(row, "esd"), "}", ""]
     return "\n".join(out)
 
 

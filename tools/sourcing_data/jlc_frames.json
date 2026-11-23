@@ -6849,6 +6849,2242 @@
       "evidence_ref": null
     },
     {
+      "id": "sb15-sot3p190x290x130n-c2145",
+      "package": "sot",
+      "package_version": "0.1.2",
+      "footprint": "SOT3P190X290X130N",
+      "supplier": "lcsc",
+      "pn": "C2145",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-23",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-23-board-15/README.md",
+        "note": "MMBT5551(RANGE:200-300), the preview model's own pin 1 mark at our pad 1 with no mapping on all four copies (Q153-Q156: top and bottom, 0 and 37 deg), 6.9, 7.7, -6.9, -6.6 deg counter-clockwise from pad 1's direction seen from the top (measurements.json, limit 20). What this is not: a check of the part's identity, which is the map row's."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "sb15-sot3p190x290x130n-c2149",
+      "package": "sot",
+      "package_version": "0.1.2",
+      "footprint": "SOT3P190X290X130N",
+      "supplier": "lcsc",
+      "pn": "C2149",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-23",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-23-board-15/README.md",
+        "note": "S9015(RANGE:300-400), the preview model's own pin 1 mark at our pad 1 with no mapping on all four copies (Q169-Q172: top and bottom, 0 and 37 deg), 6.5, 7.2, -6.8, -6.1 deg counter-clockwise from pad 1's direction seen from the top (measurements.json, limit 20). What this is not: a check of the part's identity, which is the map row's."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "sb15-sot3p190x290x130n-c2150",
+      "package": "sot",
+      "package_version": "0.1.2",
+      "footprint": "SOT3P190X290X130N",
+      "supplier": "lcsc",
+      "pn": "C2150",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-23",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-23-board-15/README.md",
+        "note": "SS8050(RANGE:200-350), the preview model's own pin 1 mark at our pad 1 with no mapping on all four copies (Q173-Q176: top and bottom, 0 and 37 deg), 7.1, 7.9, -7, -5.9 deg counter-clockwise from pad 1's direction seen from the top (measurements.json, limit 20). What this is not: a check of the part's identity, which is the map row's."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "sb15-sot3p190x290x130n-c6749",
+      "package": "sot",
+      "package_version": "0.1.2",
+      "footprint": "SOT3P190X290X130N",
+      "supplier": "lcsc",
+      "pn": "C6749",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-23",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-23-board-15/README.md",
+        "note": "S9013 J3(RANGE:200-350), the preview model's own pin 1 mark at our pad 1 with no mapping on all four copies (Q165-Q168: top and bottom, 0 and 37 deg), 6.3, 7.7, -7, -6.5 deg counter-clockwise from pad 1's direction seen from the top (measurements.json, limit 20). What this is not: a check of the part's identity, which is the map row's."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "sb15-sot3p190x290x130n-c8326",
+      "package": "sot",
+      "package_version": "0.1.2",
+      "footprint": "SOT3P190X290X130N",
+      "supplier": "lcsc",
+      "pn": "C8326",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-23",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-23-board-15/README.md",
+        "note": "MMBT5401(RANGE:200-300), the preview model's own pin 1 mark at our pad 1 with no mapping on all four copies (Q149-Q152: top and bottom, 0 and 37 deg), 6.6, 7.2, -6.6, -6.6 deg counter-clockwise from pad 1's direction seen from the top (measurements.json, limit 20). What this is not: a check of the part's identity, which is the map row's."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "sb15-sot3p190x290x130n-c8512",
+      "package": "sot",
+      "package_version": "0.1.2",
+      "footprint": "SOT3P190X290X130N",
+      "supplier": "lcsc",
+      "pn": "C8512",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-23",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-23-board-15/README.md",
+        "note": "MMBT2222A 1P, the preview model's own pin 1 mark at our pad 1 with no mapping on all four copies (Q141-Q144: top and bottom, 0 and 37 deg), 6.4, 7.4, -7.3, -6.4 deg counter-clockwise from pad 1's direction seen from the top (measurements.json, limit 20). What this is not: a check of the part's identity, which is the map row's."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "sb15-sot3p190x290x130n-c8542",
+      "package": "sot",
+      "package_version": "0.1.2",
+      "footprint": "SOT3P190X290X130N",
+      "supplier": "lcsc",
+      "pn": "C8542",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-23",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-23-board-15/README.md",
+        "note": "SS8550 Y2(RANGE:200-350), the preview model's own pin 1 mark at our pad 1 with no mapping on all four copies (Q177-Q180: top and bottom, 0 and 37 deg), 6.5, 7.1, -6.6, -6.2 deg counter-clockwise from pad 1's direction seen from the top (measurements.json, limit 20). What this is not: a check of the part's identity, which is the map row's."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "sb15-sot3p190x290x130n-c8543",
+      "package": "sot",
+      "package_version": "0.1.2",
+      "footprint": "SOT3P190X290X130N",
+      "supplier": "lcsc",
+      "pn": "C8543",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-23",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-23-board-15/README.md",
+        "note": "S9012 2T1(RANGE:200-350), the preview model's own pin 1 mark at our pad 1 with no mapping on all four copies (Q161-Q164: top and bottom, 0 and 37 deg), 6.6, 7.4, -6.3, -5.9 deg counter-clockwise from pad 1's direction seen from the top (measurements.json, limit 20). What this is not: a check of the part's identity, which is the map row's."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "sb15-sot3p190x290x130n-c20526",
+      "package": "sot",
+      "package_version": "0.1.2",
+      "footprint": "SOT3P190X290X130N",
+      "supplier": "lcsc",
+      "pn": "C20526",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-23",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-23-board-15/README.md",
+        "note": "MMBT3904(RANGE:100-300), the preview model's own pin 1 mark at our pad 1 with no mapping on all four copies (Q145-Q148: top and bottom, 0 and 37 deg), 7, 7.7, -7, -6.1 deg counter-clockwise from pad 1's direction seen from the top (measurements.json, limit 20). What this is not: a check of the part's identity, which is the map row's."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "sb15-sot3p190x290x130n-c105432",
+      "package": "sot",
+      "package_version": "0.1.2",
+      "footprint": "SOT3P190X290X130N",
+      "supplier": "lcsc",
+      "pn": "C105432",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-23",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-23-board-15/README.md",
+        "note": "S8550(RANGE:120-200), the preview model's own pin 1 mark at our pad 1 with no mapping on all four copies (Q157-Q160: top and bottom, 0 and 37 deg), 14.2, 15, -14.6, -13.4 deg counter-clockwise from pad 1's direction seen from the top (measurements.json, limit 20). What this is not: a check of the part's identity, which is the map row's."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "sb15-sot3p190x290x130n-c7420323",
+      "package": "sot",
+      "package_version": "0.1.2",
+      "footprint": "SOT3P190X290X130N",
+      "supplier": "lcsc",
+      "pn": "C7420323",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-23",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-23-board-15/README.md",
+        "note": "2SA812, the preview model's own pin 1 mark at our pad 1 with no mapping on all four copies (Q1-Q4: top and bottom, 0 and 37 deg), 7, 7.9, -6.6, -6.5 deg counter-clockwise from pad 1's direction seen from the top (measurements.json, limit 20). What this is not: a check of the part's identity, which is the map row's."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "sb15-sot3p190x290x130n-c7420324",
+      "package": "sot",
+      "package_version": "0.1.2",
+      "footprint": "SOT3P190X290X130N",
+      "supplier": "lcsc",
+      "pn": "C7420324",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-23",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-23-board-15/README.md",
+        "note": "2SC1623, the preview model's own pin 1 mark at our pad 1 with no mapping on all four copies (Q5-Q8: top and bottom, 0 and 37 deg), 6.6, 7.5, -7.1, -6.4 deg counter-clockwise from pad 1's direction seen from the top (measurements.json, limit 20). What this is not: a check of the part's identity, which is the map row's."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "sb15-sot3p190x290x130n-c7420337",
+      "package": "sot",
+      "package_version": "0.1.2",
+      "footprint": "SOT3P190X290X130N",
+      "supplier": "lcsc",
+      "pn": "C7420337",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-23",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-23-board-15/README.md",
+        "note": "BC847C, the preview model's own pin 1 mark at our pad 1 with no mapping on all four copies (Q41-Q44: top and bottom, 0 and 37 deg), 6.6, 7.4, -7.2, -6.1 deg counter-clockwise from pad 1's direction seen from the top (measurements.json, limit 20). What this is not: a check of the part's identity, which is the map row's."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "sb15-sot3p190x290x130n-c7420351",
+      "package": "sot",
+      "package_version": "0.1.2",
+      "footprint": "SOT3P190X290X130N",
+      "supplier": "lcsc",
+      "pn": "C7420351",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-23",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-23-board-15/README.md",
+        "note": "MMBT2222A, the preview model's own pin 1 mark at our pad 1 with no mapping on all four copies (Q57-Q60: top and bottom, 0 and 37 deg), 6.9, 7.8, -6.6, -6 deg counter-clockwise from pad 1's direction seen from the top (measurements.json, limit 20). What this is not: a check of the part's identity, which is the map row's."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "sb15-sot3p190x290x130n-c7420352",
+      "package": "sot",
+      "package_version": "0.1.2",
+      "footprint": "SOT3P190X290X130N",
+      "supplier": "lcsc",
+      "pn": "C7420352",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-23",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-23-board-15/README.md",
+        "note": "MMBT2907A, the preview model's own pin 1 mark at our pad 1 with no mapping on all four copies (Q61-Q64: top and bottom, 0 and 37 deg), 6.9, 7.5, -6.7, -5.9 deg counter-clockwise from pad 1's direction seen from the top (measurements.json, limit 20). What this is not: a check of the part's identity, which is the map row's."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "sb15-sot3p190x290x130n-c7420353",
+      "package": "sot",
+      "package_version": "0.1.2",
+      "footprint": "SOT3P190X290X130N",
+      "supplier": "lcsc",
+      "pn": "C7420353",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-23",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-23-board-15/README.md",
+        "note": "MMBT3904, the preview model's own pin 1 mark at our pad 1 with no mapping on all four copies (Q65-Q68: top and bottom, 0 and 37 deg), 6.8, 7.4, -6.6, -6.2 deg counter-clockwise from pad 1's direction seen from the top (measurements.json, limit 20). What this is not: a check of the part's identity, which is the map row's."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "sb15-sot3p190x290x130n-c7420354",
+      "package": "sot",
+      "package_version": "0.1.2",
+      "footprint": "SOT3P190X290X130N",
+      "supplier": "lcsc",
+      "pn": "C7420354",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-23",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-23-board-15/README.md",
+        "note": "MMBT3906, the preview model's own pin 1 mark at our pad 1 with no mapping on all four copies (Q69-Q72: top and bottom, 0 and 37 deg), 7, 7.8, -7, -5.9 deg counter-clockwise from pad 1's direction seen from the top (measurements.json, limit 20). What this is not: a check of the part's identity, which is the map row's."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "sb15-sot3p190x290x130n-c7420356",
+      "package": "sot",
+      "package_version": "0.1.2",
+      "footprint": "SOT3P190X290X130N",
+      "supplier": "lcsc",
+      "pn": "C7420356",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-23",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-23-board-15/README.md",
+        "note": "MMBT5401, the preview model's own pin 1 mark at our pad 1 with no mapping on all four copies (Q81-Q84: top and bottom, 0 and 37 deg), 6, 7.2, -6.7, -6.3 deg counter-clockwise from pad 1's direction seen from the top (measurements.json, limit 20). What this is not: a check of the part's identity, which is the map row's."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "sb15-sot3p190x290x130n-c7420357",
+      "package": "sot",
+      "package_version": "0.1.2",
+      "footprint": "SOT3P190X290X130N",
+      "supplier": "lcsc",
+      "pn": "C7420357",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-23",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-23-board-15/README.md",
+        "note": "MMBT5551, the preview model's own pin 1 mark at our pad 1 with no mapping on all four copies (Q85-Q88: top and bottom, 0 and 37 deg), 7.3, 7.6, -6.5, -5.8 deg counter-clockwise from pad 1's direction seen from the top (measurements.json, limit 20). What this is not: a check of the part's identity, which is the map row's."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "sb15-sot3p190x290x130n-c7420370",
+      "package": "sot",
+      "package_version": "0.1.2",
+      "footprint": "SOT3P190X290X130N",
+      "supplier": "lcsc",
+      "pn": "C7420370",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-23",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-23-board-15/README.md",
+        "note": "SS8050, the preview model's own pin 1 mark at our pad 1 with no mapping on all four copies (Q133-Q136: top and bottom, 0 and 37 deg), 6.1, 7.4, -7.1, -6.6 deg counter-clockwise from pad 1's direction seen from the top (measurements.json, limit 20). What this is not: a check of the part's identity, which is the map row's."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "sb15-sot3p190x290x130n-c7420371",
+      "package": "sot",
+      "package_version": "0.1.2",
+      "footprint": "SOT3P190X290X130N",
+      "supplier": "lcsc",
+      "pn": "C7420371",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-23",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-23-board-15/README.md",
+        "note": "SS8550, the preview model's own pin 1 mark at our pad 1 with no mapping on all four copies (Q137-Q140: top and bottom, 0 and 37 deg), 6.1, 7.5, -6.6, -6.4 deg counter-clockwise from pad 1's direction seen from the top (measurements.json, limit 20). What this is not: a check of the part's identity, which is the map row's."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "sb15-sot3p190x290x130n-c20069125",
+      "package": "sot",
+      "package_version": "0.1.2",
+      "footprint": "SOT3P190X290X130N",
+      "supplier": "lcsc",
+      "pn": "C20069125",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-23",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-23-board-15/README.md",
+        "note": "S8050, the preview model's own pin 1 mark at our pad 1 with no mapping on all four copies (Q109-Q112: top and bottom, 0 and 37 deg), 1.7, 3.6, -3.2, -2.4 deg counter-clockwise from pad 1's direction seen from the top (measurements.json, limit 20). What this is not: a check of the part's identity, which is the map row's."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "sb15-sot3p190x290x130n-c20069126",
+      "package": "sot",
+      "package_version": "0.1.2",
+      "footprint": "SOT3P190X290X130N",
+      "supplier": "lcsc",
+      "pn": "C20069126",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-23",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-23-board-15/README.md",
+        "note": "S8550, the preview model's own pin 1 mark at our pad 1 with no mapping on all four copies (Q113-Q116: top and bottom, 0 and 37 deg), 6.7, 7.4, -7.4, -6.5 deg counter-clockwise from pad 1's direction seen from the top (measurements.json, limit 20). What this is not: a check of the part's identity, which is the map row's."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "sb15-sot3p190x290x130n-c20069127",
+      "package": "sot",
+      "package_version": "0.1.2",
+      "footprint": "SOT3P190X290X130N",
+      "supplier": "lcsc",
+      "pn": "C20069127",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-23",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-23-board-15/README.md",
+        "note": "S9013, the preview model's own pin 1 mark at our pad 1 with no mapping on all four copies (Q121-Q124: top and bottom, 0 and 37 deg), 10.6, 11.8, -11.3, -10.4 deg counter-clockwise from pad 1's direction seen from the top (measurements.json, limit 20). What this is not: a check of the part's identity, which is the map row's."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "sb15-sot3p190x290x130n-c20069129",
+      "package": "sot",
+      "package_version": "0.1.2",
+      "footprint": "SOT3P190X290X130N",
+      "supplier": "lcsc",
+      "pn": "C20069129",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-23",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-23-board-15/README.md",
+        "note": "S9012, the preview model's own pin 1 mark at our pad 1 with no mapping on all four copies (Q117-Q120: top and bottom, 0 and 37 deg), 6.8, 7.4, -7.1, -6.1 deg counter-clockwise from pad 1's direction seen from the top (measurements.json, limit 20). What this is not: a check of the part's identity, which is the map row's."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "sb15-sot3p190x290x130n-c20069130",
+      "package": "sot",
+      "package_version": "0.1.2",
+      "footprint": "SOT3P190X290X130N",
+      "supplier": "lcsc",
+      "pn": "C20069130",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-23",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-23-board-15/README.md",
+        "note": "S9014, the preview model's own pin 1 mark at our pad 1 with no mapping on all four copies (Q125-Q128: top and bottom, 0 and 37 deg), 6.9, 8, -7.3, -6.1 deg counter-clockwise from pad 1's direction seen from the top (measurements.json, limit 20). What this is not: a check of the part's identity, which is the map row's."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "sb15-sot3p190x290x130n-c20069131",
+      "package": "sot",
+      "package_version": "0.1.2",
+      "footprint": "SOT3P190X290X130N",
+      "supplier": "lcsc",
+      "pn": "C20069131",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-23",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-23-board-15/README.md",
+        "note": "S9015, the preview model's own pin 1 mark at our pad 1 with no mapping on all four copies (Q129-Q132: top and bottom, 0 and 37 deg), 11, 11.5, -10.4, -10.3 deg counter-clockwise from pad 1's direction seen from the top (measurements.json, limit 20). What this is not: a check of the part's identity, which is the map row's."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "sb15-sot3p190x290x130n-c20069132",
+      "package": "sot",
+      "package_version": "0.1.2",
+      "footprint": "SOT3P190X290X130N",
+      "supplier": "lcsc",
+      "pn": "C20069132",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-23",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-23-board-15/README.md",
+        "note": "BC817-16, the preview model's own pin 1 mark at our pad 1 with no mapping on all four copies (Q21-Q24: top and bottom, 0 and 37 deg), 6.9, 7.8, -7.1, -6.4 deg counter-clockwise from pad 1's direction seen from the top (measurements.json, limit 20). What this is not: a check of the part's identity, which is the map row's."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "sb15-sot3p190x290x130n-c20069134",
+      "package": "sot",
+      "package_version": "0.1.2",
+      "footprint": "SOT3P190X290X130N",
+      "supplier": "lcsc",
+      "pn": "C20069134",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-23",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-23-board-15/README.md",
+        "note": "BC846B, the preview model's own pin 1 mark at our pad 1 with no mapping on all four copies (Q33-Q36: top and bottom, 0 and 37 deg), 7.1, 7.8, -7.5, -6.2 deg counter-clockwise from pad 1's direction seen from the top (measurements.json, limit 20). What this is not: a check of the part's identity, which is the map row's."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "sb15-sot3p190x290x130n-c20069135",
+      "package": "sot",
+      "package_version": "0.1.2",
+      "footprint": "SOT3P190X290X130N",
+      "supplier": "lcsc",
+      "pn": "C20069135",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-23",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-23-board-15/README.md",
+        "note": "BC847B, the preview model's own pin 1 mark at our pad 1 with no mapping on all four copies (Q37-Q40: top and bottom, 0 and 37 deg), 7.2, 7.9, -7.5, -5.9 deg counter-clockwise from pad 1's direction seen from the top (measurements.json, limit 20). What this is not: a check of the part's identity, which is the map row's."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "sb15-sot3p190x290x130n-c20069136",
+      "package": "sot",
+      "package_version": "0.1.2",
+      "footprint": "SOT3P190X290X130N",
+      "supplier": "lcsc",
+      "pn": "C20069136",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-23",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-23-board-15/README.md",
+        "note": "BC856B, the preview model's own pin 1 mark at our pad 1 with no mapping on all four copies (Q45-Q48: top and bottom, 0 and 37 deg), -13, -11.9, 13.3, 13.4 deg counter-clockwise from pad 1's direction seen from the top (measurements.json, limit 20). What this is not: a check of the part's identity, which is the map row's."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "sb15-sot3p190x290x130n-c20069137",
+      "package": "sot",
+      "package_version": "0.1.2",
+      "footprint": "SOT3P190X290X130N",
+      "supplier": "lcsc",
+      "pn": "C20069137",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-23",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-23-board-15/README.md",
+        "note": "BC857C, the preview model's own pin 1 mark at our pad 1 with no mapping on all four copies (Q49-Q52: top and bottom, 0 and 37 deg), 7.1, 7.5, -7.1, -5.6 deg counter-clockwise from pad 1's direction seen from the top (measurements.json, limit 20). What this is not: a check of the part's identity, which is the map row's."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "sb15-sot3p190x290x130n-c20069138",
+      "package": "sot",
+      "package_version": "0.1.2",
+      "footprint": "SOT3P190X290X130N",
+      "supplier": "lcsc",
+      "pn": "C20069138",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-23",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-23-board-15/README.md",
+        "note": "MMBTA42, the preview model's own pin 1 mark at our pad 1 with no mapping on all four copies (Q93-Q96: top and bottom, 0 and 37 deg), 7.3, 7.8, -7.2, -6.1 deg counter-clockwise from pad 1's direction seen from the top (measurements.json, limit 20). What this is not: a check of the part's identity, which is the map row's."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "sb15-sot3p190x290x130n-c20069139",
+      "package": "sot",
+      "package_version": "0.1.2",
+      "footprint": "SOT3P190X290X130N",
+      "supplier": "lcsc",
+      "pn": "C20069139",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-23",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-23-board-15/README.md",
+        "note": "MMBTA06, the preview model's own pin 1 mark at our pad 1 with no mapping on all four copies (Q89-Q92: top and bottom, 0 and 37 deg), 1.8, 1.7, -0.7, 0.4 deg counter-clockwise from pad 1's direction seen from the top (measurements.json, limit 20). What this is not: a check of the part's identity, which is the map row's."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "sb15-sot3p190x290x130n-c20069140",
+      "package": "sot",
+      "package_version": "0.1.2",
+      "footprint": "SOT3P190X290X130N",
+      "supplier": "lcsc",
+      "pn": "C20069140",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-23",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-23-board-15/README.md",
+        "note": "MMBT4403, the preview model's own pin 1 mark at our pad 1 with no mapping on all four copies (Q77-Q80: top and bottom, 0 and 37 deg), 10, 11.3, -10.9, -10.3 deg counter-clockwise from pad 1's direction seen from the top (measurements.json, limit 20). What this is not: a check of the part's identity, which is the map row's."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "sb15-sot3p190x290x130n-c20069141",
+      "package": "sot",
+      "package_version": "0.1.2",
+      "footprint": "SOT3P190X290X130N",
+      "supplier": "lcsc",
+      "pn": "C20069141",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-23",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-23-board-15/README.md",
+        "note": "MMBTA44, the preview model's own pin 1 mark at our pad 1 with no mapping on all four copies (Q97-Q100: top and bottom, 0 and 37 deg), 6, 7.9, -7.3, -6.5 deg counter-clockwise from pad 1's direction seen from the top (measurements.json, limit 20). What this is not: a check of the part's identity, which is the map row's."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "sb15-sot3p190x290x130n-c20069142",
+      "package": "sot",
+      "package_version": "0.1.2",
+      "footprint": "SOT3P190X290X130N",
+      "supplier": "lcsc",
+      "pn": "C20069142",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-23",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-23-board-15/README.md",
+        "note": "BC807-40, the preview model's own pin 1 mark at our pad 1 with no mapping on all four copies (Q17-Q20: top and bottom, 0 and 37 deg), 10, 11.4, -10.8, -10.1 deg counter-clockwise from pad 1's direction seen from the top (measurements.json, limit 20). What this is not: a check of the part's identity, which is the map row's."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "sb15-sot3p190x290x130n-c20069143",
+      "package": "sot",
+      "package_version": "0.1.2",
+      "footprint": "SOT3P190X290X130N",
+      "supplier": "lcsc",
+      "pn": "C20069143",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-23",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-23-board-15/README.md",
+        "note": "2SC1815, the preview model's own pin 1 mark at our pad 1 with no mapping on all four copies (Q9-Q12: top and bottom, 0 and 37 deg), 6.2, 7.4, -7.3, -6.6 deg counter-clockwise from pad 1's direction seen from the top (measurements.json, limit 20). What this is not: a check of the part's identity, which is the map row's."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "sb15-sot3p190x290x130n-c20069146",
+      "package": "sot",
+      "package_version": "0.1.2",
+      "footprint": "SOT3P190X290X130N",
+      "supplier": "lcsc",
+      "pn": "C20069146",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-23",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-23-board-15/README.md",
+        "note": "MMBTA92, the preview model's own pin 1 mark at our pad 1 with no mapping on all four copies (Q105-Q108: top and bottom, 0 and 37 deg), 6.6, 7.6, -6.9, -6.4 deg counter-clockwise from pad 1's direction seen from the top (measurements.json, limit 20). What this is not: a check of the part's identity, which is the map row's."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "sb15-sot3p190x290x130n-c20069154",
+      "package": "sot",
+      "package_version": "0.1.2",
+      "footprint": "SOT3P190X290X130N",
+      "supplier": "lcsc",
+      "pn": "C20069154",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-23",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-23-board-15/README.md",
+        "note": "BC817-25, the preview model's own pin 1 mark at our pad 1 with no mapping on all four copies (Q25-Q28: top and bottom, 0 and 37 deg), 10.6, 11.6, -10.6, -10.1 deg counter-clockwise from pad 1's direction seen from the top (measurements.json, limit 20). What this is not: a check of the part's identity, which is the map row's."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "sb15-sot3p190x290x130n-c20069155",
+      "package": "sot",
+      "package_version": "0.1.2",
+      "footprint": "SOT3P190X290X130N",
+      "supplier": "lcsc",
+      "pn": "C20069155",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-23",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-23-board-15/README.md",
+        "note": "BC817-40, the preview model's own pin 1 mark at our pad 1 with no mapping on all four copies (Q29-Q32: top and bottom, 0 and 37 deg), 2.3, 3.4, -2.8, -1.8 deg counter-clockwise from pad 1's direction seen from the top (measurements.json, limit 20). What this is not: a check of the part's identity, which is the map row's."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "sb15-sot3p190x290x130n-c28646266",
+      "package": "sot",
+      "package_version": "0.1.2",
+      "footprint": "SOT3P190X290X130N",
+      "supplier": "lcsc",
+      "pn": "C28646266",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-23",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-23-board-15/README.md",
+        "note": "2SC3356, the preview model's own pin 1 mark at our pad 1 with no mapping on all four copies (Q13-Q16: top and bottom, 0 and 37 deg), 7.2, 7.3, -7.1, -5.7 deg counter-clockwise from pad 1's direction seen from the top (measurements.json, limit 20). What this is not: a check of the part's identity, which is the map row's."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "sb15-sot3p190x290x130n-c28646275",
+      "package": "sot",
+      "package_version": "0.1.2",
+      "footprint": "SOT3P190X290X130N",
+      "supplier": "lcsc",
+      "pn": "C28646275",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-23",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-23-board-15/README.md",
+        "note": "FMMT493, the preview model's own pin 1 mark at our pad 1 with no mapping on all four copies (Q53-Q56: top and bottom, 0 and 37 deg), 6, 7.4, -7.1, -6.5 deg counter-clockwise from pad 1's direction seen from the top (measurements.json, limit 20). What this is not: a check of the part's identity, which is the map row's."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "sb16-sot3p190x290x130n-c8545",
+      "package": "sot",
+      "package_version": "0.1.2",
+      "footprint": "SOT3P190X290X130N",
+      "supplier": "lcsc",
+      "pn": "C8545",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-23",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-23-board-16/README.md",
+        "note": "2N7002, the preview model's own pin 1 mark at our pad 1 with no mapping on all four copies (Q109-Q112: top and bottom, 0 and 37 deg), 6.2, 7.3, -7.3, -6.9 deg counter-clockwise from pad 1's direction seen from the top (measurements.json, limit 20). What this is not: a check of the part's identity, which is the map row's."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "sb16-sot3p190x290x130n-c10487",
+      "package": "sot",
+      "package_version": "0.1.2",
+      "footprint": "SOT3P190X290X130N",
+      "supplier": "lcsc",
+      "pn": "C10487",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-23",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-23-board-16/README.md",
+        "note": "SI2301CDS-T1-GE3, the preview model's own pin 1 mark at our pad 1 with no mapping on all four copies (Q113-Q116: top and bottom, 0 and 37 deg), 13.8, 14.3, -14.3, -14 deg counter-clockwise from pad 1's direction seen from the top (measurements.json, limit 20). What this is not: a check of the part's identity, which is the map row's."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "sb16-sot3p190x290x130n-c7420321",
+      "package": "sot",
+      "package_version": "0.1.2",
+      "footprint": "SOT3P190X290X130N",
+      "supplier": "lcsc",
+      "pn": "C7420321",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-23",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-23-board-16/README.md",
+        "note": "2N7002, the preview model's own pin 1 mark at our pad 1 with no mapping on all four copies (Q5-Q8: top and bottom, 0 and 37 deg), 7.1, 7.7, -7.4, -6.9 deg counter-clockwise from pad 1's direction seen from the top (measurements.json, limit 20). What this is not: a check of the part's identity, which is the map row's."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "sb16-sot3p190x290x130n-c7420338",
+      "package": "sot",
+      "package_version": "0.1.2",
+      "footprint": "SOT3P190X290X130N",
+      "supplier": "lcsc",
+      "pn": "C7420338",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-23",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-23-board-16/README.md",
+        "note": "BSS123, the preview model's own pin 1 mark at our pad 1 with no mapping on all four copies (Q13-Q16: top and bottom, 0 and 37 deg), 6.9, 7.6, -7.3, -6.5 deg counter-clockwise from pad 1's direction seen from the top (measurements.json, limit 20). What this is not: a check of the part's identity, which is the map row's."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "sb16-sot3p190x290x130n-c7420339",
+      "package": "sot",
+      "package_version": "0.1.2",
+      "footprint": "SOT3P190X290X130N",
+      "supplier": "lcsc",
+      "pn": "C7420339",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-23",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-23-board-16/README.md",
+        "note": "BSS138, the preview model's own pin 1 mark at our pad 1 with no mapping on all four copies (Q17-Q20: top and bottom, 0 and 37 deg), 7.1, 7.7, -7.1, -6.4 deg counter-clockwise from pad 1's direction seen from the top (measurements.json, limit 20). What this is not: a check of the part's identity, which is the map row's."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "sb16-sot3p190x290x130n-c7420340",
+      "package": "sot",
+      "package_version": "0.1.2",
+      "footprint": "SOT3P190X290X130N",
+      "supplier": "lcsc",
+      "pn": "C7420340",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-23",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-23-board-16/README.md",
+        "note": "BSS84, the preview model's own pin 1 mark at our pad 1 with no mapping on all four copies (Q21-Q24: top and bottom, 0 and 37 deg), 6.1, 6.9, -6.4, -6.8 deg counter-clockwise from pad 1's direction seen from the top (measurements.json, limit 20). What this is not: a check of the part's identity, which is the map row's."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "sb16-sot3p190x290x130n-c7420343",
+      "package": "sot",
+      "package_version": "0.1.2",
+      "footprint": "SOT3P190X290X130N",
+      "supplier": "lcsc",
+      "pn": "C7420343",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-23",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-23-board-16/README.md",
+        "note": "HL2300, the preview model's own pin 1 mark at our pad 1 with no mapping on all four copies (Q29-Q32: top and bottom, 0 and 37 deg), 7.1, 7.5, -6.8, -6.2 deg counter-clockwise from pad 1's direction seen from the top (measurements.json, limit 20). What this is not: a check of the part's identity, which is the map row's."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "sb16-sot3p190x290x130n-c7420344",
+      "package": "sot",
+      "package_version": "0.1.2",
+      "footprint": "SOT3P190X290X130N",
+      "supplier": "lcsc",
+      "pn": "C7420344",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-23",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-23-board-16/README.md",
+        "note": "HL2301A, the preview model's own pin 1 mark at our pad 1 with no mapping on all four copies (Q33-Q36: top and bottom, 0 and 37 deg), 6.5, 6.8, -6.6, -6.3 deg counter-clockwise from pad 1's direction seen from the top (measurements.json, limit 20). What this is not: a check of the part's identity, which is the map row's."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "sb16-sot3p190x290x130n-c7420345",
+      "package": "sot",
+      "package_version": "0.1.2",
+      "footprint": "SOT3P190X290X130N",
+      "supplier": "lcsc",
+      "pn": "C7420345",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-23",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-23-board-16/README.md",
+        "note": "HL2303, the preview model's own pin 1 mark at our pad 1 with no mapping on all four copies (Q41-Q44: top and bottom, 0 and 37 deg), 6.5, 6.7, -6.6, -6.1 deg counter-clockwise from pad 1's direction seen from the top (measurements.json, limit 20). What this is not: a check of the part's identity, which is the map row's."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "sb16-sot3p190x290x130n-c7420346",
+      "package": "sot",
+      "package_version": "0.1.2",
+      "footprint": "SOT3P190X290X130N",
+      "supplier": "lcsc",
+      "pn": "C7420346",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-23",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-23-board-16/README.md",
+        "note": "HL2304, the preview model's own pin 1 mark at our pad 1 with no mapping on all four copies (Q45-Q48: top and bottom, 0 and 37 deg), 7.4, 7.3, -6.8, -5.8 deg counter-clockwise from pad 1's direction seen from the top (measurements.json, limit 20). What this is not: a check of the part's identity, which is the map row's."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "sb16-sot3p190x290x130n-c7420347",
+      "package": "sot",
+      "package_version": "0.1.2",
+      "footprint": "SOT3P190X290X130N",
+      "supplier": "lcsc",
+      "pn": "C7420347",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-23",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-23-board-16/README.md",
+        "note": "HL2310A, the preview model's own pin 1 mark at our pad 1 with no mapping on all four copies (Q65-Q68: top and bottom, 0 and 37 deg), 7.6, 7.7, -6.8, -5.8 deg counter-clockwise from pad 1's direction seen from the top (measurements.json, limit 20). What this is not: a check of the part's identity, which is the map row's."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "sb16-sot3p190x290x130n-c7420348",
+      "package": "sot",
+      "package_version": "0.1.2",
+      "footprint": "SOT3P190X290X130N",
+      "supplier": "lcsc",
+      "pn": "C7420348",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-23",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-23-board-16/README.md",
+        "note": "HL3400A, the preview model's own pin 1 mark at our pad 1 with no mapping on all four copies (Q73-Q76: top and bottom, 0 and 37 deg), 7.6, 7.6, -6.3, -5.4 deg counter-clockwise from pad 1's direction seen from the top (measurements.json, limit 20). What this is not: a check of the part's identity, which is the map row's."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "sb16-sot3p190x290x130n-c7420349",
+      "package": "sot",
+      "package_version": "0.1.2",
+      "footprint": "SOT3P190X290X130N",
+      "supplier": "lcsc",
+      "pn": "C7420349",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-23",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-23-board-16/README.md",
+        "note": "HL3401A, the preview model's own pin 1 mark at our pad 1 with no mapping on all four copies (Q81-Q84: top and bottom, 0 and 37 deg), 6.5, 6.7, -6.1, -5.8 deg counter-clockwise from pad 1's direction seen from the top (measurements.json, limit 20). What this is not: a check of the part's identity, which is the map row's."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "sb16-sot3p190x290x130n-c20069148",
+      "package": "sot",
+      "package_version": "0.1.2",
+      "footprint": "SOT3P190X290X130N",
+      "supplier": "lcsc",
+      "pn": "C20069148",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-23",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-23-board-16/README.md",
+        "note": "2SK3018, the preview model's own pin 1 mark at our pad 1 with no mapping on all four copies (Q9-Q12: top and bottom, 0 and 37 deg), 10.8, 12.1, -11.7, -11.2 deg counter-clockwise from pad 1's direction seen from the top (measurements.json, limit 20). What this is not: a check of the part's identity, which is the map row's."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "sb16-sot3p190x290x130n-c20069151",
+      "package": "sot",
+      "package_version": "0.1.2",
+      "footprint": "SOT3P190X290X130N",
+      "supplier": "lcsc",
+      "pn": "C20069151",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-23",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-23-board-16/README.md",
+        "note": "FDV301N, the preview model's own pin 1 mark at our pad 1 with no mapping on all four copies (Q25-Q28: top and bottom, 0 and 37 deg), 16.2, 16.8, -16.5, -16 deg counter-clockwise from pad 1's direction seen from the top (measurements.json, limit 20). What this is not: a check of the part's identity, which is the map row's."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "sb16-sot3p190x290x130n-c22379475",
+      "package": "sot",
+      "package_version": "0.1.2",
+      "footprint": "SOT3P190X290X130N",
+      "supplier": "lcsc",
+      "pn": "C22379475",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-23",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-23-board-16/README.md",
+        "note": "2N7002K, the preview model's own pin 1 mark at our pad 1 with no mapping on all four copies (Q1-Q4: top and bottom, 0 and 37 deg), 10.9, 12.2, -11.6, -10.5 deg counter-clockwise from pad 1's direction seen from the top (measurements.json, limit 20). What this is not: a check of the part's identity, which is the map row's."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "sb16-sot3p190x290x130n-c22469448",
+      "package": "sot",
+      "package_version": "0.1.2",
+      "footprint": "SOT3P190X290X130N",
+      "supplier": "lcsc",
+      "pn": "C22469448",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-23",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-23-board-16/README.md",
+        "note": "HL3400, the preview model's own pin 1 mark at our pad 1 with no mapping on all four copies (Q77-Q80: top and bottom, 0 and 37 deg), 7.5, 8, -7.5, -6.5 deg counter-clockwise from pad 1's direction seen from the top (measurements.json, limit 20). What this is not: a check of the part's identity, which is the map row's."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "sb16-sot3p190x290x130n-c22469449",
+      "package": "sot",
+      "package_version": "0.1.2",
+      "footprint": "SOT3P190X290X130N",
+      "supplier": "lcsc",
+      "pn": "C22469449",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-23",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-23-board-16/README.md",
+        "note": "HL3401, the preview model's own pin 1 mark at our pad 1 with no mapping on all four copies (Q85-Q88: top and bottom, 0 and 37 deg), 13.8, 14.4, -14, -13.6 deg counter-clockwise from pad 1's direction seen from the top (measurements.json, limit 20). What this is not: a check of the part's identity, which is the map row's."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "sb16-sot3p190x290x130n-c28646261",
+      "package": "sot",
+      "package_version": "0.1.2",
+      "footprint": "SOT3P190X290X130N",
+      "supplier": "lcsc",
+      "pn": "C28646261",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-23",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-23-board-16/README.md",
+        "note": "HL2305, the preview model's own pin 1 mark at our pad 1 with no mapping on all four copies (Q49-Q52: top and bottom, 0 and 37 deg), 6.7, 7.3, -6.8, -6.3 deg counter-clockwise from pad 1's direction seen from the top (measurements.json, limit 20). What this is not: a check of the part's identity, which is the map row's."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "sb16-sot3p190x290x130n-c28646262",
+      "package": "sot",
+      "package_version": "0.1.2",
+      "footprint": "SOT3P190X290X130N",
+      "supplier": "lcsc",
+      "pn": "C28646262",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-23",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-23-board-16/README.md",
+        "note": "HL2306, the preview model's own pin 1 mark at our pad 1 with no mapping on all four copies (Q53-Q56: top and bottom, 0 and 37 deg), 7.7, 8.2, -7, -6.3 deg counter-clockwise from pad 1's direction seen from the top (measurements.json, limit 20). What this is not: a check of the part's identity, which is the map row's."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "sb16-sot3p190x290x130n-c28646263",
+      "package": "sot",
+      "package_version": "0.1.2",
+      "footprint": "SOT3P190X290X130N",
+      "supplier": "lcsc",
+      "pn": "C28646263",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-23",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-23-board-16/README.md",
+        "note": "HL2309, the preview model's own pin 1 mark at our pad 1 with no mapping on all four copies (Q61-Q64: top and bottom, 0 and 37 deg), 2.9, 3.3, -2.3, -1.3 deg counter-clockwise from pad 1's direction seen from the top (measurements.json, limit 20). What this is not: a check of the part's identity, which is the map row's."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "sb16-sot3p190x290x130n-c28646264",
+      "package": "sot",
+      "package_version": "0.1.2",
+      "footprint": "SOT3P190X290X130N",
+      "supplier": "lcsc",
+      "pn": "C28646264",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-23",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-23-board-16/README.md",
+        "note": "HL6042, the preview model's own pin 1 mark at our pad 1 with no mapping on all four copies (Q105-Q108: top and bottom, 0 and 37 deg), 1.6, 1.4, -0.5, 0.3 deg counter-clockwise from pad 1's direction seen from the top (measurements.json, limit 20). What this is not: a check of the part's identity, which is the map row's."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "sb16-sot3p190x290x130n-c28646270",
+      "package": "sot",
+      "package_version": "0.1.2",
+      "footprint": "SOT3P190X290X130N",
+      "supplier": "lcsc",
+      "pn": "C28646270",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-23",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-23-board-16/README.md",
+        "note": "HL3415A, the preview model's own pin 1 mark at our pad 1 with no mapping on all four copies (Q97-Q100: top and bottom, 0 and 37 deg), 3.6, 3.2, -1.8, -0.8 deg counter-clockwise from pad 1's direction seen from the top (measurements.json, limit 20). What this is not: a check of the part's identity, which is the map row's."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "sb16-sot3p190x290x130n-c28646271",
+      "package": "sot",
+      "package_version": "0.1.2",
+      "footprint": "SOT3P190X290X130N",
+      "supplier": "lcsc",
+      "pn": "C28646271",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-23",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-23-board-16/README.md",
+        "note": "HL3402, the preview model's own pin 1 mark at our pad 1 with no mapping on all four copies (Q89-Q92: top and bottom, 0 and 37 deg), 8, 8, -6.9, -5.9 deg counter-clockwise from pad 1's direction seen from the top (measurements.json, limit 20). What this is not: a check of the part's identity, which is the map row's."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "sb16-sot3p190x290x130n-c28646272",
+      "package": "sot",
+      "package_version": "0.1.2",
+      "footprint": "SOT3P190X290X130N",
+      "supplier": "lcsc",
+      "pn": "C28646272",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-23",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-23-board-16/README.md",
+        "note": "HL2312, the preview model's own pin 1 mark at our pad 1 with no mapping on all four copies (Q69-Q72: top and bottom, 0 and 37 deg), 4.4, 4.3, -2.9, -0.8 deg counter-clockwise from pad 1's direction seen from the top (measurements.json, limit 20). What this is not: a check of the part's identity, which is the map row's."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "sb16-sot3p190x290x130n-c28646273",
+      "package": "sot",
+      "package_version": "0.1.2",
+      "footprint": "SOT3P190X290X130N",
+      "supplier": "lcsc",
+      "pn": "C28646273",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-23",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-23-board-16/README.md",
+        "note": "HL3416, the preview model's own pin 1 mark at our pad 1 with no mapping on all four copies (Q101-Q104: top and bottom, 0 and 37 deg), -2.7, -1.7, 1.6, 2 deg counter-clockwise from pad 1's direction seen from the top (measurements.json, limit 20). What this is not: a check of the part's identity, which is the map row's."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "sb16-sot3p190x290x130n-c28646274",
+      "package": "sot",
+      "package_version": "0.1.2",
+      "footprint": "SOT3P190X290X130N",
+      "supplier": "lcsc",
+      "pn": "C28646274",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-23",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-23-board-16/README.md",
+        "note": "HL2307, the preview model's own pin 1 mark at our pad 1 with no mapping on all four copies (Q57-Q60: top and bottom, 0 and 37 deg), 13.5, 14.2, -14, -13.9 deg counter-clockwise from pad 1's direction seen from the top (measurements.json, limit 20). What this is not: a check of the part's identity, which is the map row's."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "sb17-sot3p190x290x130n-c2500",
+      "package": "sot",
+      "package_version": "0.1.2",
+      "footprint": "SOT3P190X290X130N",
+      "supplier": "lcsc",
+      "pn": "C2500",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-23",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-23-board-17/README.md",
+        "note": "BAV99,215, the preview model's own pin 1 mark at our pad 1 with no mapping on all four copies (D149-D152: top and bottom, 0 and 37 deg), 14.6, 15.3, -14.3, -13.7 deg counter-clockwise from pad 1's direction seen from the top (measurements.json, limit 20). What this is not: a check of the part's identity, which is the map row's."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "sb17-sot3p190x290x130n-c37704",
+      "package": "sot",
+      "package_version": "0.1.2",
+      "footprint": "SOT3P190X290X130N",
+      "supplier": "lcsc",
+      "pn": "C37704",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-23",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-23-board-17/README.md",
+        "note": "BAT54C,215, the preview model's own pin 1 mark at our pad 1 with no mapping on all four copies (D145-D148: top and bottom, 0 and 37 deg), 14.8, 15.3, -14.8, -13.7 deg counter-clockwise from pad 1's direction seen from the top (measurements.json, limit 20). What this is not: a check of the part's identity, which is the map row's."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "sb17-sot3p190x290x130n-c20615823",
+      "package": "sot",
+      "package_version": "0.1.2",
+      "footprint": "SOT3P190X290X130N",
+      "supplier": "lcsc",
+      "pn": "C20615823",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-23",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-23-board-17/README.md",
+        "note": "H5VHT2U, the preview model's own pin 1 mark at our pad 1 with no mapping on all four copies (D185-D188: top and bottom, 0 and 37 deg), 5.8, 6, -5.4, -4.2 deg counter-clockwise from pad 1's direction seen from the top (measurements.json, limit 20). What this is not: a check of the part's identity, which is the map row's."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "sb17-sot3p190x290x130n-c20615824",
+      "package": "sot",
+      "package_version": "0.1.2",
+      "footprint": "SOT3P190X290X130N",
+      "supplier": "lcsc",
+      "pn": "C20615824",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-23",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-23-board-17/README.md",
+        "note": "H5VUT2U, the preview model's own pin 1 mark at our pad 1 with no mapping on all four copies (D193-D196: top and bottom, 0 and 37 deg), 4, 5.3, -5.3, -5 deg counter-clockwise from pad 1's direction seen from the top (measurements.json, limit 20). What this is not: a check of the part's identity, which is the map row's."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "sb17-sot3p190x290x130n-c20615825",
+      "package": "sot",
+      "package_version": "0.1.2",
+      "footprint": "SOT3P190X290X130N",
+      "supplier": "lcsc",
+      "pn": "C20615825",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-23",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-23-board-17/README.md",
+        "note": "H8VNT2B, the preview model's own pin 1 mark at our pad 1 with no mapping on all four copies (D197-D200: top and bottom, 0 and 37 deg), 4, 5.2, -5.2, -4.8 deg counter-clockwise from pad 1's direction seen from the top (measurements.json, limit 20). What this is not: a check of the part's identity, which is the map row's."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "sb17-sot3p190x290x130n-c20615826",
+      "package": "sot",
+      "package_version": "0.1.2",
+      "footprint": "SOT3P190X290X130N",
+      "supplier": "lcsc",
+      "pn": "C20615826",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-23",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-23-board-17/README.md",
+        "note": "H12VNT2U, the preview model's own pin 1 mark at our pad 1 with no mapping on all four copies (D157-D160: top and bottom, 0 and 37 deg), 5.2, 6.1, -4.9, -4.3 deg counter-clockwise from pad 1's direction seen from the top (measurements.json, limit 20). What this is not: a check of the part's identity, which is the map row's."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "sb17-sot3p190x290x130n-c20615827",
+      "package": "sot",
+      "package_version": "0.1.2",
+      "footprint": "SOT3P190X290X130N",
+      "supplier": "lcsc",
+      "pn": "C20615827",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-23",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-23-board-17/README.md",
+        "note": "H24VNT2B, the preview model's own pin 1 mark at our pad 1 with no mapping on all four copies (D165-D168: top and bottom, 0 and 37 deg), 4.8, 5.9, -5, -4.3 deg counter-clockwise from pad 1's direction seen from the top (measurements.json, limit 20). What this is not: a check of the part's identity, which is the map row's."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "sb17-sot3p190x290x130n-c20615828",
+      "package": "sot",
+      "package_version": "0.1.2",
+      "footprint": "SOT3P190X290X130N",
+      "supplier": "lcsc",
+      "pn": "C20615828",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-23",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-23-board-17/README.md",
+        "note": "H36VLT2B, the preview model's own pin 1 mark at our pad 1 with no mapping on all four copies (D169-D172: top and bottom, 0 and 37 deg), 4.7, 6.2, -4.9, -4.5 deg counter-clockwise from pad 1's direction seen from the top (measurements.json, limit 20). What this is not: a check of the part's identity, which is the map row's."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "sb17-sot3p190x290x130n-c20617923",
+      "package": "sot",
+      "package_version": "0.1.2",
+      "footprint": "SOT3P190X290X130N",
+      "supplier": "lcsc",
+      "pn": "C20617923",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-23",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-23-board-17/README.md",
+        "note": "H3V3HT2B, the preview model's own pin 1 mark at our pad 1 with no mapping on all four copies (D173-D176: top and bottom, 0 and 37 deg), 6.5, 7.2, -6.8, -6.2 deg counter-clockwise from pad 1's direction seen from the top (measurements.json, limit 20). What this is not: a check of the part's identity, which is the map row's."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "sb17-sot3p190x290x130n-c20617924",
+      "package": "sot",
+      "package_version": "0.1.2",
+      "footprint": "SOT3P190X290X130N",
+      "supplier": "lcsc",
+      "pn": "C20617924",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-23",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-23-board-17/README.md",
+        "note": "H3V3HT2U, the preview model's own pin 1 mark at our pad 1 with no mapping on all four copies (D177-D180: top and bottom, 0 and 37 deg), 7.2, 7.3, -6.8, -5.9 deg counter-clockwise from pad 1's direction seen from the top (measurements.json, limit 20). What this is not: a check of the part's identity, which is the map row's."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "sb17-sot3p190x290x130n-c20617925",
+      "package": "sot",
+      "package_version": "0.1.2",
+      "footprint": "SOT3P190X290X130N",
+      "supplier": "lcsc",
+      "pn": "C20617925",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-23",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-23-board-17/README.md",
+        "note": "H5VNT2B, the preview model's own pin 1 mark at our pad 1 with no mapping on all four copies (D189-D192: top and bottom, 0 and 37 deg), 6.9, 7.3, -6.8, -5.6 deg counter-clockwise from pad 1's direction seen from the top (measurements.json, limit 20). What this is not: a check of the part's identity, which is the map row's."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "sb17-sot3p190x290x130n-c20617926",
+      "package": "sot",
+      "package_version": "0.1.2",
+      "footprint": "SOT3P190X290X130N",
+      "supplier": "lcsc",
+      "pn": "C20617926",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-23",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-23-board-17/README.md",
+        "note": "H5VHT2B, the preview model's own pin 1 mark at our pad 1 with no mapping on all four copies (D181-D184: top and bottom, 0 and 37 deg), 6.2, 7.7, -7.3, -6.6 deg counter-clockwise from pad 1's direction seen from the top (measurements.json, limit 20). What this is not: a check of the part's identity, which is the map row's."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "sb17-sot3p190x290x130n-c20617927",
+      "package": "sot",
+      "package_version": "0.1.2",
+      "footprint": "SOT3P190X290X130N",
+      "supplier": "lcsc",
+      "pn": "C20617927",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-23",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-23-board-17/README.md",
+        "note": "H12VNT2B, the preview model's own pin 1 mark at our pad 1 with no mapping on all four copies (D153-D156: top and bottom, 0 and 37 deg), 6.5, 7.5, -7.1, -6.4 deg counter-clockwise from pad 1's direction seen from the top (measurements.json, limit 20). What this is not: a check of the part's identity, which is the map row's."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "sb17-sot3p190x290x130n-c20617928",
+      "package": "sot",
+      "package_version": "0.1.2",
+      "footprint": "SOT3P190X290X130N",
+      "supplier": "lcsc",
+      "pn": "C20617928",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-23",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-23-board-17/README.md",
+        "note": "H15VNT2B, the preview model's own pin 1 mark at our pad 1 with no mapping on all four copies (D161-D164: top and bottom, 0 and 37 deg), 10.3, 11.2, -10.7, -10.2 deg counter-clockwise from pad 1's direction seen from the top (measurements.json, limit 20). What this is not: a check of the part's identity, which is the map row's."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "sb18-sot3p190x290x130n-c28646268",
+      "package": "sot",
+      "package_version": "0.1.2",
+      "footprint": "SOT3P190X290X130N",
+      "supplier": "lcsc",
+      "pn": "C28646268",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 90
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 90
+      },
+      "exception": "Per-part mapping: the supplier's model for C28646268 is drawn a quarter turn against this land, its pin 1 mark away from pad 1 with no mapping on all four copies (tools/sourcing_data/jlc_previews/2026-11-23-board-16/README.md)",
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-23",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-23-board-18/README.md",
+        "note": "HL2302, the preview model's own pin 1 mark at our pad 1 with rotate 90 applied on all four copies (Q1-Q4: top and bottom, 0 and 37 deg), 10, 10.5, -9.9, -9.8 deg counter-clockwise from pad 1's direction seen from the top (measurements.json, limit 20). What this is not: a check of the part's identity, which is the map row's."
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "sb18-sot3p190x290x130n-c28646269",
+      "package": "sot",
+      "package_version": "0.1.2",
+      "footprint": "SOT3P190X290X130N",
+      "supplier": "lcsc",
+      "pn": "C28646269",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 90
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 90
+      },
+      "exception": "Per-part mapping: the supplier's model for C28646269 is drawn a quarter turn against this land, its pin 1 mark away from pad 1 with no mapping on all four copies (tools/sourcing_data/jlc_previews/2026-11-23-board-16/README.md)",
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-23",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-23-board-18/README.md",
+        "note": "HL3407A, the preview model's own pin 1 mark at our pad 1 with rotate 90 applied on all four copies (Q5-Q8: top and bottom, 0 and 37 deg), 10.3, 10.5, -10, -9.6 deg counter-clockwise from pad 1's direction seen from the top (measurements.json, limit 20). What this is not: a check of the part's identity, which is the map row's."
+      },
+      "evidence_ref": null
+    },
+    {
       "id": "w3-chip0402-rc-c105870",
       "package": "passive",
       "package_version": "0.2.8",

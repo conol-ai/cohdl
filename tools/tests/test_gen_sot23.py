@@ -11,6 +11,22 @@ sys.path.insert(0, str(ROOT / "tools"))
 import gen_sot23  # noqa: E402
 
 
+
+def bound_as_read(package):
+    """(part number, rotate) of every SOT-23 binding in PACKAGE's source, and what
+    tools/frame_boards/sot23_frames.py builds from the board readings for it."""
+    import re, sys
+    sys.path.insert(0, str(ROOT / "tools/frame_boards"))
+    import sot23_frames
+    text = (ROOT / "lib" / package / "src" / "sot23.cohdl").read_text(encoding="utf-8")
+    bound = {(pn, int(rot or 0)) for pn, rot in re.findall(r'supplier lcsc "(C\d+)"(?: rotate (\d+))?', text)}
+    parts = {}
+    for record in sot23_frames.RECORDS:
+        for part in json.loads((sot23_frames.PREVIEWS / record / "readings.json").read_text(encoding="utf-8"))["parts"]:
+            parts[part["pn"]] = part["part"].split("::")[0]
+    built = {(row["pn"], row["mapping"]["rotate_deg"]) for row in sot23_frames.build() if parts[row["pn"]] == package}
+    return bound, built
+
 class GenSot23Tests(unittest.TestCase):
     def setUp(self):
         self.data = json.loads(gen_sot23.DATA.read_text(encoding="utf-8"))
@@ -18,11 +34,19 @@ class GenSot23Tests(unittest.TestCase):
     def test_committed_files_are_what_the_data_builds(self):
         self.assertEqual(gen_sot23.main(["--check"]), 0)
 
-    def test_every_part_is_on_the_sot23_land_without_a_binding(self):
+    def test_every_part_is_on_the_sot23_land_and_bound_as_read(self):
         for package in ("transistor", "mosfet"):
             text = (ROOT / "lib" / package / "src" / "sot23.cohdl").read_text(encoding="utf-8")
             self.assertEqual(text.count("pub part "), text.count("footprint: sot::SOT3P190X290X130N"))
-            self.assertNotIn("supplier", text.split("binding yet")[1])
+            # Every binding is a part number a board read at pad 1, with the mapping it was read with.
+            bound, built = bound_as_read(package)
+            self.assertEqual(bound, built)
+        self.assertEqual((len(bound_as_read("transistor")[0]), len(bound_as_read("mosfet")[0])), (43, 29))
+        self.assertIn(("C28646268", 90), bound_as_read("mosfet")[0])
+        # The committed frame table is what the readings and the map build.
+        sys.path.insert(0, str(ROOT / "tools/frame_boards"))
+        import sot23_frames
+        self.assertEqual(sot23_frames.main(["--check"]), 0)
         counts = {k: sum(r["kind"] == k for r in self.data["parts"]) for k in gen_sot23.DEVICES}
         self.assertEqual(counts, {"npn": 26, "pnp": 19, "nmos": 17, "pmos": 12})
 

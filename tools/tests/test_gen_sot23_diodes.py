@@ -11,6 +11,8 @@ sys.path.insert(0, str(ROOT / "tools"))
 import gen_sot23_diodes as gen  # noqa: E402
 
 
+from test_gen_sot23 import bound_as_read  # noqa: E402
+
 class GenSot23DiodesTests(unittest.TestCase):
     def setUp(self):
         self.rows = json.loads(gen.DATA.read_text(encoding="utf-8"))["parts"]
@@ -27,7 +29,9 @@ class GenSot23DiodesTests(unittest.TestCase):
         text = gen.OUT.read_text(encoding="utf-8")
         self.assertEqual(text.count("pub part "), len(self.rows))
         self.assertEqual(text.count("pub part "), text.count("footprint: sot::SOT3P190X290X130N"))
-        self.assertNotIn('supplier lcsc', text)
+        bound, built = bound_as_read("diode")
+        self.assertEqual(bound, built)
+        self.assertEqual(bound, {("C37704", 0), ("C2500", 0)})  # Nexperia BAT54C,215 and BAV99,215 so far
 
     def test_a_part_whose_sheet_draws_another_arrangement_is_refused(self):
         rows = copy.deepcopy(self.rows)

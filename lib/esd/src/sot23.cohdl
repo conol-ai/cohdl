@@ -5,8 +5,10 @@
 // between its numbered SOT-23 pins: the two protected lines on pins 1 and 2,
 // the common terminal on pin 3. The sheets and their checksums are in
 // docs/sot23.evidence.md. Every part sits on sot::SOT3P190X290X130N, the
-// audited SOT-23-3 land on the assembler's frame. No part carries a supplier
-// binding yet: it is bound only with its own preview reading.
+// audited SOT-23-3 land on the assembler's frame. A part carries a supplier
+// binding only with its own preview reading: the clause comes from
+// tools/sourcing_data/lcsc_map.json and the part number's row in
+// tools/sourcing_data/jlc_frames.json.
 
 // Two-line TVS array, SOT-23: two bidirectional TVS, one from each line (pins 1 and 2) to pin 3.
 #[doc("docs/sot23.evidence.md")]
@@ -62,56 +64,56 @@ impl ESD_Protector for TVS2Asym_SOT23 {}
 #[doc("docs/sot23.evidence.md")]
 pub part ESD_HJC_H12VNT2B: TVS2Bi_SOT23<12V> {
     primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "H12VNT2B",
-              footprint: sot::SOT3P190X290X130N }
+              footprint: sot::SOT3P190X290X130N, supplier lcsc "C20617927" }
 }
 
 // H15VNT2B (C20617928): VRWM 15 V; VBR 16-19 V @ 1 mA; VC 24 V max @ 1 A; 38.5 V max @ 8 A; IPP 8.0 A (8/20us); marking BB2
 #[doc("docs/sot23.evidence.md")]
 pub part ESD_HJC_H15VNT2B: TVS2Bi_SOT23<15V> {
     primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "H15VNT2B",
-              footprint: sot::SOT3P190X290X130N }
+              footprint: sot::SOT3P190X290X130N, supplier lcsc "C20617928" }
 }
 
 // H24VNT2B (C20615827): VRWM 24 V; VBR 26.7-30 V @ 1 mA; VC 35 V max @ 1 A; 55 V max @ 7 A; IPP 7.0 A (8/20us); marking CB2
 #[doc("docs/sot23.evidence.md")]
 pub part ESD_HJC_H24VNT2B: TVS2Bi_SOT23<24V> {
     primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "H24VNT2B",
-              footprint: sot::SOT3P190X290X130N }
+              footprint: sot::SOT3P190X290X130N, supplier lcsc "C20615827" }
 }
 
 // H36VLT2B (C20615828): VRWM 36 V; VBR 40-45 V @ 1 mA; VC 60 V max @ 1 A; 75 V max @ 4 A; IPP 4.0 A (8/20us); marking DB2
 #[doc("docs/sot23.evidence.md")]
 pub part ESD_HJC_H36VLT2B: TVS2Bi_SOT23<36V> {
     primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "H36VLT2B",
-              footprint: sot::SOT3P190X290X130N }
+              footprint: sot::SOT3P190X290X130N, supplier lcsc "C20615828" }
 }
 
 // H3V3HT2B (C20617923): VRWM 3.3 V; VBR 5.0-7.0 V @ 1 mA; VC 8.0 V max @ 1 A; 15 V max @ 25 A; IPP 25 A (8/20us); marking 3B2
 #[doc("docs/sot23.evidence.md")]
 pub part ESD_HJC_H3V3HT2B: TVS2Bi_SOT23<3.3V> {
     primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "H3V3HT2B",
-              footprint: sot::SOT3P190X290X130N }
+              footprint: sot::SOT3P190X290X130N, supplier lcsc "C20617923" }
 }
 
 // H5VHT2B (C20617926): VRWM 5.0 V; VBR 6.0-8.0 V @ 1 mA; VC 9.8 V max @ 1 A; 16.7 V max @ 25 A; IPP 25 A (8/20us); marking 5B2
 #[doc("docs/sot23.evidence.md")]
 pub part ESD_HJC_H5VHT2B: TVS2Bi_SOT23<5V> {
     primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "H5VHT2B",
-              footprint: sot::SOT3P190X290X130N }
+              footprint: sot::SOT3P190X290X130N, supplier lcsc "C20617926" }
 }
 
 // H5VNT2B (C20617925): VRWM 5.0 V; VBR 5.6-8.0 V @ 1 mA; VC 8.5 V max @ 1 A; 12 V max @ 8 A; IPP 8.0 A (8/20us); marking L5A
 #[doc("docs/sot23.evidence.md")]
 pub part ESD_HJC_H5VNT2B: TVS2Bi_SOT23<5V> {
     primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "H5VNT2B",
-              footprint: sot::SOT3P190X290X130N }
+              footprint: sot::SOT3P190X290X130N, supplier lcsc "C20617925" }
 }
 
 // H8VNT2B (C20615825): VRWM 8.0 V; VBR 9.0-12 V @ 1 mA; VC 10.5 V typ @ 1 A; 25 V max @ 20 A; IPP 20 A (8/20us); marking C08
 #[doc("docs/sot23.evidence.md")]
 pub part ESD_HJC_H8VNT2B: TVS2Bi_SOT23<8V> {
     primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "H8VNT2B",
-              footprint: sot::SOT3P190X290X130N }
+              footprint: sot::SOT3P190X290X130N, supplier lcsc "C20615825" }
 }
 
 // ---- TVS2Uni_SOT23: 3 parts ----
@@ -120,21 +122,21 @@ pub part ESD_HJC_H8VNT2B: TVS2Bi_SOT23<8V> {
 #[doc("docs/sot23.evidence.md")]
 pub part ESD_HJC_H12VNT2U: TVS2Uni_SOT23<12V> {
     primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "H12VNT2U",
-              footprint: sot::SOT3P190X290X130N }
+              footprint: sot::SOT3P190X290X130N, supplier lcsc "C20615826" }
 }
 
 // H3V3HT2U (C20617924): VRWM 3.3 V; VBR 5.0-7.0 V @ 1 mA; VC 8.0 V max @ 1 A; 14 V max @ 25 A; IPP 25 A (8/20us); marking 3M2
 #[doc("docs/sot23.evidence.md")]
 pub part ESD_HJC_H3V3HT2U: TVS2Uni_SOT23<3.3V> {
     primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "H3V3HT2U",
-              footprint: sot::SOT3P190X290X130N }
+              footprint: sot::SOT3P190X290X130N, supplier lcsc "C20617924" }
 }
 
 // H5VHT2U (C20615823): VRWM 5.0 V; VBR 6.0-9.0 V @ 1 mA; VC 7.0 V max @ 1 A; 14 V max @ 25 A; IPP 25 A (8/20us); marking 5M2
 #[doc("docs/sot23.evidence.md")]
 pub part ESD_HJC_H5VHT2U: TVS2Uni_SOT23<5V> {
     primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "H5VHT2U",
-              footprint: sot::SOT3P190X290X130N }
+              footprint: sot::SOT3P190X290X130N, supplier lcsc "C20615823" }
 }
 
 // ---- TVS2Steering_SOT23: 1 parts ----
@@ -143,7 +145,7 @@ pub part ESD_HJC_H5VHT2U: TVS2Uni_SOT23<5V> {
 #[doc("docs/sot23.evidence.md")]
 pub part ESD_HJC_H5VUT2U: TVS2Steering_SOT23<5V> {
     primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "H5VUT2U",
-              footprint: sot::SOT3P190X290X130N }
+              footprint: sot::SOT3P190X290X130N, supplier lcsc "C20615824" }
 }
 
 // ---- TVS2Asym_SOT23: 1 parts ----

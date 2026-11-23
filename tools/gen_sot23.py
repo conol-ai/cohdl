@@ -28,6 +28,9 @@ from decimal import Decimal
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT / "tools"))
+from sourcing.bindings import Bindings, avl_entry  # noqa: E402
+
 DATA = ROOT / "tools" / "discrete_data" / "sot23_bjt_mos.json"
 LAND = "sot::SOT3P190X290X130N"
 WIDTH = 100  # the line width `cohdl fmt` wraps at
@@ -104,11 +107,16 @@ def comment(row: dict) -> str:
     return f"// {row['mpn']} ({row['c']}): {text}; pinout {row['datasheet']['pinout']}"
 
 
-def primary(row: dict) -> list[str]:
-    """The primary entry as `cohdl fmt` writes it: one line, or wrapped before the footprint."""
-    head = f'    primary {{ mfr: "{row["mfr"]}", mpn: "{row["mpn"]}",'
-    line = f"{head} footprint: {LAND} }}"
-    return [line] if len(line) <= WIDTH else [head, f"              footprint: {LAND} }}"]
+_BINDINGS: list[Bindings] = []
+
+
+def primary(row: dict, package: str) -> list[str]:
+    """The primary entry as `cohdl fmt` writes it, with the part number's supplier clause when
+    tools/sourcing_data/lcsc_map.json maps it and jlc_frames.json holds its row on this land."""
+    if not _BINDINGS:
+        _BINDINGS.append(Bindings(ROOT))
+    manifest = ROOT / "lib" / package / "cohdl.toml"
+    return avl_entry(_BINDINGS[0], manifest, "primary", row["mfr"], row["mpn"], LAND).rstrip("\n").split("\n")
 
 
 def check(rows: list[dict]) -> None:
@@ -140,8 +148,10 @@ def source(package: str, rows: list[dict]) -> str:
            "// prints on its numbered SOT-23 diagram; the sheets and their checksums are",
            "// in docs/sot23.evidence.md. Every part sits on sot::SOT3P190X290X130N, the",
            "// audited SOT-23-3 land on the assembler's frame (pin 1 lower right, pins 1",
-           "// and 2 the +x column, pin 3 alone at -x). No part carries a supplier",
-           "// binding yet: a polarized part is bound only with its own preview reading.",
+           "// and 2 the +x column, pin 3 alone at -x). A polarized part carries a",
+           "// supplier binding only with its own preview reading: the clause comes from",
+           "// tools/sourcing_data/lcsc_map.json and the part number's row in",
+           "// tools/sourcing_data/jlc_frames.json, as in tools/gen_zener.py.",
            ""]
     for kind in [k for k in DEVICES if DEVICES[k][0] == package]:
         _, device, pins, _ = DEVICES[kind]
@@ -158,7 +168,7 @@ def source(package: str, rows: list[dict]) -> str:
         for row in members:
             out += [comment(row), '#[doc("docs/sot23.evidence.md")]',
                     f"pub part {part_name(row)}: {device}<{args(row)}> {{",
-                    *primary(row), "}", ""]
+                    *primary(row, package), "}", ""]
     return "\n".join(out)
 
 

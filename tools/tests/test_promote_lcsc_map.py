@@ -23,6 +23,7 @@ SAMSUNG = FULL.parent / "2026-11-07-samsung-b1"
 HONGJIACHENG = FULL.parent / "2026-11-11-hongjiacheng"
 # diode 0.1.3: the 128 SOD-123 Zeners the B1 snapshot lists from Hongjiacheng.
 ZENER = FULL.parent / "2026-11-21-hongjiacheng-zener"
+SOT23 = FULL.parent / "2026-11-23-sot23"
 EMPTY = {"schema_version": 1, "supplier": "lcsc", "rows": []}
 
 
@@ -90,6 +91,10 @@ class PromoteTests(unittest.TestCase):
         code, out, _ = self.promote("--aliases", str(current), run=ZENER)
         self.assertEqual(code, 0)
         self.assertIn("12455 rows, 12455 changed", out)
+        # The SOT-23 run adds 86 identities (70 read on boards 15 and 16, 16 already cached) and re-dates every row.
+        code, out, _ = self.promote("--aliases", str(current), run=SOT23)
+        self.assertEqual(code, 0)
+        self.assertIn("12541 rows, 12541 changed", out)
         self.assertEqual(self.map.read_bytes(), (ROOT / "tools/sourcing_data/lcsc_map.json").read_bytes())
 
     def test_check_writes_nothing(self):

@@ -6,9 +6,10 @@
 // sheet draws between the numbered SOT-23 pins; the sheets and their
 // checksums are in docs/sot23.evidence.md. Every part sits on
 // sot::SOT3P190X290X130N, the audited SOT-23-3 land on the assembler's frame
-// (pin 1 lower right, pins 1 and 2 the +x column, pin 3 alone at -x). No part
-// carries a supplier binding yet: a polarized part is bound only with its
-// own preview reading.
+// (pin 1 lower right, pins 1 and 2 the +x column, pin 3 alone at -x). A
+// polarized part carries a supplier binding only with its own preview
+// reading: the clause comes from tools/sourcing_data/lcsc_map.json and the
+// part number's row in tools/sourcing_data/jlc_frames.json.
 
 // Two diodes in one package: neither a single anode nor a single cathode, so
 // not `Polarized`; the trait carries the designator prefix.
@@ -166,7 +167,8 @@ pub part D_HJC_BAT54A: SchottkyPairCommonAnode_SOT23<30V, 200mA> {
 // BAT54C,215 (C37704): VR 30V, IF 200mA, VF 0.8V max at 100mA; marking %W1
 #[doc("docs/sot23.evidence.md")]
 pub part D_NEXPERIA_BAT54C_215: SchottkyPairCommonCathode_SOT23<30V, 200mA> {
-    primary { mfr: "Nexperia", mpn: "BAT54C,215", footprint: sot::SOT3P190X290X130N }
+    primary { mfr: "Nexperia", mpn: "BAT54C,215", footprint: sot::SOT3P190X290X130N,
+              supplier lcsc "C37704" }
 }
 
 // BAS40-05 (C7502689): VR 40V, IF 200mA, VF 1.0V max at 30mA; marking 45
@@ -280,7 +282,8 @@ pub part D_HJC_MMBD4148CC: DiodePairCommonCathode_SOT23<75V, 200mA> {
 // BAV99,215 (C2500): VR 100V, IF 215mA, VF 1.0V max at 50mA; marking A7%
 #[doc("docs/sot23.evidence.md")]
 pub part D_NEXPERIA_BAV99_215: DiodePairSeries_SOT23<100V, 215mA> {
-    primary { mfr: "Nexperia", mpn: "BAV99,215", footprint: sot::SOT3P190X290X130N }
+    primary { mfr: "Nexperia", mpn: "BAV99,215", footprint: sot::SOT3P190X290X130N,
+              supplier lcsc "C2500" }
 }
 
 // 1SS226 (C7502731): VR 80V, IF 100mA, VF 1.0V max at 100mA; marking C3

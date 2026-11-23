@@ -42,8 +42,8 @@ hash = "sha256:4673cff4c6338b2fa07265a9e4a506a0260421e6305552787f98cf68a449d6c0"
 
 [[package]]
 name = "mosfet"
-version = "0.1.0"
-hash = "sha256:e80116ea1519f36bd39364e713017fc09e14e378de817a9ac0cd69edd9a474ba"
+version = "0.1.1"
+hash = "sha256:dc0fee989afafe85e78008bb72e99198084dc8a102994caa50de52b87fa7e292"
 
 [[package]]
 name = "osc"
@@ -69,6 +69,11 @@ hash = "sha256:5f24ff5d7235f2757e970e0dad57a562ba8cb268a804b00d393848d33239d58d"
 name = "soic"
 version = "0.3.0"
 hash = "sha256:faa12734be8c93a602b4a3d24a5e40f23d41ea6e030ae7fbe4008a8f5568c8db"
+
+[[package]]
+name = "sot"
+version = "0.1.2"
+hash = "sha256:5d3022291a544c263ea7cb338313c43668e38478150ca64db5ebe4c65f01f964"
 
 [[package]]
 name = "std"

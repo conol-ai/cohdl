@@ -1,0 +1,57 @@
+"""tools/gen_sot23.py: the committed SOT-23 transistors and MOSFETs are what the data builds."""
+import copy
+import json
+import sys
+import unittest
+from pathlib import Path
+from unittest import mock
+
+ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT / "tools"))
+import gen_sot23  # noqa: E402
+
+
+class GenSot23Tests(unittest.TestCase):
+    def setUp(self):
+        self.data = json.loads(gen_sot23.DATA.read_text(encoding="utf-8"))
+
+    def test_committed_files_are_what_the_data_builds(self):
+        self.assertEqual(gen_sot23.main(["--check"]), 0)
+
+    def test_every_part_is_on_the_sot23_land_without_a_binding(self):
+        for package in ("transistor", "mosfet"):
+            text = (ROOT / "lib" / package / "src" / "sot23.cohdl").read_text(encoding="utf-8")
+            self.assertEqual(text.count("pub part "), text.count("footprint: sot::SOT3P190X290X130N"))
+            self.assertNotIn("supplier", text.split("binding yet")[1])
+        counts = {k: sum(r["kind"] == k for r in self.data["parts"]) for k in gen_sot23.DEVICES}
+        self.assertEqual(counts, {"npn": 26, "pnp": 19, "nmos": 17, "pmos": 12})
+
+    def _rows(self, change):
+        rows = copy.deepcopy(self.data["parts"])
+        change(rows)
+        return rows
+
+    def test_a_part_whose_sheet_shows_another_pin_order_is_refused(self):
+        def swap(rows):
+            rows[0]["pins"] = dict(rows[0]["pins"], **{"1": rows[0]["pins"]["2"], "2": rows[0]["pins"]["1"]})
+        with self.assertRaisesRegex(SystemExit, "pins"):
+            gen_sot23.check(self._rows(swap))
+
+    def test_a_repeated_part_or_a_missing_rating_is_refused(self):
+        with self.assertRaisesRegex(SystemExit, "appears twice"):
+            gen_sot23.check(self._rows(lambda rows: rows.append(copy.deepcopy(rows[0]))))
+        def zero(rows):
+            key = "vceo_v" if rows[0]["kind"] in ("npn", "pnp") else "vds_v"
+            rows[0]["ratings"][key] = 0
+        with self.assertRaisesRegex(SystemExit, "non-positive"):
+            gen_sot23.check(self._rows(zero))
+
+    def test_magnitudes_and_units(self):
+        self.assertEqual(gen_sot23.literal(0.115, "A"), "115mA")
+        self.assertEqual(gen_sot23.literal(-4.2, "A"), "4.2A")
+        self.assertEqual(gen_sot23.literal(1000, "mA"), "1A")
+        self.assertEqual(gen_sot23.literal(300, "mW"), "300mW")
+
+
+if __name__ == "__main__":
+    unittest.main()

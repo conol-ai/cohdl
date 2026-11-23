@@ -1,0 +1,21 @@
+{
+ "decoder": {
+  "command": "sips -s format bmp",
+  "sips": "sips-316",
+  "os": "macOS 27.0.1 (26A434)"
+ },
+ "views": {
+  "top": {
+   "export": "top.png",
+   "export_sha256": "a2643d318c6ab37bc851678a79b2017040c19fe3b69fde5e623bcb46f1acf938",
+   "pixels": "top.pixels.png",
+   "pixels_sha256": "142ff12fcfe745dc419ac8150a247f591ef001655f622f58389d191d36bb85b8"
+  },
+  "bottom": {
+   "export": "bottom.png",
+   "export_sha256": "7974a88fac7dff3015371509baea49a02db398193d0198e010ea22f9c7903ac9",
+   "pixels": "bottom.pixels.png",
+   "pixels_sha256": "2ef7b62f58a1a9d48ae2b3b53f39f71c17131ca8a0a7c0823d3e4c3d308d325d"
+  }
+ }
+}

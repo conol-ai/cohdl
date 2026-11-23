@@ -1,0 +1,2485 @@
+{
+ "name": "preview_board_15",
+ "dependencies": {
+  "sot": "0.1.2",
+  "std": "0.3.0",
+  "transistor": "0.2.2"
+ },
+ "rows": [
+  {
+   "name": "Q_HJC_S8050_C20069125",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "transistor::NPN_SOT23<25V, 500mA, 300mW>",
+   "pn": "C20069125",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "S8050",
+   "pins": [
+    "B",
+    "E",
+    "C"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      10.0,
+      10.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      20.0,
+      10.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      10.0,
+      20.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      20.0,
+      20.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 4271168,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Q_HJC_S9013_C20069127",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "transistor::NPN_SOT23<25V, 500mA, 300mW>",
+   "pn": "C20069127",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "S9013",
+   "pins": [
+    "B",
+    "E",
+    "C"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      30.0,
+      10.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      40.0,
+      10.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      30.0,
+      20.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      40.0,
+      20.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 540187,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Q_HJC_S9014_C20069130",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "transistor::NPN_SOT23<45V, 100mA, 200mW>",
+   "pn": "C20069130",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "S9014",
+   "pins": [
+    "B",
+    "E",
+    "C"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      50.0,
+      10.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      60.0,
+      10.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      50.0,
+      20.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      60.0,
+      20.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 2232143,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Q_HJC_BC817_16_C20069132",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "transistor::NPN_SOT23<45V, 500mA, 300mW>",
+   "pn": "C20069132",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BC817-16",
+   "pins": [
+    "B",
+    "E",
+    "C"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      70.0,
+      10.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      80.0,
+      10.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      70.0,
+      20.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      80.0,
+      20.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 84780,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Q_HJC_BC846B_C20069134",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "transistor::NPN_SOT23<65V, 100mA, 200mW>",
+   "pn": "C20069134",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BC846B",
+   "pins": [
+    "B",
+    "E",
+    "C"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      90.0,
+      10.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      100.0,
+      10.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      90.0,
+      20.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      100.0,
+      20.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 397323,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Q_HJC_BC847B_C20069135",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "transistor::NPN_SOT23<45V, 100mA, 200mW>",
+   "pn": "C20069135",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BC847B",
+   "pins": [
+    "B",
+    "E",
+    "C"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      110.0,
+      10.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      120.0,
+      10.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      110.0,
+      20.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      120.0,
+      20.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 116564,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Q_HJC_MMBTA42_C20069138",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "transistor::NPN_SOT23<300V, 500mA, 350mW>",
+   "pn": "C20069138",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "MMBTA42",
+   "pins": [
+    "B",
+    "E",
+    "C"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      130.0,
+      10.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      140.0,
+      10.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      130.0,
+      20.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      140.0,
+      20.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 282958,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Q_HJC_MMBTA06_C20069139",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "transistor::NPN_SOT23<80V, 500mA, 300mW>",
+   "pn": "C20069139",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "MMBTA06",
+   "pins": [
+    "B",
+    "E",
+    "C"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      150.0,
+      10.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      160.0,
+      10.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      150.0,
+      20.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      160.0,
+      20.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 46205,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Q_HJC_MMBTA44_C20069141",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "transistor::NPN_SOT23<400V, 200mA, 350mW>",
+   "pn": "C20069141",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "MMBTA44",
+   "pins": [
+    "B",
+    "E",
+    "C"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      10.0,
+      30.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      20.0,
+      30.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      10.0,
+      40.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      20.0,
+      40.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 591208,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Q_HJC_2SC1815_C20069143",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "transistor::NPN_SOT23<50V, 150mA, 200mW>",
+   "pn": "C20069143",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "2SC1815",
+   "pins": [
+    "B",
+    "E",
+    "C"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      30.0,
+      30.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      40.0,
+      30.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      30.0,
+      40.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      40.0,
+      40.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 260389,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Q_HJC_BC817_25_C20069154",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "transistor::NPN_SOT23<45V, 500mA, 300mW>",
+   "pn": "C20069154",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BC817-25",
+   "pins": [
+    "B",
+    "E",
+    "C"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      50.0,
+      30.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      60.0,
+      30.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      50.0,
+      40.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      60.0,
+      40.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 706,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Q_HJC_BC817_40_C20069155",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "transistor::NPN_SOT23<45V, 500mA, 300mW>",
+   "pn": "C20069155",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BC817-40",
+   "pins": [
+    "B",
+    "E",
+    "C"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      70.0,
+      30.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      80.0,
+      30.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      70.0,
+      40.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      80.0,
+      40.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 194335,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Q_JSCJ_MMBT3904_C20526",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "transistor::NPN_SOT23<40V, 200mA, 200mW>",
+   "pn": "C20526",
+   "mfr": "Jiangsu Changjing Electronics Technology",
+   "mpn": "MMBT3904(RANGE:100-300)",
+   "pins": [
+    "B",
+    "E",
+    "C"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      90.0,
+      30.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      100.0,
+      30.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      90.0,
+      40.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      100.0,
+      40.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'Jiangsu Changjing Electronics Technology Co., Ltd.', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "basic",
+   "stock": 2413756,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Q_JSCJ_MMBT5551_C2145",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "transistor::NPN_SOT23<160V, 600mA, 300mW>",
+   "pn": "C2145",
+   "mfr": "Jiangsu Changjing Electronics Technology",
+   "mpn": "MMBT5551(RANGE:200-300)",
+   "pins": [
+    "B",
+    "E",
+    "C"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      110.0,
+      30.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      120.0,
+      30.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      110.0,
+      40.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      120.0,
+      40.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'Jiangsu Changjing Electronics Technology Co., Ltd.', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "basic",
+   "stock": 2016580,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Q_JSCJ_SS8050_C2150",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "transistor::NPN_SOT23<25V, 1500mA, 300mW>",
+   "pn": "C2150",
+   "mfr": "Jiangsu Changjing Electronics Technology",
+   "mpn": "SS8050(RANGE:200-350)",
+   "pins": [
+    "B",
+    "E",
+    "C"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      130.0,
+      30.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      140.0,
+      30.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      130.0,
+      40.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      140.0,
+      40.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'Jiangsu Changjing Electronics Technology Co., Ltd.', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "basic",
+   "stock": 2086484,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Q_HJC_2SC3356_C28646266",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "transistor::NPN_SOT23<12V, 100mA, 200mW>",
+   "pn": "C28646266",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "2SC3356",
+   "pins": [
+    "B",
+    "E",
+    "C"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      150.0,
+      30.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      160.0,
+      30.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      150.0,
+      40.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      160.0,
+      40.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 14403,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Q_HJC_FMMT493_C28646275",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "transistor::NPN_SOT23<100V, 1A, 250mW>",
+   "pn": "C28646275",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "FMMT493",
+   "pins": [
+    "B",
+    "E",
+    "C"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      10.0,
+      50.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      20.0,
+      50.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      10.0,
+      60.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      20.0,
+      60.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 54098,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Q_JSCJ_S9013_J3_C6749",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "transistor::NPN_SOT23<25V, 500mA, 300mW>",
+   "pn": "C6749",
+   "mfr": "Jiangsu Changjing Electronics Technology",
+   "mpn": "S9013 J3(RANGE:200-350)",
+   "pins": [
+    "B",
+    "E",
+    "C"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      30.0,
+      50.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      40.0,
+      50.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      30.0,
+      60.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      40.0,
+      60.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'Jiangsu Changjing Electronics Technology Co., Ltd.', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "basic",
+   "stock": 661323,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Q_HJC_2SC1623_C7420324",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "transistor::NPN_SOT23<50V, 100mA, 200mW>",
+   "pn": "C7420324",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "2SC1623",
+   "pins": [
+    "B",
+    "E",
+    "C"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      50.0,
+      50.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      60.0,
+      50.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      50.0,
+      60.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      60.0,
+      60.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 392536,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Q_HJC_BC847C_C7420337",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "transistor::NPN_SOT23<45V, 100mA, 200mW>",
+   "pn": "C7420337",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BC847C",
+   "pins": [
+    "B",
+    "E",
+    "C"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      70.0,
+      50.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      80.0,
+      50.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      70.0,
+      60.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      80.0,
+      60.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 417679,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Q_HJC_MMBT2222A_C7420351",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "transistor::NPN_SOT23<40V, 600mA, 300mW>",
+   "pn": "C7420351",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "MMBT2222A",
+   "pins": [
+    "B",
+    "E",
+    "C"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      90.0,
+      50.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      100.0,
+      50.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      90.0,
+      60.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      100.0,
+      60.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 615735,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Q_HJC_MMBT3904_C7420353",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "transistor::NPN_SOT23<40V, 200mA, 200mW>",
+   "pn": "C7420353",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "MMBT3904",
+   "pins": [
+    "B",
+    "E",
+    "C"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      110.0,
+      50.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      120.0,
+      50.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      110.0,
+      60.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      120.0,
+      60.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 7263947,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Q_HJC_MMBT4401_C7420355",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "transistor::NPN_SOT23<40V, 600mA, 300mW>",
+   "pn": "C7420355",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "MMBT4401",
+   "pins": [
+    "B",
+    "E",
+    "C"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      130.0,
+      50.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      140.0,
+      50.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      130.0,
+      60.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      140.0,
+      60.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 481491,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Q_HJC_MMBT5551_C7420357",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "transistor::NPN_SOT23<160V, 600mA, 300mW>",
+   "pn": "C7420357",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "MMBT5551",
+   "pins": [
+    "B",
+    "E",
+    "C"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      150.0,
+      50.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      160.0,
+      50.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      150.0,
+      60.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      160.0,
+      60.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 7506063,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Q_HJC_SS8050_C7420370",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "transistor::NPN_SOT23<25V, 1500mA, 300mW>",
+   "pn": "C7420370",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "SS8050",
+   "pins": [
+    "B",
+    "E",
+    "C"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      10.0,
+      70.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      20.0,
+      70.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      10.0,
+      80.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      20.0,
+      80.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 5165652,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Q_JSCJ_MMBT2222A_1P_C8512",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "transistor::NPN_SOT23<40V, 600mA, 300mW>",
+   "pn": "C8512",
+   "mfr": "Jiangsu Changjing Electronics Technology",
+   "mpn": "MMBT2222A 1P",
+   "pins": [
+    "B",
+    "E",
+    "C"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      30.0,
+      70.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      40.0,
+      70.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      30.0,
+      80.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      40.0,
+      80.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'Jiangsu Changjing Electronics Technology Co., Ltd.', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "basic",
+   "stock": 598380,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Q_JSCJ_S8550_C105432",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "transistor::PNP_SOT23<25V, 500mA, 300mW>",
+   "pn": "C105432",
+   "mfr": "Jiangsu Changjing Electronics Technology",
+   "mpn": "S8550(RANGE:120-200)",
+   "pins": [
+    "B",
+    "E",
+    "C"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      50.0,
+      70.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      60.0,
+      70.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      50.0,
+      80.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      60.0,
+      80.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'Jiangsu Changjing Electronics Technology Co., Ltd.', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "basic",
+   "stock": 299364,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Q_HJC_S8550_C20069126",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "transistor::PNP_SOT23<25V, 500mA, 300mW>",
+   "pn": "C20069126",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "S8550",
+   "pins": [
+    "B",
+    "E",
+    "C"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      70.0,
+      70.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      80.0,
+      70.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      70.0,
+      80.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      80.0,
+      80.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 1124855,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Q_HJC_S9012_C20069129",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "transistor::PNP_SOT23<25V, 500mA, 300mW>",
+   "pn": "C20069129",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "S9012",
+   "pins": [
+    "B",
+    "E",
+    "C"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      90.0,
+      70.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      100.0,
+      70.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      90.0,
+      80.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      100.0,
+      80.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 186564,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Q_HJC_S9015_C20069131",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "transistor::PNP_SOT23<45V, 100mA, 200mW>",
+   "pn": "C20069131",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "S9015",
+   "pins": [
+    "B",
+    "E",
+    "C"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      110.0,
+      70.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      120.0,
+      70.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      110.0,
+      80.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      120.0,
+      80.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 10664,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Q_HJC_BC856B_C20069136",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "transistor::PNP_SOT23<65V, 100mA, 200mW>",
+   "pn": "C20069136",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BC856B",
+   "pins": [
+    "B",
+    "E",
+    "C"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      130.0,
+      70.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      140.0,
+      70.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      130.0,
+      80.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      140.0,
+      80.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 267775,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Q_HJC_BC857C_C20069137",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "transistor::PNP_SOT23<45V, 100mA, 200mW>",
+   "pn": "C20069137",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BC857C",
+   "pins": [
+    "B",
+    "E",
+    "C"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      150.0,
+      70.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      160.0,
+      70.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      150.0,
+      80.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      160.0,
+      80.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 61714,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Q_HJC_MMBT4403_C20069140",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "transistor::PNP_SOT23<40V, 600mA, 300mW>",
+   "pn": "C20069140",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "MMBT4403",
+   "pins": [
+    "B",
+    "E",
+    "C"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      10.0,
+      90.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      20.0,
+      90.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      10.0,
+      100.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      20.0,
+      100.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 56362,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Q_HJC_BC807_40_C20069142",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "transistor::PNP_SOT23<45V, 500mA, 300mW>",
+   "pn": "C20069142",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BC807-40",
+   "pins": [
+    "B",
+    "E",
+    "C"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      30.0,
+      90.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      40.0,
+      90.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      30.0,
+      100.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      40.0,
+      100.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 122643,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Q_HJC_MMBTA92_C20069146",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "transistor::PNP_SOT23<300V, 500mA, 350mW>",
+   "pn": "C20069146",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "MMBTA92",
+   "pins": [
+    "B",
+    "E",
+    "C"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      50.0,
+      90.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      60.0,
+      90.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      50.0,
+      100.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      60.0,
+      100.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 421608,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Q_HJC_MMBTA56_C20069147",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "transistor::PNP_SOT23<80V, 500mA, 225mW>",
+   "pn": "C20069147",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "MMBTA56",
+   "pins": [
+    "B",
+    "E",
+    "C"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      70.0,
+      90.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      80.0,
+      90.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      70.0,
+      100.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      80.0,
+      100.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 79212,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Q_JSCJ_S9015_C2149",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "transistor::PNP_SOT23<45V, 100mA, 200mW>",
+   "pn": "C2149",
+   "mfr": "Jiangsu Changjing Electronics Technology",
+   "mpn": "S9015(RANGE:300-400)",
+   "pins": [
+    "B",
+    "E",
+    "C"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      90.0,
+      90.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      100.0,
+      90.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      90.0,
+      100.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      100.0,
+      100.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'Jiangsu Changjing Electronics Technology Co., Ltd.', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 169797,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Q_HJC_2SA812_C7420323",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "transistor::PNP_SOT23<50V, 100mA, 200mW>",
+   "pn": "C7420323",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "2SA812",
+   "pins": [
+    "B",
+    "E",
+    "C"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      110.0,
+      90.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      120.0,
+      90.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      110.0,
+      100.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      120.0,
+      100.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 13471,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Q_HJC_MMBT2907A_C7420352",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "transistor::PNP_SOT23<60V, 600mA, 250mW>",
+   "pn": "C7420352",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "MMBT2907A",
+   "pins": [
+    "B",
+    "E",
+    "C"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      130.0,
+      90.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      140.0,
+      90.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      130.0,
+      100.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      140.0,
+      100.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 99113,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Q_HJC_MMBT3906_C7420354",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "transistor::PNP_SOT23<40V, 200mA, 200mW>",
+   "pn": "C7420354",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "MMBT3906",
+   "pins": [
+    "B",
+    "E",
+    "C"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      150.0,
+      90.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      160.0,
+      90.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      150.0,
+      100.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      160.0,
+      100.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 612987,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Q_HJC_MMBT5401_C7420356",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "transistor::PNP_SOT23<150V, 600mA, 300mW>",
+   "pn": "C7420356",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "MMBT5401",
+   "pins": [
+    "B",
+    "E",
+    "C"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      10.0,
+      110.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      20.0,
+      110.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      10.0,
+      120.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      20.0,
+      120.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 4584771,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Q_HJC_SS8550_C7420371",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "transistor::PNP_SOT23<25V, 1500mA, 300mW>",
+   "pn": "C7420371",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "SS8550",
+   "pins": [
+    "B",
+    "E",
+    "C"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      30.0,
+      110.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      40.0,
+      110.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      30.0,
+      120.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      40.0,
+      120.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 1298908,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Q_JSCJ_MMBT5401_C8326",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "transistor::PNP_SOT23<150V, 600mA, 300mW>",
+   "pn": "C8326",
+   "mfr": "Jiangsu Changjing Electronics Technology",
+   "mpn": "MMBT5401(RANGE:200-300)",
+   "pins": [
+    "B",
+    "E",
+    "C"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      50.0,
+      110.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      60.0,
+      110.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      50.0,
+      120.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      60.0,
+      120.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'Jiangsu Changjing Electronics Technology Co., Ltd.', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "basic",
+   "stock": 783840,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Q_JSCJ_SS8550_Y2_C8542",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "transistor::PNP_SOT23<25V, 1500mA, 300mW>",
+   "pn": "C8542",
+   "mfr": "Jiangsu Changjing Electronics Technology",
+   "mpn": "SS8550 Y2(RANGE:200-350)",
+   "pins": [
+    "B",
+    "E",
+    "C"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      70.0,
+      110.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      80.0,
+      110.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      70.0,
+      120.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      80.0,
+      120.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'Jiangsu Changjing Electronics Technology Co., Ltd.', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "basic",
+   "stock": 743334,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Q_JSCJ_S9012_2T1_C8543",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "transistor::PNP_SOT23<25V, 500mA, 300mW>",
+   "pn": "C8543",
+   "mfr": "Jiangsu Changjing Electronics Technology",
+   "mpn": "S9012 2T1(RANGE:200-350)",
+   "pins": [
+    "B",
+    "E",
+    "C"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      90.0,
+      110.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      100.0,
+      110.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      90.0,
+      120.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      100.0,
+      120.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'Jiangsu Changjing Electronics Technology Co., Ltd.', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "basic",
+   "stock": 153404,
+   "page_fetched": "2026-10-30"
+  }
+ ]
+}

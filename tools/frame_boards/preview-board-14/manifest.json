@@ -1,0 +1,3639 @@
+{
+ "name": "preview_board_14",
+ "dependencies": {
+  "std": "0.3.0",
+  "passive": "0.2.8"
+ },
+ "rows": [
+  {
+   "pn": "C2073624",
+   "mpn": "CRCW0201100KJNED",
+   "mfr": "Vishay",
+   "part": "passive::ChipResistor<100kohm, 5%>[R0201]",
+   "footprint": "passive::CHIP_0201",
+   "group": "CHIP_0201 ChipResistor Vishay CRCW",
+   "purpose": "sample",
+   "jlc_package": "0201",
+   "stock": 529,
+   "page_fetched": "2026-11-05T20:13:25Z",
+   "category": "extended",
+   "name": "sample_C2073624",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 9,
+   "height_mm": 9,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      10.0,
+      10.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      10.0,
+      30.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      10.0,
+      20.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      10.0,
+      40.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C190187",
+   "mpn": "CC0201KRX5R5BB104",
+   "mfr": "Yageo",
+   "part": "passive::MLCC<100nF, 6.3V, 10%>[C0201]",
+   "footprint": "passive::CHIP_0201",
+   "group": "CHIP_0201 MLCC Yageo CC",
+   "purpose": "sample",
+   "jlc_package": "0201",
+   "stock": 930009,
+   "page_fetched": "2026-11-05T21:07:31Z",
+   "category": "extended",
+   "name": "sample_C190187",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 9,
+   "height_mm": 9,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      20.0,
+      10.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      20.0,
+      30.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      20.0,
+      20.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      20.0,
+      40.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C113880",
+   "mpn": "CC1206JRNPO0BN471",
+   "mfr": "Yageo",
+   "part": "passive::MLCC<470pF, 100V, 5%>[C1206]",
+   "footprint": "passive::CHIP_1206",
+   "group": "CHIP_1206 MLCC Yageo CC",
+   "purpose": "sample",
+   "jlc_package": "1206",
+   "stock": 5665,
+   "page_fetched": "2026-11-05T21:31:24Z",
+   "category": "extended",
+   "name": "sample_C113880",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 9,
+   "height_mm": 9,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      30.0,
+      10.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      30.0,
+      30.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      30.0,
+      20.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      30.0,
+      40.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C877082",
+   "mpn": "RC2010FK-07120KL",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<120kohm, 1%>[R2010]",
+   "footprint": "passive::CHIP_2010",
+   "group": "CHIP_2010 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "2010",
+   "stock": 1879,
+   "page_fetched": "2026-11-06T00:38:44Z",
+   "category": "extended",
+   "name": "sample_C877082",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 9,
+   "height_mm": 9,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      40.0,
+      10.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      40.0,
+      30.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      40.0,
+      20.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      40.0,
+      40.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C877691",
+   "mpn": "RC2512FK-07110RL",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<110ohm, 1%>[R2512]",
+   "footprint": "passive::CHIP_2512",
+   "group": "CHIP_2512 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "2512",
+   "stock": 381,
+   "page_fetched": "2026-11-06T01:07:09Z",
+   "category": "extended",
+   "name": "sample_C877691",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 9,
+   "height_mm": 9,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      50.0,
+      10.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      50.0,
+      30.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      50.0,
+      20.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      50.0,
+      40.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::MLCC<1nF, 50V, 5%>[C0402]",
+   "pn": "C113780",
+   "mpn": "CC0402JRNPO9BN102",
+   "mfr": "Yageo",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 9,
+   "height_mm": 9,
+   "covers_rotation": true,
+   "purpose": "control",
+   "group": "CHIP_0402 MLCC Yageo CC",
+   "jlc_package": "0402",
+   "stock": 24241,
+   "page_fetched": "2026-11-05T21:11:52Z",
+   "category": "extended",
+   "name": "control_C113780",
+   "placements": [
+    {
+     "at_mm": [
+      60.0,
+      10.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      60.0,
+      30.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      60.0,
+      20.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      60.0,
+      40.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C4050067",
+   "mpn": "CRCW020110R0JNED",
+   "mfr": "Vishay",
+   "part": "passive::ChipResistor<10ohm, 5%>[R0201]",
+   "footprint": "passive::CHIP_0201",
+   "group": "CHIP_0201 ChipResistor Vishay CRCW",
+   "purpose": "sample",
+   "jlc_package": "0201",
+   "stock": 7605,
+   "page_fetched": "2026-11-05T20:13:59Z",
+   "category": "extended",
+   "name": "sample_C4050067",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 9,
+   "height_mm": 9,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      70.0,
+      10.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      70.0,
+      30.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      70.0,
+      20.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      70.0,
+      40.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C325450",
+   "mpn": "CC0201KRX7R9BB331",
+   "mfr": "Yageo",
+   "part": "passive::MLCC<330pF, 50V, 10%>[C0201]",
+   "footprint": "passive::CHIP_0201",
+   "group": "CHIP_0201 MLCC Yageo CC",
+   "purpose": "sample",
+   "jlc_package": "0201",
+   "stock": 14889,
+   "page_fetched": "2026-11-05T21:10:22Z",
+   "category": "extended",
+   "name": "sample_C325450",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 9,
+   "height_mm": 9,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      80.0,
+      10.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      80.0,
+      30.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      80.0,
+      20.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      80.0,
+      40.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C577166",
+   "mpn": "CC1206JRNPO9BN561",
+   "mfr": "Yageo",
+   "part": "passive::MLCC<560pF, 50V, 5%>[C1206]",
+   "footprint": "passive::CHIP_1206",
+   "group": "CHIP_1206 MLCC Yageo CC",
+   "purpose": "sample",
+   "jlc_package": "1206",
+   "stock": 73,
+   "page_fetched": "2026-11-05T21:32:44Z",
+   "category": "extended",
+   "name": "sample_C577166",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 9,
+   "height_mm": 9,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      90.0,
+      10.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      90.0,
+      30.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      90.0,
+      20.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      90.0,
+      40.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C877143",
+   "mpn": "RC2010FK-0716RL",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<16ohm, 1%>[R2010]",
+   "footprint": "passive::CHIP_2010",
+   "group": "CHIP_2010 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "2010",
+   "stock": 1575,
+   "page_fetched": "2026-11-06T00:40:59Z",
+   "category": "extended",
+   "name": "sample_C877143",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 9,
+   "height_mm": 9,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      100.0,
+      10.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      100.0,
+      30.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      100.0,
+      20.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      100.0,
+      40.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C877754",
+   "mpn": "RC2512FK-07160RL",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<160ohm, 1%>[R2512]",
+   "footprint": "passive::CHIP_2512",
+   "group": "CHIP_2512 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "2512",
+   "stock": 1859,
+   "page_fetched": "2026-11-06T01:09:20Z",
+   "category": "extended",
+   "name": "sample_C877754",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 9,
+   "height_mm": 9,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      110.0,
+      10.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      110.0,
+      30.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      110.0,
+      20.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      110.0,
+      40.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<1kohm, 1%>[R0402]",
+   "pn": "C11702",
+   "mpn": "0402WGF1001TCE",
+   "mfr": "UNI-ROYAL",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 9,
+   "height_mm": 9,
+   "covers_rotation": true,
+   "purpose": "control",
+   "group": "CHIP_0402 ChipResistor UNI-ROYAL 0402WG",
+   "jlc_package": "0402",
+   "stock": 21756652,
+   "page_fetched": "2026-10-30T04:26:28Z",
+   "category": "basic",
+   "name": "control_C11702",
+   "placements": [
+    {
+     "at_mm": [
+      120.0,
+      10.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      120.0,
+      30.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      120.0,
+      20.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      120.0,
+      40.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C2087657",
+   "mpn": "CRCW020113K0FKED",
+   "mfr": "Vishay",
+   "part": "passive::ChipResistor<13kohm, 1%>[R0201]",
+   "footprint": "passive::CHIP_0201",
+   "group": "CHIP_0201 ChipResistor Vishay CRCW",
+   "purpose": "sample",
+   "jlc_package": "0201",
+   "stock": 825,
+   "page_fetched": "2026-11-05T20:15:30Z",
+   "category": "extended",
+   "name": "sample_C2087657",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 9,
+   "height_mm": 9,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      130.0,
+      10.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      130.0,
+      30.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      130.0,
+      20.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      130.0,
+      40.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C20164463",
+   "mpn": "RC2010FK-071M8L",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<1.8Mohm, 1%>[R2010]",
+   "footprint": "passive::CHIP_2010",
+   "group": "CHIP_2010 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "2010",
+   "stock": 3920,
+   "page_fetched": "2026-11-06T00:43:16Z",
+   "category": "extended",
+   "name": "sample_C20164463",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 9,
+   "height_mm": 9,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      140.0,
+      10.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      140.0,
+      30.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      140.0,
+      20.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      140.0,
+      40.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C276334",
+   "mpn": "RC2512FK-071K5L",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<1.5kohm, 1%>[R2512]",
+   "footprint": "passive::CHIP_2512",
+   "group": "CHIP_2512 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "2512",
+   "stock": 1063,
+   "page_fetched": "2026-11-06T01:11:22Z",
+   "category": "extended",
+   "name": "sample_C276334",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 9,
+   "height_mm": 9,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      150.0,
+      10.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      150.0,
+      30.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      150.0,
+      20.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      150.0,
+      40.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "footprint": "passive::CHIP_1206",
+   "part": "passive::ChipResistor<0ohm, 5%>[R1206]",
+   "pn": "C17888",
+   "mpn": "1206W4F0000T5E",
+   "mfr": "UNI-ROYAL",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 9,
+   "height_mm": 9,
+   "covers_rotation": true,
+   "purpose": "control",
+   "group": "CHIP_1206 ChipResistor UNI-ROYAL 1206W4",
+   "jlc_package": "1206",
+   "stock": 1774968,
+   "page_fetched": "2026-10-30T04:28:23Z",
+   "category": "basic",
+   "name": "control_C17888",
+   "placements": [
+    {
+     "at_mm": [
+      160.0,
+      10.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      160.0,
+      30.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      160.0,
+      20.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      160.0,
+      40.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C2114941",
+   "mpn": "CRCW0201180KFKED",
+   "mfr": "Vishay",
+   "part": "passive::ChipResistor<180kohm, 1%>[R0201]",
+   "footprint": "passive::CHIP_0201",
+   "group": "CHIP_0201 ChipResistor Vishay CRCW",
+   "purpose": "sample",
+   "jlc_package": "0201",
+   "stock": 1060,
+   "page_fetched": "2026-11-05T20:17:09Z",
+   "category": "extended",
+   "name": "sample_C2114941",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 9,
+   "height_mm": 9,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      10.0,
+      50.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      10.0,
+      70.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      10.0,
+      60.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      10.0,
+      80.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C877281",
+   "mpn": "RC2010FK-0726R1L",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<26.1ohm, 1%>[R2010]",
+   "footprint": "passive::CHIP_2010",
+   "group": "CHIP_2010 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "2010",
+   "stock": 1770,
+   "page_fetched": "2026-11-06T00:45:58Z",
+   "category": "extended",
+   "name": "sample_C877281",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 9,
+   "height_mm": 9,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      20.0,
+      50.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      20.0,
+      70.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      20.0,
+      60.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      20.0,
+      80.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C326622",
+   "mpn": "RC2512FK-07200RL",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<200ohm, 1%>[R2512]",
+   "footprint": "passive::CHIP_2512",
+   "group": "CHIP_2512 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "2512",
+   "stock": 13633,
+   "page_fetched": "2026-11-06T01:12:54Z",
+   "category": "extended",
+   "name": "sample_C326622",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 9,
+   "height_mm": 9,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      30.0,
+      50.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      30.0,
+      70.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      30.0,
+      60.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      30.0,
+      80.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C19702",
+   "mpn": "CL10A106KP8NNNC",
+   "mfr": "Samsung",
+   "part": "passive::MLCC<10uF, 10V, 10%>[C0603]",
+   "footprint": "passive::CHIP_0603",
+   "group": "CHIP_0603 MLCC Samsung CL",
+   "purpose": "control",
+   "jlc_package": "0603",
+   "stock": 12030848,
+   "page_fetched": "2026-10-30T04:23:18Z",
+   "category": "basic",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 9,
+   "height_mm": 9,
+   "covers_rotation": true,
+   "name": "control_C19702",
+   "placements": [
+    {
+     "at_mm": [
+      40.0,
+      50.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      40.0,
+      70.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      40.0,
+      60.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      40.0,
+      80.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C2115530",
+   "mpn": "CRCW02011K37FKED",
+   "mfr": "Vishay",
+   "part": "passive::ChipResistor<1.37kohm, 1%>[R0201]",
+   "footprint": "passive::CHIP_0201",
+   "group": "CHIP_0201 ChipResistor Vishay CRCW",
+   "purpose": "sample",
+   "jlc_package": "0201",
+   "stock": 512,
+   "page_fetched": "2026-11-05T20:18:23Z",
+   "category": "extended",
+   "name": "sample_C2115530",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 9,
+   "height_mm": 9,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      50.0,
+      50.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      50.0,
+      70.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      50.0,
+      60.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      50.0,
+      80.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C877320",
+   "mpn": "RC2010FK-072M2L",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<2.2Mohm, 1%>[R2010]",
+   "footprint": "passive::CHIP_2010",
+   "group": "CHIP_2010 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "2010",
+   "stock": 2000,
+   "page_fetched": "2026-11-06T00:47:23Z",
+   "category": "extended",
+   "name": "sample_C877320",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 9,
+   "height_mm": 9,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      60.0,
+      50.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      60.0,
+      70.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      60.0,
+      60.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      60.0,
+      80.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C877889",
+   "mpn": "RC2512FK-0725R5L",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<25.5ohm, 1%>[R2512]",
+   "footprint": "passive::CHIP_2512",
+   "group": "CHIP_2512 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "2512",
+   "stock": 3100,
+   "page_fetched": "2026-11-06T01:14:33Z",
+   "category": "extended",
+   "name": "sample_C877889",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 9,
+   "height_mm": 9,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      70.0,
+      50.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      70.0,
+      70.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      70.0,
+      60.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      70.0,
+      80.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C2653998",
+   "mpn": "CRCW020120K0FKED",
+   "mfr": "Vishay",
+   "part": "passive::ChipResistor<20kohm, 1%>[R0201]",
+   "footprint": "passive::CHIP_0201",
+   "group": "CHIP_0201 ChipResistor Vishay CRCW",
+   "purpose": "sample",
+   "jlc_package": "0201",
+   "stock": 5258,
+   "page_fetched": "2026-11-05T20:19:24Z",
+   "category": "extended",
+   "name": "sample_C2653998",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 9,
+   "height_mm": 9,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      80.0,
+      50.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      80.0,
+      70.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      80.0,
+      60.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      80.0,
+      80.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C137058",
+   "mpn": "RC2010FK-07300RL",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<300ohm, 1%>[R2010]",
+   "footprint": "passive::CHIP_2010",
+   "group": "CHIP_2010 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "2010",
+   "stock": 1232,
+   "page_fetched": "2026-11-06T00:48:13Z",
+   "category": "extended",
+   "name": "sample_C137058",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 9,
+   "height_mm": 9,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      90.0,
+      50.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      90.0,
+      70.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      90.0,
+      60.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      90.0,
+      80.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C877927",
+   "mpn": "RC2512FK-072K49L",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<2.49kohm, 1%>[R2512]",
+   "footprint": "passive::CHIP_2512",
+   "group": "CHIP_2512 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "2512",
+   "stock": 7603,
+   "page_fetched": "2026-11-06T01:15:53Z",
+   "category": "extended",
+   "name": "sample_C877927",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 9,
+   "height_mm": 9,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      100.0,
+      50.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      100.0,
+      70.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      100.0,
+      60.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      100.0,
+      80.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C2074401",
+   "mpn": "CRCW0201240RFKED",
+   "mfr": "Vishay",
+   "part": "passive::ChipResistor<240ohm, 1%>[R0201]",
+   "footprint": "passive::CHIP_0201",
+   "group": "CHIP_0201 ChipResistor Vishay CRCW",
+   "purpose": "sample",
+   "jlc_package": "0201",
+   "stock": 1360,
+   "page_fetched": "2026-11-05T20:20:26Z",
+   "category": "extended",
+   "name": "sample_C2074401",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 9,
+   "height_mm": 9,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      110.0,
+      50.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      110.0,
+      70.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      110.0,
+      60.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      110.0,
+      80.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C137057",
+   "mpn": "RC2010FK-07390KL",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<390kohm, 1%>[R2010]",
+   "footprint": "passive::CHIP_2010",
+   "group": "CHIP_2010 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "2010",
+   "stock": 1671,
+   "page_fetched": "2026-11-06T00:50:04Z",
+   "category": "extended",
+   "name": "sample_C137057",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 9,
+   "height_mm": 9,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      120.0,
+      50.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      120.0,
+      70.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      120.0,
+      60.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      120.0,
+      80.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C877956",
+   "mpn": "RC2512FK-0730R1L",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<30.1ohm, 1%>[R2512]",
+   "footprint": "passive::CHIP_2512",
+   "group": "CHIP_2512 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "2512",
+   "stock": 1589,
+   "page_fetched": "2026-11-06T01:17:10Z",
+   "category": "extended",
+   "name": "sample_C877956",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 9,
+   "height_mm": 9,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      130.0,
+      50.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      130.0,
+      70.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      130.0,
+      60.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      130.0,
+      80.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C2074393",
+   "mpn": "CRCW02012K20FKED",
+   "mfr": "Vishay",
+   "part": "passive::ChipResistor<2.2kohm, 1%>[R0201]",
+   "footprint": "passive::CHIP_0201",
+   "group": "CHIP_0201 ChipResistor Vishay CRCW",
+   "purpose": "sample",
+   "jlc_package": "0201",
+   "stock": 2221,
+   "page_fetched": "2026-11-05T20:21:50Z",
+   "category": "extended",
+   "name": "sample_C2074393",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 9,
+   "height_mm": 9,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      140.0,
+      50.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      140.0,
+      70.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      140.0,
+      60.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      140.0,
+      80.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C877422",
+   "mpn": "RC2010FK-073R9L",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<3.9ohm, 1%>[R2010]",
+   "footprint": "passive::CHIP_2010",
+   "group": "CHIP_2010 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "2010",
+   "stock": 209,
+   "page_fetched": "2026-11-06T00:51:22Z",
+   "category": "extended",
+   "name": "sample_C877422",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 9,
+   "height_mm": 9,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      150.0,
+      50.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      150.0,
+      70.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      150.0,
+      60.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      150.0,
+      80.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C878000",
+   "mpn": "RC2512FK-07392RL",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<392ohm, 1%>[R2512]",
+   "footprint": "passive::CHIP_2512",
+   "group": "CHIP_2512 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "2512",
+   "stock": 3860,
+   "page_fetched": "2026-11-06T01:18:50Z",
+   "category": "extended",
+   "name": "sample_C878000",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 9,
+   "height_mm": 9,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      160.0,
+      50.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      160.0,
+      70.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      160.0,
+      60.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      160.0,
+      80.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C2086710",
+   "mpn": "CRCW02012K87FKED",
+   "mfr": "Vishay",
+   "part": "passive::ChipResistor<2.87kohm, 1%>[R0201]",
+   "footprint": "passive::CHIP_0201",
+   "group": "CHIP_0201 ChipResistor Vishay CRCW",
+   "purpose": "sample",
+   "jlc_package": "0201",
+   "stock": 194,
+   "page_fetched": "2026-11-05T20:22:25Z",
+   "category": "extended",
+   "name": "sample_C2086710",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 9,
+   "height_mm": 9,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      10.0,
+      90.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      10.0,
+      110.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      10.0,
+      100.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      10.0,
+      120.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C326714",
+   "mpn": "RC2010FK-074K87L",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<4.87kohm, 1%>[R2010]",
+   "footprint": "passive::CHIP_2010",
+   "group": "CHIP_2010 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "2010",
+   "stock": 89,
+   "page_fetched": "2026-11-06T00:53:23Z",
+   "category": "extended",
+   "name": "sample_C326714",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 9,
+   "height_mm": 9,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      20.0,
+      90.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      20.0,
+      110.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      20.0,
+      100.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      20.0,
+      120.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C513649",
+   "mpn": "RC2512FK-073R3L",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<3.3ohm, 1%>[R2512]",
+   "footprint": "passive::CHIP_2512",
+   "group": "CHIP_2512 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "2512",
+   "stock": 4090,
+   "page_fetched": "2026-11-06T01:19:54Z",
+   "category": "extended",
+   "name": "sample_C513649",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 9,
+   "height_mm": 9,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      30.0,
+      90.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      30.0,
+      110.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      30.0,
+      100.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      30.0,
+      120.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C2087523",
+   "mpn": "CRCW020133K2FKED",
+   "mfr": "Vishay",
+   "part": "passive::ChipResistor<33.2kohm, 1%>[R0201]",
+   "footprint": "passive::CHIP_0201",
+   "group": "CHIP_0201 ChipResistor Vishay CRCW",
+   "purpose": "sample",
+   "jlc_package": "0201",
+   "stock": 798,
+   "page_fetched": "2026-11-05T20:23:31Z",
+   "category": "extended",
+   "name": "sample_C2087523",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 9,
+   "height_mm": 9,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      40.0,
+      90.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      40.0,
+      110.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      40.0,
+      100.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      40.0,
+      120.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C877496",
+   "mpn": "RC2010FK-0751R1L",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<51.1ohm, 1%>[R2010]",
+   "footprint": "passive::CHIP_2010",
+   "group": "CHIP_2010 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "2010",
+   "stock": 1910,
+   "page_fetched": "2026-11-06T00:54:13Z",
+   "category": "extended",
+   "name": "sample_C877496",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 9,
+   "height_mm": 9,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      50.0,
+      90.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      50.0,
+      110.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      50.0,
+      100.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      50.0,
+      120.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C878069",
+   "mpn": "RC2512FK-07499KL",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<499kohm, 1%>[R2512]",
+   "footprint": "passive::CHIP_2512",
+   "group": "CHIP_2512 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "2512",
+   "stock": 3582,
+   "page_fetched": "2026-11-06T01:21:50Z",
+   "category": "extended",
+   "name": "sample_C878069",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 9,
+   "height_mm": 9,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      60.0,
+      90.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      60.0,
+      110.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      60.0,
+      100.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      60.0,
+      120.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C2074387",
+   "mpn": "CRCW02013K00FKED",
+   "mfr": "Vishay",
+   "part": "passive::ChipResistor<3kohm, 1%>[R0201]",
+   "footprint": "passive::CHIP_0201",
+   "group": "CHIP_0201 ChipResistor Vishay CRCW",
+   "purpose": "sample",
+   "jlc_package": "0201",
+   "stock": 70,
+   "page_fetched": "2026-11-05T20:24:45Z",
+   "category": "extended",
+   "name": "sample_C2074387",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 9,
+   "height_mm": 9,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      70.0,
+      90.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      70.0,
+      110.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      70.0,
+      100.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      70.0,
+      120.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C137051",
+   "mpn": "RC2010FK-07680RL",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<680ohm, 1%>[R2010]",
+   "footprint": "passive::CHIP_2010",
+   "group": "CHIP_2010 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "2010",
+   "stock": 215,
+   "page_fetched": "2026-11-06T00:56:43Z",
+   "category": "extended",
+   "name": "sample_C137051",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 9,
+   "height_mm": 9,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      80.0,
+      90.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      80.0,
+      110.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      80.0,
+      100.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      80.0,
+      120.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C137022",
+   "mpn": "RC2512FK-07510RL",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<510ohm, 1%>[R2512]",
+   "footprint": "passive::CHIP_2512",
+   "group": "CHIP_2512 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "2512",
+   "stock": 464,
+   "page_fetched": "2026-11-06T01:22:59Z",
+   "category": "extended",
+   "name": "sample_C137022",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 9,
+   "height_mm": 9,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      90.0,
+      90.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      90.0,
+      110.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      90.0,
+      100.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      90.0,
+      120.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C3013855",
+   "mpn": "CRCW020149R9FKED",
+   "mfr": "Vishay",
+   "part": "passive::ChipResistor<49.9ohm, 1%>[R0201]",
+   "footprint": "passive::CHIP_0201",
+   "group": "CHIP_0201 ChipResistor Vishay CRCW",
+   "purpose": "sample",
+   "jlc_package": "0201",
+   "stock": 104,
+   "page_fetched": "2026-11-05T20:27:02Z",
+   "category": "extended",
+   "name": "sample_C3013855",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 9,
+   "height_mm": 9,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      100.0,
+      90.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      100.0,
+      110.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      100.0,
+      100.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      100.0,
+      120.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C375686",
+   "mpn": "RC2010FK-0775KL",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<75kohm, 1%>[R2010]",
+   "footprint": "passive::CHIP_2010",
+   "group": "CHIP_2010 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "2010",
+   "stock": 4026,
+   "page_fetched": "2026-11-06T00:58:02Z",
+   "category": "extended",
+   "name": "sample_C375686",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 9,
+   "height_mm": 9,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      110.0,
+      90.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      110.0,
+      110.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      110.0,
+      100.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      110.0,
+      120.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C878178",
+   "mpn": "RC2512FK-076K2L",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<6.2kohm, 1%>[R2512]",
+   "footprint": "passive::CHIP_2512",
+   "group": "CHIP_2512 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "2512",
+   "stock": 1870,
+   "page_fetched": "2026-11-06T01:25:56Z",
+   "category": "extended",
+   "name": "sample_C878178",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 9,
+   "height_mm": 9,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      120.0,
+      90.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      120.0,
+      110.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      120.0,
+      100.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      120.0,
+      120.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C2073808",
+   "mpn": "CRCW02014K75FKED",
+   "mfr": "Vishay",
+   "part": "passive::ChipResistor<4.75kohm, 1%>[R0201]",
+   "footprint": "passive::CHIP_0201",
+   "group": "CHIP_0201 ChipResistor Vishay CRCW",
+   "purpose": "sample",
+   "jlc_package": "0201",
+   "stock": 3736,
+   "page_fetched": "2026-11-05T20:27:24Z",
+   "category": "extended",
+   "name": "sample_C2073808",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 9,
+   "height_mm": 9,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      130.0,
+      90.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      130.0,
+      110.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      130.0,
+      100.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      130.0,
+      120.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C877674",
+   "mpn": "RC2010FK-079R1L",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<9.1ohm, 1%>[R2010]",
+   "footprint": "passive::CHIP_2010",
+   "group": "CHIP_2010 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "2010",
+   "stock": 152,
+   "page_fetched": "2026-11-06T01:00:47Z",
+   "category": "extended",
+   "name": "sample_C877674",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 9,
+   "height_mm": 9,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      140.0,
+      90.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      140.0,
+      110.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      140.0,
+      100.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      140.0,
+      120.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C878249",
+   "mpn": "RC2512FK-078R06L",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<8.06ohm, 1%>[R2512]",
+   "footprint": "passive::CHIP_2512",
+   "group": "CHIP_2512 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "2512",
+   "stock": 3906,
+   "page_fetched": "2026-11-06T01:28:36Z",
+   "category": "extended",
+   "name": "sample_C878249",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 9,
+   "height_mm": 9,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      150.0,
+      90.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      150.0,
+      110.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      150.0,
+      100.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      150.0,
+      120.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C4034982",
+   "mpn": "CRCW020151K0FKED",
+   "mfr": "Vishay",
+   "part": "passive::ChipResistor<51kohm, 1%>[R0201]",
+   "footprint": "passive::CHIP_0201",
+   "group": "CHIP_0201 ChipResistor Vishay CRCW",
+   "purpose": "sample",
+   "jlc_package": "0201",
+   "stock": 90,
+   "page_fetched": "2026-11-05T20:27:45Z",
+   "category": "extended",
+   "name": "sample_C4034982",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 9,
+   "height_mm": 9,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      160.0,
+      90.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      160.0,
+      110.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      160.0,
+      100.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      160.0,
+      120.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C1883565",
+   "mpn": "RC2010JK-07150RL",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<150ohm, 5%>[R2010]",
+   "footprint": "passive::CHIP_2010",
+   "group": "CHIP_2010 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "2010",
+   "stock": 3580,
+   "page_fetched": "2026-11-06T01:01:29Z",
+   "category": "extended",
+   "name": "sample_C1883565",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 9,
+   "height_mm": 9,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      10.0,
+      130.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      10.0,
+      150.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      10.0,
+      140.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      10.0,
+      160.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C2124255",
+   "mpn": "RC2512JK-0711RL",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<11ohm, 5%>[R2512]",
+   "footprint": "passive::CHIP_2512",
+   "group": "CHIP_2512 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "2512",
+   "stock": 3060,
+   "page_fetched": "2026-11-06T01:30:11Z",
+   "category": "extended",
+   "name": "sample_C2124255",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 9,
+   "height_mm": 9,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      20.0,
+      130.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      20.0,
+      150.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      20.0,
+      140.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      20.0,
+      160.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C4056810",
+   "mpn": "CRCW02016K80FKED",
+   "mfr": "Vishay",
+   "part": "passive::ChipResistor<6.8kohm, 1%>[R0201]",
+   "footprint": "passive::CHIP_0201",
+   "group": "CHIP_0201 ChipResistor Vishay CRCW",
+   "purpose": "sample",
+   "jlc_package": "0201",
+   "stock": 1212,
+   "page_fetched": "2026-11-05T20:31:03Z",
+   "category": "extended",
+   "name": "sample_C4056810",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 9,
+   "height_mm": 9,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      30.0,
+      130.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      30.0,
+      150.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      30.0,
+      140.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      30.0,
+      160.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C326637",
+   "mpn": "RC2010JK-071R5L",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<1.5ohm, 5%>[R2010]",
+   "footprint": "passive::CHIP_2010",
+   "group": "CHIP_2010 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "2010",
+   "stock": 1383,
+   "page_fetched": "2026-11-06T01:02:25Z",
+   "category": "extended",
+   "name": "sample_C326637",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 9,
+   "height_mm": 9,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      40.0,
+      130.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      40.0,
+      150.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      40.0,
+      140.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      40.0,
+      160.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C1882621",
+   "mpn": "RC2512JK-0718KL",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<18kohm, 5%>[R2512]",
+   "footprint": "passive::CHIP_2512",
+   "group": "CHIP_2512 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "2512",
+   "stock": 568,
+   "page_fetched": "2026-11-06T01:30:51Z",
+   "category": "extended",
+   "name": "sample_C1882621",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 9,
+   "height_mm": 9,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      50.0,
+      130.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      50.0,
+      150.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      50.0,
+      140.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      50.0,
+      160.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C2078275",
+   "mpn": "CRCW020190K9FKED",
+   "mfr": "Vishay",
+   "part": "passive::ChipResistor<90.9kohm, 1%>[R0201]",
+   "footprint": "passive::CHIP_0201",
+   "group": "CHIP_0201 ChipResistor Vishay CRCW",
+   "purpose": "sample",
+   "jlc_package": "0201",
+   "stock": 5914,
+   "page_fetched": "2026-11-05T20:33:27Z",
+   "category": "extended",
+   "name": "sample_C2078275",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 9,
+   "height_mm": 9,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      60.0,
+      130.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      60.0,
+      150.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      60.0,
+      140.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      60.0,
+      160.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C1883572",
+   "mpn": "RC2010JK-0727RL",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<27ohm, 5%>[R2010]",
+   "footprint": "passive::CHIP_2010",
+   "group": "CHIP_2010 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "2010",
+   "stock": 4021,
+   "page_fetched": "2026-11-06T01:03:01Z",
+   "category": "extended",
+   "name": "sample_C1883572",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 9,
+   "height_mm": 9,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      70.0,
+      130.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      70.0,
+      150.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      70.0,
+      140.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      70.0,
+      160.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C137008",
+   "mpn": "RC2512JK-07220RL",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<220ohm, 5%>[R2512]",
+   "footprint": "passive::CHIP_2512",
+   "group": "CHIP_2512 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "2512",
+   "stock": 2852,
+   "page_fetched": "2026-11-06T01:31:42Z",
+   "category": "extended",
+   "name": "sample_C137008",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 9,
+   "height_mm": 9,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      80.0,
+      130.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      80.0,
+      150.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      80.0,
+      140.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      80.0,
+      160.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C375684",
+   "mpn": "RC2010JK-07330RL",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<330ohm, 5%>[R2010]",
+   "footprint": "passive::CHIP_2010",
+   "group": "CHIP_2010 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "2010",
+   "stock": 1094,
+   "page_fetched": "2026-11-06T01:03:37Z",
+   "category": "extended",
+   "name": "sample_C375684",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 9,
+   "height_mm": 9,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      90.0,
+      130.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      90.0,
+      150.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      90.0,
+      140.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      90.0,
+      160.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C137004",
+   "mpn": "RC2512JK-072RL",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<2ohm, 5%>[R2512]",
+   "footprint": "passive::CHIP_2512",
+   "group": "CHIP_2512 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "2512",
+   "stock": 116,
+   "page_fetched": "2026-11-06T01:32:26Z",
+   "category": "extended",
+   "name": "sample_C137004",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 9,
+   "height_mm": 9,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      100.0,
+      130.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      100.0,
+      150.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      100.0,
+      140.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      100.0,
+      160.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C326815",
+   "mpn": "RC2010JK-07470KL",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<470kohm, 5%>[R2010]",
+   "footprint": "passive::CHIP_2010",
+   "group": "CHIP_2010 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "2010",
+   "stock": 856,
+   "page_fetched": "2026-11-06T01:04:32Z",
+   "category": "extended",
+   "name": "sample_C326815",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 9,
+   "height_mm": 9,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      110.0,
+      130.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      110.0,
+      150.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      110.0,
+      140.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      110.0,
+      160.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C137001",
+   "mpn": "RC2512JK-073K3L",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<3.3kohm, 5%>[R2512]",
+   "footprint": "passive::CHIP_2512",
+   "group": "CHIP_2512 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "2512",
+   "stock": 41,
+   "page_fetched": "2026-11-06T01:33:00Z",
+   "category": "extended",
+   "name": "sample_C137001",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 9,
+   "height_mm": 9,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      120.0,
+      130.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      120.0,
+      150.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      120.0,
+      140.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      120.0,
+      160.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C1883552",
+   "mpn": "RC2010JK-0756KL",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<56kohm, 5%>[R2010]",
+   "footprint": "passive::CHIP_2010",
+   "group": "CHIP_2010 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "2010",
+   "stock": 3650,
+   "page_fetched": "2026-11-06T01:05:04Z",
+   "category": "extended",
+   "name": "sample_C1883552",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 9,
+   "height_mm": 9,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      130.0,
+      130.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      130.0,
+      150.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      130.0,
+      140.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      130.0,
+      160.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C878295",
+   "mpn": "RC2512JK-074R7L",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<4.7ohm, 5%>[R2512]",
+   "footprint": "passive::CHIP_2512",
+   "group": "CHIP_2512 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "2512",
+   "stock": 2355,
+   "page_fetched": "2026-11-06T01:33:48Z",
+   "category": "extended",
+   "name": "sample_C878295",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 9,
+   "height_mm": 9,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      140.0,
+      130.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      140.0,
+      150.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      140.0,
+      140.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      140.0,
+      160.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C1883571",
+   "mpn": "RC2010JK-0768RL",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<68ohm, 5%>[R2010]",
+   "footprint": "passive::CHIP_2010",
+   "group": "CHIP_2010 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "2010",
+   "stock": 101,
+   "page_fetched": "2026-11-06T01:05:34Z",
+   "category": "extended",
+   "name": "sample_C1883571",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 9,
+   "height_mm": 9,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      150.0,
+      130.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      150.0,
+      150.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      150.0,
+      140.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      150.0,
+      160.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C878304",
+   "mpn": "RC2512JK-0762KL",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<62kohm, 5%>[R2512]",
+   "footprint": "passive::CHIP_2512",
+   "group": "CHIP_2512 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "2512",
+   "stock": 413,
+   "page_fetched": "2026-11-06T01:34:22Z",
+   "category": "extended",
+   "name": "sample_C878304",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 9,
+   "height_mm": 9,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      160.0,
+      130.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      160.0,
+      150.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      160.0,
+      140.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      160.0,
+      160.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C4311901",
+   "mpn": "RC2010JK-07910RL",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<910ohm, 5%>[R2010]",
+   "footprint": "passive::CHIP_2010",
+   "group": "CHIP_2010 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "2010",
+   "stock": 4000,
+   "page_fetched": "2026-11-06T01:06:20Z",
+   "category": "extended",
+   "name": "sample_C4311901",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 9,
+   "height_mm": 9,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      10.0,
+      170.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      10.0,
+      190.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      10.0,
+      180.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      10.0,
+      200.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C136995",
+   "mpn": "RC2512JK-0775RL",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<75ohm, 5%>[R2512]",
+   "footprint": "passive::CHIP_2512",
+   "group": "CHIP_2512 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "2512",
+   "stock": 315,
+   "page_fetched": "2026-11-06T01:34:53Z",
+   "category": "extended",
+   "name": "sample_C136995",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 9,
+   "height_mm": 9,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      20.0,
+      170.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      20.0,
+      190.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      20.0,
+      180.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      20.0,
+      200.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  }
+ ]
+}

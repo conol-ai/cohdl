@@ -31,7 +31,11 @@ class GenSot23DiodesTests(unittest.TestCase):
         self.assertEqual(text.count("pub part "), text.count("footprint: sot::SOT3P190X290X130N"))
         bound, built = bound_as_read("diode")
         self.assertEqual(bound, built)
-        self.assertEqual(bound, {("C37704", 0), ("C2500", 0)})  # Nexperia BAT54C,215 and BAV99,215 so far
+        # Every diode but 1SS226 (no stock, no reading): the BZX84C Zeners a half turn, 11 others a quarter turn.
+        self.assertEqual(len(bound), 38)
+        self.assertEqual(sorted(r for _, r in bound).count(180), 7)
+        self.assertEqual(sorted(r for _, r in bound).count(90), 11)
+        self.assertNotIn("C7502731", {pn for pn, _ in bound})
 
     def test_a_part_whose_sheet_draws_another_arrangement_is_refused(self):
         rows = copy.deepcopy(self.rows)

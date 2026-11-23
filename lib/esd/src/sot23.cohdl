@@ -153,5 +153,6 @@ pub part ESD_HJC_H5VUT2U: TVS2Steering_SOT23<5V> {
 // PSM712-LF-T7 (C32677): VRWM 12.0 V (pin1/2 positive) / 7.0 V (pin3 positive); VBR 13.3 V min / 7.5 V min @ 1 mA; VC 19.0 V @ 1 A, 30 V @ 30 A (12 V dir); 11.0 V @ 1 A, 17 V @ 34 A (7 V dir); IPP 30 A (12 V dir) / 34 A (7 V dir), 8/20us; marking 712
 #[doc("docs/sot23.evidence.md")]
 pub part ESD_PROTEK_PSM712_LF_T7: TVS2Asym_SOT23<12V, 7V> {
-    primary { mfr: "ProTek", mpn: "PSM712-LF-T7", footprint: sot::SOT3P190X290X130N }
+    primary { mfr: "ProTek", mpn: "PSM712-LF-T7", footprint: sot::SOT3P190X290X130N,
+              supplier lcsc "C32677" }
 }

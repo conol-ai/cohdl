@@ -41,8 +41,9 @@ class GenSot23Tests(unittest.TestCase):
             # Every binding is a part number a board read at pad 1, with the mapping it was read with.
             bound, built = bound_as_read(package)
             self.assertEqual(bound, built)
-        self.assertEqual((len(bound_as_read("transistor")[0]), len(bound_as_read("mosfet")[0])), (43, 29))
+        self.assertEqual((len(bound_as_read("transistor")[0]), len(bound_as_read("mosfet")[0])), (45, 29))
         self.assertIn(("C28646268", 90), bound_as_read("mosfet")[0])
+        self.assertIn(("C20069147", 90), bound_as_read("transistor")[0])
         # The committed frame table is what the readings and the map build.
         sys.path.insert(0, str(ROOT / "tools/frame_boards"))
         import sot23_frames

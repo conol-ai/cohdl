@@ -159,7 +159,7 @@ pub part Q_HJC_MMBT3904: NPN_SOT23<40V, 200mA, 200mW> {
 #[doc("docs/sot23.evidence.md")]
 pub part Q_HJC_MMBT4401: NPN_SOT23<40V, 600mA, 300mW> {
     primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MMBT4401",
-              footprint: sot::SOT3P190X290X130N }
+              footprint: sot::SOT3P190X290X130N, supplier lcsc "C7420355" }
 }
 
 // MMBT5551 (C7420357): VCEO 160V, IC 600mA, PD 300mW; marking G1; pinout p1 'Function Diagram'
@@ -315,7 +315,7 @@ pub part Q_HJC_MMBT5401: PNP_SOT23<150V, 600mA, 300mW> {
 #[doc("docs/sot23.evidence.md")]
 pub part Q_HJC_MMBTA56: PNP_SOT23<80V, 500mA, 225mW> {
     primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "MMBTA56",
-              footprint: sot::SOT3P190X290X130N }
+              footprint: sot::SOT3P190X290X130N, supplier lcsc "C20069147" rotate 90 }
 }
 
 // MMBTA92 (C20069146): VCEO 300V, IC 500mA, PD 350mW; marking 2D; pinout p1 'Function Diagram'

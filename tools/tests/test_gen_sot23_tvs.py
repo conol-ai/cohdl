@@ -28,7 +28,8 @@ class GenSot23TvsTests(unittest.TestCase):
         self.assertEqual(text.count("pub part "), text.count("footprint: sot::SOT3P190X290X130N"))
         bound, built = bound_as_read("esd")
         self.assertEqual(bound, built)
-        self.assertEqual(len(bound), 12)  # all but ProTek PSM712-LF-T7, which waits for its map row
+        self.assertEqual(len(bound), 13)
+        self.assertTrue(all(rotate == 0 for _, rotate in bound))
         self.assertIn("TVS2Asym_SOT23<12V, 7V>", text)
         self.assertNotIn('"SM712"', text)
 

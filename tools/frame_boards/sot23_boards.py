@@ -18,7 +18,14 @@ bottom 0 and 37 degrees):
 - board 18: the three Hongjiacheng part numbers boards 15 and 16 left for
   manual review (REVERIFY), whose model is drawn centred but a quarter turn
   against the land, with the candidate `rotate 90` as each row's `mapping`,
-  which `jlc_frame_board.py` writes into the supplier CPL.
+  which `jlc_frame_board.py` writes into the supplier CPL;
+- board 19: the 18 Hongjiacheng part numbers board 17 left for manual review,
+  11 drawn a quarter turn (`rotate 90`) and 7 BZX84C Zeners a half turn
+  (`rotate 180`).
+
+A re-verified part's candidate is the multiple of 90 degrees nearest the
+reading of its top copy at 0 degrees, turned back (`candidate_angle`); its
+four copies must all read that far from pad 1, or the build stops.
 
 Each row declares a local part with the library part's identity, device type
 and land (`sot::SOT3P190X290X130N`), and the C number the B1 snapshot page
@@ -53,11 +60,25 @@ BOX, PITCH, MARGIN, BLOCKS_PER_ROW = 8.0, 10.0, 10.0, 8
 NEED = 40
 BOARDS = {"preview_board_15": ("npn", "pnp"), "preview_board_16": ("nmos", "pmos"),
           "preview_board_17": ("switching", "schottky", "zener", "tvs"),
-          "preview_board_18": ("npn", "pnp", "nmos", "pmos")}
-COUNTS = {"preview_board_15": 45, "preview_board_16": 29, "preview_board_17": 51, "preview_board_18": 3}
-# Board 18 re-verifies, with a candidate mapping, the part numbers a record left for manual review.
+          "preview_board_18": ("npn", "pnp", "nmos", "pmos"),
+          "preview_board_19": ("switching", "schottky", "zener", "tvs")}
+COUNTS = {"preview_board_15": 45, "preview_board_16": 29, "preview_board_17": 51, "preview_board_18": 3,
+          "preview_board_19": 18}
+# Boards 18 and 19 re-verify, with a candidate mapping, the part numbers these records left for manual review.
 PREVIEWS = ROOT / "tools/sourcing_data/jlc_previews"
-REVERIFY = {"preview_board_18": (("2026-11-23-board-15", "2026-11-23-board-16"), 90)}
+REVERIFY = {"preview_board_18": ("2026-11-23-board-15", "2026-11-23-board-16"),
+            "preview_board_19": ("2026-11-23-board-17",)}
+TURN_TOLERANCE = 25  # degrees: each copy's reading off the candidate's quarter turns
+
+
+def candidate_angle(deltas):
+    """The rotation that turns the model back onto pad 1: the multiple of 90 degrees nearest the
+    top copy at 0 degrees, negated. A top copy reads the turn counter-clockwise seen from the top and a
+    bottom copy its mirror, so every copy must read that turn within TURN_TOLERANCE."""
+    turn = round(deltas[0] / 90) * 90
+    if turn % 360 == 0 or any(abs(abs(d) - abs(turn)) > TURN_TOLERANCE for d in deltas):
+        raise SystemExit(f"readings {deltas} are not one quarter or half turn")
+    return -turn % 360
 # Library parts whose snapshot page reads fewer than NEED in stock: left out, and named here so a
 # changed snapshot cannot silently drop or add one.
 LEFT_OUT = {"C7502731": 0}
@@ -78,7 +99,7 @@ def build(board):
         raise SystemExit(f"{FOOTPRINT}: the land does not fit its {BOX} mm box at every angle")
     aliases = json.loads(ALIASES.read_text(encoding="utf-8"))["aliases"]
     pages = {r["c"]: r for r in json.loads(CATALOG.read_text(encoding="utf-8"))}
-    diodes = board == "preview_board_17"
+    diodes = board in ("preview_board_17", "preview_board_19")
     gens = [gen_sot23_diodes, gen_sot23_tvs] if diodes else [gen_sot23]
     data = []
     for gen in gens:
@@ -87,11 +108,11 @@ def build(board):
     chosen = sorted((r for r in data if r["kind"] in BOARDS[board]), key=lambda r: (r["kind"], r["c"]))
     candidate = {}
     if board in REVERIFY:
-        records, _ = REVERIFY[board]
-        for record in records:
+        for record in REVERIFY[board]:
             for part in json.loads((PREVIEWS / record / "readings.json").read_text(encoding="utf-8"))["parts"]:
                 if part["reading"] != "pin 1 at pad 1":
-                    candidate[part["pn"]] = str((PREVIEWS / record / "README.md").relative_to(ROOT))
+                    candidate[part["pn"]] = (str((PREVIEWS / record / "README.md").relative_to(ROOT)),
+                                             candidate_angle(part["deltas_ccw_from_top"]))
         chosen = [r for r in chosen if r["c"] in candidate]
     short = {r["c"]: pages[r["c"]]["stock"] for r in chosen if pages[r["c"]]["stock"] < NEED}
     if any(LEFT_OUT.get(c) != s for c, s in short.items()):
@@ -127,11 +148,12 @@ def build(board):
                      "jlc_package": page["package"], "category": page["category"], "stock": page["stock"],
                      "page_fetched": "2026-10-30"})
         if part["c"] in candidate:
-            angle = REVERIFY[board][1]
+            record, angle = candidate[part["c"]]
             rows[-1]["mapping"] = {"dx_mm": 0, "dy_mm": 0, "rotate_deg": angle}
-            rows[-1]["candidate"] = {"rotate_deg": angle, "record": candidate[part["c"]]}
-            rows[-1]["note"] = ("Candidate supplier rotation %d for re-verification; not a binding. Model drawn centred "
-                                "but a quarter turn against the land on all four copies in the candidate's record" % angle)
+            rows[-1]["candidate"] = {"rotate_deg": angle, "record": record}
+            rows[-1]["note"] = ("Candidate supplier rotation %d for re-verification; not a binding. Model drawn %s "
+                                "against the land on all four copies in the candidate's record"
+                                % (angle, "a half turn" if angle == 180 else "centred but a quarter turn"))
     return {"name": board, "dependencies": dict(sorted(deps.items())), "rows": rows}
 
 

@@ -64,15 +64,29 @@ class GenSot23Tests(unittest.TestCase):
             for row in built["rows"]:
                 self.assertEqual(len(row["placements"]), 4)
                 if board in sot23_boards.REVERIFY:
-                    # Board 18 places again, with the candidate, what boards 15 and 16 left for manual review.
-                    self.assertEqual((row["mapping"], row["candidate"]["rotate_deg"]),
-                                     ({"dx_mm": 0, "dy_mm": 0, "rotate_deg": 90}, 90))
+                    # Boards 18 and 19 place again, with the candidate, what boards 15 to 17 left for manual review.
+                    angle = row["candidate"]["rotate_deg"]
+                    self.assertIn(angle, (90, 180))
+                    self.assertEqual(row["mapping"], {"dx_mm": 0, "dy_mm": 0, "rotate_deg": angle})
                     self.assertEqual(row["mfr"], "Zhuhai Hongjiacheng Technology")
                     continue
                 self.assertNotIn("mapping", row)
                 seen.append(row["pn"])
-        self.assertEqual([r["pn"] for r in sot23_boards.build("preview_board_18")["rows"]],
-                         ["C28646268", "C28646269", "C20069147"])
+        self.assertEqual([(r["pn"], r["mapping"]["rotate_deg"]) for r in sot23_boards.build("preview_board_18")["rows"]],
+                         [("C28646268", 90), ("C28646269", 90), ("C20069147", 90)])
+        # Board 19: the 7 BZX84C Zeners a half turn, the other 11 diodes a quarter turn.
+        board_19 = {r["pn"]: (r["mpn"], r["mapping"]["rotate_deg"]) for r in sot23_boards.build("preview_board_19")["rows"]}
+        self.assertEqual(sorted(pn for pn, (mpn, angle) in board_19.items() if angle == 180),
+                         ["C19077467", "C19077468", "C19077469", "C19077470", "C19077471", "C19077472", "C19077473"])
+        self.assertTrue(all(mpn.startswith("BZX84C") == (angle == 180) for mpn, angle in board_19.values()))
+        self.assertEqual(len(board_19), 18)
+        # A reading that is no clean turn stops the build.
+        self.assertEqual(sot23_boards.candidate_angle([-81.5, -80.9, 80.5, 80.5]), 90)
+        self.assertEqual(sot23_boards.candidate_angle([-163.5, -163.8, 163.6, 162.9]), 180)
+        with self.assertRaises(SystemExit):
+            sot23_boards.candidate_angle([-81.5, -40.0, 80.5, 80.5])
+        with self.assertRaises(SystemExit):
+            sot23_boards.candidate_angle([7.0, 8.0, 5.0, 6.0])
         import gen_sot23_diodes
         diodes = json.loads(gen_sot23_diodes.DATA.read_text(encoding="utf-8"))["parts"]
         import gen_sot23_tvs

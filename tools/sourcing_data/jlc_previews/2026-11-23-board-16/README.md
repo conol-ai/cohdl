@@ -54,7 +54,7 @@ cmp "$D/measurements.json" /tmp/board16-measurements.json
 
 ## Manual review and limits
 
-C28646268 (Zhuhai Hongjiacheng HL2302, Q37–Q40) and C28646269 (Zhuhai Hongjiacheng HL3407A, Q93–Q96) are drawn on every copy, but their model does not sit on our land the way the others do. The archived pixels show the same model as board 15's C20069147, also Hongjiacheng: its leads are turned a quarter turn against our pads, its body is off our origin, and its pin 1 mark is about 2 mm from our pad 1 (near −80 degrees on the top, 81 on the bottom). Neither is read as passed or as a mapping. The three part numbers need one mapping candidate, checked on a later preview.
+C28646268 (Zhuhai Hongjiacheng HL2302, Q37–Q40) and C28646269 (Zhuhai Hongjiacheng HL3407A, Q93–Q96) are drawn on every copy, but their model does not sit on our land the way the others do. The archived pixels show the same model as board 15's C20069147, also Hongjiacheng: its body is centred on our origin but turned a quarter turn, its leads above and below the land, and its pin 1 mark is about 2 mm from our pad 1 (near −80 degrees on the top, 81 on the bottom). Neither is read as passed or as a mapping. Board 15's record gives the candidate for all three part numbers, `rotate 90`, to be checked on a later preview.
 
 ## Bindings
 

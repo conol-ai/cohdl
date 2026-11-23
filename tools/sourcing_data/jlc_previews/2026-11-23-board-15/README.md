@@ -70,7 +70,7 @@ cmp "$D/measurements.json" /tmp/board15-measurements.json
 
 ## Manual review and limits
 
-C20069147 (Zhuhai Hongjiacheng MMBTA56, Q101–Q104) is drawn on every copy, but its model does not sit on our land the way the others do: the archived pixels show its leads turned a quarter turn against our pads and its body off our origin, with its pin 1 mark about 2 mm from our pad 1 (−81.5 and −80.9 degrees on the top, 80.5 on the bottom). It is not read as passed or as a mapping: it needs a mapping candidate of its own, checked on a later preview.
+C20069147 (Zhuhai Hongjiacheng MMBTA56, Q101–Q104) is drawn on every copy, but its model does not sit on our land the way the others do: the archived pixels show its body centred on our origin (the drawn body's box is centred within 0.03 mm of it) but turned a quarter turn, its leads above and below the land instead of beside it, and its pin 1 mark about 2 mm from our pad 1 (−81.5 and −80.9 degrees on the top, 80.5 on the bottom). Its model's pin 1 lead is at the lower left, its pin 3 lead at the top: turned 90 degrees counter-clockwise (seen from the top) about the origin, each lead falls on our pad of the same number. That is a candidate mapping, `rotate 90`, not a reading: it is checked on a later preview before any binding.
 
 ## Bindings
 

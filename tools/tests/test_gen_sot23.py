@@ -63,8 +63,16 @@ class GenSot23Tests(unittest.TestCase):
             self.assertEqual(json.loads(path.read_text(encoding="utf-8")), built)
             for row in built["rows"]:
                 self.assertEqual(len(row["placements"]), 4)
+                if board in sot23_boards.REVERIFY:
+                    # Board 18 places again, with the candidate, what boards 15 and 16 left for manual review.
+                    self.assertEqual((row["mapping"], row["candidate"]["rotate_deg"]),
+                                     ({"dx_mm": 0, "dy_mm": 0, "rotate_deg": 90}, 90))
+                    self.assertEqual(row["mfr"], "Zhuhai Hongjiacheng Technology")
+                    continue
                 self.assertNotIn("mapping", row)
                 seen.append(row["pn"])
+        self.assertEqual([r["pn"] for r in sot23_boards.build("preview_board_18")["rows"]],
+                         ["C28646268", "C28646269", "C20069147"])
         import gen_sot23_diodes
         diodes = json.loads(gen_sot23_diodes.DATA.read_text(encoding="utf-8"))["parts"]
         import gen_sot23_tvs

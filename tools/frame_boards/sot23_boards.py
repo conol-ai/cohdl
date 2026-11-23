@@ -14,7 +14,11 @@ bottom 0 and 37 degrees):
 - board 16: the 29 MOSFETs (mosfet::NMOS_SOT23, PMOS_SOT23);
 - board 17: the 39 diodes (diode::*_SOT23: single, paired and Zener) but
   1SS226 (C7502731), whose page reads none in stock (LEFT_OUT), and the 13
-  two-line TVS arrays (esd::TVS2*_SOT23).
+  two-line TVS arrays (esd::TVS2*_SOT23);
+- board 18: the three Hongjiacheng part numbers boards 15 and 16 left for
+  manual review (REVERIFY), whose model is drawn centred but a quarter turn
+  against the land, with the candidate `rotate 90` as each row's `mapping`,
+  which `jlc_frame_board.py` writes into the supplier CPL.
 
 Each row declares a local part with the library part's identity, device type
 and land (`sot::SOT3P190X290X130N`), and the C number the B1 snapshot page
@@ -48,8 +52,12 @@ FOUR = (("top", 0), ("top", 37), ("bottom", 0), ("bottom", 37))
 BOX, PITCH, MARGIN, BLOCKS_PER_ROW = 8.0, 10.0, 10.0, 8
 NEED = 40
 BOARDS = {"preview_board_15": ("npn", "pnp"), "preview_board_16": ("nmos", "pmos"),
-          "preview_board_17": ("switching", "schottky", "zener", "tvs")}
-COUNTS = {"preview_board_15": 45, "preview_board_16": 29, "preview_board_17": 51}
+          "preview_board_17": ("switching", "schottky", "zener", "tvs"),
+          "preview_board_18": ("npn", "pnp", "nmos", "pmos")}
+COUNTS = {"preview_board_15": 45, "preview_board_16": 29, "preview_board_17": 51, "preview_board_18": 3}
+# Board 18 re-verifies, with a candidate mapping, the part numbers a record left for manual review.
+PREVIEWS = ROOT / "tools/sourcing_data/jlc_previews"
+REVERIFY = {"preview_board_18": (("2026-11-23-board-15", "2026-11-23-board-16"), 90)}
 # Library parts whose snapshot page reads fewer than NEED in stock: left out, and named here so a
 # changed snapshot cannot silently drop or add one.
 LEFT_OUT = {"C7502731": 0}
@@ -77,6 +85,14 @@ def build(board):
         for r in json.loads(gen.DATA.read_text(encoding="utf-8"))["parts"]:
             data.append(dict(r, kind=r.get("kind", "tvs"), gen=gen))
     chosen = sorted((r for r in data if r["kind"] in BOARDS[board]), key=lambda r: (r["kind"], r["c"]))
+    candidate = {}
+    if board in REVERIFY:
+        records, _ = REVERIFY[board]
+        for record in records:
+            for part in json.loads((PREVIEWS / record / "readings.json").read_text(encoding="utf-8"))["parts"]:
+                if part["reading"] != "pin 1 at pad 1":
+                    candidate[part["pn"]] = str((PREVIEWS / record / "README.md").relative_to(ROOT))
+        chosen = [r for r in chosen if r["c"] in candidate]
     short = {r["c"]: pages[r["c"]]["stock"] for r in chosen if pages[r["c"]]["stock"] < NEED}
     if any(LEFT_OUT.get(c) != s for c, s in short.items()):
         raise SystemExit(f"{board}: part numbers short of {NEED} in stock differ from LEFT_OUT: {short}")
@@ -110,6 +126,12 @@ def build(board):
                              "B1 snapshot page (manufacturer %r, a reviewed alias)" % page["mfr"],
                      "jlc_package": page["package"], "category": page["category"], "stock": page["stock"],
                      "page_fetched": "2026-10-30"})
+        if part["c"] in candidate:
+            angle = REVERIFY[board][1]
+            rows[-1]["mapping"] = {"dx_mm": 0, "dy_mm": 0, "rotate_deg": angle}
+            rows[-1]["candidate"] = {"rotate_deg": angle, "record": candidate[part["c"]]}
+            rows[-1]["note"] = ("Candidate supplier rotation %d for re-verification; not a binding. Model drawn centred "
+                                "but a quarter turn against the land on all four copies in the candidate's record" % angle)
     return {"name": board, "dependencies": dict(sorted(deps.items())), "rows": rows}
 
 

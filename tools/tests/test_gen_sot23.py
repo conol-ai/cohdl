@@ -67,9 +67,11 @@ class GenSot23Tests(unittest.TestCase):
                 seen.append(row["pn"])
         import gen_sot23_diodes
         diodes = json.loads(gen_sot23_diodes.DATA.read_text(encoding="utf-8"))["parts"]
-        expected = [r["c"] for r in self.data["parts"] + diodes if r["c"] not in sot23_boards.LEFT_OUT]
+        import gen_sot23_tvs
+        tvs = json.loads(gen_sot23_tvs.DATA.read_text(encoding="utf-8"))["parts"]
+        expected = [r["c"] for r in self.data["parts"] + diodes + tvs if r["c"] not in sot23_boards.LEFT_OUT]
         self.assertEqual(sorted(seen), sorted(expected))
-        self.assertEqual(len(seen), 112)
+        self.assertEqual(len(seen), 125)
 
 
 if __name__ == "__main__":

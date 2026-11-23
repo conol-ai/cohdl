@@ -1,0 +1,397 @@
+{
+ "schema_version": 1,
+ "note": "Transcription of the manufacturer datasheets of the SOT-23 two-line TVS arrays in the B1 snapshot (jlc_catalog/2026-10-30), fetched 2026-11-23 through each snapshot page's LCSC datasheet link and read from the rendered pin diagram and internal circuit. Every part puts its two protected lines on pins 1 and 2 and its common terminal on pin 3. The PDFs are not committed, their SHA-256 is. Left out: SM712 (C7420375, Hongjiacheng), whose sheet draws the 7 V and 12 V directions opposite to ProTek's PSM712 and whose table headers read either way.",
+ "parts": [
+  {
+   "c": "C32677",
+   "mfr": "ProTek",
+   "mpn": "PSM712-LF-T7",
+   "config": "asymmetric",
+   "circuit": "per line two avalanche diodes in series, anodes joined internally: 12 V diode cathode on IO (pin1/pin2), 7 V diode cathode on pin3. Asymmetric: IO positive vs pin3 -> 12 V; pin3 positive -> 7 V (Note 1)",
+   "pins": {
+    "1": "IO1",
+    "2": "IO2",
+    "3": "GND"
+   },
+   "ratings": {
+    "VRWM": "12.0 V (pin1/2 positive) / 7.0 V (pin3 positive)",
+    "VBR": "13.3 V min / 7.5 V min @ 1 mA",
+    "VC": "19.0 V @ 1 A, 30 V @ 30 A (12 V dir); 11.0 V @ 1 A, 17 V @ 34 A (7 V dir)",
+    "IPP": "30 A (12 V dir) / 34 A (7 V dir), 8/20us",
+    "PPP": "600 W per line",
+    "CJ": "75 pF typ",
+    "vrwm_v": "12.0",
+    "vrwm_reverse_v": "7.0"
+   },
+   "marking": "712",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/c2ed56a8cad54293a14003751ad8d348.pdf?productCode=C32677",
+    "sha256": "a3a92d04a81e2da531b9b41e0cccef41b9e3797f970d1869f2db96148f4ab233",
+    "bytes": 477400,
+    "fetched": "2026-11-23T06:36:53Z",
+    "pinout": "p1 'PIN CONFIGURATION'; p2 'Electrical Characteristics per line' + Note 1; p4 'Figure 1 Spice Model' (labels 12/7 diodes)"
+   },
+   "notes": "Package outline page note 'Pin 3 is the cathode (Unidirectional Only)' is a generic package note, not applicable. Polarity is the OPPOSITE of the Hongjiacheng SM712 (C7420375) datasheet."
+  },
+  {
+   "c": "C20617927",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "H12VNT2B",
+   "config": "bidirectional",
+   "circuit": "two bidirectional TVS (back-to-back avalanche diodes): pin1<->pin3 and pin2<->pin3; pin 3 common",
+   "pins": {
+    "1": "IO1",
+    "2": "IO2",
+    "3": "GND"
+   },
+   "ratings": {
+    "VRWM": "12 V",
+    "VBR": "13.3-16.5 V @ 1 mA",
+    "VC": "16 V typ @ 1 A; 26 V typ @ 19 A",
+    "IPP": "19 A (8/20us)",
+    "PPP": "1260 W",
+    "CJ": "60 pF max",
+    "vrwm_v": "12"
+   },
+   "marking": "AB2",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/782530295b8aea43a20bc50e8a7d5c85.pdf?productCode=C20617927",
+    "sha256": "c7ab0d4e9f016734c13d1b2345e9fe23e5727875b70c3b2992e24ec7ac8c4ee8",
+    "bytes": 213077,
+    "fetched": "2026-11-23T06:33:54Z",
+    "pinout": "p1 'Function Diagram' (SOT-23 outline with pin numbers + schematic 1/2 -> 3); p2 'Electrical Characteristics'"
+   },
+   "notes": "Datasheet title 'Bi-directional'; array of 2 lines to common pin 3."
+  },
+  {
+   "c": "C20617928",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "H15VNT2B",
+   "config": "bidirectional",
+   "circuit": "two bidirectional TVS (back-to-back avalanche diodes): pin1<->pin3 and pin2<->pin3; pin 3 common",
+   "pins": {
+    "1": "IO1",
+    "2": "IO2",
+    "3": "GND"
+   },
+   "ratings": {
+    "VRWM": "15 V",
+    "VBR": "16-19 V @ 1 mA",
+    "VC": "24 V max @ 1 A; 38.5 V max @ 8 A",
+    "IPP": "8.0 A (8/20us)",
+    "PPP": "300 W",
+    "CJ": "25 pF max",
+    "vrwm_v": "15"
+   },
+   "marking": "BB2",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/cd6ff7859e1cee0c1d47851a9f9429a0.pdf?productCode=C20617928",
+    "sha256": "80be47b068766868f54bb8b99f3bbcd0c5a7ab975c0c1eb1016c22f68ce248d5",
+    "bytes": 213434,
+    "fetched": "2026-11-23T06:34:00Z",
+    "pinout": "p1 'Function Diagram' (SOT-23 outline with pin numbers + schematic 1/2 -> 3); p2 'Electrical Characteristics'"
+   },
+   "notes": "Datasheet title 'Bi-directional'; array of 2 lines to common pin 3."
+  },
+  {
+   "c": "C20615827",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "H24VNT2B",
+   "config": "bidirectional",
+   "circuit": "two bidirectional TVS (back-to-back avalanche diodes): pin1<->pin3 and pin2<->pin3; pin 3 common",
+   "pins": {
+    "1": "IO1",
+    "2": "IO2",
+    "3": "GND"
+   },
+   "ratings": {
+    "VRWM": "24 V",
+    "VBR": "26.7-30 V @ 1 mA",
+    "VC": "35 V max @ 1 A; 55 V max @ 7 A",
+    "IPP": "7.0 A (8/20us)",
+    "PPP": "385 W",
+    "CJ": "36 pF max",
+    "vrwm_v": "24"
+   },
+   "marking": "CB2",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/8dfe30427c3f67b179a02f49cd4e7561.pdf?productCode=C20615827",
+    "sha256": "465fa0611b3ed01236fd754c7ebe81dc0c39fd12786e7136b9ff7ee9a9f685c5",
+    "bytes": 215025,
+    "fetched": "2026-11-23T06:34:03Z",
+    "pinout": "p1 'Function Diagram' (SOT-23 outline with pin numbers + schematic 1/2 -> 3); p2 'Electrical Characteristics'"
+   },
+   "notes": "Datasheet title 'Bi-directional'; array of 2 lines to common pin 3."
+  },
+  {
+   "c": "C20615828",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "H36VLT2B",
+   "config": "bidirectional",
+   "circuit": "two bidirectional TVS (back-to-back avalanche diodes): pin1<->pin3 and pin2<->pin3; pin 3 common",
+   "pins": {
+    "1": "IO1",
+    "2": "IO2",
+    "3": "GND"
+   },
+   "ratings": {
+    "VRWM": "36 V",
+    "VBR": "40-45 V @ 1 mA",
+    "VC": "60 V max @ 1 A; 75 V max @ 4 A",
+    "IPP": "4.0 A (8/20us)",
+    "PPP": "300 W",
+    "CJ": "18 pF max",
+    "vrwm_v": "36"
+   },
+   "marking": "DB2",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/d453d744662062e939cf74ab27b237bb.pdf?productCode=C20615828",
+    "sha256": "05b1ad0068c2b3345556f82c284428467aa7d700fa23713f9f729e4b2fcfd58a",
+    "bytes": 214475,
+    "fetched": "2026-11-23T06:34:05Z",
+    "pinout": "p1 'Function Diagram' (SOT-23 outline with pin numbers + schematic 1/2 -> 3); p2 'Electrical Characteristics'"
+   },
+   "notes": "Datasheet title 'Bi-directional'; array of 2 lines to common pin 3."
+  },
+  {
+   "c": "C20617923",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "H3V3HT2B",
+   "config": "bidirectional",
+   "circuit": "two bidirectional TVS (back-to-back avalanche diodes): pin1<->pin3 and pin2<->pin3; pin 3 common",
+   "pins": {
+    "1": "IO1",
+    "2": "IO2",
+    "3": "GND"
+   },
+   "ratings": {
+    "VRWM": "3.3 V",
+    "VBR": "5.0-7.0 V @ 1 mA",
+    "VC": "8.0 V max @ 1 A; 15 V max @ 25 A",
+    "IPP": "25 A (8/20us)",
+    "PPP": "350 W",
+    "CJ": "100 pF max",
+    "vrwm_v": "3.3"
+   },
+   "marking": "3B2",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/ab267ac817b9933a457ae58c56c6e72f.pdf?productCode=C20617923",
+    "sha256": "8f715bf95f56b46894bc74454749e1165eab535e662b36a89489e31418619e39",
+    "bytes": 213766,
+    "fetched": "2026-11-23T06:34:09Z",
+    "pinout": "p1 'Function Diagram' (SOT-23 outline with pin numbers + schematic 1/2 -> 3); p2 'Electrical Characteristics'"
+   },
+   "notes": "Datasheet title 'Bi-directional'; array of 2 lines to common pin 3."
+  },
+  {
+   "c": "C20617926",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "H5VHT2B",
+   "config": "bidirectional",
+   "circuit": "two bidirectional TVS (back-to-back avalanche diodes): pin1<->pin3 and pin2<->pin3; pin 3 common",
+   "pins": {
+    "1": "IO1",
+    "2": "IO2",
+    "3": "GND"
+   },
+   "ratings": {
+    "VRWM": "5.0 V",
+    "VBR": "6.0-8.0 V @ 1 mA",
+    "VC": "9.8 V max @ 1 A; 16.7 V max @ 25 A",
+    "IPP": "25 A (8/20us)",
+    "PPP": "415 W",
+    "CJ": "185 pF max",
+    "vrwm_v": "5.0"
+   },
+   "marking": "5B2",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/bb8119aba78404f64e7cb402e5a4c781.pdf?productCode=C20617926",
+    "sha256": "4adc8b71e6e9ca043793c48911d4eae66f5e021f7ac18fab529a43c83e304882",
+    "bytes": 213935,
+    "fetched": "2026-11-23T06:34:13Z",
+    "pinout": "p1 'Function Diagram' (SOT-23 outline with pin numbers + schematic 1/2 -> 3); p2 'Electrical Characteristics'"
+   },
+   "notes": "Datasheet title 'Bi-directional'; array of 2 lines to common pin 3."
+  },
+  {
+   "c": "C20617925",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "H5VNT2B",
+   "config": "bidirectional",
+   "circuit": "two bidirectional TVS (back-to-back avalanche diodes): pin1<->pin3 and pin2<->pin3; pin 3 common",
+   "pins": {
+    "1": "IO1",
+    "2": "IO2",
+    "3": "GND"
+   },
+   "ratings": {
+    "VRWM": "5.0 V",
+    "VBR": "5.6-8.0 V @ 1 mA",
+    "VC": "8.5 V max @ 1 A; 12 V max @ 8 A",
+    "IPP": "8.0 A (8/20us)",
+    "PPP": "95 W",
+    "CJ": "20 pF max",
+    "vrwm_v": "5.0"
+   },
+   "marking": "L5A",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/37d2a9d848541e87687d0514d00112dd.pdf?productCode=C20617925",
+    "sha256": "85217be9e069d2ec8c5bb83c5e15cf2ffb208f0b78a49734a22bade87ec1a8cb",
+    "bytes": 213749,
+    "fetched": "2026-11-23T06:34:19Z",
+    "pinout": "p1 'Function Diagram' (SOT-23 outline with pin numbers + schematic 1/2 -> 3); p2 'Electrical Characteristics'"
+   },
+   "notes": "Datasheet title 'Bi-directional'; array of 2 lines to common pin 3. Marking L5A breaks the xB2 pattern of the sibling bidirectional parts."
+  },
+  {
+   "c": "C20615825",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "H8VNT2B",
+   "config": "bidirectional",
+   "circuit": "two bidirectional TVS (back-to-back avalanche diodes): pin1<->pin3 and pin2<->pin3; pin 3 common",
+   "pins": {
+    "1": "IO1",
+    "2": "IO2",
+    "3": "GND"
+   },
+   "ratings": {
+    "VRWM": "8.0 V",
+    "VBR": "9.0-12 V @ 1 mA",
+    "VC": "10.5 V typ @ 1 A; 25 V max @ 20 A",
+    "IPP": "20 A (8/20us)",
+    "PPP": "500 W",
+    "CJ": "60 pF max",
+    "vrwm_v": "8.0"
+   },
+   "marking": "C08",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/b8ba50525290946008791386fce02992.pdf?productCode=C20615825",
+    "sha256": "a7c454c2b8e5ec7173ac2511d4206b6cfd60b98d1b878b9bb5f06527f372ee4d",
+    "bytes": 214668,
+    "fetched": "2026-11-23T06:34:25Z",
+    "pinout": "p1 'Function Diagram' (SOT-23 outline with pin numbers + schematic 1/2 -> 3); p2 'Electrical Characteristics'"
+   },
+   "notes": "Datasheet title 'Bi-directional'; array of 2 lines to common pin 3."
+  },
+  {
+   "c": "C20615824",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "H5VUT2U",
+   "config": "steering",
+   "circuit": "low-capacitance steering array: each IO has an up-diode (anode IO, cathode internal rail) and a down-diode (anode pin3, cathode IO); a zener from internal rail (cathode) to pin3 (anode). Pin 3 = GND (common)",
+   "pins": {
+    "1": "IO1",
+    "2": "IO2",
+    "3": "GND"
+   },
+   "ratings": {
+    "VRWM": "5.0 V",
+    "VBR": "6.0-9.0 V @ 1 mA",
+    "VC": "9.0 V max @ 1 A; 16 V max @ 5 A (pin1/2 to pin3)",
+    "IPP": "5.0 A (8/20us)",
+    "PPP": "80 W",
+    "CJ": "0.6 typ/0.8 max pF IO-GND; 0.3/0.4 pF IO-IO",
+    "vrwm_v": "5.0"
+   },
+   "marking": "5MU",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/aabad0bed5223b3b65d680a4f1cee20e.pdf?productCode=C20615824",
+    "sha256": "744d1c9d557a322c41f342445da1b3eaab7e01bdea2765dc2c62711e1d43f43b",
+    "bytes": 218561,
+    "fetched": "2026-11-23T06:34:23Z",
+    "pinout": "p1 'Function Diagram' (SOT-23 outline + internal diagram with pins 1,2,3); p2 'Electrical Characteristics'"
+   },
+   "notes": "Titled 'Uni-directional 5V Ultra Small Capacitance ESD' but internally a rail-clamp steering-diode array, not a plain zener pair; differs from the H..T2U siblings."
+  },
+  {
+   "c": "C20615826",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "H12VNT2U",
+   "config": "unidirectional",
+   "circuit": "two unidirectional TVS: cathodes on pin1 and pin2, both anodes on pin3 (common anode)",
+   "pins": {
+    "1": "IO1",
+    "2": "IO2",
+    "3": "GND"
+   },
+   "ratings": {
+    "VRWM": "12 V",
+    "VBR": "13.3-16 V @ 1 mA",
+    "VC": "18 V max @ 1 A; 27.6 V max @ 16 A",
+    "IPP": "16 A (8/20us)",
+    "PPP": "430 W",
+    "CJ": "60 pF typ / 90 max (pin1 to pin2)",
+    "vrwm_v": "12"
+   },
+   "marking": "AM2",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/1f28b8e305d16e2766352980af97739c.pdf?productCode=C20615826",
+    "sha256": "c6eca093486c25314da16f4643da96e6c0f8195099004fa187380364cda8128b",
+    "bytes": 286335,
+    "fetched": "2026-11-23T06:33:57Z",
+    "pinout": "p1 'Function Diagram' (SOT-23 outline with pin numbers + schematic 2/1 -> 3); p2 'Electrical Characteristics'"
+   },
+   "notes": "Datasheet title 'Uni-directional'; array of 2 lines, common anode pin 3."
+  },
+  {
+   "c": "C20617924",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "H3V3HT2U",
+   "config": "unidirectional",
+   "circuit": "two unidirectional TVS: cathodes on pin1 and pin2, both anodes on pin3 (common anode)",
+   "pins": {
+    "1": "IO1",
+    "2": "IO2",
+    "3": "GND"
+   },
+   "ratings": {
+    "VRWM": "3.3 V",
+    "VBR": "5.0-7.0 V @ 1 mA",
+    "VC": "8.0 V max @ 1 A; 14 V max @ 25 A",
+    "IPP": "25 A (8/20us)",
+    "PPP": "280 W",
+    "CJ": "200 pF max",
+    "vrwm_v": "3.3"
+   },
+   "marking": "3M2",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/ae8f664bee6824227de9cf75fcf8c0dd.pdf?productCode=C20617924",
+    "sha256": "4855137488d28fb451e6bedf6d103bb760cf56b3037c12a993fc5599e210af6c",
+    "bytes": 214787,
+    "fetched": "2026-11-23T06:34:11Z",
+    "pinout": "p1 'Function Diagram' (SOT-23 outline with pin numbers + schematic 2/1 -> 3); p2 'Electrical Characteristics'"
+   },
+   "notes": "Datasheet title 'Uni-directional'; array of 2 lines, common anode pin 3."
+  },
+  {
+   "c": "C20615823",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "H5VHT2U",
+   "config": "unidirectional",
+   "circuit": "two unidirectional TVS: cathodes on pin1 and pin2, both anodes on pin3 (common anode)",
+   "pins": {
+    "1": "IO1",
+    "2": "IO2",
+    "3": "GND"
+   },
+   "ratings": {
+    "VRWM": "5.0 V",
+    "VBR": "6.0-9.0 V @ 1 mA",
+    "VC": "7.0 V max @ 1 A; 14 V max @ 25 A",
+    "IPP": "25 A (8/20us)",
+    "PPP": "350 W",
+    "CJ": "180 pF max",
+    "vrwm_v": "5.0"
+   },
+   "marking": "5M2",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/606181626551cdc1ecb671e8fff24e2d.pdf?productCode=C20615823",
+    "sha256": "4ae3e814732e53af13884ecbe35bf46017cf336c96581122f498a1c7646bd3e0",
+    "bytes": 216455,
+    "fetched": "2026-11-23T06:34:16Z",
+    "pinout": "p1 'Function Diagram' (SOT-23 outline with pin numbers + schematic 2/1 -> 3); p2 'Electrical Characteristics'"
+   },
+   "notes": "Datasheet title 'Uni-directional'; array of 2 lines, common anode pin 3. Datasheet inconsistency: VC max 7.0 V @ 1 A is below VBR max 9.0 V."
+  }
+ ]
+}

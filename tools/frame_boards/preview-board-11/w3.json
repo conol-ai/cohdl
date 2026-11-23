@@ -1,0 +1,17 @@
+{
+ "schema_version": 1,
+ "note": "What tools/w3_groups.py and preview_board_11.py read from this board before it has a preview record. The package 1c047d9e stopped at the assembler's BOM step on 2026-11-23: 68 of 79 part numbers confirmed, these not selected, with a shortage warning (40 needed per part number). No placement preview was taken, so there is no record under tools/sourcing_data/jlc_previews/ and nothing here is a reading. When a preview of this board is recorded, this list moves into that record's w3.json and this file is removed.",
+ "short_at_preview": {
+  "C14664": "2026-11-23 preview-board-11 package 1c047d9e (page read 72047; BOM step: 12 in stock, 40 needed)",
+  "C137225": "2026-11-23 preview-board-11 package 1c047d9e (page read 36; BOM step: 36 in stock, 40 needed)",
+  "C137677": "2026-11-23 preview-board-11 package 1c047d9e (page read 909; BOM step: 0 in stock, 40 needed)",
+  "C137778": "2026-11-23 preview-board-11 package 1c047d9e (page read 1718; BOM step: 18 in stock, 40 needed)",
+  "C163408": "2026-11-23 preview-board-11 package 1c047d9e (page read 131; BOM step: 5 in stock, 40 needed)",
+  "C185340": "2026-11-23 preview-board-11 package 1c047d9e (page read 93; BOM step: 18 in stock, 40 needed)",
+  "C273747": "2026-11-23 preview-board-11 package 1c047d9e (page read 43; BOM step: 13 in stock, 40 needed)",
+  "C273977": "2026-11-23 preview-board-11 package 1c047d9e (page read 41; BOM step: 1 in stock, 40 needed)",
+  "C483098": "2026-11-23 preview-board-11 package 1c047d9e (page read 37; BOM step: 37 in stock, 40 needed)",
+  "C483138": "2026-11-23 preview-board-11 package 1c047d9e (page read 38; BOM step: 38 in stock, 40 needed)",
+  "C488917": "2026-11-23 preview-board-11 package 1c047d9e (page read 35; BOM step: 35 in stock, 40 needed)"
+ }
+}

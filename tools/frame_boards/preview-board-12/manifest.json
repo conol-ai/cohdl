@@ -1436,18 +1436,18 @@
    ]
   },
   {
-   "pn": "C137563",
-   "mpn": "RC0805FR-07249KL",
+   "pn": "C295889",
+   "mpn": "RC0805FR-07243RL",
    "mfr": "Yageo",
-   "part": "passive::ChipResistor<249kohm, 1%>[R0805]",
+   "part": "passive::ChipResistor<243ohm, 1%>[R0805]",
    "footprint": "passive::CHIP_0805",
    "group": "CHIP_0805 ChipResistor Yageo RC",
    "purpose": "sample",
    "jlc_package": "0805",
-   "stock": 2097,
-   "page_fetched": "2026-11-05T23:13:02Z",
+   "stock": 2744,
+   "page_fetched": "2026-11-05T23:13:00Z",
    "category": "extended",
-   "name": "sample_C137563",
+   "name": "sample_C295889",
    "pins": [
     "A",
     "B"
@@ -1601,18 +1601,18 @@
    ]
   },
   {
-   "pn": "C185290",
-   "mpn": "RC0805FR-072K49L",
+   "pn": "C137555",
+   "mpn": "RC0805FR-072K43L",
    "mfr": "Yageo",
-   "part": "passive::ChipResistor<2.49kohm, 1%>[R0805]",
+   "part": "passive::ChipResistor<2.43kohm, 1%>[R0805]",
    "footprint": "passive::CHIP_0805",
    "group": "CHIP_0805 ChipResistor Yageo RC",
    "purpose": "sample",
    "jlc_package": "0805",
-   "stock": 37,
-   "page_fetched": "2026-11-05T23:14:41Z",
+   "stock": 3232,
+   "page_fetched": "2026-11-05T23:14:38Z",
    "category": "extended",
-   "name": "sample_C185290",
+   "name": "sample_C137555",
    "pins": [
     "A",
     "B"
@@ -1931,18 +1931,18 @@
    ]
   },
   {
-   "pn": "C273881",
-   "mpn": "RC0805FR-07348RL",
+   "pn": "C137542",
+   "mpn": "RC0805FR-07340RL",
    "mfr": "Yageo",
-   "part": "passive::ChipResistor<348ohm, 1%>[R0805]",
+   "part": "passive::ChipResistor<340ohm, 1%>[R0805]",
    "footprint": "passive::CHIP_0805",
    "group": "CHIP_0805 ChipResistor Yageo RC",
    "purpose": "sample",
    "jlc_package": "0805",
-   "stock": 5244,
-   "page_fetched": "2026-11-05T23:17:27Z",
+   "stock": 4569,
+   "page_fetched": "2026-11-05T23:17:23Z",
    "category": "extended",
-   "name": "sample_C273881",
+   "name": "sample_C137542",
    "pins": [
     "A",
     "B"
@@ -3141,18 +3141,18 @@
    ]
   },
   {
-   "pn": "C274065",
-   "mpn": "RC1206FR-07787RL",
+   "pn": "C488966",
+   "mpn": "RC1206FR-07768RL",
    "mfr": "Yageo",
-   "part": "passive::ChipResistor<787ohm, 1%>[R1206]",
+   "part": "passive::ChipResistor<768ohm, 1%>[R1206]",
    "footprint": "passive::CHIP_1206",
    "group": "CHIP_1206 ChipResistor Yageo RC",
    "purpose": "sample",
    "jlc_package": "1206",
-   "stock": 35,
-   "page_fetched": "2026-11-06T00:00:16Z",
+   "stock": 4404,
+   "page_fetched": "2026-11-06T00:00:08Z",
    "category": "extended",
-   "name": "sample_C274065",
+   "name": "sample_C488966",
    "pins": [
     "A",
     "B"
@@ -4021,18 +4021,18 @@
    ]
   },
   {
-   "pn": "C163413",
-   "mpn": "RC0603JR-0768RL",
+   "pn": "C113301",
+   "mpn": "RC0603JR-0768KL",
    "mfr": "Yageo",
-   "part": "passive::ChipResistor<68ohm, 5%>[R0603]",
+   "part": "passive::ChipResistor<68kohm, 5%>[R0603]",
    "footprint": "passive::CHIP_0603",
    "group": "CHIP_0603 ChipResistor Yageo RC",
    "purpose": "sample",
    "jlc_package": "0603",
-   "stock": 61,
-   "page_fetched": "2026-11-05T23:02:59Z",
+   "stock": 23575,
+   "page_fetched": "2026-11-05T23:02:57Z",
    "category": "extended",
-   "name": "sample_C163413",
+   "name": "sample_C113301",
    "pins": [
     "A",
     "B"

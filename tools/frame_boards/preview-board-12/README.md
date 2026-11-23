@@ -1,6 +1,6 @@
 # Preview board 12 — W3 samples of Yageo CC 0603 and Yageo RC 0603, 0805 and 1206
 
-The board places 72 W3 samples and 4 controls, four times each: 0° and 37° on each side, 152 placements per side and 304 in all. `w3_boards_11_12.py` writes the manifest from the W3 report of 2026-11-22, which the inputs pin by hash. The samples are that report's choice, made among members with at least 30 in stock on their confirmed page. Each group's list alternates between this board and board 11, so each board carries about half of every group.
+The board places 72 W3 samples and 4 controls, four times each: 0° and 37° on each side, 152 placements per side and 304 in all. `w3_boards_11_12.py` writes the manifest from the W3 report of 2026-11-23, which the inputs pin by hash. The samples are that report's choice, made among members with at least 30 in stock on their confirmed page. Each group's list alternates between this board and board 11, so each board carries about half of every group.
 
 | Group | Samples | Placements per side | Other bodies per side if all draw |
 |---|---:|---:|---:|
@@ -28,3 +28,7 @@ python3 -I tools/frame_boards/preview_package.py preview-board-12 -o /tmp/previe
 ```
 
 The Gerber export leaves out reference text so it cannot cover a chip body. After rendering, read the nonpolar bodies by method 2 (orientation modulo 180°). Apply the current W3 rule to every copy, keeping missing and failed readings, and archive the exports, lossless pixels, BOM checks and readings.
+
+## Shortages at the BOM step (2026-11-23)
+
+The first packages (board 11 `1c047d9e`, board 12 `18df571b`, from the 2026-11-22 report) stopped at the assembler's BOM step with a shortage warning. Each part number needs 40 (four placements on each of ten boards), and some had fewer in stock that day than the page read: 11 on board 11, 5 on board 12. No placement preview was taken. This board's `w3.json` lists its numbers with the stock both readings showed. The 2026-11-23 report replaces each one with its group's nearest eligible member. The other samples, which the BOM step confirmed in stock, keep their places, so each replacement lands on the same board as the number it replaces. When a preview of this board is recorded, the list moves into that record's `w3.json`, as board 4's did.

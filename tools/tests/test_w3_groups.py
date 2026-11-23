@@ -751,7 +751,12 @@ class W3GroupsTests(unittest.TestCase):
         # Board 4's first package (2026-11-11) stopped at the BOM step with no preview, so
         # the board's own w3.json carried the two numbers. Its second package was previewed
         # the same day; the record's w3.json holds the list now, and the board's is removed.
-        self.assertEqual(wg.board_inputs(), {})
+        # Boards 11 and 12 (2026-11-23) are in the state board 4 was in before its record:
+        # their packages stopped at the BOM step, and each board's own w3.json keeps the fact.
+        boards = wg.board_inputs()
+        self.assertEqual(set(boards), {wg.BOARDS / "preview-board-11/w3.json", wg.BOARDS / "preview-board-12/w3.json"})
+        pending = {pn for meta in boards.values() for pn in meta["short_at_preview"]}
+        self.assertEqual(len(pending), 16)
         self.assertFalse((wg.BOARDS / "preview-board-4/w3.json").exists())
         record = wg.PREVIEWS / "2026-11-11-board-4"
         self.assertEqual(list(wg.PREVIEWS.glob("*board-4*")), [record])
@@ -765,7 +770,7 @@ class W3GroupsTests(unittest.TestCase):
         # Neither number is on the package this record previewed.
         bom = (record / meta["bom"]).read_text(encoding="utf-8")
         self.assertFalse(any(pn in bom for pn in short))
-        self.assertEqual(set(wg.SHORT_AT_PREVIEW), {"C185414", "C185430", "C470029", "C875102"})
+        self.assertEqual(set(wg.SHORT_AT_PREVIEW), {"C185414", "C185430", "C470029", "C875102"} | pending)
         self.assertNotIn("C470029", (wg.ROOT / "tools/w3_groups.py").read_text(encoding="utf-8"))
         # A report built before the record's readings counted passes over both and takes each
         # one's nearest eligible neighbour (the package this record previewed); the committed

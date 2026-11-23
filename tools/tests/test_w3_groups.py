@@ -763,9 +763,12 @@ class W3GroupsTests(unittest.TestCase):
         # the same day; the record's w3.json holds the list now, and the board's is removed.
         # Boards 11 and 12 (2026-11-23) went the same way: packages stopped at the BOM step
         # (two on board 11, one on board 12), the next was previewed, and each record holds
-        # its board's numbers. No board keeps a w3.json of its own now.
-        self.assertEqual(wg.board_inputs(), {})
-        pending = set()
+        # its board's numbers. Boards 13 and 14 are where board 4 was before its record: their
+        # first packages stopped at the BOM step, and each board's own w3.json keeps the fact.
+        boards = wg.board_inputs()
+        self.assertEqual(set(boards), {wg.BOARDS / "preview-board-13/w3.json", wg.BOARDS / "preview-board-14/w3.json"})
+        pending = {pn for meta in boards.values() for pn in meta["short_at_preview"]}
+        self.assertEqual(pending, {"C4169838", "C877861", "C137001", "C2074387"})
         for board, record, short in (("11", BOARD_11, BOARD_11_SHORT), ("12", BOARD_12, BOARD_12_SHORT)):
             self.assertFalse((wg.BOARDS / f"preview-board-{board}/w3.json").exists())
             meta = wg.preview_inputs()[record]

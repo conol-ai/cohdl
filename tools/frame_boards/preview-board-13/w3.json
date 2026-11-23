@@ -1,0 +1,8 @@
+{
+ "schema_version": 1,
+ "note": "What tools/w3_groups.py and preview_board_13.py read from this board before it has a preview record. The package 75ff83ec stopped at the assembler's BOM step on 2026-11-23: 66 of 68 part numbers confirmed, these not selected, with a shortage warning. No placement preview was taken, so there is no record under tools/sourcing_data/jlc_previews/ and nothing here is a reading. When a preview of this board is recorded, this list moves into that record's w3.json and this file is removed.",
+ "short_at_preview": {
+  "C4169838": "2026-11-23 preview-board-13 package 75ff83ec (page read 90; BOM step: 0 in stock, 28 needed)",
+  "C877861": "2026-11-23 preview-board-13 package 75ff83ec (page read 620; BOM step: 0 in stock, 28 needed)"
+ }
+}

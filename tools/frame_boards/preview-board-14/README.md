@@ -1,6 +1,6 @@
 # Preview board 14 — W3 samples of Vishay CRCW 0201, Yageo CC 0201 and 1206, and Yageo RC 2010 and 2512
 
-The board places 62 W3 samples and 4 controls, four times each: 0° and 37° on each side, 132 placements per side and 264 in all. `w3_boards_13_14.py` writes the manifest from the W3 report of 2026-11-23, the one boards 11 and 12 pin, which the inputs pin by hash. The samples are that report's choice, made among members with at least 30 in stock on their confirmed page. Each group's list alternates between this board and board 13, so each board carries about half of every group.
+The board places 62 W3 samples and 4 controls, four times each: 0° and 37° on each side, 132 placements per side and 264 in all. `w3_boards_13_14.py` writes the manifest from the W3 report of 2026-11-23b, which the inputs pin by hash. The samples are that report's choice, made among members with at least 30 in stock on their confirmed page. Each group's list alternates between this board and board 13, so each board carries about half of every group.
 
 | Group | Samples | Placements per side | Other bodies per side if all draw |
 |---|---:|---:|---:|
@@ -17,6 +17,10 @@ Each copy has a 9 mm box on the 10 mm grid: a 2512 land turned 37° spans about 
 The controls all passed on board 6 or board 7, and each belongs to a group not sampled here: C113780 (CHIP_0402 MLCC Yageo CC), C11702 (CHIP_0402 ChipResistor UNI-ROYAL 0402WG), C17888 (CHIP_1206 ChipResistor UNI-ROYAL 1206W4), C19702 (CHIP_0603 MLCC Samsung CL). Their rows are copied from board 7's archived manifest.
 
 Local parts select each exact C number with no frame correction. The part is the library's part for the confirmed MPN, looked up in the released passive 0.2.8: the primary for Yageo, the part whose alternate it is for Vishay CRCW. The stock is the confirmed page's. The BOM step of an authorized preview shows the stock of the day. A part number that is short there is left out of a rebuilt package, and the rebuilt package needs its own approval.
+
+## Shortages at the BOM step (2026-11-23)
+
+Board 14's package `78cfe658` stopped at the BOM step with two part numbers short: C137001 (RC 2512, 21 in stock against 36) and C2074387 (CRCW 0201, 30 against 40). No placement preview was taken. This board's `w3.json` lists the numbers with the stock both readings showed. The 2026-11-23b report, built with them, replaces each one with its group's nearest eligible member at the same sample position, so on this board; no other sample of these groups moved (the 2026-11-23 report stays as boards 11 and 12 pinned it). When a preview of this board is recorded, the list moves into that record's `w3.json`.
 
 ## Build
 

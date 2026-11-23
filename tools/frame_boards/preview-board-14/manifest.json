@@ -2096,18 +2096,18 @@
    ]
   },
   {
-   "pn": "C2074387",
-   "mpn": "CRCW02013K00FKED",
+   "pn": "C1854530",
+   "mpn": "CRCW0201470RFKED",
    "mfr": "Vishay",
-   "part": "passive::ChipResistor<3kohm, 1%>[R0201]",
+   "part": "passive::ChipResistor<470ohm, 1%>[R0201]",
    "footprint": "passive::CHIP_0201",
    "group": "CHIP_0201 ChipResistor Vishay CRCW",
    "purpose": "sample",
    "jlc_package": "0201",
-   "stock": 70,
-   "page_fetched": "2026-11-05T20:24:45Z",
+   "stock": 906,
+   "page_fetched": "2026-11-05T20:26:28Z",
    "category": "extended",
-   "name": "sample_C2074387",
+   "name": "sample_C1854530",
    "pins": [
     "A",
     "B"
@@ -3251,18 +3251,18 @@
    ]
   },
   {
-   "pn": "C137001",
-   "mpn": "RC2512JK-073K3L",
+   "pn": "C723726",
+   "mpn": "RC2512JK-07390RL",
    "mfr": "Yageo",
-   "part": "passive::ChipResistor<3.3kohm, 5%>[R2512]",
+   "part": "passive::ChipResistor<390ohm, 5%>[R2512]",
    "footprint": "passive::CHIP_2512",
    "group": "CHIP_2512 ChipResistor Yageo RC",
    "purpose": "sample",
    "jlc_package": "2512",
-   "stock": 41,
-   "page_fetched": "2026-11-06T01:33:00Z",
+   "stock": 1510,
+   "page_fetched": "2026-11-06T01:32:54Z",
    "category": "extended",
-   "name": "sample_C137001",
+   "name": "sample_C723726",
    "pins": [
     "A",
     "B"

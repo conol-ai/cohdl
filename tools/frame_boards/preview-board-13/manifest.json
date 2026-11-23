@@ -1271,18 +1271,18 @@
    ]
   },
   {
-   "pn": "C877861",
-   "mpn": "RC2512FK-07221RL",
+   "pn": "C877859",
+   "mpn": "RC2512FK-07220RL",
    "mfr": "Yageo",
-   "part": "passive::ChipResistor<221ohm, 1%>[R2512]",
+   "part": "passive::ChipResistor<220ohm, 1%>[R2512]",
    "footprint": "passive::CHIP_2512",
    "group": "CHIP_2512 ChipResistor Yageo RC",
    "purpose": "sample",
    "jlc_package": "2512",
-   "stock": 620,
-   "page_fetched": "2026-11-06T01:13:31Z",
+   "stock": 1265,
+   "page_fetched": "2026-11-06T01:13:27Z",
    "category": "extended",
-   "name": "sample_C877861",
+   "name": "sample_C877859",
    "pins": [
     "A",
     "B"
@@ -3581,18 +3581,18 @@
    ]
   },
   {
-   "pn": "C4169838",
-   "mpn": "RC2010JK-077R5L",
+   "pn": "C137033",
+   "mpn": "RC2010JK-0775RL",
    "mfr": "Yageo",
-   "part": "passive::ChipResistor<7.5ohm, 5%>[R2010]",
+   "part": "passive::ChipResistor<75ohm, 5%>[R2010]",
    "footprint": "passive::CHIP_2010",
    "group": "CHIP_2010 ChipResistor Yageo RC",
    "purpose": "sample",
    "jlc_package": "2010",
-   "stock": 90,
-   "page_fetched": "2026-11-06T01:06:00Z",
+   "stock": 3641,
+   "page_fetched": "2026-11-06T01:05:54Z",
    "category": "extended",
-   "name": "sample_C4169838",
+   "name": "sample_C137033",
    "pins": [
     "A",
     "B"

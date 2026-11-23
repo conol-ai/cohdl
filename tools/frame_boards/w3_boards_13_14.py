@@ -2,8 +2,8 @@
 
 Usage: python3 -I tools/frame_boards/preview_board_13.py OUT.json   (or preview_board_14.py)
 
-The W3 report of 2026-11-23 (tools/sourcing_data/w3_sampling/2026-11-23/),
-the one boards 11 and 12 pin, asks for these samples, each chosen by the
+The W3 report of 2026-11-23b (tools/sourcing_data/w3_sampling/2026-11-23b/),
+built after the first packages' BOM steps, asks for these samples, each chosen by the
 report among members with at least the rule's minimum stock on their
 confirmed page:
 

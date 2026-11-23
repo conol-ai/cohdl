@@ -1,0 +1,15 @@
+[designators]
+"FramePreview::Q_HJC_HL2302_C28646268_0" = "Q1"
+"FramePreview::Q_HJC_HL2302_C28646268_1" = "Q2"
+"FramePreview::Q_HJC_HL2302_C28646268_2" = "Q3"
+"FramePreview::Q_HJC_HL2302_C28646268_3" = "Q4"
+"FramePreview::Q_HJC_HL3407A_C28646269_0" = "Q5"
+"FramePreview::Q_HJC_HL3407A_C28646269_1" = "Q6"
+"FramePreview::Q_HJC_HL3407A_C28646269_2" = "Q7"
+"FramePreview::Q_HJC_HL3407A_C28646269_3" = "Q8"
+"FramePreview::Q_HJC_MMBTA56_C20069147_0" = "Q9"
+"FramePreview::Q_HJC_MMBTA56_C20069147_1" = "Q10"
+"FramePreview::Q_HJC_MMBTA56_C20069147_2" = "Q11"
+"FramePreview::Q_HJC_MMBTA56_C20069147_3" = "Q12"
+
+[tombstones]

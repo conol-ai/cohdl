@@ -293,10 +293,14 @@ class JlcPreviewTests(unittest.TestCase):
         # Alone with the mark, the inductor still does not take it.
         self.assertEqual(status([mark], [coil]), {"L1": "manual review"})
         self.assertIn("no pin 1 mark", jp.verdicts([mark], [coil], all_drawn([coil]))["L1"][1])
-        # A two-terminal part that has a pin 1 (a diode) can own a mark: one at its pad 1 passes.
+        # A two-terminal part that has a pin 1 (a diode) owns its signs, but one at its pad 1 does
+        # not pass: it may be the '+', as on preview board 20's BZX584C models placed half a turn off.
         diode = chip("D1", 30, 10, half=1.0, fpid="sod-SOD2613X110N")
         self.assertTrue(mp.expects_mark(diode))
-        self.assertEqual(status([at(diode, "1")], [diode]), {"D1": "mark"})
+        self.assertEqual({ref: len(m) for ref, m in mp.owners([at(diode, "1")], [diode]).items()}, {"D1": 1})
+        got = jp.verdicts([at(diode, "1")], [diode], all_drawn([diode]))["D1"]
+        self.assertEqual(got[0], "manual review")
+        self.assertRegex(got[1], r"^drawn, with one sign of its own at pad 1: .* read by hand; pin 1 mark ")
         self.assertEqual(status([at(diode, "1"), at(diode, "2")], [diode]), {"D1": "manual review"})
 
     def test_a_mark_passes_only_at_pad_1(self):

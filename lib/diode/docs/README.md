@@ -176,6 +176,9 @@ BZT52B..S (31), MM3Z (38) and MMSZ52xxBS (35) in SOD-323 at 200 mW, and BZX584C
   cathode at pad 1 on all four copies and that have a map row from the
   2026-11-24 backfill. Each goes through one `zb20-` row of
   `tools/sourcing_data/jlc_frames.json` keyed to `sod` 0.1.3. Board 20 read 13
-  BZX584C reversed (the assembler's SOD-523 model is half a turn off); they wait
-  for a re-verify board with `rotate 180`. The other 33 read correctly but have
-  no map row yet.
+  BZX584C reversed (the assembler's SOD-523 model is half a turn off); preview
+  board 21 (`jlc_previews/2026-11-25-board-21/`) confirmed all 13 with
+  `rotate 180` applied, so the 10 of them that have a map row carry
+  `supplier lcsc "<part number>" rotate 180` through a `zb21-` row. 36 part
+  numbers read correctly but have no map row yet (33 from board 20, 3 from
+  board 21).

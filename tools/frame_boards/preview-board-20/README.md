@@ -24,4 +24,4 @@ The stock is the snapshot's (2026-10-30); every page here reads at least 40, wha
 
 ## Result
 
-Previewed on 2026-11-24 (record `tools/sourcing_data/jlc_previews/2026-11-24-board-20/`): 58 part numbers showed the band and "−" at our pad 1 on all four copies, and 13 BZX584C showed them at pad 2 on all four. `diode` 0.1.5 binds the 25 of the 58 that have a map row, with no mapping; the 13 reversed are re-verified on preview board 21 with the candidate `rotate 180`.
+Previewed on 2026-11-24 (record `tools/sourcing_data/jlc_previews/2026-11-24-board-20/`): 58 part numbers showed the band and "−" at our pad 1 on all four copies, and 13 BZX584C showed them at pad 2 on all four. `diode` 0.1.5 binds the 25 of the 58 that have a map row, with no mapping; the 13 reversed were re-verified on preview board 21 with the candidate `rotate 180`, and all 13 confirmed.

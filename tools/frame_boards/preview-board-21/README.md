@@ -15,3 +15,7 @@ python3 -I tools/frame_boards/preview_package.py preview-board-21 -o preview-boa
 ```
 
 The stock is the B1 snapshot's (2026-10-30); every one of the 13 passed the BOM step of board 20 on 2026-11-24.
+
+## Result
+
+Previewed on 2026-11-25 (record `tools/sourcing_data/jlc_previews/2026-11-25-board-21/`): all 13 part numbers showed the band and "−" at our pad 1 on all four copies, so `diode` 0.1.5 binds the 10 with a map row with `rotate 180`.

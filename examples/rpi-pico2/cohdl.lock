@@ -18,7 +18,7 @@ hash = "sha256:3526c39b3a6f4c96225411a4178d72b41e74d9759073a5fc26aacb09c9601724"
 [[package]]
 name = "diode"
 version = "0.1.5"
-hash = "sha256:b77d838a2239a755bd0f99af5ab4bcd7a1e0cafcfe0b6483aa3194063307c337"
+hash = "sha256:645526d39c87f13ee0523ed997754c6fdf7150143fb2c4e37199efde2ebe3bcf"
 
 [[package]]
 name = "do214"

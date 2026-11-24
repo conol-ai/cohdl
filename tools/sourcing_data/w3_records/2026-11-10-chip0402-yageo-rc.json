@@ -24,8 +24,8 @@
  },
  "built_by": "tools/w3_record.py",
  "stock_source": {
-  "path": "tools/sourcing_data/lcsc_backfill/2026-11-24-sot23-2/confirmed.json",
-  "sha256": "09d80e49d302ef2d2aadcdfb07f8ae279c5c42cfa1da80ba1fd789b8a2f2c507"
+  "path": "tools/sourcing_data/lcsc_backfill/2026-11-24-zener2/confirmed.json",
+  "sha256": "d33180e8a408c4d7f28d2a308c885e7c2841e4e0316623c3f81df580e3db2462"
  },
  "groups": [
   {

@@ -17,6 +17,12 @@ part in `lib/diode/src/zener_sod323_sod523.cohdl` whose MPN the page names:
 the readings and from map rows of a reviewed backfill. A page must read at
 least 40 in stock, what the BOM step asks for four placements on ten boards.
 
+Board 21 re-verifies the part numbers board 20 read reversed on all four
+copies (`jlc_previews/2026-11-24-board-20/readings.json`): the same placements
+with the candidate `rotate 180` as the row's `mapping`, which
+`jlc_frame_board.py` writes into the supplier CPL. It passes when each copy
+shows the band and "-" at our pad 1.
+
 The copies stand 10 mm apart in 8 mm boxes, and the package is built with
 reference designators left out of the Gerber silkscreen, as boards 5 and 8 to
 19 were.
@@ -37,7 +43,9 @@ SERIES = r"(BZT52[BC]\w+S|MM3Z\w+|MMSZ\d{4}BS|BZX584C\w+)"
 FOUR = (("top", 0), ("top", 37), ("bottom", 0), ("bottom", 37))
 BOX, PITCH, MARGIN, BLOCKS_PER_ROW = 8.0, 10.0, 10.0, 8
 NEED = 40
-COUNTS = {"preview_board_20": 71}
+COUNTS = {"preview_board_20": 71, "preview_board_21": 13}
+# Board 21 re-verifies the part numbers board 20 read reversed, with the candidate applied.
+REVERIFY = {"preview_board_21": "tools/sourcing_data/jlc_previews/2026-11-24-board-20"}
 
 
 def library_parts():
@@ -67,6 +75,15 @@ def build(board):
     chosen = sorted((r for r in json.loads(CATALOG.read_text(encoding="utf-8"))
                      if r["mfr"] == "hongjiacheng" and r["package"] in LANDS and re.fullmatch(SERIES, r["mpn"])),
                     key=lambda r: (r["package"], r["mpn"][:5], r["c"]))
+    candidate = {}
+    if board in REVERIFY:
+        record = REVERIFY[board]
+        candidate = {p["pn"]: record + "/README.md"
+                     for p in json.loads((ROOT / record / "readings.json").read_text(encoding="utf-8"))["parts"]
+                     if p["reading"] == "reversed"}
+        chosen = [r for r in chosen if r["c"] in candidate]
+        if len(candidate) != COUNTS[board]:
+            raise SystemExit(f"{board}: expected {COUNTS[board]} reversed part numbers, found {len(candidate)}")
     if len(chosen) != COUNTS[board] or len({r["c"] for r in chosen}) != len(chosen):
         raise SystemExit(f"{board}: expected {COUNTS[board]} distinct part numbers, found {len(chosen)}")
     deps, rows = {"std": "0.3.0", "sod": sod_version}, []
@@ -90,6 +107,11 @@ def build(board):
                              "B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
                      "jlc_package": page["package"], "category": page["category"], "stock": page["stock"],
                      "page_fetched": "2026-10-30"})
+        if page["c"] in candidate:
+            rows[-1]["mapping"] = {"dx_mm": 0, "dy_mm": 0, "rotate_deg": 180}
+            rows[-1]["candidate"] = {"rotate_deg": 180, "record": candidate[page["c"]]}
+            rows[-1]["note"] = ("Candidate supplier rotation 180 for re-verification; not a binding. Read reversed "
+                                "on all four copies in the candidate's record")
     return {"name": board, "dependencies": deps, "rows": rows}
 
 

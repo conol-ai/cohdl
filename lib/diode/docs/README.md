@@ -170,4 +170,12 @@ BZT52B..S (31), MM3Z (38) and MMSZ52xxBS (35) in SOD-323 at 200 mW, and BZX584C
   sheet's URL, revision and SHA-256, the page of every value and two
   transcription corrections (a letter O in BZT52B3V0S's printed MPN, a doubled
   decimal point in one MM3Z temperature coefficient).
-- **Bindings.** None yet: each part number needs its own preview reading.
+- **Bindings.** 25 part numbers carry `supplier lcsc "<part number>"` with no
+  mapping: those preview board 20
+  (`tools/sourcing_data/jlc_previews/2026-11-24-board-20/`) read with the
+  cathode at pad 1 on all four copies and that have a map row from the
+  2026-11-24 backfill. Each goes through one `zb20-` row of
+  `tools/sourcing_data/jlc_frames.json` keyed to `sod` 0.1.3. Board 20 read 13
+  BZX584C reversed (the assembler's SOD-523 model is half a turn off); they wait
+  for a re-verify board with `rotate 180`. The other 33 read correctly but have
+  no map row yet.

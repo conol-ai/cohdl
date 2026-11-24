@@ -21,3 +21,7 @@ python3 -I tools/frame_boards/preview_package.py preview-board-20 -o preview-boa
 ## Stock
 
 The stock is the snapshot's (2026-10-30); every page here reads at least 40, what the BOM step asks for four placements on ten boards. The preview's BOM step shows the stock of the day; a part number short there is left out of a rebuilt package, which needs its own approval.
+
+## Result
+
+Previewed on 2026-11-24 (record `tools/sourcing_data/jlc_previews/2026-11-24-board-20/`): 58 part numbers showed the band and "−" at our pad 1 on all four copies, and 13 BZX584C showed them at pad 2 on all four. `diode` 0.1.5 binds the 25 of the 58 that have a map row, with no mapping; the 13 reversed are re-verified on preview board 21 with the candidate `rotate 180`.

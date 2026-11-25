@@ -79,6 +79,10 @@ so each package is a pin table; only the DRV table is modelled.
   NC 2 and 5, GND 3, EN 4, IN 6; "The thermal pad is internally connected
   to GND", so pad 7 is listed with pin 3 under `GND`. Checked from the
   table to the model and back.
+- **`voltage_rating` is 5.5 V**, the recommended operating maximum of VIN
+  (1.45 V to 5.5 V, section 5.3 on p4; the feature list on p1 says the
+  same). Until 2026-11-25 the devices carried 6 V, which is the absolute
+  maximum (section 5.1 on p4), so D001 would have passed a 5.8 V rail.
 - **Values used.** Absolute maximum supply 6.0 V (p4); 1 uF or larger on
   IN and on OUT (p3).
 - **Not the LP5912.** Both families use the same land, but pin 3 is GND

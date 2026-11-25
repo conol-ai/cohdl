@@ -3,15 +3,18 @@
 //
 // Family model: the SMBJ series is one outline and one two-terminal pin
 // table per polarity, second-sourced by many makers under the same type
-// numbers. A device here is a polarity, never a voltage or a maker:
+// numbers. A device here is a polarity at one standoff voltage, never a
+// maker:
 //   TVS_SMBJ_Uni: unidirectional ("A" suffix). The body band marks the
 //     cathode. Cathode on pad 1, anode on pad 2 (the do214 convention).
 //   TVS_SMBJ_Bi: bidirectional ("CA" suffix). No band and no polarity;
 //     the two terminals are interchangeable and are named IO1 and IO2.
 // A "CA" part is never an alternate of an "A" part: a design that needs a
 // cathode cannot take a part without one, so the difference is two devices.
-// Standoff voltage, clamping voltage and maker are part-level: each part
-// carries one exact MPN, its own maker's datasheet and its own LCSC number.
+// Both devices are the 30V members: each carries `voltage_rating: 30V`,
+// the standoff voltage VRWM, so D001 checks the rail a part protects.
+// Clamping voltage, leakage and maker are part-level: each part carries
+// one exact MPN, its own maker's datasheet and its own LCSC number.
 // docs/README.md ("SMBJ family") has the member table and the rule for
 // adding the next voltage.
 //
@@ -30,6 +33,14 @@ pub device TVS_SMBJ_Uni {
     pins {
         required Cathode: 1 [passive]
         required Anode: 2 [passive]
+    }
+    spec {
+        // The standoff voltage VRWM: the highest rail voltage the part is
+        // meant to sit across without conducting (30V on all three sheets:
+        // Vishay p2, MDD p2, Hongjiacheng p3). The clamp voltage VC (48.4V
+        // at 12.4A) is a transient rating and is deliberately not the
+        // value here.
+        voltage_rating: 30V
     }
 }
 
@@ -86,6 +97,14 @@ pub device TVS_SMBJ_Bi {
     pins {
         required IO1: 1 [bidirectional]
         required IO2: 2 [bidirectional]
+    }
+    spec {
+        // The standoff voltage VRWM: the highest rail voltage the part is
+        // meant to sit across without conducting (30V on all three sheets:
+        // Vishay p2, MDD p2, Hongjiacheng p3). The clamp voltage VC (48.4V
+        // at 12.4A) is a transient rating and is deliberately not the
+        // value here.
+        voltage_rating: 30V
     }
 }
 

@@ -107,8 +107,14 @@ with its own maker's document.
 - **Membership rule.** A part joins a device only when its own datasheet
   gives the same two-terminal pin table: the same outline and, for the
   unidirectional device, a cathode band. Unidirectional and bidirectional
-  parts never share a device. Standoff voltage, clamping voltage, leakage
-  and maker are part-level.
+  parts never share a device. Clamping voltage, leakage and maker are
+  part-level.
+- **`voltage_rating` is 30 V on both devices** (added 2026-11-25): the
+  standoff voltage VRWM, which D001 compares with the annotated voltage of
+  the rail the part sits across. The clamp voltage VC, 48.4 V at 12.4 A,
+  is a transient rating and is deliberately not the field's value. The
+  rating makes both devices the 30 V members of the series; their names
+  do not carry the voltage.
 - **Pins read.** No sheet numbers the terminals. Vishay p1: "for
   unidirectional types the band denotes cathode end, no marking on
   bidirectional types". MDD p1 and Hongjiacheng p2: "Cathode Band (for
@@ -148,9 +154,10 @@ with its own maker's document.
   a design needs: (1) take the row from each maker's table (Vishay p2, MDD
   p2 to p3, Hongjiacheng p2 to p3) and record VRWM, VBR, VC, IPP and
   leakage with the page; (2) confirm an LCSC part number on its part page
-  for that exact MPN and maker; (3) add one `part` per stocked maker on
-  `TVS_SMBJ_Uni` for an "A" type or on the bidirectional device for a "CA"
-  type. No new device and no new land. For bidirectional parts of 10 V and
+  for that exact MPN and maker; (3) add a device for that voltage and
+  polarity with its own `voltage_rating` (the VRWM), and one `part` per
+  stocked maker on it. The 30 V devices cannot take another voltage's
+  parts. No new land. For bidirectional parts of 10 V and
   under, each sheet doubles the leakage limit; put that in the part's
   comment.
 

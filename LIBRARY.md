@@ -252,6 +252,38 @@ adjacent pins, each typed "Analog Output" by TI: `ILIM` takes a resistor
 to GND that sets the current limit, so it is `passive`; `IMON` sources a
 current proportional to the load current, so it is `output`.
 
+### Ratings a DRC reads
+
+**`voltage_rating` is the maximum recommended operating voltage, never the
+absolute maximum.** D001 fires when an instance's rating is lower than the
+voltage annotated on its net, so the field must carry the highest voltage at
+which the manufacturer still guarantees operation. The absolute-maximum
+table usually sits a few rows away with a slightly larger number, and taking
+that number silences the rule through the whole band where the part is
+already out of specification. TLV755P is the example that caught this: the
+recommended operating maximum of VIN is 5.5 V (section 5.3) and 6.0 V is the
+absolute maximum (section 5.1), so 6.0 V would have passed a 5.8 V rail.
+LP5912 is the same shape at a smaller margin, 6.5 V recommended against 7.0 V
+absolute. Record the margin in a comment at the `spec` block, so the next
+reader does not "correct" the value back to the bigger number.
+
+**A rating that varies across a family forces one device per rating.** Specs
+live on the device; a part carries a device, an MPN and a footprint, and no
+spec of its own. Two members that share a pin table but differ in a rating
+are therefore separate devices over one footprint, which is the same rule
+that separates members by enable polarity or threshold. The SMBJ TVS pair is
+the worked case: two devices, one polarity each, both at 30 V standoff, with
+the 30 V in the device and the maker in the parts.
+
+**Leaving `spec` out is a hole, not a neutral choice.** D001 has nothing to
+compare, so an unrated device never raises a voltage-exceed diagnostic. These
+devices in the demand batch carry no rating and are blind to D001 until one
+is written from their sheets: `TPS25982`, `TPS259827O`, `TPS26620`,
+`TPS26630`, `TPS26631`, `TPS26632`, `TPS22918`, `TPS2552`, `TPS2553`,
+`TPS2552_DRV`, `TPS2553_DRV`. Do not fill any of them by guessing a voltage
+that "looks like" the family's; take it from the recommended operating
+conditions table and cite the page.
+
 ## 4. Build footprints from checked geometry
 
 Never ship an empty or nominal placeholder for a referenced footprint. For

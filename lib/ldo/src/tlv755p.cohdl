@@ -1,6 +1,7 @@
 // Texas Instruments TLV755P: 500mA low-IQ fixed-output LDO. Datasheet
 // SBVS320D, November 2017, revised September 2024 (docs/ti-tlv755p.pdf).
-// Pin configuration and Table 4-1 on p3; absolute maximum ratings on p4;
+// Pin configuration and Table 4-1 on p3; absolute maximum ratings and
+// recommended operating conditions on p4;
 // DRV0006A drawing 4222173/D on pp48-50; orderable codes in the package
 // addendum.
 //
@@ -30,7 +31,10 @@ pub device TLV75533P_DRV {
     }
     spec {
         output_voltage: 3.3V
-        voltage_rating: 6V // absolute maximum supply voltage (p4)
+        // The recommended operating maximum of VIN (1.45-5.5V, p4 and p1).
+        // 6.0V is the ABSOLUTE maximum (p4) and is deliberately not the
+        // value here: D001 compares this field with the net voltage.
+        voltage_rating: 5.5V
     }
 }
 
@@ -49,7 +53,10 @@ pub device TLV75512P_DRV {
     }
     spec {
         output_voltage: 1.2V
-        voltage_rating: 6V // absolute maximum supply voltage (p4)
+        // The recommended operating maximum of VIN (1.45-5.5V, p4 and p1).
+        // 6.0V is the ABSOLUTE maximum (p4) and is deliberately not the
+        // value here: D001 compares this field with the net voltage.
+        voltage_rating: 5.5V
     }
 }
 
@@ -68,7 +75,10 @@ pub device TLV75525P_DRV {
     }
     spec {
         output_voltage: 2.5V
-        voltage_rating: 6V // absolute maximum supply voltage (p4)
+        // The recommended operating maximum of VIN (1.45-5.5V, p4 and p1).
+        // 6.0V is the ABSOLUTE maximum (p4) and is deliberately not the
+        // value here: D001 compares this field with the net voltage.
+        voltage_rating: 5.5V
     }
 }
 

@@ -69,6 +69,14 @@ listed pins unconnected.
   ```
 
   It reported `generated 92 placements`. A 215 x 145 mm board.
+- **Rebuilt from the library at commit `b75dc9b`.** The first build
+  predated two land corrections in `@ti/power-switch`: the `TI_DRC0010J`
+  finger paste apertures (now centred 1.53 mm from the centre line, commit
+  `99799f9`) and the `TI_RGE0024M` pad-25 via rows (now at -0.15 mm and
+  -1.10 mm, commit `b75dc9b`). `package/` and `render/` were replaced
+  whole by the rebuild, so the paste Gerbers, drill file and board file
+  here match the library. Placements and every other land are the same as
+  in the first build. An archive made from the first build is stale.
 - `package/` is a copy of that output: `fabrication/` (Gerbers, drill file
   and `SHA256SUMS`), `demand_batch_2.kicad_pcb`,
   `demand_batch_2-lcsc-bom.csv`, `demand_batch_2-lcsc-cpl.csv`,

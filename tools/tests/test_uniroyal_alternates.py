@@ -291,15 +291,14 @@ class DryRunTests(unittest.TestCase):
         self.assertEqual((decisions["date"], decisions["library_mfr"]), ("2026-11-13", "UNI-ROYAL"))
         self.assertIn("not applied", decisions["alias"])
 
-    def test_the_alias_review_record_is_decided_and_not_applied(self):
+    def test_the_alias_review_record_is_approved_and_applied(self):
         record = (ur.ROOT / "tools/sourcing_data/alias_reviews/2026-11-11-uni-royal-proposal.md").read_text(encoding="utf-8")
         self.assertIn("Decided by the maintainer on 2026-11-13", record)
         self.assertIn("Tony accepted", record)
         self.assertIn("https://github.com/conol-ai/cohdl/issues/125", record)
         self.assertNotIn("PROPOSAL", record)
         aliases = json.loads((ur.ROOT / "tools/sourcing_data/mfr_aliases.json").read_text(encoding="utf-8"))["aliases"]
-        self.assertNotIn(ur.CATALOG_MFR, aliases)
-        self.assertNotIn(ur.LIBRARY_MFR, aliases.values())
+        self.assertEqual(aliases[ur.CATALOG_MFR], ur.LIBRARY_MFR)
 
     def test_jumper_ratings_are_the_datasheets_table(self):
         # p.5 §7. The library's jumper part states 0 ohm and 5%; the datasheet states neither a tolerance
@@ -324,18 +323,12 @@ class DryRunTests(unittest.TestCase):
              "4D03WGJ0471T5E", "4D03WGJ0472T5E"],
         )
 
-    def test_the_library_and_the_sourcing_tables_are_untouched(self):
-        # A dry run: no UNI-ROYAL part number is emitted, mapped or aliased.
-        every = "".join(path.read_text(encoding="utf-8") for path in sorted(SOURCES.glob("*.cohdl")))
-        lcsc_map = (ur.ROOT / "tools/sourcing_data/lcsc_map.json").read_text(encoding="utf-8")
-        aliases = json.loads((ur.ROOT / "tools/sourcing_data/mfr_aliases.json").read_text(encoding="utf-8"))["aliases"]
-        self.assertNotIn(ur.CATALOG_MFR, aliases)
-        for name in ("alternates", "zero_ohm", "new_values"):
-            for row in self.report[name]:
-                self.assertNotIn(f'"{row["mpn"]}"', every)
-                self.assertNotIn(f'"{row["mpn"]}"', lcsc_map)
-        self.assertNotIn("UNI-ROYAL", every)
-        self.assertNotIn("uniroyal", Path(gen_passive.__file__).read_text(encoding="utf-8").split("def main()")[1])
+    def test_the_reviewed_map_matches_the_dry_run_and_extended_order_line(self):
+        expected = {(r["mpn"], r["pn"]) for key in ("alternates", "zero_ohm", "openwalkietalkie_rev_b")
+                    for r in self.report[key]}
+        rows = json.loads((ur.ROOT / "tools/sourcing_data/lcsc_map.json").read_text())["rows"]
+        self.assertEqual({(r["mpn"], r["pn"]) for r in rows if r["mfr"] == ur.LIBRARY_MFR}, expected)
+        self.assertEqual(len(expected), 289)
 
     def test_the_openwalkietalkie_rows(self):
         rows = {row["mpn"]: row for row in self.report["openwalkietalkie_rev_b"]}

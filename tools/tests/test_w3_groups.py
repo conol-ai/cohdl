@@ -121,7 +121,7 @@ class W3GroupsTests(unittest.TestCase):
         keys = [(g["package"], g["package_version"], g["footprint"], g["type"], g["mfr"], g["series"]) for g in groups]
         self.assertEqual(len(keys), len(set(keys)))
         for g in groups:
-            self.assertTrue(all(row[1].startswith(g["series"]) and wg.series(row[1]) == g["series"]
+            self.assertTrue(all(row[1].startswith(g["series"]) and wg.series(row[1], g["mfr"]) == g["series"]
                                 for row in g["member_rows"]), g["series"])
         # The page's package text alone never makes a group: one land, one text, several groups.
         chip_0402 = [g for g in groups if g["footprint"] == "CHIP_0402"]
@@ -447,6 +447,7 @@ class W3GroupsTests(unittest.TestCase):
         a, b, c = statuses(self.before_1), statuses(self.report_1), statuses(self.report)
         moved = {key: (a[key], b[key], c[key]) for key in a if len({a[key], b[key], c[key]}) > 1}
         self.assertEqual(moved, {
+            ("CHIP_0402", "UNI-ROYAL", "0402WG"): (("needs_samples", 0, 0), ("paused", 3, 5), ("sampled", 8, 0)),
             ("CHIP_0402", "Vishay", "CRCW"): (("paused", 40, 0), ("paused", 45, 3), ("paused", 48, 0)),
             ("CHIP_0402", "Yageo", "RC"): (("sampled", 49, 0), ("paused", 46, 3), ("sampled", 49, 0)),
             ("CHIP_0402", "Samsung", "CL"): (("needs_samples", 0, 0), ("paused", 0, 1), ("needs_samples", 1, 0)),
@@ -461,10 +462,10 @@ class W3GroupsTests(unittest.TestCase):
         count = lambda report: tuple(sum(g["status"] == s for g in report["groups"])
                                      for s in ("sampled", "needs_samples", "paused"))
         self.assertEqual((count(self.before_1), count(self.report_1), count(self.report)),
-                         ((1, 13, 6), (0, 9, 11), (2, 14, 4)))
+                         ((1, 14, 6), (0, 9, 12), (3, 14, 4)))
         # Without board 4's record method 2 gives (1, 16, 3): Yageo CC 0402 is then one sample
         # short, and RC 1210 has only 1 not drawn against its 43 required.
-        self.assertEqual(count(self.before), (1, 16, 3))
+        self.assertEqual(count(self.before), (1, 17, 3))
         # What pauses the four under method 2: a failed sample, or the not-drawn share.
         self.assertEqual({(g["footprint"], g["mfr"], g["series"]): (len(g["failed"]), g["not_drawn_excess"])
                           for g in self.report["groups"] if g["status"] == "paused"},
@@ -532,7 +533,7 @@ class W3GroupsTests(unittest.TestCase):
                         for records in [n.get("records") or [c["record"] for c in n["outcomes"]]] if name in records
                         for pn in [n["pn"]]}
         self.assertEqual(set(placed), judged_there)
-        self.assertTrue(len(placed) == 68 and all(n["refs"] and n["kind"] == "method" for n in placed.values()))
+        self.assertTrue(len(placed) == 76 and all(n["refs"] and n["kind"] == "method" for n in placed.values()))
         rc = group(report, "CHIP_0402", "ChipResistor", "Yageo", "RC")
         self.assertEqual({n["pn"]: len(n["refs"]) for n in rc["record_not_judged"]},
                          {"C138033": 10, "C185445": 10, "C60491": 10})
@@ -835,6 +836,7 @@ class W3GroupsTests(unittest.TestCase):
         judged = {(g["footprint"], g["mfr"], g["series"]): g["status"] for g in self.report_1["groups"]
                   if here(g["failed"]) or here(g["not_drawn"]) or any(record in p["records"] for p in g["passed"])}
         self.assertEqual(judged, {
+            ("CHIP_0402", "UNI-ROYAL", "0402WG"): "paused",
             ("CHIP_0201", "Yageo", "RC"): "paused", ("CHIP_0402", "Vishay", "CRCW"): "paused",
             ("CHIP_0402", "Yageo", "RC"): "paused", ("CHIP_0402", "Samsung", "CL"): "paused",
             ("CHIP_0402", "Yageo", "CC"): "paused", ("CHIP_0603", "Samsung", "CL"): "paused",

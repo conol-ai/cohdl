@@ -23,6 +23,7 @@ table; see lib/passive/docs/README.md for the comparison and source checksums.
 """
 
 import argparse
+import json
 import pathlib
 import sys
 
@@ -373,7 +374,30 @@ def alternate_entry(mfr, mpn, footprint, bindings):
     return avl_entry(bindings, OUT.parent / "cohdl.toml", "alt", mfr, mpn, footprint, footprint)
 
 
+def uniroyal_0402_alternates():
+    """Catalog-confirmed B1 0402 resistors keyed by the library value grid."""
+    catalog = ROOT / "tools/sourcing_data/jlc_catalog/2026-10-30/catalog.json"
+    alternates = {}
+    for page in json.loads(catalog.read_text(encoding="utf-8")):
+        if page["mfr"] != "UNI-ROYAL(Uniroyal Elec)" or page["package"] != "0402":
+            continue
+        part = uniroyal_decode(page["mpn"])
+        if part is None or part["size"] != "0402":
+            continue
+        key = (part["tolerance"], part["mantissa"], part["decade"])
+        if key in alternates:
+            raise ValueError(f"two UNI-ROYAL 0402 catalog entries for {key}")
+        alternates[key] = page["mpn"]
+    return alternates
+
+
 def emit_resistors(size, verified, bindings):
+    candidates = uniroyal_0402_alternates() if size == "0402" else {}
+
+    def uniroyal_entry(tol, mantissa, decade):
+        mpn = candidates.get((tol, mantissa, decade))
+        return alternate_entry("UNI-ROYAL", mpn, f"CHIP_{size}", bindings) if mpn else ""
+
     variant = f"R{size}"
     body = [
         header(
@@ -390,6 +414,7 @@ def emit_resistors(size, verified, bindings):
         f'#[doc("{R_DOC_YAGEO}")]\n'
         f"pub part R_0R_J_{size}: ChipResistor<0ohm, 5%>[{variant}] {{\n"
         + primary_entry("Yageo", zero_mpn, f"CHIP_{size}", bindings)
+        + uniroyal_entry("F", None, None)
         + "}\n"
     )
     for tol, tol_pct in TOLERANCES.items():
@@ -409,16 +434,16 @@ def emit_resistors(size, verified, bindings):
                     f"CHIP_{size}",
                     bindings,
                 )
+                + uniroyal_entry(tol, mantissa, decade)
                 + "}\n"
             )
     return "\n".join(body)
 
 
 # --------------------------------------------------------------------------
-# Resistors — UNI-ROYAL (UniOhm) thick-film chip resistors: decode only
+# Resistors — UNI-ROYAL (UniOhm) thick-film chip resistors
 #
-# NOT EMITTED. Nothing in main() calls this section, so the generated library
-# is unchanged; tools/uniroyal_alternates.py uses it for a dry-run report.
+# Shared by the 0402 alternate generator and the catalog dry-run report.
 #
 # The rule is transcribed from UNI-ROYAL's datasheet "Thick Film Chip
 # Resistors", Chip Series, file SMD-SP-001, V.11 of Mar.17,2026 (12 pages).

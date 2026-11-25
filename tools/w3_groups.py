@@ -292,7 +292,13 @@ def passive_entries(lib: Path = PASSIVE) -> list[dict]:
     return entries
 
 
-def series(mpn: str) -> str:
+def series(mpn: str, mfr: str = "") -> str:
+    if mfr == "UNI-ROYAL":
+        from gen_passive import uniroyal_decode
+
+        if uniroyal_decode(mpn) is None:
+            raise ValueError(f"{mpn}: unsupported UNI-ROYAL chip resistor")
+        return mpn[:6]
     found = re.match(r"[A-Z]+", mpn)
     if not found:
         raise ValueError(f"{mpn}: no series prefix")
@@ -360,7 +366,7 @@ def build() -> dict:
             unmapped += 1
             continue
         page = pages[row["pn"]]
-        key = (name, version, entry["footprint"], entry["type"], entry["mfr"], series(entry["mpn"]))
+        key = (name, version, entry["footprint"], entry["type"], entry["mfr"], series(entry["mpn"], entry["mfr"]))
         group = groups.setdefault(key, {"members": [], "direct": []})
         group["members"].append([row["pn"], entry["mpn"], entry["part"], entry["entry"],
                                  row["category"], page["stock"], page["package"]])

@@ -1,12 +1,16 @@
 # MDD SMBJ series evidence record
 
-- Library coverage: `TVS_SMBJ_Uni` and `TVS_MDD_SMBJ30A`.
+- Library coverage: `TVS_SMBJ_Uni`, `TVS_SMBJ_Bi`, `TVS_MDD_SMBJ30A` and
+  `TVS_MDD_SMBJ30CA`.
 - Document identity: Microdiode Semiconductor (MDD), "SMBJ5.0(C)A THRU
   SMBJ440(C)A", stand-off voltage 5.0 to 440 V, peak pulse power 600 W,
   Rev:2025A7, 5 pages.
 - JLCPCB part page read on 2026-11-25: C113998, manufacturer
   "MDD(Microdiode Semiconductor)", MPN `SMBJ30A`, package DO-214AA(SMB),
   class Extended, stock 136,164.
+- JLCPCB part page read on 2026-11-25: C113999, the same manufacturer, MPN
+  `SMBJ30CA`, package DO-214AA(SMB), class Extended, stock 111,763. LCSC
+  serves the same PDF for it (same URL path, same SHA-256).
 - PDF as served by LCSC for C113998:
   <https://datasheet.lcsc.com/datasheet/pdf/2fdb55289569ebfc0bc21eab3853afe6.pdf>,
   1,215,362 bytes. The manufacturer site <http://www.microdiode.com> (printed

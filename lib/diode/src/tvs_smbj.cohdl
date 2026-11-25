@@ -6,6 +6,10 @@
 // numbers. A device here is a polarity, never a voltage or a maker:
 //   TVS_SMBJ_Uni: unidirectional ("A" suffix). The body band marks the
 //     cathode. Cathode on pad 1, anode on pad 2 (the do214 convention).
+//   TVS_SMBJ_Bi: bidirectional ("CA" suffix). No band and no polarity;
+//     the two terminals are interchangeable and are named IO1 and IO2.
+// A "CA" part is never an alternate of an "A" part: a design that needs a
+// cathode cannot take a part without one, so the difference is two devices.
 // Standoff voltage, clamping voltage and maker are part-level: each part
 // carries one exact MPN, its own maker's datasheet and its own LCSC number.
 // docs/README.md ("SMBJ family") has the member table and the rule for
@@ -63,4 +67,56 @@ pub part TVS_MDD_SMBJ30A: TVS_SMBJ_Uni {
 pub part TVS_HONGJIACHENG_SMBJ30A: TVS_SMBJ_Uni {
     primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "SMBJ30A",
               footprint: do214::DIOM5336X265N, supplier lcsc "C19077584" }
+}
+
+// A bidirectional TVS has no anode and no cathode, so it cannot implement
+// std's Polarized or Diode. This marker carries the diode designator.
+pub trait TVS_Bidirectional {
+    designator_prefix: "D"
+}
+
+// Bidirectional. Each sheet says the body carries no polarity mark:
+//   Vishay 88392 p1: "no marking on bidirectional types"; "Electrical
+//   characteristics apply in both directions".
+//   MDD Rev 2025A7 p1 and Hongjiacheng Rev 1.1 p2: the cathode band is
+//   "for uni-directional products only".
+// IO1 and IO2 follow esd's two-terminal protector naming (SMBJ6V0CA).
+#[doc("docs/vishay-smbj-88392.pdf")]
+#[doc("docs/mdd-smbj.evidence.md")]
+#[doc("docs/hongjiacheng-smbj.evidence.md")]
+pub device TVS_SMBJ_Bi {
+    pins {
+        required IO1: 1 [bidirectional]
+        required IO2: 2 [bidirectional]
+    }
+}
+
+impl TVS_Bidirectional for TVS_SMBJ_Bi {}
+
+// ---- 30V standoff, bidirectional ----
+// Vishay SMBJ30CA (88392 p2, the SMBJ30A row, bidirectional marking CK;
+// the CA suffix is defined on p1): VWM 30V, VBR 33.3-36.8V at 1.0mA, VC
+// 48.4V at IPPM 12.4A, ID 1.0uA at VWM, in both directions; PPPM 600W (p1).
+// "-E3/52" is the RoHS commercial grade on a 7in reel of 750 (p1, p3).
+#[doc("docs/vishay-smbj-88392.pdf")]
+pub part TVS_VISHAY_SMBJ30CA: TVS_SMBJ_Bi {
+    primary { mfr: "Vishay", mpn: "SMBJ30CA-E3/52", footprint: do214::DIOM5336X265N,
+              supplier lcsc "C553967" }
+}
+
+// MDD SMBJ30CA (Rev 2025A7 p2, marking CK): VRWM 30.0V, VBR 33.30-36.80V
+// at 1mA, VC 48.4V at IPP 12.4A, IR 1uA at VRWM; PPPM 600W minimum (p1).
+#[doc("docs/mdd-smbj.evidence.md")]
+pub part TVS_MDD_SMBJ30CA: TVS_SMBJ_Bi {
+    primary { mfr: "Microdiode Semiconductor", mpn: "SMBJ30CA", footprint: do214::DIOM5336X265N,
+              supplier lcsc "C113999" }
+}
+
+// Hongjiacheng SMBJ30CA (Rev 1.1 p3, marking CK): VRWM 30.0V, VBR
+// 33.30-36.80V at 1mA, VC 48.4V at IPP 12.40A, IR 5uA at VRWM; PPPM 600W
+// (p1).
+#[doc("docs/hongjiacheng-smbj.evidence.md")]
+pub part TVS_HONGJIACHENG_SMBJ30CA: TVS_SMBJ_Bi {
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "SMBJ30CA",
+              footprint: do214::DIOM5336X265N, supplier lcsc "C19077585" }
 }

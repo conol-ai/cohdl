@@ -1,11 +1,15 @@
 # Hongjiacheng SMBJ series evidence record (30 V parts)
 
-- Library coverage: `TVS_SMBJ_Uni` and `TVS_HONGJIACHENG_SMBJ30A`.
+- Library coverage: `TVS_SMBJ_Uni`, `TVS_SMBJ_Bi`, `TVS_HONGJIACHENG_SMBJ30A`
+  and `TVS_HONGJIACHENG_SMBJ30CA`.
 - Document identity: Zhuhai Hongjiacheng Technology Co., Ltd, "SMBJ SERIES
   600W Surface Mount Transient Voltage Suppressors", Rev 1.1, 5 pages.
 - JLCPCB part page read on 2026-11-25: C19077584, manufacturer
   "hongjiacheng", MPN `SMBJ30A`, package DO-214AA(SMB), class Extended,
   stock 231,959.
+- JLCPCB part page read on 2026-11-25: C19077585, the same manufacturer,
+  MPN `SMBJ30CA`, package DO-214AA(SMB), class Extended, stock 215,839.
+  LCSC serves the same PDF for it (same URL path, same SHA-256).
 - PDF as served by LCSC for C19077584:
   <https://datasheet.lcsc.com/datasheet/pdf/29e006ceaae5808e6d17d021de7bda89.pdf>,
   294,303 bytes.

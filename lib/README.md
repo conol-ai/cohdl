@@ -29,7 +29,7 @@ footprints live in focused packages:
 | `connectors` | `connectors::headers::micro_fit_3::MOLEX_43045_0612` | general-purpose board connectors, keyed power/actuator harnesses, and headers |
 | `usb` | `usb::connectors::type_c::USB_C_HRO_TYPE_C_31_M_12` | USB connectors, including Type-C and Micro-B, and controllers |
 | `esd` | `esd::ESD_USBLC6`, `esd::ESD_H5VL10B`, `esd::TVS_SMBJ6V0CA` | ESD protection devices and bidirectional TVS diodes |
-| `diode` | `diode::D_1N4148W`, `diode::SCHOTTKY_SS34`, `diode::TVS_VISHAY_SMBJ30A` | discrete diodes and the SMBJ TVS family |
+| `diode` | `diode::D_1N4148W`, `diode::SCHOTTKY_SS34`, `diode::TVS_VISHAY_SMBJ30A`, `diode::TVS_VISHAY_SMBJ30CA` | discrete diodes and the SMBJ TVS family, unidirectional and bidirectional as separate devices |
 | `flash` | `flash::FLASH_W25Q32`, `flash::FLASH_W25Q128JVSIQ`, `flash::FLASH_W25Q128JVPIQ` | nonvolatile NOR flash memories |
 | `ldo` | `ldo::LDO_AP2112K_3V3`, `ldo::LDO_RT9193_15PB` | low-dropout regulators |
 | `led` | `led::LED_RED_0603` | discrete/addressable LEDs and their traits |

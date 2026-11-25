@@ -15,9 +15,9 @@ here.
 | `hongjiacheng-b5819ws.evidence.md` | Zhuhai Hongjiacheng `B5819WS` | B5817WS-B5819WS, Rev 2.0, 3 pages | Zhuhai Hongjiacheng Technology Co., Ltd (PDF served by [LCSC C7420331](https://www.lcsc.com/product-detail/C7420331.html)) | `d0140bf852f26e98f404651f9055c2b99fef6bea17326ee6be37854c714ede94` |
 | `hongjiacheng-ss34.evidence.md` | Zhuhai Hongjiacheng `SS34` | SS32-SS320, Rev 2.0, 3 pages | Zhuhai Hongjiacheng Technology Co., Ltd (PDF served by [LCSC C7420365](https://www.lcsc.com/product-detail/C7420365.html)) | `f83a234fc3a645c2fe6d495d363a8b1bef79562769c813a72ca58e70f6b98927` |
 | `hongjiacheng-1n4148wt.evidence.md` | Zhuhai Hongjiacheng `1N4148WT` | 1N4148WT, Rev 2.0, 3 pages | Zhuhai Hongjiacheng Technology Co., Ltd (PDF served by [LCSC C7420320](https://www.lcsc.com/product-detail/C7420320.html)) | `71312a1ff0a0911bd02cb41941bbc00a9abdea0146b9843db0cd9ad03fe8365a` |
-| `vishay-smbj-88392.pdf` | Vishay `SMBJ30A-E3/52` | SMBJ5.0A thru SMBJ188A, document 88392, revision 09-Jan-2024, 6 pages | [Vishay](https://www.vishay.com/docs/88392/smbj.pdf) (retrieved 2026-11-25) | `1b65b57a4311128068c1dec747bbb99f6846ae932d77fcfd39904cb2d7a5cd50` |
-| `mdd-smbj.evidence.md` | Microdiode Semiconductor (MDD) `SMBJ30A` | SMBJ5.0(C)A thru SMBJ440(C)A, Rev:2025A7, 5 pages | Microdiode Semiconductor (PDF served by LCSC for C113998, see the record) | `95385273b5009dc9ec2f2a432e07e215f71626b825bd53a9f5525f4186566d3b` |
-| `hongjiacheng-smbj.evidence.md` | Zhuhai Hongjiacheng `SMBJ30A` | SMBJ series, Rev 1.1, 5 pages | Zhuhai Hongjiacheng Technology Co., Ltd (PDF served by LCSC for C19077584, see the record) | `3a3b185ee9f21932d5b2c70f5eb21f5f680c3bef1c2e5d2741a7b849bf1d2e39` |
+| `vishay-smbj-88392.pdf` | Vishay `SMBJ30A-E3/52`, `SMBJ30CA-E3/52` | SMBJ5.0A thru SMBJ188A, document 88392, revision 09-Jan-2024, 6 pages | [Vishay](https://www.vishay.com/docs/88392/smbj.pdf) (retrieved 2026-11-25) | `1b65b57a4311128068c1dec747bbb99f6846ae932d77fcfd39904cb2d7a5cd50` |
+| `mdd-smbj.evidence.md` | Microdiode Semiconductor (MDD) `SMBJ30A`, `SMBJ30CA` | SMBJ5.0(C)A thru SMBJ440(C)A, Rev:2025A7, 5 pages | Microdiode Semiconductor (PDF served by LCSC for C113998, see the record) | `95385273b5009dc9ec2f2a432e07e215f71626b825bd53a9f5525f4186566d3b` |
+| `hongjiacheng-smbj.evidence.md` | Zhuhai Hongjiacheng `SMBJ30A`, `SMBJ30CA` | SMBJ series, Rev 1.1, 5 pages | Zhuhai Hongjiacheng Technology Co., Ltd (PDF served by LCSC for C19077584, see the record) | `3a3b185ee9f21932d5b2c70f5eb21f5f680c3bef1c2e5d2741a7b849bf1d2e39` |
 
 ## Footprint and pin audit
 
@@ -102,6 +102,7 @@ with its own maker's document.
 | Family | Device | Pins | Members included (part: maker MPN, LCSC, stock) |
 |---|---|---|---|
 | SMBJ unidirectional ("A"), 30 V | `TVS_SMBJ_Uni` | `Cathode` 1 (band end), `Anode` 2 | `TVS_VISHAY_SMBJ30A`: Vishay `SMBJ30A-E3/52`, C1973126, 2,289; `TVS_MDD_SMBJ30A`: MDD `SMBJ30A`, C113998, 136,164; `TVS_HONGJIACHENG_SMBJ30A`: Hongjiacheng `SMBJ30A`, C19077584, 231,959 |
+| SMBJ bidirectional ("CA"), 30 V | `TVS_SMBJ_Bi` | `IO1` 1, `IO2` 2, interchangeable, no band | `TVS_VISHAY_SMBJ30CA`: Vishay `SMBJ30CA-E3/52`, C553967, 4,043; `TVS_MDD_SMBJ30CA`: MDD `SMBJ30CA`, C113999, 111,763; `TVS_HONGJIACHENG_SMBJ30CA`: Hongjiacheng `SMBJ30CA`, C19077585, 215,839 |
 
 - **Membership rule.** A part joins a device only when its own datasheet
   gives the same two-terminal pin table: the same outline and, for the
@@ -115,6 +116,17 @@ with its own maker's document.
   the convention of the `do214` lands (`lib/README.md`), so the cathode
   sits at the land's band mark. Checked from each sheet to the model and
   from the model back to each sheet.
+- **Two polarities, two devices.** A "CA" part has no cathode: Vishay p1
+  says "no marking on bidirectional types" and "Electrical characteristics
+  apply in both directions". `TVS_SMBJ_Bi` therefore has two
+  interchangeable pins, `IO1` and `IO2`, does not implement `Polarized` or
+  `Diode`, and takes its "D" designator from the `TVS_Bidirectional`
+  marker trait. A bidirectional part is never an `alt` of a unidirectional
+  one. The bidirectional values are the same table rows as the "A" parts
+  (markings CK instead of MK).
+- **Other bidirectional TVS parts** of Hongjiacheng (`SMBJ6.0CA`,
+  `SMCJ36CA`, `SMF15CA`) are in the `esd` package, added there before this
+  family existed. They are not moved or duplicated here.
 - **Values used (page).**
 
 | Part | VRWM | VBR at IT | VC at IPP | Leakage at VRWM | Source |
@@ -199,6 +211,8 @@ than their sheets suggest:
   has placed these part numbers. The three Hongjiacheng diodes already in
   this package each needed `rotate 180` on `sod` and `do214` lands. A
   unidirectional TVS placed half a turn off is fitted backwards, so the
-  zero map on the unidirectional parts is a placeholder, not a reading. Do
+  zero map on the unidirectional parts is a placeholder, not a reading.
+  For the bidirectional parts a half turn is harmless, but the zero map is
+  still unread: the plan asks for a body-only preview per part number. Do
   not order assembly with `--supplier lcsc` from these bindings before a
   preview.

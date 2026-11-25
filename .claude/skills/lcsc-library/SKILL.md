@@ -12,7 +12,7 @@ The rules live in `docs/library-supplier-plan.md` (ground rules, W2–W4), `docs
 ## Modes
 
 - **Interactive** (a person is present): every step may run. Ask at each gate marked **Ask**.
-- **Unattended** (a scheduled run): run only steps that need no one, and the gates a person approved in advance and in writing (name the approval in the run's report). At any other gate, stop: write what is ready and what waits on whom into the run's report and the plan doc's checklist, and end. Never drive the browser unattended: the preview may need a sign-in or a captcha.
+- **Unattended** (a scheduled run; the schedule itself is the maintainer's, outside this skill): run only steps that need no one, and the gates a person approved in advance and in writing. Name each such approval in the run's report: who gave it, when, and what it covers. This skill grants none. At any other gate, stop: write what is ready and what waits on whom into the run's report and the plan doc's checklist, and end. Never drive the browser unattended: the preview may need a sign-in or a captcha.
 
 ## Ground rules
 
@@ -66,8 +66,10 @@ python3 -I tools/lcsc_backfill_approved.py run --approved URLS.json --sha256 SHA
   --cache-dir ~/.cache/cohdl-sourcing/jlc --output-dir tools/sourcing_data/lcsc_backfill/<date>-<family> --date <date>
 ```
 
-- It refuses to start if the list changed, and refuses any uncached page off the list before a request. It stops by itself after two 403/429.
-- Write the run's `README.md` like `tools/sourcing_data/lcsc_backfill/2026-11-24-zener2/README.md`: the approved list's hash, the request count and times, the result (mapped, in review and why), and "Not a binding".
+- It refuses to start if the list's hash changed or an uncached candidate page is not on it, and refuses any uncached page off the list before a request. It stops by itself after two 403/429.
+- A run that stopped part way resumes with the same command and approval: the pages it fetched are cached, and it fetches only the rest of the list. After two 403/429, a person decides when to resume.
+- The backfill runs over the whole `lib/`, as every run has, so it also re-reads the earlier identities from the cache. Identities outside the batch with an uncached candidate page are refused and reported `fetch_failed`; `run` prints how many are in the batch and how many outside it. Only the batch's count is a result of this run.
+- Write the run's `README.md` like `tools/sourcing_data/lcsc_backfill/2026-11-24-zener2/README.md`: the approved list's hash, the request count and times, the result (mapped, in review and why, with both `fetch_failed` counts), and "Not a binding".
 
 ### 5. Map
 
@@ -76,13 +78,13 @@ python3 -I tools/lcsc_backfill_approved.py run --approved URLS.json --sha256 SHA
 
 ### 6. Orientation evidence
 
-- **Chip R/C** on `passive` CHIP lands: no new preview boards. Alex decided on 2026-11-25 that these lands were verified on real assembled boards, so preview misreadings (board 13/14's CC 0402 and 0201) do not block them. A part a W3 group record already covers binds through it (`tools/w3_record.py`). A group with no record needs that decision written into `docs/library-supplier-w3-sampling.md` first, as the evidence its frame rows cite: **Ask** the maintainer; until then the parts stay unbound.
+- **Chip R/C** on `passive` CHIP lands: no new preview boards. On 2026-11-25 the project decided that these lands were verified on real assembled boards, so preview misreadings (board 13/14's CC 0402 and 0201) do not block them. A part a W3 group record already covers binds through it (`tools/w3_record.py`). A group with no record needs that decision written into `docs/library-supplier-w3-sampling.md` first, as the evidence its frame rows cite: **Ask** the maintainer; until then the parts stay unbound.
 - **Non-polar two-terminal** (inductors, bidirectional TVS): a body reading per part number on its own preview (W3 rules); never borrowed from another part.
 - **Polar:** every part number needs its own reading.
   1. Write a preview board for the batch (follow `tools/frame_boards/zener_small_boards.py` and `preview-board-20/`): each part four times (top 0° and 37°, bottom 0° and 37°), no mapping, at least 40 in stock.
   2. Build the package in a clean worktree, with the KiCad CLI that leaves reference designators out of the silkscreen:
      `--kicad-cli tools/sourcing_data/jlc_previews/2026-11-09-reverify-2/kicad-cli-no-refdes`.
-  3. Run it with the **jlc-preview** skill. Alex pre-approved preview uploads on 2026-11-25; the run still stops at Component Placements, and needs Alex at the computer (sign-in, captcha).
+  3. Run it with the **jlc-preview** skill. The upload needs the approval that skill asks for; a standing approval of uploads counts only when the run's report names it (who, when, what it covers). The run stops at Component Placements and needs the signed-in person at the computer (sign-in, captcha): interactive only.
   4. Read each copy. A two-terminal polar part always goes to manual review: its one mark at pad 1 may be its "+" as well as its band. Map designators to part numbers from the package's BOM CSV, which is sorted by part name, not from the manifest order.
   5. A part read reversed on all four copies is a **candidate** `rotate 180`, not a mapping: a re-verify board places it again with that mapping (as `preview-board-21`), and it binds only when every copy then reads right.
 - Write the record under `tools/sourcing_data/jlc_previews/<date>-board-<n>/` as the jlc-preview skill says.
@@ -94,7 +96,7 @@ python3 -I tools/lcsc_backfill_approved.py run --approved URLS.json --sha256 SHA
 
 ### 8. Test, relock, compare
 
-Use one `CARGO_TARGET_DIR` per worktree and a fresh, empty `COHDL_HOME` per run:
+Build into the worktree's own `target/` (unset `CARGO_TARGET_DIR`, or set it to the worktree's `target`): the Python tests run `target/debug/cohdl`, and a target dir shared between worktrees tests another tree's binary. Use a fresh, empty `COHDL_HOME` per run:
 
 ```sh
 cargo build && cargo test

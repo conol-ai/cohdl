@@ -1,6 +1,8 @@
 """The lcsc-library skill names only files that exist, and its backfill wrapper fails closed."""
 
+from contextlib import redirect_stdout
 import hashlib
+import io
 import json
 from pathlib import Path
 import re
@@ -31,6 +33,12 @@ class SkillTests(unittest.TestCase):
         head = SKILL.read_text().split("---")[1]
         self.assertIn("name: lcsc-library", head)
         self.assertIn("description:", head)
+
+    def test_the_skill_grants_no_standing_approval_of_its_own(self):
+        # An approval belongs to the run that has it, named in its report; the skill is shared.
+        text = SKILL.read_text()
+        for phrase in ("Alex", "pre-approved", "preapproved"):
+            self.assertNotIn(phrase, text)
 
     def test_extracted_scripts_carry_no_local_paths(self):
         for name in ("regen_locks.py", "examples_golden.sh", "lcsc_backfill_approved.py"):
@@ -76,6 +84,54 @@ class GuardTests(unittest.TestCase):
             path.write_text(json.dumps(["b", "a"]))
             with self.assertRaises(SystemExit):
                 approved.check_approved(path, hashlib.sha256(path.read_bytes()).hexdigest())
+
+
+class RunTests(unittest.TestCase):
+    """cmd_run with the offline scan and the backfill itself replaced by fakes."""
+
+    A, B, C = (f"https://jlcpcb.com/partdetail/{x}" for x in "abc")
+
+    def run_with(self, approved_urls, left, review_rows=()):
+        calls = []
+
+        def fake_main(argv):
+            calls.append(argv)
+            out = Path(argv[argv.index("--output-dir") + 1])
+            (out / "review.json").write_text(json.dumps({"fetch_failed": list(review_rows)}))
+            return 0
+
+        saved = approved.uncached_candidates, approved.batch_identities, approved.lb.main
+        approved.uncached_candidates = lambda subset, cache: (2, left)
+        approved.batch_identities = lambda subset: {("M", "in")}
+        approved.lb.main = fake_main
+        try:
+            with tempfile.TemporaryDirectory() as d:
+                path = Path(d) / "urls.json"
+                data = approved.list_bytes(approved_urls)
+                path.write_bytes(data)
+                args = approved.build_parser().parse_args([
+                    "run", "--approved", str(path), "--sha256", hashlib.sha256(data).hexdigest(),
+                    "--subset", d, "--cache-dir", d, "--output-dir", str(Path(d) / "out"), "--date", "2026-11-25"])
+                with redirect_stdout(io.StringIO()) as out:
+                    status = approved.cmd_run(args)
+                return status, calls, out.getvalue()
+        finally:
+            approved.uncached_candidates, approved.batch_identities, approved.lb.main = saved
+
+    def test_a_stopped_run_resumes_over_the_rest_of_the_approved_list(self):
+        status, calls, _ = self.run_with([self.A, self.B], [self.B])
+        self.assertEqual(status, 0)
+        argv = calls[0]
+        self.assertEqual(argv[argv.index("--max-requests") + 1], "3")
+
+    def test_an_uncached_page_off_the_approved_list_stops_the_run_before_the_backfill(self):
+        with self.assertRaises(SystemExit):
+            self.run_with([self.A], [self.A, self.C])
+
+    def test_failed_identities_are_counted_in_and_outside_the_batch(self):
+        rows = [{"mfr": "M", "mpn": "in"}, {"mfr": "M", "mpn": "out"}, {"mfr": "N", "mpn": "in"}]
+        _, _, printed = self.run_with([self.A], [self.A], rows)
+        self.assertIn("fetch_failed: 1 in the batch, 2 outside it", printed)
 
 
 if __name__ == "__main__":

@@ -12,12 +12,17 @@ takes the identities (manufacturer, MPN) of SUBSET_LIB, a library directory hold
 batch's new parts, and writes every candidate ``partdetail`` page of those MPNs that is not
 cached yet. It prints the list's length and SHA-256: that hash is what the person approves.
 
-``run`` refuses to start unless the list still has the approved SHA-256 and is still exactly
-the uncached candidate pages of SUBSET_LIB. It then runs ``lcsc_backfill.main`` over the whole
-``lib/`` with a request cap of the list's length plus two (``robots.txt``), behind a guard:
-any page that is neither cached nor on the list is refused with ``PolicyError`` before a
-request is sent. Every other rule (user agent, 2 s per host, ``robots.txt``, no ``/api``, stop
-after two 403/429) stays the shared client's (``tools/sourcing/http.py``).
+``run`` refuses to start unless the list still has the approved SHA-256 and every uncached
+candidate page of SUBSET_LIB is still on it. A run that stopped part way (two 403/429, an
+interruption) therefore resumes with no new approval: the pages it fetched are cached now,
+and only the rest of the approved list is left. It runs ``lcsc_backfill.main`` over the whole
+``lib/``, as every backfill run has, so the run also re-reads the earlier identities from the
+cache. The request cap is the pages left plus two (``robots.txt``), behind a guard: any page
+that is neither cached nor on the list is refused with ``PolicyError`` before a request is
+sent, and its identity is reported ``fetch_failed``. ``run`` then prints how many
+``fetch_failed`` identities are in the batch and how many are outside it (refused, off the
+list), for the run's README. Every other rule (user agent, 2 s per host, ``robots.txt``, no
+``/api``, stop after two 403/429) stays the shared client's (``tools/sourcing/http.py``).
 """
 from __future__ import annotations
 
@@ -40,13 +45,17 @@ ORIGIN = "https://jlcpcb.com"
 SITEMAP_INDEX = "https://jlcpcb.com/sitemap-index.xml"
 
 
+def batch_identities(subset: Path) -> set[tuple[str, str]]:
+    """The (manufacturer, MPN) identities of SUBSET that the backfill looks up."""
+    return {(r.mfr, r.mpn) for r in lb.extract_avl_rows(subset) if r.mpn and lb.normalize_mpn(r.mpn)}
+
+
 def uncached_candidates(subset: Path, cache: Path) -> tuple[int, list[str]]:
     """(identities in SUBSET, sorted uncached candidate pages of their MPNs); no request is sent."""
     probe = http.FetchClient(cache, allowed_hosts=[HOST], max_requests=0)
     sitemap, _ = load_sitemaps(lb.OfflineClient(probe), SITEMAP_INDEX, sitemap_urls=None, allowed_hosts=[HOST])
     index = lb.build_index(sitemap, lb.load_candidates(lb.DEFAULT_CANDIDATES))
-    rows = lb.extract_avl_rows(subset)
-    unique = sorted({(r.mfr, r.mpn) for r in rows if r.mpn and lb.normalize_mpn(r.mpn)})
+    unique = sorted(batch_identities(subset))
     urls = {lb.canonical_url(ORIGIN, c.path) for _, mpn in unique for c in index.get(lb.normalize_mpn(mpn), [])}
     return len(unique), sorted(u for u in urls if not probe.is_cached(u))
 
@@ -87,20 +96,34 @@ def cmd_plan(args) -> int:
     return 0
 
 
+def fetch_failed_split(review: Path, batch: set[tuple[str, str]]) -> tuple[int, int]:
+    """(fetch_failed identities in the batch, outside it) in a run's review.json."""
+    rows = json.loads(review.read_text())["fetch_failed"]
+    inside = sum((row["mfr"], row["mpn"]) in batch for row in rows)
+    return inside, len(rows) - inside
+
+
 def cmd_run(args) -> int:
     approved = check_approved(args.approved, args.sha256)
-    count, now = uncached_candidates(args.subset, args.cache_dir)
-    if now != approved:
-        raise SystemExit("the uncached candidate pages are no longer the approved list; plan again")
-    print(f"{count} identities, {len(approved)} approved pages")
-    undo = guard(http.FetchClient, frozenset(approved))
+    count, left = uncached_candidates(args.subset, args.cache_dir)
+    off_list = sorted(set(left) - set(approved))
+    if off_list:
+        raise SystemExit(f"{len(off_list)} uncached candidate pages are not on the approved list "
+                         f"(first: {off_list[0]}); plan again")
+    print(f"{count} identities; {len(left)} of the {len(approved)} approved pages still to fetch")
+    undo = guard(http.FetchClient, frozenset(left))
     try:
         args.output_dir.mkdir(parents=True, exist_ok=True)
-        return lb.main(["--allowed-host", HOST, "--cache-dir", str(args.cache_dir),
-                        "--output-dir", str(args.output_dir), "--date", args.date,
-                        "--max-requests", str(len(approved) + 2), "--lib-dir", str(args.lib_dir)])
+        status = lb.main(["--allowed-host", HOST, "--cache-dir", str(args.cache_dir),
+                          "--output-dir", str(args.output_dir), "--date", args.date,
+                          "--max-requests", str(len(left) + 2), "--lib-dir", str(args.lib_dir)])
     finally:
         undo()
+    review = args.output_dir / "review.json"
+    if review.is_file():
+        inside, outside = fetch_failed_split(review, batch_identities(args.subset))
+        print(f"fetch_failed: {inside} in the batch, {outside} outside it (refused: off the approved list)")
+    return status
 
 
 def build_parser() -> argparse.ArgumentParser:

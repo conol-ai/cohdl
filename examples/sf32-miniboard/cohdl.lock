@@ -53,7 +53,7 @@ hash = "sha256:09f5c34710bd70d8c866646c424f980fa09e6873d34ed538543a0c58d15f74bf"
 [[package]]
 name = "load-switch"
 version = "0.2.2"
-hash = "sha256:4ce1e995ee6979e7b1161bb1a152de30fcde151131aa0b9f79ace5dedfb07033"
+hash = "sha256:f9e6b19e9c9bdc12e936b56b124e5747badfe7c41c50d17178eebd33fb0579f9"
 
 [[package]]
 name = "misc"
@@ -84,6 +84,11 @@ hash = "sha256:5f24ff5d7235f2757e970e0dad57a562ba8cb268a804b00d393848d33239d58d"
 name = "soic"
 version = "0.3.0"
 hash = "sha256:faa12734be8c93a602b4a3d24a5e40f23d41ea6e030ae7fbe4008a8f5568c8db"
+
+[[package]]
+name = "son"
+version = "0.1.0"
+hash = "sha256:dabae12b095e5541b0d56e4e5f253dd67c01d31e951b7bec0a75588461583f9a"
 
 [[package]]
 name = "std"

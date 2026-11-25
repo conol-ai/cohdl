@@ -47,7 +47,7 @@ class Board4BindingsTests(unittest.TestCase):
         by_pn = {}
         for row in rows():
             if row["package"] == "passive":
-                self.assertEqual(row["package_version"], "0.2.11", row["id"])
+                self.assertEqual(row["package_version"], "0.2.12", row["id"])
                 by_pn.setdefault(row["pn"], []).append(row)
         zero = {"dx_mm": 0, "dy_mm": 0, "rotate_deg": 0}
         for pn, (row_id, land, *_) in BOUND.items():
@@ -96,7 +96,7 @@ class Board4BindingsTests(unittest.TestCase):
     def test_the_library_binds_each_number_on_the_entry_the_map_names(self):
         identity = {row["pn"]: (row["mfr"], row["mpn"]) for row in
                     json.loads((ROOT / "tools/sourcing_data/lcsc_map.json").read_text(encoding="utf-8"))["rows"]}
-        self.assertIn('version = "0.2.11"', (ROOT / "lib/passive/cohdl.toml").read_text(encoding="utf-8"))
+        self.assertIn('version = "0.2.12"', (ROOT / "lib/passive/cohdl.toml").read_text(encoding="utf-8"))
         for pn, (_, land, source, part, entry, mpn, _) in BOUND.items():
             with self.subTest(pn=pn):
                 self.assertEqual(identity[pn][1], mpn)
@@ -110,12 +110,12 @@ class Board4BindingsTests(unittest.TestCase):
                 if entry == "primary":
                     self.assertIn("footprint: %s" % land, clause)
         self.assertEqual(sum(text.count('supplier lcsc "') for text in
-                             (path.read_text(encoding="utf-8") for path in (ROOT / "lib/passive/src").glob("*.cohdl"))), 1381)
+                             (path.read_text(encoding="utf-8") for path in (ROOT / "lib/passive/src").glob("*.cohdl"))), 4009)
 
     def test_the_sampled_group_is_as_it_was(self):
-        inferred = [row for row in rows() if (row.get("sampled") or {}).get("group") == "passive-0.2.11-CHIP_0402-ChipResistor-Yageo-RC"]
+        inferred = [row for row in rows() if (row.get("sampled") or {}).get("group") == "passive-0.2.12-CHIP_0402-ChipResistor-Yageo-RC"]
         self.assertEqual(len(inferred), 798)
-        self.assertEqual({row["sampled"]["group"] for row in inferred}, {"passive-0.2.11-CHIP_0402-ChipResistor-Yageo-RC"})
+        self.assertEqual({row["sampled"]["group"] for row in inferred}, {"passive-0.2.12-CHIP_0402-ChipResistor-Yageo-RC"})
         by_pn = {row["pn"]: row for row in inferred}
         placed = copies()
         for pn in STILL_INFERRED:

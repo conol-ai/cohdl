@@ -21,7 +21,7 @@ The top median was (−0.015, −0.017) mm, the bottom median (0.009, −0.012) 
 
 Controls C113780 (Yageo CC 0402), C11702 (UNI-ROYAL 0402WG), C17888 (UNI-ROYAL 1206W4) and C19702 (Samsung CL 0603), all previously passed on board 6 or board 7, each passed at all four placements.
 
-These samples are half of each group's sample in the 2026-11-23 report; board 11 carries the other half. No group here is complete on this board alone, so this record supports no binding yet.
+These samples are half of each group's sample in the 2026-11-23 report; board 11 carries the other half. No group here is complete on this board alone; with board 11 the three Yageo RC groups are, and their bindings arrive in passive 0.2.12.
 
 ## Reproduction
 

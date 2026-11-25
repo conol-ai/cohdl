@@ -215,3 +215,20 @@ This release adds 207 LCSC bindings on existing MLCCs: 169 on Yageo CC 0402 prim
 - **Records.** The group records for this release are `w3_records/2026-11-21-chip0402-yageo-cc.json` and `w3_records/2026-11-22-chip0603-samsung-cl.json`. The five resistor records were rebuilt at 0.2.11 with unchanged outcomes. For these nonpolar bodies the axis is known modulo 180°.
 
 [Board 7 evidence](../../../tools/sourcing_data/jlc_previews/2026-11-21-board-7/README.md) · [W3 group report](../../../tools/sourcing_data/w3_sampling/2026-11-22/groups.md)
+
+## Yageo RC 0603, 0805 and 1206 resistors in 0.2.12
+
+This release adds 2,628 LCSC bindings on existing parts: 2,617 on Yageo RC 0603, 0805 and 1206 primaries and 11 on Yageo CC 0603 primaries. All 1,381 prior bindings carry forward, for 4,009 in all. Each new entry has a confirmed manufacturer and part number in the formal map and positive stock on its archived page. No land changed: boards 11 and 12 pinned the `pads.cohdl` and `footprints.cohdl` of 0.2.8, and the W3 report checks both files against their hashes.
+
+| Group | Direct evidence | Inferred by W3 | New bindings |
+|---|---:|---:|---:|
+| Yageo RC 0603 | 45 | 837 | 882 |
+| Yageo RC 0805 | 44 | 823 | 867 |
+| Yageo RC 1206 | 45 | 823 | 868 |
+| Yageo CC 0603 | 11 | 0 | 11 |
+
+- **Yageo RC.** Boards 11 and 12 (2026-11-23) each carried half of every group's sample. With the four or five each group had passed before, every group reaches its 49 required samples; each sample was placed four times (top and bottom, 0° and 37°) and every copy passed method 2, within 5.7° and 0.080 mm. The samples bind from their own rows (`pb11-`, `pb12-`); the other members are inferred under rule `w3-2026-11-12`. Not bound: the members with no stock (83, 97 and 95).
+- **Yageo CC 0603.** The eleven samples that passed on boards 11 and 12 bind from their own rows. The group itself is paused: two of its 14 judged members, C576830 and C576858, were not drawn on either board, above the rule's 10%, so nothing in it is inferred.
+- **Records.** The new group records are `w3_records/2026-11-23-chip0603-yageo-rc.json`, `2026-11-23-chip0805-yageo-rc.json` and `2026-11-23-chip1206-yageo-rc.json`. The seven earlier records were rebuilt at 0.2.12; their controls gained the board 11 and 12 readings and their outcomes are unchanged. For these nonpolar bodies the axis is known modulo 180°.
+
+[Board 11 evidence](../../../tools/sourcing_data/jlc_previews/2026-11-23-board-11/README.md) · [Board 12 evidence](../../../tools/sourcing_data/jlc_previews/2026-11-23-board-12/README.md) · [W3 group report](../../../tools/sourcing_data/w3_sampling/2026-11-23c/groups.md)

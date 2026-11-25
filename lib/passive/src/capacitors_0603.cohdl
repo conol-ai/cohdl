@@ -8,7 +8,8 @@
 
 #[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_10p_100V_C0G_0603: MLCC<10pF, 100V, 5%>[C0603] {
-    primary { mfr: "Yageo", mpn: "CC0603JRNPO0BN100", footprint: CHIP_0603 }
+    primary { mfr: "Yageo", mpn: "CC0603JRNPO0BN100", footprint: CHIP_0603,
+              supplier lcsc "C576799" }
     alt { mfr: "Samsung", mpn: "CL10C100JC81IN" }
 }
 
@@ -140,7 +141,8 @@ pub part C_560p_100V_C0G_0603: MLCC<560pF, 100V, 5%>[C0603] {
 
 #[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_680p_100V_C0G_0603: MLCC<680pF, 100V, 5%>[C0603] {
-    primary { mfr: "Yageo", mpn: "CC0603JRNPO0BN681", footprint: CHIP_0603 }
+    primary { mfr: "Yageo", mpn: "CC0603JRNPO0BN681", footprint: CHIP_0603,
+              supplier lcsc "C527066" }
     alt { mfr: "Samsung", mpn: "CL10C681JC81IN" }
 }
 
@@ -250,7 +252,8 @@ pub part C_330p_100V_X7R_0603: MLCC<330pF, 100V, 10%>[C0603] {
 
 #[doc("docs/yageo_x7r_6v3_to_250v_datasheet_en.pdf")]
 pub part C_470p_100V_X7R_0603: MLCC<470pF, 100V, 10%>[C0603] {
-    primary { mfr: "Yageo", mpn: "CC0603KRX7R0BB471", footprint: CHIP_0603 }
+    primary { mfr: "Yageo", mpn: "CC0603KRX7R0BB471", footprint: CHIP_0603,
+              supplier lcsc "C107062" }
     alt { mfr: "Samsung", mpn: "CL10B471KC8WPN" }
 }
 
@@ -666,7 +669,8 @@ pub part C_68n_16V_X7R_0603: MLCC<68nF, 16V, 10%>[C0603] {
 
 #[doc("docs/yageo_x7r_6v3_to_250v_datasheet_en.pdf")]
 pub part C_100n_16V_X7R_0603: MLCC<100nF, 16V, 10%>[C0603] {
-    primary { mfr: "Yageo", mpn: "CC0603KRX7R7BB104", footprint: CHIP_0603 }
+    primary { mfr: "Yageo", mpn: "CC0603KRX7R7BB104", footprint: CHIP_0603,
+              supplier lcsc "C108079" }
     alt { mfr: "Samsung", mpn: "CL10B104KO86PJ" }
 }
 
@@ -714,7 +718,8 @@ pub part C_2u2_16V_X7R_0603: MLCC<2.2uF, 16V, 10%>[C0603] {
 
 #[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_10p_200V_C0G_0603: MLCC<10pF, 200V, 5%>[C0603] {
-    primary { mfr: "Yageo", mpn: "CC0603JRNPOABN100", footprint: CHIP_0603 }
+    primary { mfr: "Yageo", mpn: "CC0603JRNPOABN100", footprint: CHIP_0603,
+              supplier lcsc "C576820" }
 }
 
 #[doc("docs/yageo_cc_series_datasheet_en.pdf")]
@@ -1217,7 +1222,8 @@ pub part C_560p_25V_C0G_0603: MLCC<560pF, 25V, 5%>[C0603] {
 
 #[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_680p_25V_C0G_0603: MLCC<680pF, 25V, 5%>[C0603] {
-    primary { mfr: "Yageo", mpn: "CC0603JRNPO8BN681", footprint: CHIP_0603 }
+    primary { mfr: "Yageo", mpn: "CC0603JRNPO8BN681", footprint: CHIP_0603,
+              supplier lcsc "C519397" }
     alt { mfr: "Samsung", mpn: "CL10C681JA81IN" }
 }
 
@@ -1305,7 +1311,8 @@ pub part C_10n_25V_C0G_0603: MLCC<10nF, 25V, 5%>[C0603] {
 
 #[doc("docs/yageo_x5r_4v_to_50v_datasheet_en.pdf")]
 pub part C_100n_25V_X5R_0603: MLCC<100nF, 25V, 10%>[C0603] {
-    primary { mfr: "Yageo", mpn: "CC0603KRX5R8BB104", footprint: CHIP_0603 }
+    primary { mfr: "Yageo", mpn: "CC0603KRX5R8BB104", footprint: CHIP_0603,
+              supplier lcsc "C2930551" }
     alt { mfr: "Samsung", mpn: "CL10A104KA8NNN" }
 }
 
@@ -1357,7 +1364,8 @@ pub part C_10u_25V_X5R_0603: MLCC<10uF, 25V, 10%>[C0603] {
 
 #[doc("docs/yageo_x7r_6v3_to_250v_datasheet_en.pdf")]
 pub part C_100p_25V_X7R_0603: MLCC<100pF, 25V, 10%>[C0603] {
-    primary { mfr: "Yageo", mpn: "CC0603KRX7R8BB101", footprint: CHIP_0603 }
+    primary { mfr: "Yageo", mpn: "CC0603KRX7R8BB101", footprint: CHIP_0603,
+              supplier lcsc "C519410" }
     alt { mfr: "Samsung", mpn: "CL10B101KA8WPN" }
 }
 
@@ -1449,7 +1457,8 @@ pub part C_33n_25V_X7R_0603: MLCC<33nF, 25V, 10%>[C0603] {
 
 #[doc("docs/yageo_x7r_6v3_to_250v_datasheet_en.pdf")]
 pub part C_47n_25V_X7R_0603: MLCC<47nF, 25V, 10%>[C0603] {
-    primary { mfr: "Yageo", mpn: "CC0603KRX7R8BB473", footprint: CHIP_0603 }
+    primary { mfr: "Yageo", mpn: "CC0603KRX7R8BB473", footprint: CHIP_0603,
+              supplier lcsc "C113811" }
     alt { mfr: "Samsung", mpn: "CL10B473KA8NFN" }
 }
 
@@ -1552,7 +1561,8 @@ pub part C_27p_50V_C0G_0603: MLCC<27pF, 50V, 5%>[C0603] {
 
 #[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_33p_50V_C0G_0603: MLCC<33pF, 50V, 5%>[C0603] {
-    primary { mfr: "Yageo", mpn: "CC0603JRNPO9BN330", footprint: CHIP_0603 }
+    primary { mfr: "Yageo", mpn: "CC0603JRNPO9BN330", footprint: CHIP_0603,
+              supplier lcsc "C107047" }
     alt { mfr: "Samsung", mpn: "CL10C330JB81IN" }
     alt { mfr: "Samsung", mpn: "CL10C330JB8NNNC", supplier lcsc "C1663" }
 }
@@ -1764,7 +1774,8 @@ pub part C_220p_50V_X7R_0603: MLCC<220pF, 50V, 10%>[C0603] {
 
 #[doc("docs/yageo_x7r_6v3_to_250v_datasheet_en.pdf")]
 pub part C_330p_50V_X7R_0603: MLCC<330pF, 50V, 10%>[C0603] {
-    primary { mfr: "Yageo", mpn: "CC0603KRX7R9BB331", footprint: CHIP_0603 }
+    primary { mfr: "Yageo", mpn: "CC0603KRX7R9BB331", footprint: CHIP_0603,
+              supplier lcsc "C107087" }
     alt { mfr: "Samsung", mpn: "CL10B331KB8NFN" }
 }
 

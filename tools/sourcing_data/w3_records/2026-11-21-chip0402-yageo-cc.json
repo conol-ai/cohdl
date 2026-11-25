@@ -29,9 +29,9 @@
  },
  "groups": [
   {
-   "id": "passive-0.2.11-CHIP_0402-MLCC-Yageo-CC",
+   "id": "passive-0.2.12-CHIP_0402-MLCC-Yageo-CC",
    "package": "passive",
-   "package_version": "0.2.11",
+   "package_version": "0.2.12",
    "footprint": "CHIP_0402",
    "type": "MLCC",
    "mfr": "Yageo",

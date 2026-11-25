@@ -34,6 +34,7 @@ footprints live in focused packages:
 | `ldo` | `ldo::LDO_AP2112K_3V3`, `ldo::LDO_RT9193_15PB` | low-dropout regulators |
 | `led` | `led::LED_RED_0603` | discrete/addressable LEDs and their traits |
 | `mosfet` | `mosfet::FET_DMG1012T` | discrete MOSFETs |
+| `transistor` | `transistor::BJT_JSCJ_S8050_J3Y`, `transistor::FET_BSS138` | discrete bipolar transistors and the onsemi BSS138 small-signal MOSFET (on `sot::SOT3P190X290X130N`) |
 | `osc` | `osc::XTAL_8M`, `osc::XTAL_40MHZ` | crystals and oscillators |
 | `mic` | `mic::MIC_ICS43434` | microphones and the `Microphone` trait |
 | `audio-amp` | `audio_amp::AMP_NS4168` | audio power amplifiers with verified land patterns |

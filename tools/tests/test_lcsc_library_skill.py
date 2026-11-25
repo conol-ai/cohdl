@@ -40,6 +40,14 @@ class SkillTests(unittest.TestCase):
         for phrase in ("Alex", "pre-approved", "preapproved"):
             self.assertNotIn(phrase, text)
 
+    def test_both_skills_build_previews_without_reference_designators(self):
+        wrapper = "tools/sourcing_data/jlc_previews/2026-11-09-reverify-2/kicad-cli-no-refdes"
+        self.assertTrue((ROOT / wrapper).is_file())
+        for skill in (SKILL, ROOT / ".claude/skills/jlc-preview/SKILL.md"):
+            clis = re.findall(r"--kicad-cli\s+([^\s`]+)", skill.read_text())
+            self.assertTrue(clis, skill)
+            self.assertEqual(set(clis), {wrapper}, skill)
+
     def test_extracted_scripts_carry_no_local_paths(self):
         for name in ("regen_locks.py", "examples_golden.sh", "lcsc_backfill_approved.py"):
             self.assertNotIn("/Users/", (TOOLS / name).read_text(), name)

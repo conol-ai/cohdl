@@ -22,6 +22,13 @@ BOARD_4 = wg.PREVIEWS / "2026-11-11-board-4"
 
 BOARD_6 = wg.PREVIEWS / "2026-11-19-board-6"
 BOARD_7 = wg.PREVIEWS / "2026-11-21-board-7"
+BOARD_11 = wg.PREVIEWS / "2026-11-23-board-11"
+BOARD_12 = wg.PREVIEWS / "2026-11-23-board-12"
+# Short at board 12's first BOM step; its record keeps them.
+BOARD_12_SHORT = {"C137563", "C163413", "C185290", "C273881", "C274065"}
+# Short at board 11's first two BOM steps; its record keeps them.
+BOARD_11_SHORT = {"C14664", "C137225", "C137677", "C137778", "C163408", "C185340", "C273747", "C273977",
+                  "C483098", "C483138", "C488917", "C163370"}
 
 
 def previews_through(last):
@@ -447,9 +454,10 @@ class W3GroupsTests(unittest.TestCase):
                 self.assertEqual((g["status"], g["required"], g["more_needed"]), ("sampled", required, 0))
                 self.assertEqual(len(g["passed"]), required)
                 for sample in g["passed"]:
-                    # Board 6 is each sample's own record; three of them came back as controls on board 7.
+                    # Board 6 is each sample's own record; some came back as controls on boards 7 and 12.
                     self.assertEqual(sample["records"][0], origin)
-                    self.assertLessEqual(set(sample["records"][1:]), {str((BOARD_7 / "README.md").relative_to(wg.ROOT))})
+                    self.assertLessEqual(set(sample["records"][1:]),
+                                         {str((b / "README.md").relative_to(wg.ROOT)) for b in (BOARD_7, BOARD_11, BOARD_12)})
                     copies = [c for c in judged[(g["footprint"], sample["pn"])] if c["record"] == origin]
                     self.assertEqual(len(copies), 4)
                     self.assertTrue(all(copy["ok"] for copy in judged[(g["footprint"], sample["pn"])]))
@@ -484,10 +492,12 @@ class W3GroupsTests(unittest.TestCase):
         # Without board 4's record method 2 gives (1, 16, 3): Yageo CC 0402 is then one sample
         # short, and RC 1210 has only 1 not drawn against its 43 required.
         self.assertEqual(count(self.before), (1, 20, 3))
-        # What pauses the four under method 2: a failed sample, or the not-drawn share.
+        # What pauses the five under method 2: a failed sample, or the not-drawn share. Yageo CC
+        # 0603 joined them with boards 11 and 12: two of its 14 judged members are not drawn.
         self.assertEqual({(g["footprint"], g["mfr"], g["series"]): (len(g["failed"]), g["not_drawn_excess"])
                           for g in self.report["groups"] if g["status"] == "paused"},
                          {("CHIP_0201", "Yageo", "RC"): (1, False), ("CHIP_0402", "Vishay", "CRCW"): (0, True),
+                          ("CHIP_0603", "Yageo", "CC"): (0, True),
                           ("CHIP_0805", "Yageo", "CC"): (3, False), ("CHIP_1210", "Yageo", "RC"): (0, True)})
         # No reading of any record is unsupported: every view's median holds enough other bodies.
         self.assertFalse(any(g["bias_unsupported"] for r in (self.before, self.report) for g in r["groups"]))
@@ -558,7 +568,7 @@ class W3GroupsTests(unittest.TestCase):
         self.assertEqual({n["pn"]: len(n["refs"]) for n in rc["record_not_judged"]},
                          {"C138033": 10, "C185445": 10, "C60491": 10})
         text = wg.render(report)
-        self.assertIn("- Records not judged: 1 of 5 preview records", text)
+        self.assertIn("- Records not judged: 1 of 7 preview records", text)
         self.assertIn(f"- `{name}`: no readings by method 2; {listed['members']} of its {listed['part_numbers']} "
                       "part numbers are group members", text)
         self.assertIn("  - `CHIP_0402` ChipResistor Yageo RC (sampled): C138033 (", text)
@@ -567,7 +577,7 @@ class W3GroupsTests(unittest.TestCase):
         with mock.patch.object(wg, "_sha256", lambda path: "0" * 64 if path.name == "pads.cohdl" else hashed(path)):
             lapsed = wg.records_not_judged()
         self.assertEqual([(r["kind"], r["reason"]) for r in lapsed],
-                         [("land", "changed since its preview: lib/passive/src/pads.cohdl")] * 5)
+                         [("land", "changed since its preview: lib/passive/src/pads.cohdl")] * 7)
 
     def test_no_group_record_is_written_over_a_record_that_lacks_the_rules_readings(self):
         import w3_record
@@ -600,7 +610,7 @@ class W3GroupsTests(unittest.TestCase):
             with self.assertRaisesRegex(SystemExit, "listed as method 2 readings"):
                 wg.judged_members()
         for record, meta in wg.preview_inputs().items():
-            if record in (BOARD_6, BOARD_7):
+            if record in (BOARD_6, BOARD_7, BOARD_11, BOARD_12):
                 self.assertEqual(wg.readings_file(record, meta, 1), [])
                 self.assertEqual(wg.readings_file(record, meta, 2), ["measurements.json"])
             else:
@@ -744,14 +754,24 @@ class W3GroupsTests(unittest.TestCase):
 
     def test_short_at_preview_lives_in_the_dated_record(self):
         records = {pn for meta in wg.preview_inputs().values() for pn in meta["short_at_preview"]}
-        self.assertEqual(records, {"C185414", "C185430", "C470029", "C875102"})
+        self.assertEqual(records, {"C185414", "C185430", "C470029", "C875102"} | BOARD_11_SHORT | BOARD_12_SHORT)
         self.assertNotIn("C185414", (wg.ROOT / "tools/w3_groups.py").read_text(encoding="utf-8"))
 
     def test_a_board_short_at_its_bom_step_hands_the_fact_to_its_preview_record(self):
         # Board 4's first package (2026-11-11) stopped at the BOM step with no preview, so
         # the board's own w3.json carried the two numbers. Its second package was previewed
         # the same day; the record's w3.json holds the list now, and the board's is removed.
+        # Boards 11 and 12 (2026-11-23) went the same way: packages stopped at the BOM step
+        # (two on board 11, one on board 12), the next was previewed, and each record holds
+        # its board's numbers. No board keeps a w3.json of its own now.
         self.assertEqual(wg.board_inputs(), {})
+        pending = set()
+        for board, record, short in (("11", BOARD_11, BOARD_11_SHORT), ("12", BOARD_12, BOARD_12_SHORT)):
+            self.assertFalse((wg.BOARDS / f"preview-board-{board}/w3.json").exists())
+            meta = wg.preview_inputs()[record]
+            self.assertEqual(set(meta["short_at_preview"]), short)
+            bom = (record / meta["bom"]).read_text(encoding="utf-8")
+            self.assertFalse(any(pn in bom for pn in short))
         self.assertFalse((wg.BOARDS / "preview-board-4/w3.json").exists())
         record = wg.PREVIEWS / "2026-11-11-board-4"
         self.assertEqual(list(wg.PREVIEWS.glob("*board-4*")), [record])
@@ -765,7 +785,8 @@ class W3GroupsTests(unittest.TestCase):
         # Neither number is on the package this record previewed.
         bom = (record / meta["bom"]).read_text(encoding="utf-8")
         self.assertFalse(any(pn in bom for pn in short))
-        self.assertEqual(set(wg.SHORT_AT_PREVIEW), {"C185414", "C185430", "C470029", "C875102"})
+        self.assertEqual(set(wg.SHORT_AT_PREVIEW),
+                         {"C185414", "C185430", "C470029", "C875102"} | BOARD_11_SHORT | BOARD_12_SHORT | pending)
         self.assertNotIn("C470029", (wg.ROOT / "tools/w3_groups.py").read_text(encoding="utf-8"))
         # A report built before the record's readings counted passes over both and takes each
         # one's nearest eligible neighbour (the package this record previewed); the committed

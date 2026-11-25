@@ -88,7 +88,9 @@ pub pad P_TI_DRC0010J_EP_FINGER {
 
 // Stencil apertures of p45 (0.125mm stencil, 80% printed coverage of pad
 // 11): 2X 1.5 x 1.06mm centred 0.63mm either side of the centre line, and
-// 4X 0.25 x 0.34mm on the fingers, their outer edges 1.53mm from it.
+// 4X 0.25 x 0.34mm on the fingers, centred 1.53mm from it (the drawing's
+// (1.53) runs from the symmetry line to the aperture centre line), so
+// each spans 1.36-1.70mm and ends at the finger tip.
 pub pad P_TI_DRC0010J_EP_PASTE {
     shape: rect
     size: (1.5mm, 1.06mm)
@@ -128,10 +130,10 @@ pub footprint TI_DRC0010J {
     pad 11: P_TI_DRC0010J_EP_FINGER at (0.25mm, 1.4mm)
     pad 11: P_TI_DRC0010J_EP_PASTE at (0mm, -0.63mm)
     pad 11: P_TI_DRC0010J_EP_PASTE at (0mm, 0.63mm)
-    pad 11: P_TI_DRC0010J_FINGER_PASTE at (-0.25mm, -1.36mm)
-    pad 11: P_TI_DRC0010J_FINGER_PASTE at (0.25mm, -1.36mm)
-    pad 11: P_TI_DRC0010J_FINGER_PASTE at (-0.25mm, 1.36mm)
-    pad 11: P_TI_DRC0010J_FINGER_PASTE at (0.25mm, 1.36mm)
+    pad 11: P_TI_DRC0010J_FINGER_PASTE at (-0.25mm, -1.53mm)
+    pad 11: P_TI_DRC0010J_FINGER_PASTE at (0.25mm, -1.53mm)
+    pad 11: P_TI_DRC0010J_FINGER_PASTE at (-0.25mm, 1.53mm)
+    pad 11: P_TI_DRC0010J_FINGER_PASTE at (0.25mm, 1.53mm)
 
     silkscreen {
         pin_1_marker near pad 1 shape dot

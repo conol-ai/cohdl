@@ -1,0 +1,143 @@
+// Texas Instruments TPS2662x: 4.5V to 60V, 800mA industrial eFuse with
+// integrated reverse-polarity protection. Datasheet SLVSDT4F, October
+// 2017, revised December 2021 (docs/tps2662.pdf). Device comparison and
+// Table 6-1 on p4; recommended operating conditions on p5; DRC0010J
+// drawing 4218878/B on pp43-45.
+//
+// Family model: every TPS2662x is a 10-pin VSON (DRC) with the pin table
+// of p4. This device covers TPS26620 and TPS26621: adjustable overvoltage
+// cutoff on OVP and input-side reverse-polarity protection. They differ
+// only in the overload and thermal fault response (TPS26620 latches off,
+// TPS26621 retries; p4), which no pin sets, so they are two parts of one
+// device. TPS26622/23 (fixed 38V clamp, OVP tied to RTN) and TPS26624/25
+// (output-side reverse-polarity protection as well) behave differently at
+// their pins and would be devices of their own; they are not here.
+//
+// This is a separate family from the TPS2663x (tps2663.cohdl): a
+// different datasheet, package and pin table. docs/README.md ("TPS2662x
+// family") lists members carried and left out.
+
+#[doc("docs/tps2662.pdf")]
+pub device TPS26620 {
+    pins {
+        required IN: 1 [power_in] // 4.5-60V (p4, p5)
+        // UVLO divider tap; when unused, to IN through at least 1M (p4).
+        required UVLO: 2 [input]
+        // Overvoltage divider tap; to RTN when the feature is unused (p4).
+        required OVP: 3 [input]
+        required SHDN: 4 [input] // low = shutdown; cycle to reset a latch-off (p4)
+        // Reference ground for all internal voltages. The PowerPAD (pad
+        // 11) goes to the RTN plane and must not be the only electrical
+        // connection to RTN (p4).
+        required RTN: 5, 11 [power_in]
+        required GND: 6 [power_in] // system ground (p4)
+        required ILIM: 7 [passive] // current-limit resistor to RTN (p4)
+        optional dVdT: 8 [passive] // slew-rate capacitor to RTN; may float (p4, p18)
+        optional FLT: 9 [output] // open-drain fault flag; float if unused (p4)
+        required OUT: 10 [power_out]
+    }
+}
+
+impl IC for TPS26620 {}
+
+// Latches off on an overload or thermal fault (p4).
+#[doc("docs/tps2662.pdf")]
+pub part EFUSE_TPS26620DRCR: TPS26620 {
+    primary { mfr: "Texas Instruments", mpn: "TPS26620DRCR", footprint: TI_DRC0010J }
+}
+
+// Retries automatically after an overload or thermal fault (p4).
+#[doc("docs/tps2662.pdf")]
+pub part EFUSE_TPS26621DRCR: TPS26620 {
+    primary { mfr: "Texas Instruments", mpn: "TPS26621DRCR", footprint: TI_DRC0010J }
+}
+
+// DRC0010J perimeter lands (p44): 10X 0.6 x 0.24mm with R0.05mm corners,
+// 8X 0.5mm pitch, 2.8mm between row centres.
+pub pad P_TI_DRC0010J_LEAD {
+    shape: rect
+    size: (0.6mm, 0.24mm)
+    layer: top_copper
+    plating: smd
+    corner_radius: 0.05mm
+    mask_expansion: 0.07mm
+}
+
+// Exposed-pad land (p44): a 1.65 x 2.4mm body with four 0.25mm-wide
+// fingers, two at each end on 0.5mm centres, reaching 3.4mm overall. The
+// body and the fingers are placed as pad 11. Each finger is declared
+// 0.6mm long so that it overlaps the body by 0.1mm; the copper union is
+// the drawing's shape. None of them prints its own paste.
+pub pad P_TI_DRC0010J_EP_COPPER {
+    shape: rect
+    size: (1.65mm, 2.4mm)
+    layer: top_copper
+    plating: smd
+    mask_expansion: 0.07mm
+    paste: none
+}
+
+pub pad P_TI_DRC0010J_EP_FINGER {
+    shape: rect
+    size: (0.25mm, 0.6mm)
+    layer: top_copper
+    plating: smd
+    mask_expansion: 0.07mm
+    paste: none
+}
+
+// Stencil apertures of p45 (0.125mm stencil, 80% printed coverage of pad
+// 11): 2X 1.5 x 1.06mm centred 0.63mm either side of the centre line, and
+// 4X 0.25 x 0.34mm on the fingers, their outer edges 1.53mm from it.
+pub pad P_TI_DRC0010J_EP_PASTE {
+    shape: rect
+    size: (1.5mm, 1.06mm)
+    layer: top_copper
+    plating: smd
+    corner_radius: 0.05mm
+}
+
+pub pad P_TI_DRC0010J_FINGER_PASTE {
+    shape: rect
+    size: (0.25mm, 0.34mm)
+    layer: top_copper
+    plating: smd
+}
+
+// DRC0010J: 10 pins at 0.50mm pitch, 3.0 x 3.0mm body. TI's top view as
+// drawn: pins 1-5 down the left column, 6-10 up the right; the drawing's
+// +y is up and is negated here. The drawing's four optional-looking 0.2mm
+// vias (at 0.575mm and 0.95mm from the centre lines) are not part of the
+// land.
+pub footprint TI_DRC0010J {
+    pad 1: P_TI_DRC0010J_LEAD at (-1.4mm, -1mm)
+    pad 2: P_TI_DRC0010J_LEAD at (-1.4mm, -0.5mm)
+    pad 3: P_TI_DRC0010J_LEAD at (-1.4mm, 0mm)
+    pad 4: P_TI_DRC0010J_LEAD at (-1.4mm, 0.5mm)
+    pad 5: P_TI_DRC0010J_LEAD at (-1.4mm, 1mm)
+    pad 6: P_TI_DRC0010J_LEAD at (1.4mm, 1mm)
+    pad 7: P_TI_DRC0010J_LEAD at (1.4mm, 0.5mm)
+    pad 8: P_TI_DRC0010J_LEAD at (1.4mm, 0mm)
+    pad 9: P_TI_DRC0010J_LEAD at (1.4mm, -0.5mm)
+    pad 10: P_TI_DRC0010J_LEAD at (1.4mm, -1mm)
+
+    pad 11: P_TI_DRC0010J_EP_COPPER at (0mm, 0mm)
+    pad 11: P_TI_DRC0010J_EP_FINGER at (-0.25mm, -1.4mm)
+    pad 11: P_TI_DRC0010J_EP_FINGER at (0.25mm, -1.4mm)
+    pad 11: P_TI_DRC0010J_EP_FINGER at (-0.25mm, 1.4mm)
+    pad 11: P_TI_DRC0010J_EP_FINGER at (0.25mm, 1.4mm)
+    pad 11: P_TI_DRC0010J_EP_PASTE at (0mm, -0.63mm)
+    pad 11: P_TI_DRC0010J_EP_PASTE at (0mm, 0.63mm)
+    pad 11: P_TI_DRC0010J_FINGER_PASTE at (-0.25mm, -1.36mm)
+    pad 11: P_TI_DRC0010J_FINGER_PASTE at (0.25mm, -1.36mm)
+    pad 11: P_TI_DRC0010J_FINGER_PASTE at (-0.25mm, 1.36mm)
+    pad 11: P_TI_DRC0010J_FINGER_PASTE at (0.25mm, 1.36mm)
+
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    // Copper spans 3.40 x 3.40mm (lead rows in x, fingers in y); the body
+    // is at most 3.1mm square (p43). 0.25mm beyond the copper.
+    courtyard { shape: rect, at: (0mm, 0mm), size: (3.9mm, 3.9mm) }
+    silkscreen_ref { at: (0mm, -2.6mm) }
+}

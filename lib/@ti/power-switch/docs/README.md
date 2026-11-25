@@ -22,8 +22,22 @@ The `TI_RGE0024M` footprint transcribes the TI drawing directly:
   3.825mm opposing-row centre span.
 - Exposed IN pad 25 is 2.70mm x 1.45mm at `(0, -0.625mm)`; exposed GND pad
   26 is 2.70mm x 0.85mm at `(0, +0.925mm)`.
-- Six pad-25 vias and three pad-26 vias use TI's exact 1.10mm grid and
-  Ø0.20mm drill locations.
+- Six pad-25 vias and three pad-26 vias use TI's Ø0.20mm drill and
+  locations: columns at x = 0 and +/-1.10mm (`6X (1.1)`); pad-25 rows at
+  y = -0.15mm (`(0.15) TYP`) and y = -1.10mm (`(1.1) TYP`), both measured
+  from the horizontal symmetry line; the pad-26 row at y = +0.925mm
+  (`(0.925) TYP`). The two pad-25 rows are 0.95mm apart, not 1.1mm.
+- **Corrected on 2026-11-25; measure, do not re-read.** Until then this
+  land had the pad-25 rows at -0.075mm and -1.175mm, 1.1mm apart about the
+  pad centre. A re-verification by two independent models, on separate
+  machines, read `(1.1) TYP` as the row-to-row spacing as well and
+  proposed -0.15mm and -1.25mm. Both readings are wrong: on a 600 dpi
+  render of page 56 the two rows are 336 px apart at 354.3 px/mm
+  (calibrated on the 0.500mm lead pitch), 0.948mm, and `(1.1) TYP` shares
+  its arrow point on the symmetry line with `(0.925) TYP`. A via at
+  -1.25mm would also sit 0.10mm from pad 25's outer edge at -1.35mm,
+  where the drawing shows it well inside. Two models agreeing was not
+  evidence; anyone re-verifying this land should measure the render.
 - Four paste apertures implement the official stencil: two 1.188mm x 1.30mm
   apertures on pad 25 and two 1.188mm x 0.76mm apertures on pad 26, centred
   at `x = +/-0.694mm`. TI states 78% printed paste coverage under pad 25.

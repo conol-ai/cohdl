@@ -36,6 +36,5 @@ impl FieldEffectTransistor for BSS138 {}
 // p6 footprint.
 #[doc("docs/onsemi-bss138.pdf")]
 pub part FET_BSS138: BSS138 {
-    primary { mfr: "onsemi", mpn: "BSS138", footprint: sot::SOT3P190X290X130N,
-              supplier lcsc "C52895" }
+    primary { mfr: "onsemi", mpn: "BSS138", footprint: sot::SOT3P190X290X130N }
 }

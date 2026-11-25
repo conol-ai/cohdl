@@ -91,7 +91,7 @@ Added 2026-11-25 from `tps255x.pdf`, stored as downloaded from ti.com. A
 family is modelled as one device per pin table and one part per stocked
 member.
 
-| Family | Device | Pin 3 | Members included (MPN, LCSC, stock) |
+| Family | Device | Pin 3 | Members included (MPN, LCSC candidate, page stock) |
 |---|---|---|---|
 | TPS2553, SOT-23-6 (DBV) | `TPS2553` | `EN`, logic high turns the switch on | `LOADSW_TPS2553DBVR`: `TPS2553DBVR`, C55266, 41,809; `LOADSW_TPS2553DBVR_1`: `TPS2553DBVR-1`, C111738, 9,519 |
 | TPS2552, SOT-23-6 (DBV) | `TPS2552` | `EN_N`, logic low turns the switch on | `LOADSW_TPS2552DBVR`: `TPS2552DBVR`, C46506, 9,492 |
@@ -112,13 +112,13 @@ member.
   to GND, p5) and may be tied to IN (p7).
 - **Ratings used in comments.** VIN 2.5 V to 6.5 V and the 0.1 uF minimum
   input capacitor (p5, p4); up to 1.5 A continuous (p1, p5).
-- **Stock** is the value on each JLCPCB part page on 2026-11-25. The
-  requester's jlcparts snapshot of the same date gave 54k, 2.8k and 8.9k.
+- **Stock** in the table above is the value on each JLCPCB part page on
+  2026-11-25; the snapshot values are in "LCSC part numbers" below.
 - **Left out, and why.**
 
 | MPN | LCSC | Why it is not here |
 |---|---|---|
-| `TPS2553DRVR` | C138719 (21,362 in stock) | WSON-6 (DRV). Table 5-1 gives the DRV package different pin numbers and an exposed pad, so it is a separate device on a separate land that this package does not have yet. |
+| `TPS2553DRVR` | C138719 (21,362 in stock) | WSON-6 (DRV). Table 5-1 gives the DRV package different pin numbers and an exposed pad, so it is a separate device on a separate land that this package does not have yet. It is never to be put on `FP_TI_DBV0006A`. **First item of the next batch:** a `TPS2553_DRV` device and a WSON land drawn from the DRV drawing on pp40-45 that the package addendum (pp29-30) assigns to this orderable code. |
 | `TPS2553DDBVR` | C521201 (5,711 in stock) | The JLCPCB page lists it as SOT-23-6. It is the TPS2553D, which `tps255x.pdf` does not cover, so its pin table has not been read. |
 | `TPS2552DBVR-1`, `TPS25530DRVR-1`, other reel and `G4` codes | none confirmed | No LCSC part number was confirmed for them. |
 
@@ -148,22 +148,34 @@ pitch, 2.6 mm between row centres. The footprint is unchanged.
   Pad numbers, sizes and centres are untouched in 0.2.2, so the C131941
   reading on this land still applies; its frame row now names 0.2.2.
 
-### LCSC bindings
+### LCSC part numbers (not bound)
 
-`supplier lcsc "C55266"`, `"C111738"` and `"C46506"`, each with no `at` or
-`rotate`.
+No part here carries a `supplier lcsc` clause. The clauses added on
+2026-11-25 were removed the same day: the library binds a part only with a
+row in `tools/sourcing_data/lcsc_map.json` and a frame row with evidence in
+`tools/sourcing_data/jlc_frames.json` (`tests/library/supplier.rs`), and
+neither exists for these part numbers. The numbers below are candidates for
+that work, not bindings.
 
-- **Identity.** Each part number was read on its JLCPCB part page on
+| Part | Candidate | Stock, jlcparts snapshot 2026-11-25 | Stock, JLCPCB part page 2026-11-25 |
+|---|---|---|---|
+| `LOADSW_TPS2553DBVR` | C55266 | 54,233 | 41,809 |
+| `LOADSW_TPS2553DBVR_1` | C111738 | 2,869 | 9,519 |
+| `LOADSW_TPS2552DBVR` | C46506 | 8,940 | 9,492 |
+
+- **Identity.** Each candidate was read on its JLCPCB part page on
   2026-11-25 (`https://jlcpcb.com/partdetail/<C-number>`, through the
-  shared fetch client): manufacturer Texas Instruments, the exact MPN,
-  package SOT-23-6, class Extended.
-- **Not yet in the sourcing tables.** These three part numbers have no row
-  in `tools/sourcing_data/lcsc_map.json` and no row in
-  `tools/sourcing_data/jlc_frames.json`, so the supplier audit in
-  `tests/library/supplier.rs` rejects them until a backfill run and an
-  assembler preview add the rows.
-- **Rotation is unverified.** No assembler preview has placed these part
-  numbers. C131941 needed `rotate 180` on this land and C12044 read 270
-  (see the TPS22918 section), so a zero map here is a placeholder, not a
-  reading. Do not order assembly with `--supplier lcsc` from these
-  bindings before a preview.
+  shared fetch client): manufacturer, exact MPN, package, class Extended.
+- **The two stock columns differ, and both are kept.** The snapshot and
+  the part page carry the same date and do not agree: C55266 reads 54,233 in the snapshot and
+  41,809 on the page, 12,424 fewer. Neither
+  is corrected to the other: stock is a reading of one source at one time.
+- **Missing for a map row.** A reviewed `tools/lcsc_backfill.py` run that
+  confirms every candidate page of the MPN, promoted with
+  `tools/promote_lcsc_map.py`. The local jlcparts snapshot cannot stand in
+  for it: it has no manufacturer field.
+- **Missing for a frame row.** An assembler preview of the part number on
+  `FP_TI_DBV0006A`, reviewed by a person. On this land C131941 needed `rotate 180` and C12044 read 270
+  (see the TPS22918 section), so no rotation can be assumed.
+- **Preview board input.** `tools/frame_boards/demand-batch-1/` holds the
+  manifest for that preview. It has not been built or previewed.

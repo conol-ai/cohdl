@@ -99,7 +99,7 @@ member. The SMBJ series is second-sourced under the same type numbers, so
 the device is the polarity and every maker's member is a part on it, each
 with its own maker's document.
 
-| Family | Device | Pins | Members included (part: maker MPN, LCSC, stock) |
+| Family | Device | Pins | Members included (part: maker MPN, LCSC candidate, page stock) |
 |---|---|---|---|
 | SMBJ unidirectional ("A"), 30 V | `TVS_SMBJ_Uni` | `Cathode` 1 (band end), `Anode` 2 | `TVS_VISHAY_SMBJ30A`: Vishay `SMBJ30A-E3/52`, C1973126, 2,289; `TVS_MDD_SMBJ30A`: MDD `SMBJ30A`, C113998, 136,164; `TVS_HONGJIACHENG_SMBJ30A`: Hongjiacheng `SMBJ30A`, C19077584, 231,959 |
 | SMBJ bidirectional ("CA"), 30 V | `TVS_SMBJ_Bi` | `IO1` 1, `IO2` 2, interchangeable, no band | `TVS_VISHAY_SMBJ30CA`: Vishay `SMBJ30CA-E3/52`, C553967, 4,043; `TVS_MDD_SMBJ30CA`: MDD `SMBJ30CA`, C113999, 111,763; `TVS_HONGJIACHENG_SMBJ30CA`: Hongjiacheng `SMBJ30CA`, C19077585, 215,839 |
@@ -192,27 +192,45 @@ than their sheets suggest:
   left; the land keeps that view, cathode (pad 1) at -x, +y down. Nothing
   is mirrored: the part is symmetric about its long axis.
 
-### LCSC bindings
+### LCSC part numbers (not bound)
 
-`supplier lcsc` with no `at` or `rotate` on every part.
+No SMBJ part carries a `supplier lcsc` clause. The clauses added on
+2026-11-25 were removed the same day: the library binds a part only with a
+row in `tools/sourcing_data/lcsc_map.json` and a frame row with evidence in
+`tools/sourcing_data/jlc_frames.json` (`tests/library/supplier.rs`), and
+neither exists for these part numbers. The numbers below are candidates for
+that work, not bindings.
 
-- **Identity.** Each part number was read on its JLCPCB part page on
+| Part | Candidate | Stock, jlcparts snapshot 2026-11-25 | Stock, JLCPCB part page 2026-11-25 |
+|---|---|---|---|
+| `TVS_VISHAY_SMBJ30A` | C1973126 | 4,183 | 2,289 |
+| `TVS_MDD_SMBJ30A` | C113998 | 144,108 | 136,164 |
+| `TVS_HONGJIACHENG_SMBJ30A` | C19077584 | 335,509 | 231,959 |
+| `TVS_VISHAY_SMBJ30CA` | C553967 | 6,205 | 4,043 |
+| `TVS_MDD_SMBJ30CA` | C113999 | 150,452 | 111,763 |
+| `TVS_HONGJIACHENG_SMBJ30CA` | C19077585 | 160,291 | 215,839 |
+
+- **Identity.** Each candidate was read on its JLCPCB part page on
   2026-11-25 (`https://jlcpcb.com/partdetail/<C-number>`, through the
-  shared fetch client): the manufacturer ("Vishay Intertech",
-  "MDD(Microdiode Semiconductor)", "hongjiacheng"), the exact MPN, an SMB
-  package and class Extended.
-- **Not yet in the sourcing tables.** None has a row in
-  `tools/sourcing_data/lcsc_map.json` or
-  `tools/sourcing_data/jlc_frames.json`, so the supplier audit in
-  `tests/library/supplier.rs` rejects them until a backfill run and an
-  assembler preview add the rows. "MDD(Microdiode Semiconductor)" is also
-  not yet a reviewed alias in `tools/sourcing_data/mfr_aliases.json`.
-- **Rotation is unverified, and it matters here.** No assembler preview
-  has placed these part numbers. The three Hongjiacheng diodes already in
-  this package each needed `rotate 180` on `sod` and `do214` lands. A
-  unidirectional TVS placed half a turn off is fitted backwards, so the
-  zero map on the unidirectional parts is a placeholder, not a reading.
-  For the bidirectional parts a half turn is harmless, but the zero map is
-  still unread: the plan asks for a body-only preview per part number. Do
-  not order assembly with `--supplier lcsc` from these bindings before a
-  preview.
+  shared fetch client): manufacturer ("Vishay Intertech", "MDD(Microdiode
+  Semiconductor)", "hongjiacheng"), exact MPN, an SMB package, class
+  Extended. The snapshot rows for C19077584 and C19077585 have an empty
+  description; their part pages name "hongjiacheng" and the exact MPN.
+- **The two stock columns differ, and both are kept.** The snapshot and
+  the part page carry the same date and do not agree for any of the six.
+  Neither is corrected to the other: stock is a reading of one source at
+  one time.
+- **Missing for a map row.** A reviewed `tools/lcsc_backfill.py` run that
+  confirms every candidate page of the MPN, promoted with
+  `tools/promote_lcsc_map.py`. The local jlcparts snapshot cannot stand in
+  for it: it has no manufacturer field. For the MDD parts,
+  "MDD(Microdiode Semiconductor)" is also not a reviewed alias in
+  `tools/sourcing_data/mfr_aliases.json`.
+- **Missing for a frame row.** An assembler preview of the part number on
+  `do214::DIOM5336X265N`, reviewed by a person. The three Hongjiacheng
+  diodes already bound in this package each needed `rotate 180`, and a
+  unidirectional TVS half a turn off is fitted backwards, so no rotation
+  can be assumed. A bidirectional part is read by its body only, per part
+  number.
+- **Preview board input.** `tools/frame_boards/demand-batch-1/` holds the
+  manifest for that preview. It has not been built or previewed.

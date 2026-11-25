@@ -22,7 +22,7 @@ it now also holds a small-signal MOSFET, with its own marker trait
 A family is modelled as one device per pin table and one part per stocked
 member.
 
-| Family | Device | Pins | Members included (part: MPN, LCSC, stock) |
+| Family | Device | Pins | Members included (part: MPN, LCSC candidate, page stock) |
 |---|---|---|---|
 | onsemi BSS138, SOT-23-3 | `BSS138` | `Gate` 1, `Source` 2, `Drain` 3 | `FET_BSS138`: `BSS138`, C52895, 88,700 |
 
@@ -32,8 +32,8 @@ member.
 - **Values used (page).** VDSS 50 V, VGSS +/-20 V, ID 0.22 A continuous,
   0.88 A pulsed, PD 0.36 W (p2); VGS(th) 0.8 V min, 1.3 V typ, 1.5 V max at
   1 mA (p2); RDS(on) 3.5 Ohm max at VGS 10 V and 6.0 Ohm max at 4.5 V (p1).
-- **Stock** is the value on the JLCPCB part page on 2026-11-25. The
-  requester's jlcparts snapshot of the same date gave 52k.
+- **Stock** in the table above is the value on the JLCPCB part page on
+  2026-11-25; the snapshot value is in "LCSC part numbers" below.
 - **Left out, and why.**
 
 | MPN | LCSC | Why it is not here |
@@ -75,19 +75,32 @@ SOT-23 parts (`lib/README.md`).
   counter-clockwise 1-2-3 seen from the top, so gate and source are not
   swapped. Checked on the emitted `.kicad_mod` of a temporary design.
 
-### LCSC binding
+### LCSC part numbers (not bound)
 
-`supplier lcsc "C52895"` with no `at` or `rotate`.
+No part here carries a `supplier lcsc` clause. The clauses added on
+2026-11-25 were removed the same day: the library binds a part only with a
+row in `tools/sourcing_data/lcsc_map.json` and a frame row with evidence in
+`tools/sourcing_data/jlc_frames.json` (`tests/library/supplier.rs`), and
+neither exists for these part numbers. The numbers below are candidates for
+that work, not bindings.
 
-- **Identity.** Read on the JLCPCB part page on 2026-11-25
-  (`https://jlcpcb.com/partdetail/C52895`, through the shared fetch
-  client): manufacturer onsemi, MPN `BSS138`, package SOT-23, class
-  Extended.
-- **Not yet in the sourcing tables.** C52895 has no row in
-  `tools/sourcing_data/lcsc_map.json` and no row for
-  `sot::SOT3P190X290X130N` in `tools/sourcing_data/jlc_frames.json`, so
-  the supplier audit in `tests/library/supplier.rs` rejects it until a
-  backfill run and an assembler preview add them.
-- **Rotation is unverified.** No assembler preview has placed C52895 on
-  this land. The zero map is a placeholder, not a reading. Do not order
-  assembly with `--supplier lcsc` from this binding before a preview.
+| Part | Candidate | Stock, jlcparts snapshot 2026-11-25 | Stock, JLCPCB part page 2026-11-25 |
+|---|---|---|---|
+| `FET_BSS138` | C52895 | 52,746 | 88,700 |
+
+- **Identity.** Each candidate was read on its JLCPCB part page on
+  2026-11-25 (`https://jlcpcb.com/partdetail/<C-number>`, through the
+  shared fetch client): manufacturer, exact MPN, package, class Extended.
+- **The two stock columns differ, and both are kept.** The snapshot and
+  the part page carry the same date and do not agree: C52895 reads 52,746 in the snapshot and 88,700
+  on the page. Neither
+  is corrected to the other: stock is a reading of one source at one time.
+- **Missing for a map row.** A reviewed `tools/lcsc_backfill.py` run that
+  confirms every candidate page of the MPN, promoted with
+  `tools/promote_lcsc_map.py`. The local jlcparts snapshot cannot stand in
+  for it: it has no manufacturer field.
+- **Missing for a frame row.** An assembler preview of the part number on
+  `sot::SOT3P190X290X130N`, reviewed by a person. No part number has been read on this land with a pin 1 mark
+  for this part, so no rotation can be assumed.
+- **Preview board input.** `tools/frame_boards/demand-batch-1/` holds the
+  manifest for that preview. It has not been built or previewed.

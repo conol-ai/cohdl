@@ -61,20 +61,17 @@ impl IC for TPS2552 {}
 // Active-high enable, constant-current limit with auto-retry (p3).
 #[doc("docs/tps255x.pdf")]
 pub part LOADSW_TPS2553DBVR: TPS2553 {
-    primary { mfr: "Texas Instruments", mpn: "TPS2553DBVR", footprint: FP_TI_DBV0006A,
-              supplier lcsc "C55266" }
+    primary { mfr: "Texas Instruments", mpn: "TPS2553DBVR", footprint: FP_TI_DBV0006A }
 }
 
 // Active-high enable, latch-off on overcurrent (p3).
 #[doc("docs/tps255x.pdf")]
 pub part LOADSW_TPS2553DBVR_1: TPS2553 {
-    primary { mfr: "Texas Instruments", mpn: "TPS2553DBVR-1", footprint: FP_TI_DBV0006A,
-              supplier lcsc "C111738" }
+    primary { mfr: "Texas Instruments", mpn: "TPS2553DBVR-1", footprint: FP_TI_DBV0006A }
 }
 
 // Active-low enable, constant-current limit with auto-retry (p3).
 #[doc("docs/tps255x.pdf")]
 pub part LOADSW_TPS2552DBVR: TPS2552 {
-    primary { mfr: "Texas Instruments", mpn: "TPS2552DBVR", footprint: FP_TI_DBV0006A,
-              supplier lcsc "C46506" }
+    primary { mfr: "Texas Instruments", mpn: "TPS2552DBVR", footprint: FP_TI_DBV0006A }
 }

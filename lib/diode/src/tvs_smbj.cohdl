@@ -48,16 +48,14 @@ impl Diode for TVS_SMBJ_Uni {}
 // RoHS commercial grade on a 7in reel of 750 (p1, p3).
 #[doc("docs/vishay-smbj-88392.pdf")]
 pub part TVS_VISHAY_SMBJ30A: TVS_SMBJ_Uni {
-    primary { mfr: "Vishay", mpn: "SMBJ30A-E3/52", footprint: do214::DIOM5336X265N,
-              supplier lcsc "C1973126" }
+    primary { mfr: "Vishay", mpn: "SMBJ30A-E3/52", footprint: do214::DIOM5336X265N }
 }
 
 // MDD SMBJ30A (Rev 2025A7 p2, marking MK): VRWM 30.0V, VBR 33.30-36.80V at
 // 1mA, VC 48.4V at IPP 12.4A, IR 1uA at VRWM; PPPM 600W minimum (p1).
 #[doc("docs/mdd-smbj.evidence.md")]
 pub part TVS_MDD_SMBJ30A: TVS_SMBJ_Uni {
-    primary { mfr: "Microdiode Semiconductor", mpn: "SMBJ30A", footprint: do214::DIOM5336X265N,
-              supplier lcsc "C113998" }
+    primary { mfr: "Microdiode Semiconductor", mpn: "SMBJ30A", footprint: do214::DIOM5336X265N }
 }
 
 // Hongjiacheng SMBJ30A (Rev 1.1 p3, marking MK): VRWM 30.0V, VBR
@@ -66,7 +64,7 @@ pub part TVS_MDD_SMBJ30A: TVS_SMBJ_Uni {
 #[doc("docs/hongjiacheng-smbj.evidence.md")]
 pub part TVS_HONGJIACHENG_SMBJ30A: TVS_SMBJ_Uni {
     primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "SMBJ30A",
-              footprint: do214::DIOM5336X265N, supplier lcsc "C19077584" }
+              footprint: do214::DIOM5336X265N }
 }
 
 // A bidirectional TVS has no anode and no cathode, so it cannot implement
@@ -100,16 +98,14 @@ impl TVS_Bidirectional for TVS_SMBJ_Bi {}
 // "-E3/52" is the RoHS commercial grade on a 7in reel of 750 (p1, p3).
 #[doc("docs/vishay-smbj-88392.pdf")]
 pub part TVS_VISHAY_SMBJ30CA: TVS_SMBJ_Bi {
-    primary { mfr: "Vishay", mpn: "SMBJ30CA-E3/52", footprint: do214::DIOM5336X265N,
-              supplier lcsc "C553967" }
+    primary { mfr: "Vishay", mpn: "SMBJ30CA-E3/52", footprint: do214::DIOM5336X265N }
 }
 
 // MDD SMBJ30CA (Rev 2025A7 p2, marking CK): VRWM 30.0V, VBR 33.30-36.80V
 // at 1mA, VC 48.4V at IPP 12.4A, IR 1uA at VRWM; PPPM 600W minimum (p1).
 #[doc("docs/mdd-smbj.evidence.md")]
 pub part TVS_MDD_SMBJ30CA: TVS_SMBJ_Bi {
-    primary { mfr: "Microdiode Semiconductor", mpn: "SMBJ30CA", footprint: do214::DIOM5336X265N,
-              supplier lcsc "C113999" }
+    primary { mfr: "Microdiode Semiconductor", mpn: "SMBJ30CA", footprint: do214::DIOM5336X265N }
 }
 
 // Hongjiacheng SMBJ30CA (Rev 1.1 p3, marking CK): VRWM 30.0V, VBR
@@ -118,5 +114,5 @@ pub part TVS_MDD_SMBJ30CA: TVS_SMBJ_Bi {
 #[doc("docs/hongjiacheng-smbj.evidence.md")]
 pub part TVS_HONGJIACHENG_SMBJ30CA: TVS_SMBJ_Bi {
     primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "SMBJ30CA",
-              footprint: do214::DIOM5336X265N, supplier lcsc "C19077585" }
+              footprint: do214::DIOM5336X265N }
 }

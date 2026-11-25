@@ -9,12 +9,14 @@
 #[doc("docs/yageo_rc_series_datasheet_en.pdf")]
 pub part R_0R_J_1206: ChipResistor<0ohm, 5%>[R1206] {
     primary { mfr: "Yageo", mpn: "RC1206JR-070RL", footprint: CHIP_1206 }
+    alt { mfr: "UNI-ROYAL", mpn: "1206W4F0000T5E", supplier lcsc "C17888" }
 }
 
 #[doc("docs/yageo_rc_series_datasheet_en.pdf")]
 pub part R_1R_F_1206: ChipResistor<1ohm, 1%>[R1206] {
     primary { mfr: "Yageo", mpn: "RC1206FR-071RL", footprint: CHIP_1206 }
     alt { mfr: "Vishay", mpn: "CRCW12061R00FKED" }
+    alt { mfr: "UNI-ROYAL", mpn: "1206W4F100KT5E", supplier lcsc "C17928" }
 }
 
 #[doc("docs/yageo_rc_series_datasheet_en.pdf")]
@@ -699,6 +701,7 @@ pub part R_9R76_F_1206: ChipResistor<9.76ohm, 1%>[R1206] {
 pub part R_10R_F_1206: ChipResistor<10ohm, 1%>[R1206] {
     primary { mfr: "Yageo", mpn: "RC1206FR-0710RL", footprint: CHIP_1206 }
     alt { mfr: "Vishay", mpn: "CRCW120610R0FKED" }
+    alt { mfr: "UNI-ROYAL", mpn: "1206W4F100JT5E", supplier lcsc "C17903" }
 }
 
 #[doc("docs/yageo_rc_series_datasheet_en.pdf")]
@@ -891,6 +894,7 @@ pub part R_19R6_F_1206: ChipResistor<19.6ohm, 1%>[R1206] {
 pub part R_20R_F_1206: ChipResistor<20ohm, 1%>[R1206] {
     primary { mfr: "Yageo", mpn: "RC1206FR-0720RL", footprint: CHIP_1206 }
     alt { mfr: "Vishay", mpn: "CRCW120620R0FKED" }
+    alt { mfr: "UNI-ROYAL", mpn: "1206W4F200JT5E", supplier lcsc "C17955" }
 }
 
 #[doc("docs/yageo_rc_series_datasheet_en.pdf")]
@@ -915,6 +919,7 @@ pub part R_21R5_F_1206: ChipResistor<21.5ohm, 1%>[R1206] {
 pub part R_22R_F_1206: ChipResistor<22ohm, 1%>[R1206] {
     primary { mfr: "Yageo", mpn: "RC1206FR-0722RL", footprint: CHIP_1206 }
     alt { mfr: "Vishay", mpn: "CRCW120622R0FKED" }
+    alt { mfr: "UNI-ROYAL", mpn: "1206W4F220JT5E", supplier lcsc "C17958" }
 }
 
 #[doc("docs/yageo_rc_series_datasheet_en.pdf")]
@@ -1383,6 +1388,7 @@ pub part R_97R6_F_1206: ChipResistor<97.6ohm, 1%>[R1206] {
 pub part R_100R_F_1206: ChipResistor<100ohm, 1%>[R1206] {
     primary { mfr: "Yageo", mpn: "RC1206FR-07100RL", footprint: CHIP_1206 }
     alt { mfr: "Vishay", mpn: "CRCW1206100RFKED" }
+    alt { mfr: "UNI-ROYAL", mpn: "1206W4F1000T5E", supplier lcsc "C17901" }
 }
 
 #[doc("docs/yageo_rc_series_datasheet_en.pdf")]
@@ -1431,6 +1437,7 @@ pub part R_118R_F_1206: ChipResistor<118ohm, 1%>[R1206] {
 pub part R_120R_F_1206: ChipResistor<120ohm, 1%>[R1206] {
     primary { mfr: "Yageo", mpn: "RC1206FR-07120RL", footprint: CHIP_1206 }
     alt { mfr: "Vishay", mpn: "CRCW1206120RFKED" }
+    alt { mfr: "UNI-ROYAL", mpn: "1206W4F1200T5E", supplier lcsc "C17909" }
 }
 
 #[doc("docs/yageo_rc_series_datasheet_en.pdf")]
@@ -1545,6 +1552,7 @@ pub part R_178R_F_1206: ChipResistor<178ohm, 1%>[R1206] {
 pub part R_180R_F_1206: ChipResistor<180ohm, 1%>[R1206] {
     primary { mfr: "Yageo", mpn: "RC1206FR-07180RL", footprint: CHIP_1206 }
     alt { mfr: "Vishay", mpn: "CRCW1206180RFKED" }
+    alt { mfr: "UNI-ROYAL", mpn: "1206W4F1800T5E", supplier lcsc "C17924" }
 }
 
 #[doc("docs/yageo_rc_series_datasheet_en.pdf")]
@@ -1695,6 +1703,7 @@ pub part R_294R_F_1206: ChipResistor<294ohm, 1%>[R1206] {
 pub part R_300R_F_1206: ChipResistor<300ohm, 1%>[R1206] {
     primary { mfr: "Yageo", mpn: "RC1206FR-07300RL", footprint: CHIP_1206 }
     alt { mfr: "Vishay", mpn: "CRCW1206300RFKED" }
+    alt { mfr: "UNI-ROYAL", mpn: "1206W4F3000T5E", supplier lcsc "C17887" }
 }
 
 #[doc("docs/yageo_rc_series_datasheet_en.pdf")]
@@ -1983,6 +1992,7 @@ pub part R_732R_F_1206: ChipResistor<732ohm, 1%>[R1206] {
 pub part R_750R_F_1206: ChipResistor<750ohm, 1%>[R1206] {
     primary { mfr: "Yageo", mpn: "RC1206FR-07750RL", footprint: CHIP_1206 }
     alt { mfr: "Vishay", mpn: "CRCW1206750RFKED" }
+    alt { mfr: "UNI-ROYAL", mpn: "1206W4F7500T5E", supplier lcsc "C17985" }
 }
 
 #[doc("docs/yageo_rc_series_datasheet_en.pdf")]
@@ -2067,6 +2077,7 @@ pub part R_976R_F_1206: ChipResistor<976ohm, 1%>[R1206] {
 pub part R_1K_F_1206: ChipResistor<1kohm, 1%>[R1206] {
     primary { mfr: "Yageo", mpn: "RC1206FR-071KL", footprint: CHIP_1206 }
     alt { mfr: "Vishay", mpn: "CRCW12061K00FKED" }
+    alt { mfr: "UNI-ROYAL", mpn: "1206W4F1001T5E", supplier lcsc "C4410" }
 }
 
 #[doc("docs/yageo_rc_series_datasheet_en.pdf")]
@@ -2259,6 +2270,7 @@ pub part R_1K96_F_1206: ChipResistor<1.96kohm, 1%>[R1206] {
 pub part R_2K_F_1206: ChipResistor<2kohm, 1%>[R1206] {
     primary { mfr: "Yageo", mpn: "RC1206FR-072KL", footprint: CHIP_1206 }
     alt { mfr: "Vishay", mpn: "CRCW12062K00FKED" }
+    alt { mfr: "UNI-ROYAL", mpn: "1206W4F2001T5E", supplier lcsc "C17944" }
 }
 
 #[doc("docs/yageo_rc_series_datasheet_en.pdf")]
@@ -2523,6 +2535,7 @@ pub part R_4K64_F_1206: ChipResistor<4.64kohm, 1%>[R1206] {
 pub part R_4K7_F_1206: ChipResistor<4.7kohm, 1%>[R1206] {
     primary { mfr: "Yageo", mpn: "RC1206FR-074K7L", footprint: CHIP_1206 }
     alt { mfr: "Vishay", mpn: "CRCW12064K70FKED" }
+    alt { mfr: "UNI-ROYAL", mpn: "1206W4F4701T5E", supplier lcsc "C17936" }
 }
 
 #[doc("docs/yageo_rc_series_datasheet_en.pdf")]
@@ -2751,6 +2764,7 @@ pub part R_9K76_F_1206: ChipResistor<9.76kohm, 1%>[R1206] {
 pub part R_10K_F_1206: ChipResistor<10kohm, 1%>[R1206] {
     primary { mfr: "Yageo", mpn: "RC1206FR-0710KL", footprint: CHIP_1206 }
     alt { mfr: "Vishay", mpn: "CRCW120610K0FKED" }
+    alt { mfr: "UNI-ROYAL", mpn: "1206W4F1002T5E", supplier lcsc "C17902" }
 }
 
 #[doc("docs/yageo_rc_series_datasheet_en.pdf")]
@@ -3435,6 +3449,7 @@ pub part R_97K6_F_1206: ChipResistor<97.6kohm, 1%>[R1206] {
 pub part R_100K_F_1206: ChipResistor<100kohm, 1%>[R1206] {
     primary { mfr: "Yageo", mpn: "RC1206FR-07100KL", footprint: CHIP_1206 }
     alt { mfr: "Vishay", mpn: "CRCW1206100KFKED" }
+    alt { mfr: "UNI-ROYAL", mpn: "1206W4F1003T5E", supplier lcsc "C17900" }
 }
 
 #[doc("docs/yageo_rc_series_datasheet_en.pdf")]
@@ -4119,6 +4134,7 @@ pub part R_976K_F_1206: ChipResistor<976kohm, 1%>[R1206] {
 pub part R_1M_F_1206: ChipResistor<1Mohm, 1%>[R1206] {
     primary { mfr: "Yageo", mpn: "RC1206FR-071ML", footprint: CHIP_1206 }
     alt { mfr: "Vishay", mpn: "CRCW12061M00FKED" }
+    alt { mfr: "UNI-ROYAL", mpn: "1206W4F1004T5E", supplier lcsc "C17927" }
 }
 
 #[doc("docs/yageo_rc_series_datasheet_en.pdf")]
@@ -4167,6 +4183,7 @@ pub part R_1M18_F_1206: ChipResistor<1.18Mohm, 1%>[R1206] {
 pub part R_1M2_F_1206: ChipResistor<1.2Mohm, 1%>[R1206] {
     primary { mfr: "Yageo", mpn: "RC1206FR-071M2L", footprint: CHIP_1206 }
     alt { mfr: "Vishay", mpn: "CRCW12061M20FKED" }
+    alt { mfr: "UNI-ROYAL", mpn: "1206W4F1204T5E", supplier lcsc "C22107" }
 }
 
 #[doc("docs/yageo_rc_series_datasheet_en.pdf")]

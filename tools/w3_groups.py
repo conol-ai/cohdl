@@ -117,10 +117,10 @@ READINGS = "w3-readings.json"
 
 def readings_file(record: Path, meta: dict, method: int | None = None) -> list[str]:
     """The files of RECORD that give its chip body readings by METHOD (the rule's by
-    default), as names within the record; empty when it has none. Method 1 is
-    ``w3.json``'s own ``measurements``; a later one is listed in READINGS."""
+    default), as names within the record; empty when it has none. Legacy records used method 1 for their original
+    measurements. Re-readings of a record are listed in READINGS."""
     method = w3_rule.RULE["body_method"] if method is None else method
-    if method == 1:
+    if method == meta.get("body_method", 1):
         return [meta["measurements"]]
     index = record / READINGS
     if not index.is_file():

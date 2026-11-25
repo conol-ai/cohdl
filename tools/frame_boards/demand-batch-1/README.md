@@ -1,6 +1,6 @@
-# Demand batch 1 preview board (input only)
+# Demand batch 1 preview board
 
-**Not built, not previewed, not evidence.** This directory holds the input
+**Built, not previewed, not evidence.** This directory holds the input
 manifest for an assembler preview of ten part numbers whose library parts
 are unbound. Nothing here is a binding, and no frame row is written from
 it.
@@ -40,18 +40,38 @@ part's JLCPCB page read on 2026-11-25. None of the ten is in
 ## State on 2026-11-25
 
 - `manifest.json` was written by hand in the input format of
-  `tools/jlc_frame_board.py`; there is no generator script for it. The
-  tool's `load_manifest` and `expand` accept it.
-- **The board package was not generated.** `tools/jlc_frame_board.py`
-  needs Python 3.11 (`tomllib`) and `kicad-cli`; the machine this was
-  written on had Python 3.10 and no `kicad-cli`. To build it:
+  `tools/jlc_frame_board.py`; there is no generator script for it.
+- **The board package is built** (library at commit `537c43d`, Python
+  3.11.0rc1, `kicad-cli` 10.0.8):
 
   ```sh
-  python3 -I tools/jlc_frame_board.py tools/frame_boards/demand-batch-1/manifest.json \
+  python3.11 -I tools/jlc_frame_board.py tools/frame_boards/demand-batch-1/manifest.json \
     -o BOARD --cohdl target/debug/cohdl
   ```
 
-- No BOM, CPL, Gerber or checklist exists yet, and nothing was uploaded.
+  It reported `generated 40 placements`. A 180 x 75 mm board.
+- `package/` is a copy of that output: `fabrication/` (Gerbers, drill file
+  and `SHA256SUMS`), `demand_batch_1.kicad_pcb`,
+  `demand_batch_1-lcsc-bom.csv`, `demand_batch_1-lcsc-cpl.csv`,
+  `demand_batch_1-cpl.csv` and the tool's `CHECKLIST.md`.
+- `render/` holds `kicad-cli pcb render` images of that board file:
+  `top.png` and `bottom.png` (each side seen from its own side), and one
+  480 px crop per copy, named `<C-number>_<designator>_<side>_<angle>.png`
+  (16 mm square about the placement). The renders show our copper and
+  silkscreen only. They contain no supplier model and are not a preview.
+- **Checked against the board file, not against any preview:** all ten part
+  numbers are in the LCSC BOM with four designators each; every part
+  number has a top 0, top 37, bottom 0 and bottom 37 copy at its manifest
+  position; each copy is on the intended land with the intended pad
+  numbers and sizes (six 1.1 x 0.6 mm pads on `FP_TI_DBV0006A`, two
+  2.10 x 2.26 mm on `DIOM5336X265N`, three 0.8 x 0.9 mm on
+  `SOT3P190X290X130N`).
+- **The silkscreen carries reference designators.** Preview board 5 left
+  them out of the Gerber silkscreen because text beside a part disturbed
+  the measuring script's readings. Regenerate without them if the readings
+  are to be measured by `measure_preview.py`.
+- Nothing was uploaded. No preview was run, no reading exists, and no row
+  of `tools/sourcing_data/jlc_frames.json` or `lcsc_map.json` was written.
 
 ## What a person still has to confirm
 

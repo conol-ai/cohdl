@@ -118,7 +118,6 @@ member.
 
 | MPN | LCSC | Why it is not here |
 |---|---|---|
-| `TPS2553DRVR` | C138719 (21,362 in stock) | WSON-6 (DRV). Table 5-1 gives the DRV package different pin numbers and an exposed pad, so it is a separate device on a separate land that this package does not have yet. It is never to be put on `FP_TI_DBV0006A`. **First item of the next batch:** a `TPS2553_DRV` device and a WSON land drawn from the DRV drawing on pp40-45 that the package addendum (pp29-30) assigns to this orderable code. |
 | `TPS2553DDBVR` | C521201 (5,711 in stock) | The JLCPCB page lists it as SOT-23-6. It is the TPS2553D, which `tps255x.pdf` does not cover, so its pin table has not been read. |
 | `TPS2552DBVR-1`, `TPS25530DRVR-1`, other reel and `G4` codes | none confirmed | No LCSC part number was confirmed for them. |
 
@@ -179,3 +178,40 @@ that work, not bindings.
   (see the TPS22918 section), so no rotation can be assumed.
 - **Preview board input.** `tools/frame_boards/demand-batch-1/` holds the
   manifest for that preview. It has not been built or previewed.
+
+## TPS255x WSON members (added to load-switch 0.2.2 on 2026-11-25)
+
+The DRV (6-pin WSON) members of the same datasheet, on their own devices
+and their own land. They were the first item left for the next batch above
+and are no longer left out.
+
+| Family | Device | Pin 4 | Members included (part: MPN, LCSC candidate, snapshot stock) |
+|---|---|---|---|
+| TPS2553, WSON-6 (DRV) | `TPS2553_DRV` | `EN`, logic high turns the switch on | `LOADSW_TPS2553DRVR`: `TPS2553DRVR`, C138719, 28,273; `LOADSW_TPS2553DRVR_1`: `TPS2553DRVR-1`, C411878, 1,050 |
+| TPS2552, WSON-6 (DRV) | `TPS2552_DRV` | `EN_N`, logic low turns the switch on | `LOADSW_TPS2552DRVR`: `TPS2552DRVR`, C473916, 1,272 |
+
+- **Pins read.** p4, Figure 5-2 and the WSON column of Table 5-1: OUT 1,
+  ILIM 2, FAULT 3, EN 4, GND 5, IN 6, PowerPAD "internally connected to
+  GND". Not the DBV numbering (IN 1 ... OUT 6), which is why these are
+  separate devices. The pad is pad 7 of the land and is listed with pin 5
+  under `GND`. Checked from the table to the model and back.
+- **Same rules as the DBV devices**: enable polarity makes TPS2552 and
+  TPS2553 two devices; the "-1" latch-off member is a second part.
+- **Land.** `son::TI_DRV0006A` (`son` 0.1.0, a new dependency), drawing
+  4222173/D on pp43-45; see `lib/son/docs/README.md`. The sheet also
+  prints DRV0006D (pp40-42) with the same board layout values. The parts
+  are never placed on `FP_TI_DBV0006A`.
+- **Left out.** `TPS2553DRVT`, `TPS2553DRVT-1`, `TPS2552DRVR-1` and
+  `TPS2552DRVT-1`: 6 to 101 pieces in the snapshot. `TPS2553DRVR` was
+  read on its JLCPCB page on 2026-11-25 (21,362 in stock, WSON-6-EP(2x2));
+  the other two candidates were not read on their pages.
+
+### LCSC part numbers (not bound), WSON members
+
+No part here carries a `supplier lcsc` clause: a binding needs a row in
+`tools/sourcing_data/lcsc_map.json` and a frame row with reviewed evidence
+in `tools/sourcing_data/jlc_frames.json`, and neither exists. The candidate
+numbers and stock are from the local jlcparts snapshot of 2026-11-25, which
+has no manufacturer field; the part pages were not read. The preview board
+input and build for these candidates is `tools/frame_boards/demand-batch-2/`;
+it has not been previewed.

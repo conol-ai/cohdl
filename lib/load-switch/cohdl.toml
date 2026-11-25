@@ -6,4 +6,5 @@ description = "Power-distribution load switches with their verified land pattern
 repository = "https://github.com/conol-ai/cohdl"
 
 [dependencies]
+son = "0.1.0"
 std = "0.3.0"

@@ -2119,7 +2119,7 @@
     {
       "id": "pb5-fptidbv0006a-c131941",
       "package": "load-switch",
-      "package_version": "0.2.1",
+      "package_version": "0.2.2",
       "footprint": "FP_TI_DBV0006A",
       "supplier": "lcsc",
       "pn": "C131941",

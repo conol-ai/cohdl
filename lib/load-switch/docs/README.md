@@ -10,6 +10,7 @@ values identify upstream manufacturer PDFs that are not redistributed here.
 | `sgm2554.md` | summary of `LOADSW_SGM2554` (SGM2554A pinout, land, usage notes) | — | — | — |
 | `tps22918.evidence.md` | `LOADSW_TPS22918DBVR` | Texas Instruments TPS22918, SLVSD76C; DBV package drawing 4214840/G | <https://www.ti.com/lit/ds/symlink/tps22918.pdf> | `1b28eb58003d28b18bf919a15734056f296a499bebee2bd493a1e4358c4dfb1c` |
 | `mt9700.evidence.md` | `LOADSW_MT9700N` | Xi'an Aerosemi Technology MT9700 Rev2.1, 8 pages | <https://www.aerosemi.com> (retrieved via LCSC C42441843, productModel MT9700-N) | `b51be4566fc3e85022bbafd41874b29949e2bc4eada688ae912d361a19149ec8` |
+| `tps255x.pdf` | `LOADSW_TPS2553DBVR`, `LOADSW_TPS2553DBVR_1`, `LOADSW_TPS2552DBVR` | Texas Instruments TPS2552, TPS2552-1, TPS2553, TPS2553-1, SLVS841G, November 2008, revised October 2026, 46 pages; DBV package drawing 4214840/G | <https://www.ti.com/lit/ds/symlink/tps2553.pdf> (retrieved 2026-11-25) | `b6a2d18ce02fb21eafcc7e1f1d8c4d69074cac38fad44d496682f3393f26445e` |
 
 SHA-256 checksums:
 
@@ -17,6 +18,7 @@ SHA-256 checksums:
 58d6e47c130c08cdf6f49f1b7844eb9079b0255018a846df5ec0516e2c002a87  sgm2554.pdf
 1b28eb58003d28b18bf919a15734056f296a499bebee2bd493a1e4358c4dfb1c  tps22918.pdf (upstream, not vendored)
 b51be4566fc3e85022bbafd41874b29949e2bc4eada688ae912d361a19149ec8  mt9700.pdf (upstream, not vendored)
+b6a2d18ce02fb21eafcc7e1f1d8c4d69074cac38fad44d496682f3393f26445e  tps255x.pdf
 ```
 
 ## MT9700-N retrieval and land notes
@@ -82,3 +84,86 @@ is unchanged.
 - **Evidence.** The frame row `pb5-fptidbv0006a-c131941` cites preview board 5 (`tools/sourcing_data/jlc_previews/2026-11-14-board-5/`), which placed the part with `rotate 180` applied. Its pin 1 mark read 1.8° and 1.2° (top) and 358.1° and 357.7° (bottom), 0.10–0.11 mm from pad 1. By eye, on all four copies the model's six leads lie on our pads, three a side, with its pin 1 dimple at the pad 1 corner.
 - **Per part number, not per land.** C12044 on this same land read `rotate 270` on C2 frame board 1 (row `c2b1-sot236_dbv-c12044`, which binds nothing in this package), and C85364 on `esd::FP_SOT_23_6` read 180. A rotation proved for C131941 says nothing about another part number on `FP_TI_DBV0006A`.
 - **What changes in output.** A plain `build` writes the same BOM and CPL; the netlist gains the part's `LCSC` field. `--supplier lcsc` writes the turn into the LCSC CPL.
+
+## TPS255x family (load-switch 0.2.2)
+
+Added 2026-11-25 from `tps255x.pdf`, stored as downloaded from ti.com. A
+family is modelled as one device per pin table and one part per stocked
+member.
+
+| Family | Device | Pin 3 | Members included (MPN, LCSC, stock) |
+|---|---|---|---|
+| TPS2553, SOT-23-6 (DBV) | `TPS2553` | `EN`, logic high turns the switch on | `LOADSW_TPS2553DBVR`: `TPS2553DBVR`, C55266, 41,809; `LOADSW_TPS2553DBVR_1`: `TPS2553DBVR-1`, C111738, 9,519 |
+| TPS2552, SOT-23-6 (DBV) | `TPS2552` | `EN_N`, logic low turns the switch on | `LOADSW_TPS2552DBVR`: `TPS2552DBVR`, C46506, 9,492 |
+
+- **Membership rule.** Two orderable parts share a device only when the
+  datasheet's pin table gives them the same pin numbers and the same pin
+  functions. Table 5-1 (p4) gives the TPS2552 and the TPS2553 the same DBV
+  pin numbers, but pin 3 is active low on the TPS2552 and active high on the
+  TPS2553, so they are two devices on one land. The "-1" suffix changes the
+  overcurrent response only (latch-off instead of constant current with
+  auto-retry, Table 4-1 on p3 and section 8.3 on p14); the pin table is the
+  same, so `TPS2553DBVR-1` is a second part on `TPS2553`.
+- **Pins read.** p4, Figure 5-1 and Table 5-1: IN 1, GND 2, EN 3, FAULT 4,
+  ILIM 5, OUT 6. Checked from the table to the model and from the model
+  back to the table. `FAULT` is an active-low open-drain output and is
+  named `FAULT_N`; it is `optional`. `ILIM` is typed "O" by TI and modelled
+  `passive`: it is the current-limit programming node (15 kOhm to 232 kOhm
+  to GND, p5) and may be tied to IN (p7).
+- **Ratings used in comments.** VIN 2.5 V to 6.5 V and the 0.1 uF minimum
+  input capacitor (p5, p4); up to 1.5 A continuous (p1, p5).
+- **Stock** is the value on each JLCPCB part page on 2026-11-25. The
+  requester's jlcparts snapshot of the same date gave 54k, 2.8k and 8.9k.
+- **Left out, and why.**
+
+| MPN | LCSC | Why it is not here |
+|---|---|---|
+| `TPS2553DRVR` | C138719 (21,362 in stock) | WSON-6 (DRV). Table 5-1 gives the DRV package different pin numbers and an exposed pad, so it is a separate device on a separate land that this package does not have yet. |
+| `TPS2553DDBVR` | C521201 (5,711 in stock) | The JLCPCB page lists it as SOT-23-6. It is the TPS2553D, which `tps255x.pdf` does not cover, so its pin table has not been read. |
+| `TPS2552DBVR-1`, `TPS25530DRVR-1`, other reel and `G4` codes | none confirmed | No LCSC part number was confirmed for them. |
+
+- **Adding a member.** Read its row in Table 4-1 and its column in Table
+  5-1. Same pin numbers and functions as an existing device: add a `part`
+  with the exact orderable MPN from the package addendum (pp29-30). Any
+  different pin function or package: add a device.
+
+### Land
+
+All three parts use `FP_TI_DBV0006A`, already in this package for the
+TPS22918. `tps255x.pdf` prints the same TI drawing, DBV0006A 4214840/G
+(outline p36, example board layout p37): six 1.1 x 0.6 mm lands, 0.95 mm
+pitch, 2.6 mm between row centres. The footprint is unchanged.
+
+- **Coordinates.** TI's top view as drawn: pins 1 to 3 down the left
+  column, 4 to 6 up the right. The drawing's +y is up and the board frame's
+  +y is down, so pin 1 is at (-1.3, -0.95) mm and numbering is
+  counter-clockwise seen from the top. Checked on the emitted
+  `.kicad_mod` of a temporary design.
+- **Courtyard not changed.** It is 4.1 x 3.0 mm: 0.20 mm beyond the
+  3.70 mm copper in x, where the library rule asks for 0.25 mm, and
+  0.025 mm inside the 3.05 mm maximum body length in y (p36). Growing it
+  to 4.2 x 3.6 mm was tried and withdrawn on 2026-11-25: preview board 4
+  packs its rows by courtyard size, so the change reorders a board whose
+  preview is on record. It is left for a change that owns that board.
+  Pad numbers, sizes and centres are untouched in 0.2.2, so the C131941
+  reading on this land still applies; its frame row now names 0.2.2.
+
+### LCSC bindings
+
+`supplier lcsc "C55266"`, `"C111738"` and `"C46506"`, each with no `at` or
+`rotate`.
+
+- **Identity.** Each part number was read on its JLCPCB part page on
+  2026-11-25 (`https://jlcpcb.com/partdetail/<C-number>`, through the
+  shared fetch client): manufacturer Texas Instruments, the exact MPN,
+  package SOT-23-6, class Extended.
+- **Not yet in the sourcing tables.** These three part numbers have no row
+  in `tools/sourcing_data/lcsc_map.json` and no row in
+  `tools/sourcing_data/jlc_frames.json`, so the supplier audit in
+  `tests/library/supplier.rs` rejects them until a backfill run and an
+  assembler preview add the rows.
+- **Rotation is unverified.** No assembler preview has placed these part
+  numbers. C131941 needed `rotate 180` on this land and C12044 read 270
+  (see the TPS22918 section), so a zero map here is a placeholder, not a
+  reading. Do not order assembly with `--supplier lcsc` from these
+  bindings before a preview.

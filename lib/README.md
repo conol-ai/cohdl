@@ -43,7 +43,7 @@ footprints live in focused packages:
 | `misc` | `misc::TEST_POINT_ROUND_1MM`, `misc::MOUNTING_HOLE_M2_NPTH`, `misc::MOUNTING_HOLE_M2_PTH` | reusable PCB fabrication primitives with explicit electrical semantics |
 | `cellular` | `cellular::CELL_AIR780E`, `cellular::CELL_AIR780EG` | 4G/LTE cellular module devices with verified 109-pin LGA land patterns |
 | `esim` | `esim::ESIM_MFF2_TRUPHONE` | eUICC (eSIM) devices with datasheet-verified pin maps |
-| `load-switch` | `load_switch::LOADSW_SGM2554`, `load_switch::LOADSW_TPS22918DBVR`, `load_switch::LOADSW_MT9700N` | power-distribution load switches with verified land patterns |
+| `load-switch` | `load_switch::LOADSW_SGM2554`, `load_switch::LOADSW_TPS22918DBVR`, `load_switch::LOADSW_MT9700N`, `load_switch::LOADSW_TPS2553DBVR` | power-distribution load switches with verified land patterns |
 | `@ti/dcdc` | `ti_dcdc::controllers::multiphase::CTRL_TPS59650` | TI DC/DC controllers and the TI-specific land patterns they use (`ti_dcdc::TI_RSL_S_PVQFN_N48`) |
 | `@ti/logic` | `ti_logic::LS_SN74LVC8T245PWR` | TI logic and dual-supply level translators |
 | `@ti/power-switch` | `ti_power_switch::EFUSE_TPS259823ONRGET` | TI protected power paths and eFuses |

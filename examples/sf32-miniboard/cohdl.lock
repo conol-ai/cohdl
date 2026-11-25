@@ -52,8 +52,8 @@ hash = "sha256:09f5c34710bd70d8c866646c424f980fa09e6873d34ed538543a0c58d15f74bf"
 
 [[package]]
 name = "load-switch"
-version = "0.2.1"
-hash = "sha256:3b7879ab142f14e9b87c09e144e37e25dd54b9ed67d91d65d4ed823433f6e75f"
+version = "0.2.2"
+hash = "sha256:40e6ed2660eaded5334d4dc39d6aed1fe8516e2fb8239be3f66def6ca9559723"
 
 [[package]]
 name = "misc"

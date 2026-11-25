@@ -3,7 +3,7 @@
  "dependencies": {
   "std": "0.3.0",
   "esd": "0.1.4",
-  "load-switch": "0.2.1",
+  "load-switch": "0.2.2",
   "@contrib/audio-amp": "0.2.1"
  },
  "rows": [

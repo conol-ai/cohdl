@@ -29,9 +29,9 @@
  },
  "groups": [
   {
-   "id": "passive-0.2.10-CHIP_0805-ChipResistor-UNI-ROYAL-0805W8",
+   "id": "passive-0.2.11-CHIP_0805-ChipResistor-UNI-ROYAL-0805W8",
    "package": "passive",
-   "package_version": "0.2.10",
+   "package_version": "0.2.11",
    "footprint": "CHIP_0805",
    "type": "ChipResistor",
    "mfr": "UNI-ROYAL",
@@ -164,7 +164,7 @@
      "bias_view": "tools/sourcing_data/jlc_previews/2026-11-19-board-6/README.md#top",
      "bias_bodies": 36,
      "bias_other_bodies": 26,
-     "copies": 4,
+     "copies": 8,
      "other_copies": [
       {
        "ref": "R6",
@@ -222,6 +222,82 @@
        "bias_view": "tools/sourcing_data/jlc_previews/2026-11-19-board-6/README.md#bottom",
        "bias_bodies": 36,
        "bias_other_bodies": 26
+      },
+      {
+       "ref": "R5",
+       "body_method": 2,
+       "angle_deg": 0.5,
+       "offset_limit_mm": 0.228,
+       "raw_offset_xy_mm": [
+        0.011,
+        0.003
+       ],
+       "raw_offset_mm": 0.011,
+       "bias_xy_mm": [
+        0.011,
+        0.004
+       ],
+       "residual_offset_mm": 0.001,
+       "bias_view": "tools/sourcing_data/jlc_previews/2026-11-21-board-7/README.md#top",
+       "bias_bodies": 48,
+       "bias_other_bodies": 46
+      },
+      {
+       "ref": "R6",
+       "body_method": 2,
+       "angle_deg": -1.2,
+       "offset_limit_mm": 0.228,
+       "raw_offset_xy_mm": [
+        0.022,
+        0.012
+       ],
+       "raw_offset_mm": 0.025,
+       "bias_xy_mm": [
+        0.011,
+        0.004
+       ],
+       "residual_offset_mm": 0.014,
+       "bias_view": "tools/sourcing_data/jlc_previews/2026-11-21-board-7/README.md#top",
+       "bias_bodies": 48,
+       "bias_other_bodies": 46
+      },
+      {
+       "ref": "R7",
+       "body_method": 2,
+       "angle_deg": -0.1,
+       "offset_limit_mm": 0.228,
+       "raw_offset_xy_mm": [
+        0.03,
+        -0.0
+       ],
+       "raw_offset_mm": 0.03,
+       "bias_xy_mm": [
+        0.009,
+        0.006
+       ],
+       "residual_offset_mm": 0.022,
+       "bias_view": "tools/sourcing_data/jlc_previews/2026-11-21-board-7/README.md#bottom",
+       "bias_bodies": 48,
+       "bias_other_bodies": 46
+      },
+      {
+       "ref": "R8",
+       "body_method": 2,
+       "angle_deg": 0.3,
+       "offset_limit_mm": 0.228,
+       "raw_offset_xy_mm": [
+        0.016,
+        0.007
+       ],
+       "raw_offset_mm": 0.017,
+       "bias_xy_mm": [
+        0.009,
+        0.006
+       ],
+       "residual_offset_mm": 0.007,
+       "bias_view": "tools/sourcing_data/jlc_previews/2026-11-21-board-7/README.md#bottom",
+       "bias_bodies": 48,
+       "bias_other_bodies": 46
       }
      ]
     },

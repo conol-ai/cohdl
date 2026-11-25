@@ -1,0 +1,1329 @@
+{
+ "name": "preview_board_7",
+ "dependencies": {
+  "std": "0.3.0",
+  "passive": "0.2.8"
+ },
+ "rows": [
+  {
+   "pn": "C52923",
+   "mpn": "CL05A105KA5NQNC",
+   "mfr": "Samsung",
+   "part": "passive::MLCC<1uF, 25V, 10%>[C0402]",
+   "footprint": "passive::CHIP_0402",
+   "group": "CHIP_0402 MLCC Samsung CL",
+   "purpose": "sample",
+   "jlc_package": "0402",
+   "stock": 10400655,
+   "page_fetched": "2026-10-30T04:23:53Z",
+   "category": "basic",
+   "name": "sample_C52923",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      10,
+      10
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      10,
+      30
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      10,
+      20
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      10,
+      40
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C19702",
+   "mpn": "CL10A106KP8NNNC",
+   "mfr": "Samsung",
+   "part": "passive::MLCC<10uF, 10V, 10%>[C0603]",
+   "footprint": "passive::CHIP_0603",
+   "group": "CHIP_0603 MLCC Samsung CL",
+   "purpose": "sample",
+   "jlc_package": "0603",
+   "stock": 12030848,
+   "page_fetched": "2026-10-30T04:23:18Z",
+   "category": "basic",
+   "name": "sample_C19702",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      20,
+      10
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      20,
+      30
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      20,
+      20
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      20,
+      40
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C15850",
+   "mpn": "CL21A106KAYNNNE",
+   "mfr": "Samsung",
+   "part": "passive::MLCC<10uF, 25V, 10%>[C0805]",
+   "footprint": "passive::CHIP_0805",
+   "group": "CHIP_0805 MLCC Samsung CL",
+   "purpose": "sample",
+   "jlc_package": "0805",
+   "stock": 8464003,
+   "page_fetched": "2026-10-30T04:23:10Z",
+   "category": "basic",
+   "name": "sample_C15850",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      30,
+      10
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      30,
+      30
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      30,
+      20
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      30,
+      40
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "name": "control_C107039",
+   "footprint": "passive::CHIP_0603",
+   "part": "passive::MLCC<1.5nF, 50V, 5%>[C0603]",
+   "pn": "C107039",
+   "mpn": "CC0603JRNPO9BN152",
+   "mfr": "Yageo",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      40,
+      10
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      40,
+      30
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      40,
+      20
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      40,
+      40
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ],
+   "purpose": "control",
+   "group": "CHIP_0603 MLCC Yageo CC",
+   "jlc_package": "0603",
+   "stock": 72493,
+   "page_fetched": "2026-11-05T21:18:56Z",
+   "category": "extended"
+  },
+  {
+   "pn": "C14445",
+   "mpn": "CL05A105KP5NNNC",
+   "mfr": "Samsung",
+   "part": "passive::MLCC<1uF, 10V, 10%>[C0402]",
+   "footprint": "passive::CHIP_0402",
+   "group": "CHIP_0402 MLCC Samsung CL",
+   "purpose": "sample",
+   "jlc_package": "0402",
+   "stock": 1101061,
+   "page_fetched": "2026-11-05T18:41:51Z",
+   "category": "extended",
+   "name": "sample_C14445",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      50,
+      10
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      50,
+      30
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      50,
+      20
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      50,
+      40
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C5378",
+   "mpn": "CL21B224KBFNNNE",
+   "mfr": "Samsung",
+   "part": "passive::MLCC<220nF, 50V, 10%>[C0805]",
+   "footprint": "passive::CHIP_0805",
+   "group": "CHIP_0805 MLCC Samsung CL",
+   "purpose": "sample",
+   "jlc_package": "0805",
+   "stock": 696449,
+   "page_fetched": "2026-10-30T04:22:44Z",
+   "category": "basic",
+   "name": "sample_C5378",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      60,
+      10
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      60,
+      30
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      60,
+      20
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      60,
+      40
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "name": "control_C113780",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::MLCC<1nF, 50V, 5%>[C0402]",
+   "pn": "C113780",
+   "mpn": "CC0402JRNPO9BN102",
+   "mfr": "Yageo",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      70,
+      10
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      70,
+      30
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      70,
+      20
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      70,
+      40
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ],
+   "purpose": "control",
+   "group": "CHIP_0402 MLCC Yageo CC",
+   "jlc_package": "0402",
+   "stock": 24241,
+   "page_fetched": "2026-11-05T21:11:52Z",
+   "category": "extended"
+  },
+  {
+   "pn": "C47339",
+   "mpn": "CL05A474KP5NNNC",
+   "mfr": "Samsung",
+   "part": "passive::MLCC<470nF, 10V, 10%>[C0402]",
+   "footprint": "passive::CHIP_0402",
+   "group": "CHIP_0402 MLCC Samsung CL",
+   "purpose": "sample",
+   "jlc_package": "0402",
+   "stock": 696830,
+   "page_fetched": "2026-10-30T04:34:26Z",
+   "category": "preferred",
+   "name": "sample_C47339",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      80,
+      10
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      80,
+      30
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      80,
+      20
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      80,
+      40
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C53134",
+   "mpn": "CL21B473KBCNNNC",
+   "mfr": "Samsung",
+   "part": "passive::MLCC<47nF, 50V, 10%>[C0805]",
+   "footprint": "passive::CHIP_0805",
+   "group": "CHIP_0805 MLCC Samsung CL",
+   "purpose": "sample",
+   "jlc_package": "0805",
+   "stock": 125062,
+   "page_fetched": "2026-10-30T04:23:54Z",
+   "category": "basic",
+   "name": "sample_C53134",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      10,
+      50
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      10,
+      70
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      10,
+      60
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      10,
+      80
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "name": "control_C11702",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<1kohm, 1%>[R0402]",
+   "pn": "C11702",
+   "mpn": "0402WGF1001TCE",
+   "mfr": "UNI-ROYAL",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      20,
+      50
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      20,
+      70
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      20,
+      60
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      20,
+      80
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ],
+   "purpose": "control",
+   "group": "CHIP_0402 ChipResistor UNI-ROYAL 0402WG",
+   "jlc_package": "0402",
+   "stock": 21756652,
+   "page_fetched": "2026-10-30T04:26:28Z",
+   "category": "basic"
+  },
+  {
+   "pn": "C15195",
+   "mpn": "CL05B103KB5NNNC",
+   "mfr": "Samsung",
+   "part": "passive::MLCC<10nF, 50V, 10%>[C0402]",
+   "footprint": "passive::CHIP_0402",
+   "group": "CHIP_0402 MLCC Samsung CL",
+   "purpose": "sample",
+   "jlc_package": "0402",
+   "stock": 6224691,
+   "page_fetched": "2026-10-30T04:23:04Z",
+   "category": "basic",
+   "name": "sample_C15195",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      30,
+      50
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      30,
+      70
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      30,
+      60
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      30,
+      80
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C1790",
+   "mpn": "CL21C101JBANNNC",
+   "mfr": "Samsung",
+   "part": "passive::MLCC<100pF, 50V, 5%>[C0805]",
+   "footprint": "passive::CHIP_0805",
+   "group": "CHIP_0805 MLCC Samsung CL",
+   "purpose": "sample",
+   "jlc_package": "0805",
+   "stock": 616967,
+   "page_fetched": "2026-10-30T04:22:34Z",
+   "category": "basic",
+   "name": "sample_C1790",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      40,
+      50
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      40,
+      70
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      40,
+      60
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      40,
+      80
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "name": "control_C21189",
+   "footprint": "passive::CHIP_0603",
+   "part": "passive::ChipResistor<0ohm, 5%>[R0603]",
+   "pn": "C21189",
+   "mpn": "0603WAF0000T5E",
+   "mfr": "UNI-ROYAL",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      50,
+      50
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      50,
+      70
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      50,
+      60
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      50,
+      80
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ],
+   "purpose": "control",
+   "group": "CHIP_0603 ChipResistor UNI-ROYAL 0603WA",
+   "jlc_package": "0603",
+   "stock": 21036451,
+   "page_fetched": "2026-10-30T04:28:47Z",
+   "category": "basic"
+  },
+  {
+   "pn": "C307331",
+   "mpn": "CL05B104KB54PNC",
+   "mfr": "Samsung",
+   "part": "passive::MLCC<100nF, 50V, 10%>[C0402]",
+   "footprint": "passive::CHIP_0402",
+   "group": "CHIP_0402 MLCC Samsung CL",
+   "purpose": "sample",
+   "jlc_package": "0402",
+   "stock": 21102524,
+   "page_fetched": "2026-10-30T04:24:08Z",
+   "category": "basic",
+   "name": "sample_C307331",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      60,
+      50
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      60,
+      70
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      60,
+      60
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      60,
+      80
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C1804",
+   "mpn": "CL21C220JBANNNC",
+   "mfr": "Samsung",
+   "part": "passive::MLCC<22pF, 50V, 5%>[C0805]",
+   "footprint": "passive::CHIP_0805",
+   "group": "CHIP_0805 MLCC Samsung CL",
+   "purpose": "sample",
+   "jlc_package": "0805",
+   "stock": 581465,
+   "page_fetched": "2026-10-30T04:22:38Z",
+   "category": "basic",
+   "name": "sample_C1804",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      70,
+      50
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      70,
+      70
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      70,
+      60
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      70,
+      80
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "name": "control_C17477",
+   "footprint": "passive::CHIP_0805",
+   "part": "passive::ChipResistor<0ohm, 5%>[R0805]",
+   "pn": "C17477",
+   "mpn": "0805W8F0000T5E",
+   "mfr": "UNI-ROYAL",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      80,
+      50
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      80,
+      70
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      80,
+      60
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      80,
+      80
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ],
+   "purpose": "control",
+   "group": "CHIP_0805 ChipResistor UNI-ROYAL 0805W8",
+   "jlc_package": "0805",
+   "stock": 5167563,
+   "page_fetched": "2026-10-30T04:26:55Z",
+   "category": "basic"
+  },
+  {
+   "pn": "C1525",
+   "mpn": "CL05B104KO5NNNC",
+   "mfr": "Samsung",
+   "part": "passive::MLCC<100nF, 16V, 10%>[C0402]",
+   "footprint": "passive::CHIP_0402",
+   "group": "CHIP_0402 MLCC Samsung CL",
+   "purpose": "sample",
+   "jlc_package": "0402",
+   "stock": 36306073,
+   "page_fetched": "2026-10-30T04:06:23Z",
+   "category": "basic",
+   "name": "sample_C1525",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      10,
+      90
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      10,
+      110
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      10,
+      100
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      10,
+      120
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C14857",
+   "mpn": "CL21C470JBANNNC",
+   "mfr": "Samsung",
+   "part": "passive::MLCC<47pF, 50V, 5%>[C0805]",
+   "footprint": "passive::CHIP_0805",
+   "group": "CHIP_0805 MLCC Samsung CL",
+   "purpose": "sample",
+   "jlc_package": "0805",
+   "stock": 158053,
+   "page_fetched": "2026-10-30T04:22:58Z",
+   "category": "basic",
+   "name": "sample_C14857",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      20,
+      90
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      20,
+      110
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      20,
+      100
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      20,
+      120
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "name": "control_C17888",
+   "footprint": "passive::CHIP_1206",
+   "part": "passive::ChipResistor<0ohm, 5%>[R1206]",
+   "pn": "C17888",
+   "mpn": "1206W4F0000T5E",
+   "mfr": "UNI-ROYAL",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      30,
+      90
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      30,
+      110
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      30,
+      100
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      30,
+      120
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ],
+   "purpose": "control",
+   "group": "CHIP_1206 ChipResistor UNI-ROYAL 1206W4",
+   "jlc_package": "1206",
+   "stock": 1774968,
+   "page_fetched": "2026-10-30T04:28:23Z",
+   "category": "basic"
+  },
+  {
+   "pn": "C16772",
+   "mpn": "CL05B224KO5NNNC",
+   "mfr": "Samsung",
+   "part": "passive::MLCC<220nF, 16V, 10%>[C0402]",
+   "footprint": "passive::CHIP_0402",
+   "group": "CHIP_0402 MLCC Samsung CL",
+   "purpose": "sample",
+   "jlc_package": "0402",
+   "stock": 1317585,
+   "page_fetched": "2026-10-30T04:23:12Z",
+   "category": "basic",
+   "name": "sample_C16772",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      40,
+      90
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      40,
+      110
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      40,
+      100
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      40,
+      120
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C26404",
+   "mpn": "CL05B332KB5NNNC",
+   "mfr": "Samsung",
+   "part": "passive::MLCC<3.3nF, 50V, 10%>[C0402]",
+   "footprint": "passive::CHIP_0402",
+   "group": "CHIP_0402 MLCC Samsung CL",
+   "purpose": "sample",
+   "jlc_package": "0402",
+   "stock": 125465,
+   "page_fetched": "2026-10-30T04:34:10Z",
+   "category": "preferred",
+   "name": "sample_C26404",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      50,
+      90
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      50,
+      110
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      50,
+      100
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      50,
+      120
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C32949",
+   "mpn": "CL05C100JB5NNNC",
+   "mfr": "Samsung",
+   "part": "passive::MLCC<10pF, 50V, 5%>[C0402]",
+   "footprint": "passive::CHIP_0402",
+   "group": "CHIP_0402 MLCC Samsung CL",
+   "purpose": "sample",
+   "jlc_package": "0402",
+   "stock": 1776246,
+   "page_fetched": "2026-10-30T04:23:40Z",
+   "category": "basic",
+   "name": "sample_C32949",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      60,
+      90
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      60,
+      110
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      60,
+      100
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      60,
+      120
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C13533",
+   "mpn": "CL05C331JB5NNNC",
+   "mfr": "Samsung",
+   "part": "passive::MLCC<330pF, 50V, 5%>[C0402]",
+   "footprint": "passive::CHIP_0402",
+   "group": "CHIP_0402 MLCC Samsung CL",
+   "purpose": "sample",
+   "jlc_package": "0402",
+   "stock": 235424,
+   "page_fetched": "2026-10-30T04:34:06Z",
+   "category": "preferred",
+   "name": "sample_C13533",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      70,
+      90
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      70,
+      110
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      70,
+      100
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      70,
+      120
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C14441",
+   "mpn": "CL05C680JB5NNNC",
+   "mfr": "Samsung",
+   "part": "passive::MLCC<68pF, 50V, 5%>[C0402]",
+   "footprint": "passive::CHIP_0402",
+   "group": "CHIP_0402 MLCC Samsung CL",
+   "purpose": "sample",
+   "jlc_package": "0402",
+   "stock": 156305,
+   "page_fetched": "2026-10-30T04:34:08Z",
+   "category": "preferred",
+   "name": "sample_C14441",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      80,
+      90
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      80,
+      110
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      80,
+      100
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      80,
+      120
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  }
+ ]
+}

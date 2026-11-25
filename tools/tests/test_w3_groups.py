@@ -21,6 +21,7 @@ BOARD_4 = wg.PREVIEWS / "2026-11-11-board-4"
 
 
 BOARD_6 = wg.PREVIEWS / "2026-11-19-board-6"
+BOARD_7 = wg.PREVIEWS / "2026-11-21-board-7"
 
 
 def previews_through(last):
@@ -446,10 +447,12 @@ class W3GroupsTests(unittest.TestCase):
                 self.assertEqual((g["status"], g["required"], g["more_needed"]), ("sampled", required, 0))
                 self.assertEqual(len(g["passed"]), required)
                 for sample in g["passed"]:
-                    self.assertEqual(sample["records"], [origin])
-                    copies = judged[(g["footprint"], sample["pn"])]
+                    # Board 6 is each sample's own record; three of them came back as controls on board 7.
+                    self.assertEqual(sample["records"][0], origin)
+                    self.assertLessEqual(set(sample["records"][1:]), {str((BOARD_7 / "README.md").relative_to(wg.ROOT))})
+                    copies = [c for c in judged[(g["footprint"], sample["pn"])] if c["record"] == origin]
                     self.assertEqual(len(copies), 4)
-                    self.assertTrue(all(copy["ok"] for copy in copies))
+                    self.assertTrue(all(copy["ok"] for copy in judged[(g["footprint"], sample["pn"])]))
 
     def test_every_group_under_method_1_and_method_2(self):
         # What the reading changes, group by group, with the rule's two conditions applied
@@ -555,7 +558,7 @@ class W3GroupsTests(unittest.TestCase):
         self.assertEqual({n["pn"]: len(n["refs"]) for n in rc["record_not_judged"]},
                          {"C138033": 10, "C185445": 10, "C60491": 10})
         text = wg.render(report)
-        self.assertIn("- Records not judged: 1 of 4 preview records", text)
+        self.assertIn("- Records not judged: 1 of 5 preview records", text)
         self.assertIn(f"- `{name}`: no readings by method 2; {listed['members']} of its {listed['part_numbers']} "
                       "part numbers are group members", text)
         self.assertIn("  - `CHIP_0402` ChipResistor Yageo RC (sampled): C138033 (", text)
@@ -564,7 +567,7 @@ class W3GroupsTests(unittest.TestCase):
         with mock.patch.object(wg, "_sha256", lambda path: "0" * 64 if path.name == "pads.cohdl" else hashed(path)):
             lapsed = wg.records_not_judged()
         self.assertEqual([(r["kind"], r["reason"]) for r in lapsed],
-                         [("land", "changed since its preview: lib/passive/src/pads.cohdl")] * 4)
+                         [("land", "changed since its preview: lib/passive/src/pads.cohdl")] * 5)
 
     def test_no_group_record_is_written_over_a_record_that_lacks_the_rules_readings(self):
         import w3_record
@@ -597,7 +600,7 @@ class W3GroupsTests(unittest.TestCase):
             with self.assertRaisesRegex(SystemExit, "listed as method 2 readings"):
                 wg.judged_members()
         for record, meta in wg.preview_inputs().items():
-            if record == BOARD_6:
+            if record in (BOARD_6, BOARD_7):
                 self.assertEqual(wg.readings_file(record, meta, 1), [])
                 self.assertEqual(wg.readings_file(record, meta, 2), ["measurements.json"])
             else:

@@ -224,6 +224,34 @@ pub part PART_NAME: DEVICE_NAME {
 Cross-check pin tables in both directions: source-to-model and model-to-source.
 This caught the previously swapped WROOM `RXD0` and `TXD0` pins.
 
+### Two conventions a pin-table check will meet
+
+These are library conventions, not transcriptions. A verifier comparing a
+device with its datasheet should not report either as a defect.
+
+**Unnumbered thermal pads take the next number.** Many datasheets name the
+exposed pad ("Thermal Pad 1", "PowerPAD", "PAD") and give it an electrical
+function without printing a pin number. TPS25982's table lists `IN` as
+"1, 2, 3, 16, Pad 1" and `GND` as "4, 5, 14, Pad 2". A land binding needs
+an identifier, so such a pad is numbered after the last numbered pin: 7 on
+a six-pin part, 9 on an eight-pin part, 25 and 26 for TPS25982's two pads,
+in the datasheet's own order. The number is ours, not the datasheet's. The
+pad's function is the datasheet's: list the number with the pin it is
+internally joined to (`GND: 5, 7`), or as a pin of its own when the sheet
+gives it one (a `PAD` that may float). This is the tab rule of section 4
+applied to exposed pads.
+
+**`passive` ends and `output` begins at the driver DRC.** A role is not a
+transcription of the datasheet's "type" column. `docs/provisional-syntax.md`
+says: "Driver-type pins = `output` and `power_out`. Only the two driver DRC
+rules (D003/D004) consume roles." So `output` means one thing: this pin
+drives its net, and a second driver on that net is an error. A pin whose
+job is to carry a programming resistor or capacitor is `passive`, even
+when the datasheet types it "Analog Output". TPS25982 shows both on
+adjacent pins, each typed "Analog Output" by TI: `ILIM` takes a resistor
+to GND that sets the current limit, so it is `passive`; `IMON` sources a
+current proportional to the load current, so it is `output`.
+
 ## 4. Build footprints from checked geometry
 
 Never ship an empty or nominal placeholder for a referenced footprint. For

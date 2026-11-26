@@ -1,6 +1,6 @@
 [package]
 name = "diode"
-version = "0.1.3"
+version = "0.1.4"
 license = "MIT"
 description = "Discrete diodes with verified land patterns."
 repository = "https://github.com/conol-ai/cohdl"

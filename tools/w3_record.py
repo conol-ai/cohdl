@@ -195,7 +195,10 @@ def build(record_path: str, key: tuple[str, str, str, str]) -> tuple[dict, dict]
                         "note": f"inferred under W3 rule {w3_rule.RULE['version']} from {len(samples)} samples "
                                 f"of its group; not previewed itself"},
         })
-    return record, dict(frames, rows=rows)
+    # Regenerating one active group must also preserve the ordering of its peers.
+    direct = [r for r in rows if not r.get("sampled")]
+    inferred = sorted((r for r in rows if r.get("sampled")), key=lambda r: (r["sampled"]["group"], r["pn"]))
+    return record, dict(frames, rows=direct + inferred)
 
 
 def main(argv=None) -> int:

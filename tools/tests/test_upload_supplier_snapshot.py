@@ -13,9 +13,9 @@ import upload_supplier_snapshot as us
 
 RECORD = us.DATA / "registry_uploads/2026-11-05-lcsc"
 # The catalog the repository builds now, for the next upload.
-CURRENT = {"rows": 13_604, "bytes": 3_583_901,
-           "snapshot_sha256": "3307b6b8d811445eb6070a56c04534b9dc4eea5fdcb4d536e136d95dded84529",
-           "aliases_sha256": "027d2a930f6016ad6a223fbbcc6fb4efce7e8c1458145a7dbb991edd014374e9"}
+CURRENT = {"rows": 13_605, "bytes": 3_584_171,
+           "snapshot_sha256": "5b343a8e524bfed64475dee919a0b84a61a373d7a84e13e522fa8eac2f01d17b",
+           "aliases_sha256": "d2d45b701ba08906383c480615d4b746d561a66f6789246e294b32988b48f068"}
 
 
 # The library's part numbers on 2026-11-06, when the counterexample was found. Parts
@@ -106,7 +106,7 @@ class UploadSupplierSnapshotTests(unittest.TestCase):
             report = us.build(Path(td), None, RECORD / "report.json")
             pns = {row["pn"] for row in json.loads((Path(td) / "snapshot.json").read_bytes())["parts"]}
         self.assertEqual({k: report[k] for k in CURRENT}, CURRENT)
-        self.assertEqual(report["sources"], {"jlc_catalog/2026-10-30": 1334, "lcsc_map.json": 12_580, "overlap": 310})
+        self.assertEqual(report["sources"], {"jlc_catalog/2026-10-30": 1334, "lcsc_map.json": 12_869, "overlap": 598})
         self.assertEqual(report["source_sha256"]["lcsc_map.json"],
                          hashlib.sha256(us.MAP.read_bytes()).hexdigest())
         self.assertEqual(report["aliases"], json.loads(us.ALIASES.read_text(encoding="utf-8"))["aliases"])
@@ -241,7 +241,10 @@ class UploadSupplierSnapshotTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as td, mock.patch.object(sys, "stdout", io.StringIO()):
             old, new = Path(td) / "old", Path(td) / "new"
             rebuild_recorded(old)
-            us.build(new, None, RECORD / "report.json")
+            later = RECORD.parent / "2026-11-07-lcsc"
+            us.build(new, None, RECORD / "report.json", map_path=later / "lcsc_map.json",
+                     aliases_path=later / "mfr_aliases.json",
+                     library=json.loads((later / "report.json").read_text())["library_part_numbers"])
             registry = FakeRegistry(old)
             self.assertLessEqual(LIBRARY_2026_11_06, set(registry.rows))
             with mock.patch.object(us, "request", side_effect=registry):

@@ -6,6 +6,7 @@ import io
 import json
 from pathlib import Path
 import re
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -60,6 +61,13 @@ class SkillTests(unittest.TestCase):
             clis = re.findall(r"--kicad-cli\s+([^\s`]+)", skill.read_text())
             self.assertTrue(clis, skill)
             self.assertEqual(set(clis), {wrapper}, skill)
+
+    def test_kicad_per_user_files_are_ignored_and_none_is_tracked(self):
+        self.assertIn("*.kicad_prl", (ROOT / ".gitignore").read_text().splitlines())
+        if not (ROOT / ".git").exists():
+            self.skipTest("not a git checkout")
+        tracked = subprocess.run(["git", "ls-files", "*.kicad_prl"], cwd=ROOT, capture_output=True, text=True, check=True)
+        self.assertEqual(tracked.stdout, "")
 
     def test_extracted_scripts_carry_no_local_paths(self):
         for name in ("regen_locks.py", "examples_golden.sh", "lcsc_backfill_approved.py"):

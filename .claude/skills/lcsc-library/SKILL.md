@@ -29,7 +29,7 @@ This skill is the order of work and the gates between steps. Where it and those 
 - **Aliases** (`tools/sourcing_data/mfr_aliases.json`) change only after a person's review that cites an issue. A run may propose one; it never adds one.
 - **Private designs** never enter git or a PR, not even as a test fixture.
 - **Git:** a new branch per batch, in its own worktree; never switch branches in a shared checkout. Merge commits only; no force-push; never a bare `git stash`. Push and open the PR only when the person asks (interactive) or the schedule's approval covers it (unattended). Commits end with the attribution line the session gives.
-- **What not to commit:** KiCad's per-user `.kicad_prl` files and the preview ZIPs you build. Check `git status` before each commit, since removing a file later means rewriting history. Keep any ignore rule narrow: the repository deliberately tracks ZIPs under `lib/cellular/docs/` and in each preview record's `package/` directory, so a blanket `*.zip` rule breaks it.
+- **What not to commit:** KiCad's per-user `.kicad_prl` files (`.gitignore` excludes them; never force-add one) and the preview ZIPs you build. Check `git status` before each commit, since removing a file later means rewriting history. Keep any ignore rule narrow: the repository deliberately tracks ZIPs under `lib/cellular/docs/` and in each preview record's `package/` directory, so a blanket `*.zip` rule breaks it.
 - **One open automated PR at a time.** If the previous batch's PR is not merged, an unattended run does not start a new batch; it only refreshes its report.
 
 ## Steps

@@ -29,6 +29,19 @@ class SkillTests(unittest.TestCase):
         missing = [p for p in paths if not (ROOT / p.rstrip("/")).exists()]
         self.assertEqual(missing, [])
 
+    def test_the_skill_defers_to_the_library_authoring_rules(self):
+        # Device/part shape, rating semantics and pad conventions live in LIBRARY.md.
+        self.assertTrue((ROOT / "LIBRARY.md").is_file())
+        self.assertIn("`LIBRARY.md`", SKILL.read_text().split("## Modes")[0])
+
+    def test_steps_are_numbered_in_order_and_every_step_reference_exists(self):
+        text = SKILL.read_text()
+        numbers = [int(n) for n in re.findall(r"^### (\d+)\. ", text, re.M)]
+        self.assertEqual(numbers, list(range(1, len(numbers) + 1)))
+        refs = {int(n) for n in re.findall(r"\bsteps? (\d+)", text, re.I)}
+        self.assertTrue(refs)
+        self.assertLessEqual(refs, set(numbers))
+
     def test_the_skill_has_its_front_matter(self):
         head = SKILL.read_text().split("---")[1]
         self.assertIn("name: lcsc-library", head)

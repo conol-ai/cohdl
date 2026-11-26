@@ -82,3 +82,66 @@ pub part MOUNTING_HOLE_M2_PTH: PlatedMountingHole {
     primary { mfr: "PCB Fabrication", mpn: "MOUNTING-HOLE-M2-PTH-2.2MM-4.0MM",
               footprint: FP_MOUNTING_HOLE_M2_PTH_2P2_4P0 }
 }
+
+// Holes below are named by drill diameter rather than by the screw they happen
+// to clear. A 3.2 mm hole is M3 clearance and a 1.7 mm hole is M1.6 clearance
+// under the usual tables, but that is an inference about the fastener, not a
+// property of the fabrication feature, and the M2 holes above keep their names
+// only because renaming a published part would change a locked version.
+
+pad P_TEST_POINT_ROUND_1P5MM {
+    shape: circle
+    size: (1.5mm)
+    layer: top_copper
+    plating: smd
+    paste: none
+}
+
+pub footprint FP_TEST_POINT_ROUND_1P5MM {
+    pad 1: P_TEST_POINT_ROUND_1P5MM at (0mm, 0mm)
+    courtyard { shape: circle, at: (0mm, 0mm), size: (2mm) }
+}
+
+pub footprint FP_MOUNTING_HOLE_NPTH_1P0 {
+    mount_hole 1: non_plated at (0mm, 0mm) diameter 1mm
+    courtyard { shape: circle, at: (0mm, 0mm), size: (2mm) }
+}
+
+pub footprint FP_MOUNTING_HOLE_NPTH_1P7 {
+    mount_hole 1: non_plated at (0mm, 0mm) diameter 1.7mm
+    courtyard { shape: circle, at: (0mm, 0mm), size: (3.4mm) }
+}
+
+pub footprint FP_MOUNTING_HOLE_NPTH_3P2 {
+    mount_hole 1: non_plated at (0mm, 0mm) diameter 3.2mm
+    courtyard { shape: circle, at: (0mm, 0mm), size: (6.4mm) }
+}
+
+#[doc("docs/README.md")]
+pub part TEST_POINT_ROUND_1P5MM: TestPoint {
+    primary { mfr: "PCB Fabrication", mpn: "TESTPOINT-ROUND-1.5MM-SMD",
+              footprint: FP_TEST_POINT_ROUND_1P5MM }
+    alt { mfr: "PCB Fabrication", mpn: "TESTPAD-ROUND-1.5MM-SMD" }
+}
+
+#[doc("docs/README.md")]
+pub part MOUNTING_HOLE_NPTH_1P0: MechanicalMountingHole {
+    primary { mfr: "PCB Fabrication", mpn: "MOUNTING-HOLE-NPTH-1.0MM",
+              footprint: FP_MOUNTING_HOLE_NPTH_1P0 }
+    alt { mfr: "PCB Fabrication", mpn: "MOUNTING-HOLE-1-NPTH" }
+}
+
+#[doc("docs/README.md")]
+pub part MOUNTING_HOLE_NPTH_1P7: MechanicalMountingHole {
+    primary { mfr: "PCB Fabrication", mpn: "MOUNTING-HOLE-NPTH-1.7MM",
+              footprint: FP_MOUNTING_HOLE_NPTH_1P7 }
+    alt { mfr: "PCB Fabrication", mpn: "MOUNTING-HOLE-1.7-NPTH" }
+}
+
+#[doc("docs/README.md")]
+pub part MOUNTING_HOLE_NPTH_3P2: MechanicalMountingHole {
+    primary { mfr: "PCB Fabrication", mpn: "MOUNTING-HOLE-NPTH-3.2MM",
+              footprint: FP_MOUNTING_HOLE_NPTH_3P2 }
+    alt { mfr: "PCB Fabrication", mpn: "MOUNTING-HOLE-3.2-NPTH" }
+    alt { mfr: "PCB Fabrication", mpn: "MOUNTING-HOLE-3P2-NPTH" }
+}

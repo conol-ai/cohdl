@@ -23,3 +23,39 @@ land with a 2.2 mm drill and the same 4.4 mm circular courtyard.
 
 The `PCB Fabrication` identities describe fabrication features rather than
 purchasable components.
+
+## Named by drill diameter
+
+The holes added after the M2 pair are named by drill diameter —
+`MOUNTING_HOLE_NPTH_1P0`, `_1P7`, `_3P2` — not by fastener size. A 3.2 mm hole
+is M3 clearance and a 1.7 mm hole is M1.6 clearance under the usual tables, but
+that is an inference about the screw a designer may fit, while the drill
+diameter is the fact the fabrication house acts on. The two M2 parts keep their
+names because renaming a published part changes a locked version's content;
+they are the older exception, not the convention.
+
+Each non-plated hole keeps the courtyard rule the M2 part set: a circle of twice
+the drill diameter, centred on the hole. That is a clearance convention of this
+package, not a vendor dimension.
+
+## Alternative spellings
+
+`alt` entries on a fabrication primitive record **another catalogue spelling of
+the same feature**, not an alternate supplier — a bare hole or land has no
+supplier to alternate between. Designs in the wild write both
+`MOUNTING-HOLE-3.2-NPTH` and `MOUNTING-HOLE-3P2-NPTH` for the same 3.2 mm hole;
+both are recorded so a design can resolve to the library part instead of
+declaring its own. The drilled geometry is the primary entry's, and an `alt`
+never changes it.
+
+`TEST_POINT_ROUND_1P5MM` follows the 1.0 mm part: a 1.5 mm circular
+top-copper land, `paste: none`, no solder-mask expansion, and a 2.0 mm
+courtyard — the same 0.25 mm clearance per side the 1.0 mm part carries.
+
+## Not added
+
+`PlatedMountingHole` at 3.2 mm is not in the package yet. A plated hole needs a
+copper land diameter, and this package has no vendor document to take one from:
+the M2 part's 4.0 mm land is an existing choice, not a rule that can be scaled.
+Until a fabrication standard or a vendor recommendation is cited, the 3.2 mm
+hole is offered non-plated only.

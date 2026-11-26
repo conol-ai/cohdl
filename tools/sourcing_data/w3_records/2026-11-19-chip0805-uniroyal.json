@@ -1,0 +1,703 @@
+{
+ "schema_version": 1,
+ "rule": {
+  "version": "w3-2026-11-12",
+  "package": "passive",
+  "types": [
+   "ChipResistor",
+   "MLCC"
+  ],
+  "min_sample": 3,
+  "fraction": 0.05,
+  "min_stock": 30,
+  "angle_limit_deg": 10.0,
+  "offset_raw_fraction": 1.0,
+  "offset_residual_fraction": 0.5,
+  "offset_bias": "board_median",
+  "body_method": 2,
+  "bias_min_other_bodies": 3,
+  "bias_other_share_above": 0.5,
+  "infer_zero_stock": false,
+  "infer_not_drawn": false,
+  "not_drawn_max_share": 0.1,
+  "not_drawn_excess": "pause"
+ },
+ "built_by": "tools/w3_record.py",
+ "stock_source": {
+  "path": "tools/sourcing_data/lcsc_backfill/2026-11-26-merge-main/confirmed.json",
+  "sha256": "4829cece0d8d2db477067584071938ace3ab2e83dc6f348cf791156a9a77b3e4"
+ },
+ "groups": [
+  {
+   "id": "passive-0.2.12-CHIP_0805-ChipResistor-UNI-ROYAL-0805W8",
+   "package": "passive",
+   "package_version": "0.2.12",
+   "footprint": "CHIP_0805",
+   "type": "ChipResistor",
+   "mfr": "UNI-ROYAL",
+   "series": "0805W8",
+   "status": "active",
+   "land": {
+    "lib/passive/src/footprints.cohdl": "e1bb40b6077130cc37f7c1d9962f9d57a15e45cbf17689d183f5f74e51e37f96",
+    "lib/passive/src/pads.cohdl": "6e9f4bdd4345a52e14a05ac241c441dd44c9a1ee8f545bcd83a890f40db9ceff"
+   },
+   "members": [
+    "C149504",
+    "C17379",
+    "C17398",
+    "C17408",
+    "C17414",
+    "C17415",
+    "C17429",
+    "C17436",
+    "C17437",
+    "C17444",
+    "C17455",
+    "C17470",
+    "C17471",
+    "C17475",
+    "C17477",
+    "C17480",
+    "C17490",
+    "C17501",
+    "C17506",
+    "C17513",
+    "C17514",
+    "C17520",
+    "C17521",
+    "C17526",
+    "C17530",
+    "C17539",
+    "C17540",
+    "C17544",
+    "C17556",
+    "C17557",
+    "C17560",
+    "C17561",
+    "C17572",
+    "C17575",
+    "C17589",
+    "C17590",
+    "C17593",
+    "C17594",
+    "C17604",
+    "C17606",
+    "C17614",
+    "C17616",
+    "C17617",
+    "C17621",
+    "C17629",
+    "C17630",
+    "C17633",
+    "C17634",
+    "C17655",
+    "C17656",
+    "C17661",
+    "C17667",
+    "C17673",
+    "C17675",
+    "C17677",
+    "C17695",
+    "C17709",
+    "C17710",
+    "C17713",
+    "C17714",
+    "C17719",
+    "C17720",
+    "C17724",
+    "C17733",
+    "C17734",
+    "C17737",
+    "C17738",
+    "C17756",
+    "C17757",
+    "C17767",
+    "C17772",
+    "C17783",
+    "C17797",
+    "C17798",
+    "C17801",
+    "C17802",
+    "C17807",
+    "C17818",
+    "C17819",
+    "C17828",
+    "C17837",
+    "C17840",
+    "C17855",
+    "C18359",
+    "C25270",
+    "C25271",
+    "C25826",
+    "C26010",
+    "C26108",
+    "C26112",
+    "C26113",
+    "C27834",
+    "C28636",
+    "C4310",
+    "C4328",
+    "C4360",
+    "C4382"
+   ],
+   "zero_stock": [],
+   "not_drawn": [],
+   "judged": 5,
+   "not_drawn_share": 0.0,
+   "samples": [
+    {
+     "pn": "C17477",
+     "row": "pb6-chip0805-c17477",
+     "body_method": 2,
+     "angle_deg": 0.0,
+     "offset_limit_mm": 0.228,
+     "raw_offset_xy_mm": [
+      -0.014,
+      -0.012
+     ],
+     "raw_offset_mm": 0.018,
+     "bias_xy_mm": [
+      -0.004,
+      -0.009
+     ],
+     "residual_offset_mm": 0.01,
+     "bias_view": "tools/sourcing_data/jlc_previews/2026-11-19-board-6/README.md#top",
+     "bias_bodies": 36,
+     "bias_other_bodies": 26,
+     "copies": 12,
+     "other_copies": [
+      {
+       "ref": "R6",
+       "body_method": 2,
+       "angle_deg": 0.6,
+       "offset_limit_mm": 0.228,
+       "raw_offset_xy_mm": [
+        -0.015,
+        -0.009
+       ],
+       "raw_offset_mm": 0.017,
+       "bias_xy_mm": [
+        -0.004,
+        -0.009
+       ],
+       "residual_offset_mm": 0.011,
+       "bias_view": "tools/sourcing_data/jlc_previews/2026-11-19-board-6/README.md#top",
+       "bias_bodies": 36,
+       "bias_other_bodies": 26
+      },
+      {
+       "ref": "R7",
+       "body_method": 2,
+       "angle_deg": 0.1,
+       "offset_limit_mm": 0.228,
+       "raw_offset_xy_mm": [
+        -0.028,
+        -0.005
+       ],
+       "raw_offset_mm": 0.028,
+       "bias_xy_mm": [
+        -0.01,
+        -0.004
+       ],
+       "residual_offset_mm": 0.018,
+       "bias_view": "tools/sourcing_data/jlc_previews/2026-11-19-board-6/README.md#bottom",
+       "bias_bodies": 36,
+       "bias_other_bodies": 26
+      },
+      {
+       "ref": "R8",
+       "body_method": 2,
+       "angle_deg": 0.5,
+       "offset_limit_mm": 0.228,
+       "raw_offset_xy_mm": [
+        -0.021,
+        -0.006
+       ],
+       "raw_offset_mm": 0.022,
+       "bias_xy_mm": [
+        -0.01,
+        -0.004
+       ],
+       "residual_offset_mm": 0.011,
+       "bias_view": "tools/sourcing_data/jlc_previews/2026-11-19-board-6/README.md#bottom",
+       "bias_bodies": 36,
+       "bias_other_bodies": 26
+      },
+      {
+       "ref": "R5",
+       "body_method": 2,
+       "angle_deg": 0.5,
+       "offset_limit_mm": 0.228,
+       "raw_offset_xy_mm": [
+        0.011,
+        0.003
+       ],
+       "raw_offset_mm": 0.011,
+       "bias_xy_mm": [
+        0.011,
+        0.004
+       ],
+       "residual_offset_mm": 0.001,
+       "bias_view": "tools/sourcing_data/jlc_previews/2026-11-21-board-7/README.md#top",
+       "bias_bodies": 48,
+       "bias_other_bodies": 46
+      },
+      {
+       "ref": "R6",
+       "body_method": 2,
+       "angle_deg": -1.2,
+       "offset_limit_mm": 0.228,
+       "raw_offset_xy_mm": [
+        0.022,
+        0.012
+       ],
+       "raw_offset_mm": 0.025,
+       "bias_xy_mm": [
+        0.011,
+        0.004
+       ],
+       "residual_offset_mm": 0.014,
+       "bias_view": "tools/sourcing_data/jlc_previews/2026-11-21-board-7/README.md#top",
+       "bias_bodies": 48,
+       "bias_other_bodies": 46
+      },
+      {
+       "ref": "R7",
+       "body_method": 2,
+       "angle_deg": -0.1,
+       "offset_limit_mm": 0.228,
+       "raw_offset_xy_mm": [
+        0.03,
+        -0.0
+       ],
+       "raw_offset_mm": 0.03,
+       "bias_xy_mm": [
+        0.009,
+        0.006
+       ],
+       "residual_offset_mm": 0.022,
+       "bias_view": "tools/sourcing_data/jlc_previews/2026-11-21-board-7/README.md#bottom",
+       "bias_bodies": 48,
+       "bias_other_bodies": 46
+      },
+      {
+       "ref": "R8",
+       "body_method": 2,
+       "angle_deg": 0.3,
+       "offset_limit_mm": 0.228,
+       "raw_offset_xy_mm": [
+        0.016,
+        0.007
+       ],
+       "raw_offset_mm": 0.017,
+       "bias_xy_mm": [
+        0.009,
+        0.006
+       ],
+       "residual_offset_mm": 0.007,
+       "bias_view": "tools/sourcing_data/jlc_previews/2026-11-21-board-7/README.md#bottom",
+       "bias_bodies": 48,
+       "bias_other_bodies": 46
+      },
+      {
+       "ref": "R5",
+       "body_method": 2,
+       "angle_deg": 0.2,
+       "offset_limit_mm": 0.228,
+       "raw_offset_xy_mm": [
+        -0.043,
+        -0.053
+       ],
+       "raw_offset_mm": 0.068,
+       "bias_xy_mm": [
+        -0.012,
+        -0.0165
+       ],
+       "residual_offset_mm": 0.048,
+       "bias_view": "tools/sourcing_data/jlc_previews/2026-11-23-board-11/README.md#top",
+       "bias_bodies": 156,
+       "bias_other_bodies": 154
+      },
+      {
+       "ref": "R6",
+       "body_method": 2,
+       "angle_deg": -0.1,
+       "offset_limit_mm": 0.228,
+       "raw_offset_xy_mm": [
+        -0.024,
+        -0.027
+       ],
+       "raw_offset_mm": 0.036,
+       "bias_xy_mm": [
+        -0.012,
+        -0.0165
+       ],
+       "residual_offset_mm": 0.016,
+       "bias_view": "tools/sourcing_data/jlc_previews/2026-11-23-board-11/README.md#top",
+       "bias_bodies": 156,
+       "bias_other_bodies": 154
+      },
+      {
+       "ref": "R7",
+       "body_method": 2,
+       "angle_deg": -0.0,
+       "offset_limit_mm": 0.228,
+       "raw_offset_xy_mm": [
+        -0.005,
+        -0.023
+       ],
+       "raw_offset_mm": 0.024,
+       "bias_xy_mm": [
+        0.009,
+        -0.011
+       ],
+       "residual_offset_mm": 0.018,
+       "bias_view": "tools/sourcing_data/jlc_previews/2026-11-23-board-11/README.md#bottom",
+       "bias_bodies": 156,
+       "bias_other_bodies": 154
+      },
+      {
+       "ref": "R8",
+       "body_method": 2,
+       "angle_deg": 1.6,
+       "offset_limit_mm": 0.228,
+       "raw_offset_xy_mm": [
+        -0.009,
+        -0.022
+       ],
+       "raw_offset_mm": 0.024,
+       "bias_xy_mm": [
+        0.009,
+        -0.011
+       ],
+       "residual_offset_mm": 0.021,
+       "bias_view": "tools/sourcing_data/jlc_previews/2026-11-23-board-11/README.md#bottom",
+       "bias_bodies": 156,
+       "bias_other_bodies": 154
+      }
+     ]
+    },
+    {
+     "pn": "C17540",
+     "row": "pb6-chip0805-c17540",
+     "body_method": 2,
+     "angle_deg": 0.3,
+     "offset_limit_mm": 0.228,
+     "raw_offset_xy_mm": [
+      -0.001,
+      -0.008
+     ],
+     "raw_offset_mm": 0.008,
+     "bias_xy_mm": [
+      -0.004,
+      -0.009
+     ],
+     "residual_offset_mm": 0.003,
+     "bias_view": "tools/sourcing_data/jlc_previews/2026-11-19-board-6/README.md#top",
+     "bias_bodies": 36,
+     "bias_other_bodies": 26,
+     "copies": 4,
+     "other_copies": [
+      {
+       "ref": "R11",
+       "body_method": 2,
+       "angle_deg": -0.2,
+       "offset_limit_mm": 0.228,
+       "raw_offset_xy_mm": [
+        -0.001,
+        -0.004
+       ],
+       "raw_offset_mm": 0.004,
+       "bias_xy_mm": [
+        -0.01,
+        -0.004
+       ],
+       "residual_offset_mm": 0.009,
+       "bias_view": "tools/sourcing_data/jlc_previews/2026-11-19-board-6/README.md#bottom",
+       "bias_bodies": 36,
+       "bias_other_bodies": 26
+      },
+      {
+       "ref": "R12",
+       "body_method": 2,
+       "angle_deg": -0.6,
+       "offset_limit_mm": 0.228,
+       "raw_offset_xy_mm": [
+        -0.002,
+        -0.007
+       ],
+       "raw_offset_mm": 0.007,
+       "bias_xy_mm": [
+        -0.01,
+        -0.004
+       ],
+       "residual_offset_mm": 0.009,
+       "bias_view": "tools/sourcing_data/jlc_previews/2026-11-19-board-6/README.md#bottom",
+       "bias_bodies": 36,
+       "bias_other_bodies": 26
+      },
+      {
+       "ref": "R9",
+       "body_method": 2,
+       "angle_deg": 0.0,
+       "offset_limit_mm": 0.228,
+       "raw_offset_xy_mm": [
+        -0.004,
+        -0.012
+       ],
+       "raw_offset_mm": 0.013,
+       "bias_xy_mm": [
+        -0.004,
+        -0.009
+       ],
+       "residual_offset_mm": 0.003,
+       "bias_view": "tools/sourcing_data/jlc_previews/2026-11-19-board-6/README.md#top",
+       "bias_bodies": 36,
+       "bias_other_bodies": 26
+      }
+     ]
+    },
+    {
+     "pn": "C17621",
+     "row": "pb6-chip0805-c17621",
+     "body_method": 2,
+     "angle_deg": -0.1,
+     "offset_limit_mm": 0.228,
+     "raw_offset_xy_mm": [
+      -0.014,
+      -0.008
+     ],
+     "raw_offset_mm": 0.016,
+     "bias_xy_mm": [
+      -0.004,
+      -0.009
+     ],
+     "residual_offset_mm": 0.01,
+     "bias_view": "tools/sourcing_data/jlc_previews/2026-11-19-board-6/README.md#top",
+     "bias_bodies": 36,
+     "bias_other_bodies": 26,
+     "copies": 4,
+     "other_copies": [
+      {
+       "ref": "R14",
+       "body_method": 2,
+       "angle_deg": 0.3,
+       "offset_limit_mm": 0.228,
+       "raw_offset_xy_mm": [
+        -0.021,
+        -0.006
+       ],
+       "raw_offset_mm": 0.022,
+       "bias_xy_mm": [
+        -0.004,
+        -0.009
+       ],
+       "residual_offset_mm": 0.017,
+       "bias_view": "tools/sourcing_data/jlc_previews/2026-11-19-board-6/README.md#top",
+       "bias_bodies": 36,
+       "bias_other_bodies": 26
+      },
+      {
+       "ref": "R15",
+       "body_method": 2,
+       "angle_deg": 0.1,
+       "offset_limit_mm": 0.228,
+       "raw_offset_xy_mm": [
+        -0.033,
+        -0.002
+       ],
+       "raw_offset_mm": 0.033,
+       "bias_xy_mm": [
+        -0.01,
+        -0.004
+       ],
+       "residual_offset_mm": 0.023,
+       "bias_view": "tools/sourcing_data/jlc_previews/2026-11-19-board-6/README.md#bottom",
+       "bias_bodies": 36,
+       "bias_other_bodies": 26
+      },
+      {
+       "ref": "R16",
+       "body_method": 2,
+       "angle_deg": 0.2,
+       "offset_limit_mm": 0.228,
+       "raw_offset_xy_mm": [
+        -0.028,
+        -0.002
+       ],
+       "raw_offset_mm": 0.028,
+       "bias_xy_mm": [
+        -0.01,
+        -0.004
+       ],
+       "residual_offset_mm": 0.018,
+       "bias_view": "tools/sourcing_data/jlc_previews/2026-11-19-board-6/README.md#bottom",
+       "bias_bodies": 36,
+       "bias_other_bodies": 26
+      }
+     ]
+    },
+    {
+     "pn": "C17720",
+     "row": "pb6-chip0805-c17720",
+     "body_method": 2,
+     "angle_deg": -0.1,
+     "offset_limit_mm": 0.228,
+     "raw_offset_xy_mm": [
+      -0.01,
+      -0.01
+     ],
+     "raw_offset_mm": 0.014,
+     "bias_xy_mm": [
+      -0.004,
+      -0.009
+     ],
+     "residual_offset_mm": 0.006,
+     "bias_view": "tools/sourcing_data/jlc_previews/2026-11-19-board-6/README.md#top",
+     "bias_bodies": 36,
+     "bias_other_bodies": 26,
+     "copies": 4,
+     "other_copies": [
+      {
+       "ref": "R18",
+       "body_method": 2,
+       "angle_deg": -0.4,
+       "offset_limit_mm": 0.228,
+       "raw_offset_xy_mm": [
+        -0.004,
+        -0.007
+       ],
+       "raw_offset_mm": 0.008,
+       "bias_xy_mm": [
+        -0.004,
+        -0.009
+       ],
+       "residual_offset_mm": 0.002,
+       "bias_view": "tools/sourcing_data/jlc_previews/2026-11-19-board-6/README.md#top",
+       "bias_bodies": 36,
+       "bias_other_bodies": 26
+      },
+      {
+       "ref": "R19",
+       "body_method": 2,
+       "angle_deg": -0.1,
+       "offset_limit_mm": 0.228,
+       "raw_offset_xy_mm": [
+        -0.013,
+        -0.002
+       ],
+       "raw_offset_mm": 0.013,
+       "bias_xy_mm": [
+        -0.01,
+        -0.004
+       ],
+       "residual_offset_mm": 0.004,
+       "bias_view": "tools/sourcing_data/jlc_previews/2026-11-19-board-6/README.md#bottom",
+       "bias_bodies": 36,
+       "bias_other_bodies": 26
+      },
+      {
+       "ref": "R20",
+       "body_method": 2,
+       "angle_deg": 0.3,
+       "offset_limit_mm": 0.228,
+       "raw_offset_xy_mm": [
+        -0.01,
+        -0.001
+       ],
+       "raw_offset_mm": 0.01,
+       "bias_xy_mm": [
+        -0.01,
+        -0.004
+       ],
+       "residual_offset_mm": 0.003,
+       "bias_view": "tools/sourcing_data/jlc_previews/2026-11-19-board-6/README.md#bottom",
+       "bias_bodies": 36,
+       "bias_other_bodies": 26
+      }
+     ]
+    },
+    {
+     "pn": "C17855",
+     "row": "pb6-chip0805-c17855",
+     "body_method": 2,
+     "angle_deg": -0.7,
+     "offset_limit_mm": 0.228,
+     "raw_offset_xy_mm": [
+      0.002,
+      -0.01
+     ],
+     "raw_offset_mm": 0.01,
+     "bias_xy_mm": [
+      -0.004,
+      -0.009
+     ],
+     "residual_offset_mm": 0.006,
+     "bias_view": "tools/sourcing_data/jlc_previews/2026-11-19-board-6/README.md#top",
+     "bias_bodies": 36,
+     "bias_other_bodies": 26,
+     "copies": 4,
+     "other_copies": [
+      {
+       "ref": "R22",
+       "body_method": 2,
+       "angle_deg": 0.6,
+       "offset_limit_mm": 0.228,
+       "raw_offset_xy_mm": [
+        0.006,
+        -0.007
+       ],
+       "raw_offset_mm": 0.009,
+       "bias_xy_mm": [
+        -0.004,
+        -0.009
+       ],
+       "residual_offset_mm": 0.01,
+       "bias_view": "tools/sourcing_data/jlc_previews/2026-11-19-board-6/README.md#top",
+       "bias_bodies": 36,
+       "bias_other_bodies": 26
+      },
+      {
+       "ref": "R23",
+       "body_method": 2,
+       "angle_deg": 0.1,
+       "offset_limit_mm": 0.228,
+       "raw_offset_xy_mm": [
+        0.01,
+        -0.002
+       ],
+       "raw_offset_mm": 0.01,
+       "bias_xy_mm": [
+        -0.01,
+        -0.004
+       ],
+       "residual_offset_mm": 0.02,
+       "bias_view": "tools/sourcing_data/jlc_previews/2026-11-19-board-6/README.md#bottom",
+       "bias_bodies": 36,
+       "bias_other_bodies": 26
+      },
+      {
+       "ref": "R24",
+       "body_method": 2,
+       "angle_deg": 0.2,
+       "offset_limit_mm": 0.228,
+       "raw_offset_xy_mm": [
+        0.007,
+        -0.003
+       ],
+       "raw_offset_mm": 0.008,
+       "bias_xy_mm": [
+        -0.01,
+        -0.004
+       ],
+       "residual_offset_mm": 0.017,
+       "bias_view": "tools/sourcing_data/jlc_previews/2026-11-19-board-6/README.md#bottom",
+       "bias_bodies": 36,
+       "bias_other_bodies": 26
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

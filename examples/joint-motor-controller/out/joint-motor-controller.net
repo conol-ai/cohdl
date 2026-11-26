@@ -6,6 +6,7 @@
       (fields
         (field (name "MPN") "CC0402KRX7R7BB104")
         (field (name "MFR") "Yageo")
+        (field (name "LCSC") "C60474")
       )
       (sheetpath (names "/") (tstamps "/"))
       (tstamp "00000000")
@@ -16,6 +17,7 @@
       (fields
         (field (name "MPN") "CC0402KRX7R7BB104")
         (field (name "MFR") "Yageo")
+        (field (name "LCSC") "C60474")
       )
       (sheetpath (names "/") (tstamps "/"))
       (tstamp "00000001")
@@ -36,6 +38,7 @@
       (fields
         (field (name "MPN") "CC0402KRX5R6BB104")
         (field (name "MFR") "Yageo")
+        (field (name "LCSC") "C129131")
       )
       (sheetpath (names "/") (tstamps "/"))
       (tstamp "00000003")
@@ -56,6 +59,7 @@
       (fields
         (field (name "MPN") "CC0402KRX5R6BB104")
         (field (name "MFR") "Yageo")
+        (field (name "LCSC") "C129131")
       )
       (sheetpath (names "/") (tstamps "/"))
       (tstamp "00000005")
@@ -66,6 +70,7 @@
       (fields
         (field (name "MPN") "CC0402KRX5R6BB104")
         (field (name "MFR") "Yageo")
+        (field (name "LCSC") "C129131")
       )
       (sheetpath (names "/") (tstamps "/"))
       (tstamp "00000006")
@@ -76,6 +81,7 @@
       (fields
         (field (name "MPN") "CC0402JRNPO8BN150")
         (field (name "MFR") "Yageo")
+        (field (name "LCSC") "C541359")
       )
       (sheetpath (names "/") (tstamps "/"))
       (tstamp "00000007")
@@ -86,6 +92,7 @@
       (fields
         (field (name "MPN") "CC0402JRNPO8BN150")
         (field (name "MFR") "Yageo")
+        (field (name "LCSC") "C541359")
       )
       (sheetpath (names "/") (tstamps "/"))
       (tstamp "00000008")
@@ -96,6 +103,7 @@
       (fields
         (field (name "MPN") "CC0402KRX5R6BB104")
         (field (name "MFR") "Yageo")
+        (field (name "LCSC") "C129131")
       )
       (sheetpath (names "/") (tstamps "/"))
       (tstamp "00000009")
@@ -126,6 +134,7 @@
       (fields
         (field (name "MPN") "CC0402KRX5R6BB104")
         (field (name "MFR") "Yageo")
+        (field (name "LCSC") "C129131")
       )
       (sheetpath (names "/") (tstamps "/"))
       (tstamp "0000000C")
@@ -136,6 +145,7 @@
       (fields
         (field (name "MPN") "CC0402KRX5R6BB104")
         (field (name "MFR") "Yageo")
+        (field (name "LCSC") "C129131")
       )
       (sheetpath (names "/") (tstamps "/"))
       (tstamp "0000000D")
@@ -146,6 +156,7 @@
       (fields
         (field (name "MPN") "CC0402KRX5R6BB104")
         (field (name "MFR") "Yageo")
+        (field (name "LCSC") "C129131")
       )
       (sheetpath (names "/") (tstamps "/"))
       (tstamp "0000000E")

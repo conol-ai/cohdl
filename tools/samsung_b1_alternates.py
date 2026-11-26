@@ -55,7 +55,10 @@ def decode(mpn: str) -> tuple[str, float, str, Decimal, str] | None:
     return SIZE[size], VOLTS[volt], DIELECTRIC[diel], pf * Decimal("1e-12"), tol
 
 
-def build() -> dict:
+def library_points() -> tuple[dict, set]:
+    """The combinations the library emits a part for, as (size, volts, dielectric,
+    farads) -> its samsung_cl.json-style key, and those it withholds because Yageo
+    will not confirm the primary. Shared with fenghua_b1_report.py."""
     available, verified = gen_passive.load_mlcc(), gen_passive.load_verified()
     offered, withdrawn = {}, set()
     for key, values in available.items():
@@ -70,6 +73,11 @@ def build() -> dict:
                 withdrawn.add(point)
                 continue
             offered[point] = f"{size}|{float(volts):g}|{diel}|{farads:.6g}"
+    return offered, withdrawn
+
+
+def build() -> dict:
+    offered, withdrawn = library_points()
     parts, unmatched = {}, []
     for page in sorted(json.loads(CATALOG.read_text(encoding="utf-8")), key=lambda p: int(p["c"][1:])):
         if not page["mfr"].startswith("Samsung") or not page["mpn"].startswith("CL"):

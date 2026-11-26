@@ -1,0 +1,4189 @@
+{
+ "name": "preview_board_12",
+ "dependencies": {
+  "std": "0.3.0",
+  "passive": "0.2.8"
+ },
+ "rows": [
+  {
+   "pn": "C527066",
+   "mpn": "CC0603JRNPO0BN681",
+   "mfr": "Yageo",
+   "part": "passive::MLCC<680pF, 100V, 5%>[C0603]",
+   "footprint": "passive::CHIP_0603",
+   "group": "CHIP_0603 MLCC Yageo CC",
+   "purpose": "sample",
+   "jlc_package": "0603",
+   "stock": 4038,
+   "page_fetched": "2026-11-05T21:17:54Z",
+   "category": "extended",
+   "name": "sample_C527066",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      10.0,
+      10.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      10.0,
+      30.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      10.0,
+      20.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      10.0,
+      40.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C137803",
+   "mpn": "RC0603FR-0711K3L",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<11.3kohm, 1%>[R0603]",
+   "footprint": "passive::CHIP_0603",
+   "group": "CHIP_0603 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "0603",
+   "stock": 255,
+   "page_fetched": "2026-11-05T22:32:21Z",
+   "category": "extended",
+   "name": "sample_C137803",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      20.0,
+      10.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      20.0,
+      30.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      20.0,
+      20.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      20.0,
+      40.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C274364",
+   "mpn": "RC0805FR-07115KL",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<115kohm, 1%>[R0805]",
+   "footprint": "passive::CHIP_0805",
+   "group": "CHIP_0805 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "0805",
+   "stock": 3212,
+   "page_fetched": "2026-11-05T23:04:41Z",
+   "category": "extended",
+   "name": "sample_C274364",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      30.0,
+      10.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      30.0,
+      30.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      30.0,
+      20.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      30.0,
+      40.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C274084",
+   "mpn": "RC1206FR-0711K3L",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<11.3kohm, 1%>[R1206]",
+   "footprint": "passive::CHIP_1206",
+   "group": "CHIP_1206 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "1206",
+   "stock": 58,
+   "page_fetched": "2026-11-05T23:37:25Z",
+   "category": "extended",
+   "name": "sample_C274084",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      40.0,
+      10.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      40.0,
+      30.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      40.0,
+      20.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      40.0,
+      40.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::MLCC<1nF, 50V, 5%>[C0402]",
+   "pn": "C113780",
+   "mpn": "CC0402JRNPO9BN102",
+   "mfr": "Yageo",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "purpose": "control",
+   "group": "CHIP_0402 MLCC Yageo CC",
+   "jlc_package": "0402",
+   "stock": 24241,
+   "page_fetched": "2026-11-05T21:11:52Z",
+   "category": "extended",
+   "name": "control_C113780",
+   "placements": [
+    {
+     "at_mm": [
+      50.0,
+      10.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      50.0,
+      30.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      50.0,
+      20.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      50.0,
+      40.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C107047",
+   "mpn": "CC0603JRNPO9BN330",
+   "mfr": "Yageo",
+   "part": "passive::MLCC<33pF, 50V, 5%>[C0603]",
+   "footprint": "passive::CHIP_0603",
+   "group": "CHIP_0603 MLCC Yageo CC",
+   "purpose": "sample",
+   "jlc_package": "0603",
+   "stock": 5092312,
+   "page_fetched": "2026-11-05T21:19:14Z",
+   "category": "extended",
+   "name": "sample_C107047",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      60.0,
+      10.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      60.0,
+      30.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      60.0,
+      20.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      60.0,
+      40.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C163430",
+   "mpn": "RC0603FR-07143KL",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<143kohm, 1%>[R0603]",
+   "footprint": "passive::CHIP_0603",
+   "group": "CHIP_0603 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "0603",
+   "stock": 36177,
+   "page_fetched": "2026-11-05T22:33:37Z",
+   "category": "extended",
+   "name": "sample_C163430",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      70.0,
+      10.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      70.0,
+      30.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      70.0,
+      20.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      70.0,
+      40.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C273916",
+   "mpn": "RC0805FR-07154RL",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<154ohm, 1%>[R0805]",
+   "footprint": "passive::CHIP_0805",
+   "group": "CHIP_0805 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "0805",
+   "stock": 4965,
+   "page_fetched": "2026-11-05T23:06:29Z",
+   "category": "extended",
+   "name": "sample_C273916",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      80.0,
+      10.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      80.0,
+      30.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      80.0,
+      20.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      80.0,
+      40.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C274071",
+   "mpn": "RC1206FR-07158RL",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<158ohm, 1%>[R1206]",
+   "footprint": "passive::CHIP_1206",
+   "group": "CHIP_1206 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "1206",
+   "stock": 4827,
+   "page_fetched": "2026-11-05T23:39:10Z",
+   "category": "extended",
+   "name": "sample_C274071",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      90.0,
+      10.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      90.0,
+      30.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      90.0,
+      20.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      90.0,
+      40.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<1kohm, 1%>[R0402]",
+   "pn": "C11702",
+   "mpn": "0402WGF1001TCE",
+   "mfr": "UNI-ROYAL",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "purpose": "control",
+   "group": "CHIP_0402 ChipResistor UNI-ROYAL 0402WG",
+   "jlc_package": "0402",
+   "stock": 21756652,
+   "page_fetched": "2026-10-30T04:26:28Z",
+   "category": "basic",
+   "name": "control_C11702",
+   "placements": [
+    {
+     "at_mm": [
+      100.0,
+      10.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      100.0,
+      30.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      100.0,
+      20.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      100.0,
+      40.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C576830",
+   "mpn": "CC0603JRNPOYBN681",
+   "mfr": "Yageo",
+   "part": "passive::MLCC<680pF, 250V, 5%>[C0603]",
+   "footprint": "passive::CHIP_0603",
+   "group": "CHIP_0603 MLCC Yageo CC",
+   "purpose": "sample",
+   "jlc_package": "0603",
+   "stock": 421,
+   "page_fetched": "2026-11-05T21:21:07Z",
+   "category": "extended",
+   "name": "sample_C576830",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      110.0,
+      10.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      110.0,
+      30.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      110.0,
+      20.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      110.0,
+      40.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C137786",
+   "mpn": "RC0603FR-07180RL",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<180ohm, 1%>[R0603]",
+   "footprint": "passive::CHIP_0603",
+   "group": "CHIP_0603 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "0603",
+   "stock": 206118,
+   "page_fetched": "2026-11-05T22:35:09Z",
+   "category": "extended",
+   "name": "sample_C137786",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      120.0,
+      10.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      120.0,
+      30.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      120.0,
+      20.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      120.0,
+      40.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C273948",
+   "mpn": "RC0805FR-07182RL",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<182ohm, 1%>[R0805]",
+   "footprint": "passive::CHIP_0805",
+   "group": "CHIP_0805 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "0805",
+   "stock": 48,
+   "page_fetched": "2026-11-05T23:07:45Z",
+   "category": "extended",
+   "name": "sample_C273948",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      130.0,
+      10.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      130.0,
+      30.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      130.0,
+      20.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      130.0,
+      40.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C488558",
+   "mpn": "RC1206FR-071K13L",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<1.13kohm, 1%>[R1206]",
+   "footprint": "passive::CHIP_1206",
+   "group": "CHIP_1206 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "1206",
+   "stock": 72,
+   "page_fetched": "2026-11-05T23:41:01Z",
+   "category": "extended",
+   "name": "sample_C488558",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      140.0,
+      10.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      140.0,
+      30.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      140.0,
+      20.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      140.0,
+      40.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "footprint": "passive::CHIP_1206",
+   "part": "passive::ChipResistor<0ohm, 5%>[R1206]",
+   "pn": "C17888",
+   "mpn": "1206W4F0000T5E",
+   "mfr": "UNI-ROYAL",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "purpose": "control",
+   "group": "CHIP_1206 ChipResistor UNI-ROYAL 1206W4",
+   "jlc_package": "1206",
+   "stock": 1774968,
+   "page_fetched": "2026-10-30T04:28:23Z",
+   "category": "basic",
+   "name": "control_C17888",
+   "placements": [
+    {
+     "at_mm": [
+      150.0,
+      10.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      150.0,
+      30.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      150.0,
+      20.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      150.0,
+      40.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C107062",
+   "mpn": "CC0603KRX7R0BB471",
+   "mfr": "Yageo",
+   "part": "passive::MLCC<470pF, 100V, 10%>[C0603]",
+   "footprint": "passive::CHIP_0603",
+   "group": "CHIP_0603 MLCC Yageo CC",
+   "purpose": "sample",
+   "jlc_package": "0603",
+   "stock": 19062,
+   "page_fetched": "2026-11-05T21:22:40Z",
+   "category": "extended",
+   "name": "sample_C107062",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      160.0,
+      10.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      160.0,
+      30.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      160.0,
+      20.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      160.0,
+      40.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C482608",
+   "mpn": "RC0603FR-071M02L",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<1.02Mohm, 1%>[R0603]",
+   "footprint": "passive::CHIP_0603",
+   "group": "CHIP_0603 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "0603",
+   "stock": 356,
+   "page_fetched": "2026-11-05T22:36:49Z",
+   "category": "extended",
+   "name": "sample_C482608",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      10.0,
+      50.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      10.0,
+      70.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      10.0,
+      60.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      10.0,
+      80.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C482968",
+   "mpn": "RC0805FR-071M4L",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<1.4Mohm, 1%>[R0805]",
+   "footprint": "passive::CHIP_0805",
+   "group": "CHIP_0805 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "0805",
+   "stock": 55,
+   "page_fetched": "2026-11-05T23:10:00Z",
+   "category": "extended",
+   "name": "sample_C482968",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      20.0,
+      50.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      20.0,
+      70.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      20.0,
+      60.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      20.0,
+      80.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C488605",
+   "mpn": "RC1206FR-071M91L",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<1.91Mohm, 1%>[R1206]",
+   "footprint": "passive::CHIP_1206",
+   "group": "CHIP_1206 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "1206",
+   "stock": 5358,
+   "page_fetched": "2026-11-05T23:43:00Z",
+   "category": "extended",
+   "name": "sample_C488605",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      30.0,
+      50.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      30.0,
+      70.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      30.0,
+      60.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      30.0,
+      80.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C19702",
+   "mpn": "CL10A106KP8NNNC",
+   "mfr": "Samsung",
+   "part": "passive::MLCC<10uF, 10V, 10%>[C0603]",
+   "footprint": "passive::CHIP_0603",
+   "group": "CHIP_0603 MLCC Samsung CL",
+   "purpose": "control",
+   "jlc_package": "0603",
+   "stock": 12030848,
+   "page_fetched": "2026-10-30T04:23:18Z",
+   "category": "basic",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "name": "control_C19702",
+   "placements": [
+    {
+     "at_mm": [
+      40.0,
+      50.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      40.0,
+      70.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      40.0,
+      60.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      40.0,
+      80.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C519410",
+   "mpn": "CC0603KRX7R8BB101",
+   "mfr": "Yageo",
+   "part": "passive::MLCC<100pF, 25V, 10%>[C0603]",
+   "footprint": "passive::CHIP_0603",
+   "group": "CHIP_0603 MLCC Yageo CC",
+   "purpose": "sample",
+   "jlc_package": "0603",
+   "stock": 28873,
+   "page_fetched": "2026-11-05T21:24:12Z",
+   "category": "extended",
+   "name": "sample_C519410",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      50.0,
+      50.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      50.0,
+      70.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      50.0,
+      60.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      50.0,
+      80.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C482763",
+   "mpn": "RC0603FR-071R91L",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<1.91ohm, 1%>[R0603]",
+   "footprint": "passive::CHIP_0603",
+   "group": "CHIP_0603 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "0603",
+   "stock": 608,
+   "page_fetched": "2026-11-05T22:38:51Z",
+   "category": "extended",
+   "name": "sample_C482763",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      60.0,
+      50.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      60.0,
+      70.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      60.0,
+      60.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      60.0,
+      80.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C114567",
+   "mpn": "RC0805FR-07200RL",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<200ohm, 1%>[R0805]",
+   "footprint": "passive::CHIP_0805",
+   "group": "CHIP_0805 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "0805",
+   "stock": 924849,
+   "page_fetched": "2026-11-05T23:11:44Z",
+   "category": "extended",
+   "name": "sample_C114567",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      70.0,
+      50.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      70.0,
+      70.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      70.0,
+      60.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      70.0,
+      80.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C488729",
+   "mpn": "RC1206FR-07205KL",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<205kohm, 1%>[R1206]",
+   "footprint": "passive::CHIP_1206",
+   "group": "CHIP_1206 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "1206",
+   "stock": 3039,
+   "page_fetched": "2026-11-05T23:44:14Z",
+   "category": "extended",
+   "name": "sample_C488729",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      80.0,
+      50.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      80.0,
+      70.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      80.0,
+      60.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      80.0,
+      80.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C107087",
+   "mpn": "CC0603KRX7R9BB331",
+   "mfr": "Yageo",
+   "part": "passive::MLCC<330pF, 50V, 10%>[C0603]",
+   "footprint": "passive::CHIP_0603",
+   "group": "CHIP_0603 MLCC Yageo CC",
+   "purpose": "sample",
+   "jlc_package": "0603",
+   "stock": 515142,
+   "page_fetched": "2026-11-05T21:25:24Z",
+   "category": "extended",
+   "name": "sample_C107087",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      90.0,
+      50.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      90.0,
+      70.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      90.0,
+      60.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      90.0,
+      80.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C137765",
+   "mpn": "RC0603FR-07240KL",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<240kohm, 1%>[R0603]",
+   "footprint": "passive::CHIP_0603",
+   "group": "CHIP_0603 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "0603",
+   "stock": 445994,
+   "page_fetched": "2026-11-05T22:40:08Z",
+   "category": "extended",
+   "name": "sample_C137765",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      100.0,
+      50.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      100.0,
+      70.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      100.0,
+      60.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      100.0,
+      80.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C295889",
+   "mpn": "RC0805FR-07243RL",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<243ohm, 1%>[R0805]",
+   "footprint": "passive::CHIP_0805",
+   "group": "CHIP_0805 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "0805",
+   "stock": 2744,
+   "page_fetched": "2026-11-05T23:13:00Z",
+   "category": "extended",
+   "name": "sample_C295889",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      110.0,
+      50.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      110.0,
+      70.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      110.0,
+      60.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      110.0,
+      80.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C488748",
+   "mpn": "RC1206FR-0724K3L",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<24.3kohm, 1%>[R1206]",
+   "footprint": "passive::CHIP_1206",
+   "group": "CHIP_1206 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "1206",
+   "stock": 58,
+   "page_fetched": "2026-11-05T23:45:35Z",
+   "category": "extended",
+   "name": "sample_C488748",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      120.0,
+      50.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      120.0,
+      70.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      120.0,
+      60.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      120.0,
+      80.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C273772",
+   "mpn": "RC0603FR-072K15L",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<2.15kohm, 1%>[R0603]",
+   "footprint": "passive::CHIP_0603",
+   "group": "CHIP_0603 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "0603",
+   "stock": 175,
+   "page_fetched": "2026-11-05T22:41:38Z",
+   "category": "extended",
+   "name": "sample_C273772",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      130.0,
+      50.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      130.0,
+      70.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      130.0,
+      60.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      130.0,
+      80.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C137555",
+   "mpn": "RC0805FR-072K43L",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<2.43kohm, 1%>[R0805]",
+   "footprint": "passive::CHIP_0805",
+   "group": "CHIP_0805 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "0805",
+   "stock": 3232,
+   "page_fetched": "2026-11-05T23:14:38Z",
+   "category": "extended",
+   "name": "sample_C137555",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      140.0,
+      50.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      140.0,
+      70.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      140.0,
+      60.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      140.0,
+      80.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C137330",
+   "mpn": "RC1206FR-072K7L",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<2.7kohm, 1%>[R1206]",
+   "footprint": "passive::CHIP_1206",
+   "group": "CHIP_1206 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "1206",
+   "stock": 130376,
+   "page_fetched": "2026-11-05T23:47:22Z",
+   "category": "extended",
+   "name": "sample_C137330",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      150.0,
+      50.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      150.0,
+      70.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      150.0,
+      60.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      150.0,
+      80.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C309560",
+   "mpn": "RC0603FR-072R7L",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<2.7ohm, 1%>[R0603]",
+   "footprint": "passive::CHIP_0603",
+   "group": "CHIP_0603 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "0603",
+   "stock": 10019,
+   "page_fetched": "2026-11-05T22:43:27Z",
+   "category": "extended",
+   "name": "sample_C309560",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      160.0,
+      50.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      160.0,
+      70.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      160.0,
+      60.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      160.0,
+      80.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C483051",
+   "mpn": "RC0805FR-072R61L",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<2.61ohm, 1%>[R0805]",
+   "footprint": "passive::CHIP_0805",
+   "group": "CHIP_0805 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "0805",
+   "stock": 1640,
+   "page_fetched": "2026-11-05T23:16:07Z",
+   "category": "extended",
+   "name": "sample_C483051",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      10.0,
+      90.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      10.0,
+      110.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      10.0,
+      100.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      10.0,
+      120.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C488716",
+   "mpn": "RC1206FR-072R67L",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<2.67ohm, 1%>[R1206]",
+   "footprint": "passive::CHIP_1206",
+   "group": "CHIP_1206 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "1206",
+   "stock": 3185,
+   "page_fetched": "2026-11-05T23:48:38Z",
+   "category": "extended",
+   "name": "sample_C488716",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      20.0,
+      90.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      20.0,
+      110.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      20.0,
+      100.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      20.0,
+      120.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C273746",
+   "mpn": "RC0603FR-07348KL",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<348kohm, 1%>[R0603]",
+   "footprint": "passive::CHIP_0603",
+   "group": "CHIP_0603 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "0603",
+   "stock": 4890,
+   "page_fetched": "2026-11-05T22:44:37Z",
+   "category": "extended",
+   "name": "sample_C273746",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      30.0,
+      90.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      30.0,
+      110.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      30.0,
+      100.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      30.0,
+      120.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C137542",
+   "mpn": "RC0805FR-07340RL",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<340ohm, 1%>[R0805]",
+   "footprint": "passive::CHIP_0805",
+   "group": "CHIP_0805 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "0805",
+   "stock": 4569,
+   "page_fetched": "2026-11-05T23:17:23Z",
+   "category": "extended",
+   "name": "sample_C137542",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      40.0,
+      90.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      40.0,
+      110.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      40.0,
+      100.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      40.0,
+      120.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C137304",
+   "mpn": "RC1206FR-07360KL",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<360kohm, 1%>[R1206]",
+   "footprint": "passive::CHIP_1206",
+   "group": "CHIP_1206 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "1206",
+   "stock": 1419,
+   "page_fetched": "2026-11-05T23:50:12Z",
+   "category": "extended",
+   "name": "sample_C137304",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      50.0,
+      90.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      50.0,
+      110.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      50.0,
+      100.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      50.0,
+      120.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C185334",
+   "mpn": "RC0603FR-073K09L",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<3.09kohm, 1%>[R0603]",
+   "footprint": "passive::CHIP_0603",
+   "group": "CHIP_0603 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "0603",
+   "stock": 1517,
+   "page_fetched": "2026-11-05T22:45:47Z",
+   "category": "extended",
+   "name": "sample_C185334",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      60.0,
+      90.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      60.0,
+      110.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      60.0,
+      100.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      60.0,
+      120.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C114221",
+   "mpn": "RC0805FR-073K9L",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<3.9kohm, 1%>[R0805]",
+   "footprint": "passive::CHIP_0805",
+   "group": "CHIP_0805 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "0805",
+   "stock": 34840,
+   "page_fetched": "2026-11-05T23:19:02Z",
+   "category": "extended",
+   "name": "sample_C114221",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      70.0,
+      90.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      70.0,
+      110.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      70.0,
+      100.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      70.0,
+      120.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C137288",
+   "mpn": "RC1206FR-073M3L",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<3.3Mohm, 1%>[R1206]",
+   "footprint": "passive::CHIP_1206",
+   "group": "CHIP_1206 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "1206",
+   "stock": 45070,
+   "page_fetched": "2026-11-05T23:51:42Z",
+   "category": "extended",
+   "name": "sample_C137288",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      80.0,
+      90.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      80.0,
+      110.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      80.0,
+      100.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      80.0,
+      120.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C482836",
+   "mpn": "RC0603FR-073R65L",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<3.65ohm, 1%>[R0603]",
+   "footprint": "passive::CHIP_0603",
+   "group": "CHIP_0603 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "0603",
+   "stock": 3800,
+   "page_fetched": "2026-11-05T22:47:06Z",
+   "category": "extended",
+   "name": "sample_C482836",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      90.0,
+      90.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      90.0,
+      110.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      90.0,
+      100.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      90.0,
+      120.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C273898",
+   "mpn": "RC0805FR-07432RL",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<432ohm, 1%>[R0805]",
+   "footprint": "passive::CHIP_0805",
+   "group": "CHIP_0805 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "0805",
+   "stock": 3176,
+   "page_fetched": "2026-11-05T23:20:40Z",
+   "category": "extended",
+   "name": "sample_C273898",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      100.0,
+      90.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      100.0,
+      110.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      100.0,
+      100.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      100.0,
+      120.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C274057",
+   "mpn": "RC1206FR-0742R2L",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<42.2ohm, 1%>[R1206]",
+   "footprint": "passive::CHIP_1206",
+   "group": "CHIP_1206 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "1206",
+   "stock": 5001,
+   "page_fetched": "2026-11-05T23:52:59Z",
+   "category": "extended",
+   "name": "sample_C274057",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      110.0,
+      90.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      110.0,
+      110.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      110.0,
+      100.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      110.0,
+      120.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C185326",
+   "mpn": "RC0603FR-0747R5L",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<47.5ohm, 1%>[R0603]",
+   "footprint": "passive::CHIP_0603",
+   "group": "CHIP_0603 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "0603",
+   "stock": 5741,
+   "page_fetched": "2026-11-05T22:48:36Z",
+   "category": "extended",
+   "name": "sample_C185326",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      120.0,
+      90.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      120.0,
+      110.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      120.0,
+      100.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      120.0,
+      120.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C273912",
+   "mpn": "RC0805FR-074K22L",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<4.22kohm, 1%>[R0805]",
+   "footprint": "passive::CHIP_0805",
+   "group": "CHIP_0805 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "0805",
+   "stock": 358,
+   "page_fetched": "2026-11-05T23:21:50Z",
+   "category": "extended",
+   "name": "sample_C273912",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      130.0,
+      90.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      130.0,
+      110.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      130.0,
+      100.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      130.0,
+      120.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C488837",
+   "mpn": "RC1206FR-074K64L",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<4.64kohm, 1%>[R1206]",
+   "footprint": "passive::CHIP_1206",
+   "group": "CHIP_1206 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "1206",
+   "stock": 3925,
+   "page_fetched": "2026-11-05T23:54:25Z",
+   "category": "extended",
+   "name": "sample_C488837",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      140.0,
+      90.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      140.0,
+      110.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      140.0,
+      100.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      140.0,
+      120.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C137705",
+   "mpn": "RC0603FR-074R7L",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<4.7ohm, 1%>[R0603]",
+   "footprint": "passive::CHIP_0603",
+   "group": "CHIP_0603 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "0603",
+   "stock": 1770,
+   "page_fetched": "2026-11-05T22:50:00Z",
+   "category": "extended",
+   "name": "sample_C137705",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      150.0,
+      90.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      150.0,
+      110.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      150.0,
+      100.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      150.0,
+      120.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C137510",
+   "mpn": "RC0805FR-0754K9L",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<54.9kohm, 1%>[R0805]",
+   "footprint": "passive::CHIP_0805",
+   "group": "CHIP_0805 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "0805",
+   "stock": 1675,
+   "page_fetched": "2026-11-05T23:23:35Z",
+   "category": "extended",
+   "name": "sample_C137510",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      160.0,
+      90.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      160.0,
+      110.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      160.0,
+      100.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      160.0,
+      120.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C488889",
+   "mpn": "RC1206FR-0752K3L",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<52.3kohm, 1%>[R1206]",
+   "footprint": "passive::CHIP_1206",
+   "group": "CHIP_1206 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "1206",
+   "stock": 3352,
+   "page_fetched": "2026-11-05T23:55:42Z",
+   "category": "extended",
+   "name": "sample_C488889",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      10.0,
+      130.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      10.0,
+      150.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      10.0,
+      140.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      10.0,
+      160.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C273771",
+   "mpn": "RC0603FR-075K76L",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<5.76kohm, 1%>[R0603]",
+   "footprint": "passive::CHIP_0603",
+   "group": "CHIP_0603 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "0603",
+   "stock": 2288,
+   "page_fetched": "2026-11-05T22:51:33Z",
+   "category": "extended",
+   "name": "sample_C273771",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      20.0,
+      130.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      20.0,
+      150.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      20.0,
+      140.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      20.0,
+      160.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C273994",
+   "mpn": "RC0805FR-0760K4L",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<60.4kohm, 1%>[R0805]",
+   "footprint": "passive::CHIP_0805",
+   "group": "CHIP_0805 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "0805",
+   "stock": 347,
+   "page_fetched": "2026-11-05T23:25:07Z",
+   "category": "extended",
+   "name": "sample_C273994",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      30.0,
+      130.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      30.0,
+      150.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      30.0,
+      140.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      30.0,
+      160.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C488881",
+   "mpn": "RC1206FR-075M76L",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<5.76Mohm, 1%>[R1206]",
+   "footprint": "passive::CHIP_1206",
+   "group": "CHIP_1206 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "1206",
+   "stock": 2775,
+   "page_fetched": "2026-11-05T23:57:11Z",
+   "category": "extended",
+   "name": "sample_C488881",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      40.0,
+      130.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      40.0,
+      150.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      40.0,
+      140.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      40.0,
+      160.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C126362",
+   "mpn": "RC0603FR-0768RL",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<68ohm, 1%>[R0603]",
+   "footprint": "passive::CHIP_0603",
+   "group": "CHIP_0603 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "0603",
+   "stock": 19376,
+   "page_fetched": "2026-11-05T22:53:11Z",
+   "category": "extended",
+   "name": "sample_C126362",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      50.0,
+      130.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      50.0,
+      150.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      50.0,
+      140.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      50.0,
+      160.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C483191",
+   "mpn": "RC0805FR-076M19L",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<6.19Mohm, 1%>[R0805]",
+   "footprint": "passive::CHIP_0805",
+   "group": "CHIP_0805 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "0805",
+   "stock": 59,
+   "page_fetched": "2026-11-05T23:26:33Z",
+   "category": "extended",
+   "name": "sample_C483191",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      60.0,
+      130.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      60.0,
+      150.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      60.0,
+      140.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      60.0,
+      160.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C137239",
+   "mpn": "RC1206FR-0768KL",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<68kohm, 1%>[R1206]",
+   "footprint": "passive::CHIP_1206",
+   "group": "CHIP_1206 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "1206",
+   "stock": 97438,
+   "page_fetched": "2026-11-05T23:58:32Z",
+   "category": "extended",
+   "name": "sample_C137239",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      70.0,
+      130.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      70.0,
+      150.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      70.0,
+      140.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      70.0,
+      160.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C114634",
+   "mpn": "RC0603FR-077K5L",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<7.5kohm, 1%>[R0603]",
+   "footprint": "passive::CHIP_0603",
+   "group": "CHIP_0603 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "0603",
+   "stock": 640958,
+   "page_fetched": "2026-11-05T22:55:08Z",
+   "category": "extended",
+   "name": "sample_C114634",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      80.0,
+      130.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      80.0,
+      150.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      80.0,
+      140.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      80.0,
+      160.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C483226",
+   "mpn": "RC0805FR-077R87L",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<7.87ohm, 1%>[R0805]",
+   "footprint": "passive::CHIP_0805",
+   "group": "CHIP_0805 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "0805",
+   "stock": 43,
+   "page_fetched": "2026-11-05T23:28:16Z",
+   "category": "extended",
+   "name": "sample_C483226",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      90.0,
+      130.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      90.0,
+      150.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      90.0,
+      140.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      90.0,
+      160.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C488966",
+   "mpn": "RC1206FR-07768RL",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<768ohm, 1%>[R1206]",
+   "footprint": "passive::CHIP_1206",
+   "group": "CHIP_1206 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "1206",
+   "stock": 4404,
+   "page_fetched": "2026-11-06T00:00:08Z",
+   "category": "extended",
+   "name": "sample_C488966",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      100.0,
+      130.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      100.0,
+      150.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      100.0,
+      140.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      100.0,
+      160.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C141682",
+   "mpn": "RC0603FR-078K66L",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<8.66kohm, 1%>[R0603]",
+   "footprint": "passive::CHIP_0603",
+   "group": "CHIP_0603 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "0603",
+   "stock": 22988,
+   "page_fetched": "2026-11-05T22:56:30Z",
+   "category": "extended",
+   "name": "sample_C141682",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      110.0,
+      130.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      110.0,
+      150.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      110.0,
+      140.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      110.0,
+      160.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C273945",
+   "mpn": "RC0805FR-07976RL",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<976ohm, 1%>[R0805]",
+   "footprint": "passive::CHIP_0805",
+   "group": "CHIP_0805 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "0805",
+   "stock": 4941,
+   "page_fetched": "2026-11-05T23:30:15Z",
+   "category": "extended",
+   "name": "sample_C273945",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      120.0,
+      130.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      120.0,
+      150.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      120.0,
+      140.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      120.0,
+      160.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C137226",
+   "mpn": "RC1206FR-078K2L",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<8.2kohm, 1%>[R1206]",
+   "footprint": "passive::CHIP_1206",
+   "group": "CHIP_1206 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "1206",
+   "stock": 15792,
+   "page_fetched": "2026-11-06T00:01:42Z",
+   "category": "extended",
+   "name": "sample_C137226",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      130.0,
+      130.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      130.0,
+      150.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      130.0,
+      140.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      130.0,
+      160.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C100048",
+   "mpn": "RC0603JR-07100KL",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<100kohm, 5%>[R0603]",
+   "footprint": "passive::CHIP_0603",
+   "group": "CHIP_0603 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "0603",
+   "stock": 1607069,
+   "page_fetched": "2026-11-05T22:58:11Z",
+   "category": "extended",
+   "name": "sample_C100048",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      140.0,
+      130.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      140.0,
+      150.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      140.0,
+      140.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      140.0,
+      160.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C137474",
+   "mpn": "RC0805JR-07130RL",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<130ohm, 5%>[R0805]",
+   "footprint": "passive::CHIP_0805",
+   "group": "CHIP_0805 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "0805",
+   "stock": 2869,
+   "page_fetched": "2026-11-05T23:31:21Z",
+   "category": "extended",
+   "name": "sample_C137474",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      150.0,
+      130.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      150.0,
+      150.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      150.0,
+      140.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      150.0,
+      160.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C163368",
+   "mpn": "RC1206FR-079K1L",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<9.1kohm, 1%>[R1206]",
+   "footprint": "passive::CHIP_1206",
+   "group": "CHIP_1206 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "1206",
+   "stock": 5013,
+   "page_fetched": "2026-11-06T00:02:57Z",
+   "category": "extended",
+   "name": "sample_C163368",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      160.0,
+      130.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      160.0,
+      150.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      160.0,
+      140.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      160.0,
+      160.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C181896",
+   "mpn": "RC0603JR-071K6L",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<1.6kohm, 5%>[R0603]",
+   "footprint": "passive::CHIP_0603",
+   "group": "CHIP_0603 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "0603",
+   "stock": 1623,
+   "page_fetched": "2026-11-05T22:59:17Z",
+   "category": "extended",
+   "name": "sample_C181896",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      10.0,
+      170.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      10.0,
+      190.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      10.0,
+      180.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      10.0,
+      200.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C114233",
+   "mpn": "RC0805JR-0720KL",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<20kohm, 5%>[R0805]",
+   "footprint": "passive::CHIP_0805",
+   "group": "CHIP_0805 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "0805",
+   "stock": 17120,
+   "page_fetched": "2026-11-05T23:32:37Z",
+   "category": "extended",
+   "name": "sample_C114233",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      20.0,
+      170.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      20.0,
+      190.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      20.0,
+      180.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      20.0,
+      200.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C137193",
+   "mpn": "RC1206JR-07180RL",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<180ohm, 5%>[R1206]",
+   "footprint": "passive::CHIP_1206",
+   "group": "CHIP_1206 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "1206",
+   "stock": 31,
+   "page_fetched": "2026-11-06T00:04:17Z",
+   "category": "extended",
+   "name": "sample_C137193",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      30.0,
+      170.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      30.0,
+      190.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      30.0,
+      180.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      30.0,
+      200.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C105581",
+   "mpn": "RC0603JR-072KL",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<2kohm, 5%>[R0603]",
+   "footprint": "passive::CHIP_0603",
+   "group": "CHIP_0603 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "0603",
+   "stock": 1228931,
+   "page_fetched": "2026-11-05T23:00:34Z",
+   "category": "extended",
+   "name": "sample_C105581",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      40.0,
+      170.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      40.0,
+      190.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      40.0,
+      180.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      40.0,
+      200.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C114219",
+   "mpn": "RC0805JR-0730KL",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<30kohm, 5%>[R0805]",
+   "footprint": "passive::CHIP_0805",
+   "group": "CHIP_0805 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "0805",
+   "stock": 18077,
+   "page_fetched": "2026-11-05T23:33:38Z",
+   "category": "extended",
+   "name": "sample_C114219",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      50.0,
+      170.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      50.0,
+      190.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      50.0,
+      180.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      50.0,
+      200.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C136404",
+   "mpn": "RC1206JR-072KL",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<2kohm, 5%>[R1206]",
+   "footprint": "passive::CHIP_1206",
+   "group": "CHIP_1206 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "1206",
+   "stock": 29459,
+   "page_fetched": "2026-11-06T00:05:44Z",
+   "category": "extended",
+   "name": "sample_C136404",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      60.0,
+      170.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      60.0,
+      190.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      60.0,
+      180.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      60.0,
+      200.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C137625",
+   "mpn": "RC0603JR-07430RL",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<430ohm, 5%>[R0603]",
+   "footprint": "passive::CHIP_0603",
+   "group": "CHIP_0603 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "0603",
+   "stock": 13885,
+   "page_fetched": "2026-11-05T23:01:51Z",
+   "category": "extended",
+   "name": "sample_C137625",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      70.0,
+      170.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      70.0,
+      190.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      70.0,
+      180.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      70.0,
+      200.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C273882",
+   "mpn": "RC0805JR-07560KL",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<560kohm, 5%>[R0805]",
+   "footprint": "passive::CHIP_0805",
+   "group": "CHIP_0805 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "0805",
+   "stock": 78,
+   "page_fetched": "2026-11-05T23:35:04Z",
+   "category": "extended",
+   "name": "sample_C273882",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      80.0,
+      170.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      80.0,
+      190.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      80.0,
+      180.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      80.0,
+      200.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C137139",
+   "mpn": "RC1206JR-07470KL",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<470kohm, 5%>[R1206]",
+   "footprint": "passive::CHIP_1206",
+   "group": "CHIP_1206 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "1206",
+   "stock": 4573,
+   "page_fetched": "2026-11-06T00:07:06Z",
+   "category": "extended",
+   "name": "sample_C137139",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      90.0,
+      170.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      90.0,
+      190.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      90.0,
+      180.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      90.0,
+      200.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C113301",
+   "mpn": "RC0603JR-0768KL",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<68kohm, 5%>[R0603]",
+   "footprint": "passive::CHIP_0603",
+   "group": "CHIP_0603 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "0603",
+   "stock": 23575,
+   "page_fetched": "2026-11-05T23:02:57Z",
+   "category": "extended",
+   "name": "sample_C113301",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      100.0,
+      170.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      100.0,
+      190.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      100.0,
+      180.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      100.0,
+      200.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C137395",
+   "mpn": "RC0805JR-079R1L",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<9.1ohm, 5%>[R0805]",
+   "footprint": "passive::CHIP_0805",
+   "group": "CHIP_0805 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "0805",
+   "stock": 4161,
+   "page_fetched": "2026-11-05T23:36:30Z",
+   "category": "extended",
+   "name": "sample_C137395",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      110.0,
+      170.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      110.0,
+      190.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      110.0,
+      180.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      110.0,
+      200.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  },
+  {
+   "pn": "C137119",
+   "mpn": "RC1206JR-07750KL",
+   "mfr": "Yageo",
+   "part": "passive::ChipResistor<750kohm, 5%>[R1206]",
+   "footprint": "passive::CHIP_1206",
+   "group": "CHIP_1206 ChipResistor Yageo RC",
+   "purpose": "sample",
+   "jlc_package": "1206",
+   "stock": 4401,
+   "page_fetched": "2026-11-06T00:08:22Z",
+   "category": "extended",
+   "name": "sample_C137119",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      120.0,
+      170.0
+     ],
+     "side": "top",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      120.0,
+      190.0
+     ],
+     "side": "top",
+     "rotate": 37
+    },
+    {
+     "at_mm": [
+      120.0,
+      180.0
+     ],
+     "side": "bottom",
+     "rotate": 0
+    },
+    {
+     "at_mm": [
+      120.0,
+      200.0
+     ],
+     "side": "bottom",
+     "rotate": 37
+    }
+   ]
+  }
+ ]
+}

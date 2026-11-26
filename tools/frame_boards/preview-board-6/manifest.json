@@ -1,0 +1,999 @@
+{
+ "name": "preview_board_6",
+ "dependencies": {
+  "std": "0.3.0",
+  "passive": "0.2.8"
+ },
+ "rows": [
+  {
+   "name": "sample_C21189",
+   "footprint": "passive::CHIP_0603",
+   "part": "passive::ChipResistor<0ohm, 5%>[R0603]",
+   "pn": "C21189",
+   "mpn": "0603WAF0000T5E",
+   "mfr": "UNI-ROYAL",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      10,
+      10
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      10,
+      30
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      10,
+      20
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      10,
+      40
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "purpose": "sample",
+   "group": "CHIP_0603 ChipResistor UNI-ROYAL 0603WA",
+   "jlc_package": "0603",
+   "stock": 21036451,
+   "page_fetched": "2026-10-30T04:28:47Z",
+   "category": "basic"
+  },
+  {
+   "name": "sample_C17477",
+   "footprint": "passive::CHIP_0805",
+   "part": "passive::ChipResistor<0ohm, 5%>[R0805]",
+   "pn": "C17477",
+   "mpn": "0805W8F0000T5E",
+   "mfr": "UNI-ROYAL",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      20,
+      10
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      20,
+      30
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      20,
+      20
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      20,
+      40
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "purpose": "sample",
+   "group": "CHIP_0805 ChipResistor UNI-ROYAL 0805W8",
+   "jlc_package": "0805",
+   "stock": 5167563,
+   "page_fetched": "2026-10-30T04:26:55Z",
+   "category": "basic"
+  },
+  {
+   "name": "sample_C17888",
+   "footprint": "passive::CHIP_1206",
+   "part": "passive::ChipResistor<0ohm, 5%>[R1206]",
+   "pn": "C17888",
+   "mpn": "1206W4F0000T5E",
+   "mfr": "UNI-ROYAL",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      30,
+      10
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      30,
+      30
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      30,
+      20
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      30,
+      40
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "purpose": "sample",
+   "group": "CHIP_1206 ChipResistor UNI-ROYAL 1206W4",
+   "jlc_package": "1206",
+   "stock": 1774968,
+   "page_fetched": "2026-10-30T04:28:23Z",
+   "category": "basic"
+  },
+  {
+   "name": "control_C19666",
+   "footprint": "passive::CHIP_0603",
+   "part": "passive::MLCC<4.7uF, 16V, 10%>[C0603]",
+   "pn": "C19666",
+   "mpn": "CL10A475KO8NNNC",
+   "mfr": "Samsung",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      40,
+      10
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      40,
+      30
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      40,
+      20
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      40,
+      40
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "purpose": "control",
+   "group": "CHIP_0603 MLCC Samsung CL",
+   "jlc_package": "0603",
+   "stock": 4310991,
+   "page_fetched": "2026-10-30T04:23:16Z",
+   "category": "basic"
+  },
+  {
+   "name": "sample_C22813",
+   "footprint": "passive::CHIP_0603",
+   "part": "passive::ChipResistor<160kohm, 1%>[R0603]",
+   "pn": "C22813",
+   "mpn": "0603WAF1603T5E",
+   "mfr": "UNI-ROYAL",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      50,
+      10
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      50,
+      30
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      50,
+      20
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      50,
+      40
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "purpose": "sample",
+   "group": "CHIP_0603 ChipResistor UNI-ROYAL 0603WA",
+   "jlc_package": "0603",
+   "stock": 120398,
+   "page_fetched": "2026-10-30T05:01:29Z",
+   "category": "preferred"
+  },
+  {
+   "name": "sample_C17540",
+   "footprint": "passive::CHIP_0805",
+   "part": "passive::ChipResistor<200ohm, 1%>[R0805]",
+   "pn": "C17540",
+   "mpn": "0805W8F2000T5E",
+   "mfr": "UNI-ROYAL",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      60,
+      10
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      60,
+      30
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      60,
+      20
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      60,
+      40
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "purpose": "sample",
+   "group": "CHIP_0805 ChipResistor UNI-ROYAL 0805W8",
+   "jlc_package": "0805",
+   "stock": 1009588,
+   "page_fetched": "2026-10-30T04:27:15Z",
+   "category": "basic"
+  },
+  {
+   "name": "sample_C22107",
+   "footprint": "passive::CHIP_1206",
+   "part": "passive::ChipResistor<1.2Mohm, 1%>[R1206]",
+   "pn": "C22107",
+   "mpn": "1206W4F1204T5E",
+   "mfr": "UNI-ROYAL",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      70,
+      10
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      70,
+      30
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      70,
+      20
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      70,
+      40
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "purpose": "sample",
+   "group": "CHIP_1206 ChipResistor UNI-ROYAL 1206W4",
+   "jlc_package": "1206",
+   "stock": 30419,
+   "page_fetched": "2026-10-30T05:01:22Z",
+   "category": "preferred"
+  },
+  {
+   "name": "control_C107039",
+   "footprint": "passive::CHIP_0603",
+   "part": "passive::MLCC<1.5nF, 50V, 5%>[C0603]",
+   "pn": "C107039",
+   "mpn": "CC0603JRNPO9BN152",
+   "mfr": "Yageo",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      80,
+      10
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      80,
+      30
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      80,
+      20
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      80,
+      40
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "purpose": "control",
+   "group": "CHIP_0603 MLCC Yageo CC",
+   "jlc_package": "0603",
+   "stock": 72493,
+   "page_fetched": "2026-11-05T21:18:56Z",
+   "category": "extended"
+  },
+  {
+   "name": "sample_C22966",
+   "footprint": "passive::CHIP_0603",
+   "part": "passive::ChipResistor<270ohm, 1%>[R0603]",
+   "pn": "C22966",
+   "mpn": "0603WAF2700T5E",
+   "mfr": "UNI-ROYAL",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      90,
+      10
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      90,
+      30
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      90,
+      20
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      90,
+      40
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "purpose": "sample",
+   "group": "CHIP_0603 ChipResistor UNI-ROYAL 0603WA",
+   "jlc_package": "0603",
+   "stock": 665712,
+   "page_fetched": "2026-10-30T04:29:25Z",
+   "category": "basic"
+  },
+  {
+   "name": "sample_C17621",
+   "footprint": "passive::CHIP_0805",
+   "part": "passive::ChipResistor<30kohm, 1%>[R0805]",
+   "pn": "C17621",
+   "mpn": "0805W8F3002T5E",
+   "mfr": "UNI-ROYAL",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      10,
+      50
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      10,
+      70
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      10,
+      60
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      10,
+      80
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "purpose": "sample",
+   "group": "CHIP_0805 ChipResistor UNI-ROYAL 0805W8",
+   "jlc_package": "0805",
+   "stock": 660153,
+   "page_fetched": "2026-10-30T04:27:40Z",
+   "category": "basic"
+  },
+  {
+   "name": "sample_C17985",
+   "footprint": "passive::CHIP_1206",
+   "part": "passive::ChipResistor<750ohm, 1%>[R1206]",
+   "pn": "C17985",
+   "mpn": "1206W4F7500T5E",
+   "mfr": "UNI-ROYAL",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      20,
+      50
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      20,
+      70
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      20,
+      60
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      20,
+      80
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "purpose": "sample",
+   "group": "CHIP_1206 ChipResistor UNI-ROYAL 1206W4",
+   "jlc_package": "1206",
+   "stock": 87434,
+   "page_fetched": "2026-10-30T05:01:17Z",
+   "category": "preferred"
+  },
+  {
+   "name": "control_C113780",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::MLCC<1nF, 50V, 5%>[C0402]",
+   "pn": "C113780",
+   "mpn": "CC0402JRNPO9BN102",
+   "mfr": "Yageo",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      30,
+      50
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      30,
+      70
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      30,
+      60
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      30,
+      80
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "purpose": "control",
+   "group": "CHIP_0402 MLCC Yageo CC",
+   "jlc_package": "0402",
+   "stock": 24241,
+   "page_fetched": "2026-11-05T21:11:52Z",
+   "category": "extended"
+  },
+  {
+   "name": "sample_C23150",
+   "footprint": "passive::CHIP_0603",
+   "part": "passive::ChipResistor<390kohm, 1%>[R0603]",
+   "pn": "C23150",
+   "mpn": "0603WAF3903T5E",
+   "mfr": "UNI-ROYAL",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      40,
+      50
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      40,
+      70
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      40,
+      60
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      40,
+      80
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "purpose": "sample",
+   "group": "CHIP_0603 ChipResistor UNI-ROYAL 0603WA",
+   "jlc_package": "0603",
+   "stock": 249007,
+   "page_fetched": "2026-10-30T05:01:45Z",
+   "category": "preferred"
+  },
+  {
+   "name": "sample_C17720",
+   "footprint": "passive::CHIP_0805",
+   "part": "passive::ChipResistor<49.9ohm, 1%>[R0805]",
+   "pn": "C17720",
+   "mpn": "0805W8F499JT5E",
+   "mfr": "UNI-ROYAL",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      50,
+      50
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      50,
+      70
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      50,
+      60
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      50,
+      80
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "purpose": "sample",
+   "group": "CHIP_0805 ChipResistor UNI-ROYAL 0805W8",
+   "jlc_package": "0805",
+   "stock": 552847,
+   "page_fetched": "2026-10-30T04:28:03Z",
+   "category": "basic"
+  },
+  {
+   "name": "control_C11702",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<1kohm, 1%>[R0402]",
+   "pn": "C11702",
+   "mpn": "0402WGF1001TCE",
+   "mfr": "UNI-ROYAL",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      60,
+      50
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      60,
+      70
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      60,
+      60
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      60,
+      80
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "purpose": "control",
+   "group": "CHIP_0402 ChipResistor UNI-ROYAL 0402WG",
+   "jlc_package": "0402",
+   "stock": 21756652,
+   "page_fetched": "2026-10-30T04:26:28Z",
+   "category": "basic"
+  },
+  {
+   "name": "sample_C23204",
+   "footprint": "passive::CHIP_0603",
+   "part": "passive::ChipResistor<560ohm, 1%>[R0603]",
+   "pn": "C23204",
+   "mpn": "0603WAF5600T5E",
+   "mfr": "UNI-ROYAL",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      70,
+      50
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      70,
+      70
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      70,
+      60
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      70,
+      80
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "purpose": "sample",
+   "group": "CHIP_0603 ChipResistor UNI-ROYAL 0603WA",
+   "jlc_package": "0603",
+   "stock": 2605318,
+   "page_fetched": "2026-10-30T04:30:25Z",
+   "category": "basic"
+  },
+  {
+   "name": "sample_C17855",
+   "footprint": "passive::CHIP_0805",
+   "part": "passive::ChipResistor<9.1kohm, 1%>[R0805]",
+   "pn": "C17855",
+   "mpn": "0805W8F9101T5E",
+   "mfr": "UNI-ROYAL",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      80,
+      50
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      80,
+      70
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      80,
+      60
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      80,
+      80
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "purpose": "sample",
+   "group": "CHIP_0805 ChipResistor UNI-ROYAL 0805W8",
+   "jlc_package": "0805",
+   "stock": 295701,
+   "page_fetched": "2026-10-30T05:01:13Z",
+   "category": "preferred"
+  },
+  {
+   "name": "sample_C23265",
+   "footprint": "passive::CHIP_0603",
+   "part": "passive::ChipResistor<91kohm, 1%>[R0603]",
+   "pn": "C23265",
+   "mpn": "0603WAF9102T5E",
+   "mfr": "UNI-ROYAL",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 6,
+   "height_mm": 6,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      90,
+      50
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      90,
+      70
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      90,
+      60
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      90,
+      80
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "purpose": "sample",
+   "group": "CHIP_0603 ChipResistor UNI-ROYAL 0603WA",
+   "jlc_package": "0603",
+   "stock": 182204,
+   "page_fetched": "2026-10-30T05:02:09Z",
+   "category": "preferred"
+  }
+ ]
+}

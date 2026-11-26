@@ -1,0 +1,463 @@
+{
+ "schema_version": 1,
+ "rule": {
+  "version": "w3-2026-11-12",
+  "package": "passive",
+  "types": [
+   "ChipResistor",
+   "MLCC"
+  ],
+  "min_sample": 3,
+  "fraction": 0.05,
+  "min_stock": 30,
+  "angle_limit_deg": 10.0,
+  "offset_raw_fraction": 1.0,
+  "offset_residual_fraction": 0.5,
+  "offset_bias": "board_median",
+  "body_method": 2,
+  "bias_min_other_bodies": 3,
+  "bias_other_share_above": 0.5,
+  "infer_zero_stock": false,
+  "infer_not_drawn": false,
+  "not_drawn_max_share": 0.1,
+  "not_drawn_excess": "pause"
+ },
+ "built_by": "tools/w3_record.py",
+ "stock_source": {
+  "path": "tools/sourcing_data/lcsc_backfill/2026-11-26-merge-zener2/confirmed.json",
+  "sha256": "2d335ade87ce3657067c32bd209162994ec59248b810411e67731954b4d5c75e"
+ },
+ "groups": [
+  {
+   "id": "passive-0.2.12-CHIP_1206-ChipResistor-UNI-ROYAL-1206W4",
+   "package": "passive",
+   "package_version": "0.2.12",
+   "footprint": "CHIP_1206",
+   "type": "ChipResistor",
+   "mfr": "UNI-ROYAL",
+   "series": "1206W4",
+   "status": "active",
+   "land": {
+    "lib/passive/src/footprints.cohdl": "e1bb40b6077130cc37f7c1d9962f9d57a15e45cbf17689d183f5f74e51e37f96",
+    "lib/passive/src/pads.cohdl": "6e9f4bdd4345a52e14a05ac241c441dd44c9a1ee8f545bcd83a890f40db9ceff"
+   },
+   "members": [
+    "C17887",
+    "C17888",
+    "C17900",
+    "C17901",
+    "C17902",
+    "C17903",
+    "C17909",
+    "C17924",
+    "C17927",
+    "C17928",
+    "C17936",
+    "C17944",
+    "C17955",
+    "C17958",
+    "C17985",
+    "C22107",
+    "C4410"
+   ],
+   "zero_stock": [],
+   "not_drawn": [],
+   "judged": 3,
+   "not_drawn_share": 0.0,
+   "samples": [
+    {
+     "pn": "C17888",
+     "row": "pb6-chip1206-c17888",
+     "body_method": 2,
+     "angle_deg": 0.0,
+     "offset_limit_mm": 0.25,
+     "raw_offset_xy_mm": [
+      0.004,
+      -0.012
+     ],
+     "raw_offset_mm": 0.013,
+     "bias_xy_mm": [
+      -0.004,
+      -0.009
+     ],
+     "residual_offset_mm": 0.009,
+     "bias_view": "tools/sourcing_data/jlc_previews/2026-11-19-board-6/README.md#top",
+     "bias_bodies": 36,
+     "bias_other_bodies": 30,
+     "copies": 12,
+     "other_copies": [
+      {
+       "ref": "R26",
+       "body_method": 2,
+       "angle_deg": 0.0,
+       "offset_limit_mm": 0.25,
+       "raw_offset_xy_mm": [
+        -0.011,
+        -0.009
+       ],
+       "raw_offset_mm": 0.014,
+       "bias_xy_mm": [
+        -0.004,
+        -0.009
+       ],
+       "residual_offset_mm": 0.007,
+       "bias_view": "tools/sourcing_data/jlc_previews/2026-11-19-board-6/README.md#top",
+       "bias_bodies": 36,
+       "bias_other_bodies": 30
+      },
+      {
+       "ref": "R27",
+       "body_method": 2,
+       "angle_deg": 0.0,
+       "offset_limit_mm": 0.25,
+       "raw_offset_xy_mm": [
+        -0.01,
+        -0.001
+       ],
+       "raw_offset_mm": 0.01,
+       "bias_xy_mm": [
+        -0.01,
+        -0.004
+       ],
+       "residual_offset_mm": 0.003,
+       "bias_view": "tools/sourcing_data/jlc_previews/2026-11-19-board-6/README.md#bottom",
+       "bias_bodies": 36,
+       "bias_other_bodies": 30
+      },
+      {
+       "ref": "R28",
+       "body_method": 2,
+       "angle_deg": 0.1,
+       "offset_limit_mm": 0.25,
+       "raw_offset_xy_mm": [
+        -0.02,
+        -0.006
+       ],
+       "raw_offset_mm": 0.021,
+       "bias_xy_mm": [
+        -0.01,
+        -0.004
+       ],
+       "residual_offset_mm": 0.01,
+       "bias_view": "tools/sourcing_data/jlc_previews/2026-11-19-board-6/README.md#bottom",
+       "bias_bodies": 36,
+       "bias_other_bodies": 30
+      },
+      {
+       "ref": "R10",
+       "body_method": 2,
+       "angle_deg": -0.9,
+       "offset_limit_mm": 0.25,
+       "raw_offset_xy_mm": [
+        0.002,
+        0.026
+       ],
+       "raw_offset_mm": 0.026,
+       "bias_xy_mm": [
+        0.011,
+        0.004
+       ],
+       "residual_offset_mm": 0.024,
+       "bias_view": "tools/sourcing_data/jlc_previews/2026-11-21-board-7/README.md#top",
+       "bias_bodies": 48,
+       "bias_other_bodies": 46
+      },
+      {
+       "ref": "R11",
+       "body_method": 2,
+       "angle_deg": -0.0,
+       "offset_limit_mm": 0.25,
+       "raw_offset_xy_mm": [
+        0.026,
+        0.021
+       ],
+       "raw_offset_mm": 0.033,
+       "bias_xy_mm": [
+        0.009,
+        0.006
+       ],
+       "residual_offset_mm": 0.023,
+       "bias_view": "tools/sourcing_data/jlc_previews/2026-11-21-board-7/README.md#bottom",
+       "bias_bodies": 48,
+       "bias_other_bodies": 46
+      },
+      {
+       "ref": "R12",
+       "body_method": 2,
+       "angle_deg": 0.0,
+       "offset_limit_mm": 0.25,
+       "raw_offset_xy_mm": [
+        0.015,
+        0.027
+       ],
+       "raw_offset_mm": 0.031,
+       "bias_xy_mm": [
+        0.009,
+        0.006
+       ],
+       "residual_offset_mm": 0.022,
+       "bias_view": "tools/sourcing_data/jlc_previews/2026-11-21-board-7/README.md#bottom",
+       "bias_bodies": 48,
+       "bias_other_bodies": 46
+      },
+      {
+       "ref": "R9",
+       "body_method": 2,
+       "angle_deg": 0.1,
+       "offset_limit_mm": 0.25,
+       "raw_offset_xy_mm": [
+        0.001,
+        0.031
+       ],
+       "raw_offset_mm": 0.031,
+       "bias_xy_mm": [
+        0.011,
+        0.004
+       ],
+       "residual_offset_mm": 0.029,
+       "bias_view": "tools/sourcing_data/jlc_previews/2026-11-21-board-7/README.md#top",
+       "bias_bodies": 48,
+       "bias_other_bodies": 46
+      },
+      {
+       "ref": "R5",
+       "body_method": 2,
+       "angle_deg": -0.1,
+       "offset_limit_mm": 0.25,
+       "raw_offset_xy_mm": [
+        0.01,
+        -0.061
+       ],
+       "raw_offset_mm": 0.062,
+       "bias_xy_mm": [
+        -0.015,
+        -0.017
+       ],
+       "residual_offset_mm": 0.051,
+       "bias_view": "tools/sourcing_data/jlc_previews/2026-11-23-board-12/README.md#top",
+       "bias_bodies": 150,
+       "bias_other_bodies": 148
+      },
+      {
+       "ref": "R6",
+       "body_method": 2,
+       "angle_deg": -0.3,
+       "offset_limit_mm": 0.25,
+       "raw_offset_xy_mm": [
+        0.008,
+        -0.048
+       ],
+       "raw_offset_mm": 0.049,
+       "bias_xy_mm": [
+        -0.015,
+        -0.017
+       ],
+       "residual_offset_mm": 0.039,
+       "bias_view": "tools/sourcing_data/jlc_previews/2026-11-23-board-12/README.md#top",
+       "bias_bodies": 150,
+       "bias_other_bodies": 148
+      },
+      {
+       "ref": "R7",
+       "body_method": 2,
+       "angle_deg": 0.0,
+       "offset_limit_mm": 0.25,
+       "raw_offset_xy_mm": [
+        0.06,
+        -0.03
+       ],
+       "raw_offset_mm": 0.067,
+       "bias_xy_mm": [
+        0.009,
+        -0.012
+       ],
+       "residual_offset_mm": 0.054,
+       "bias_view": "tools/sourcing_data/jlc_previews/2026-11-23-board-12/README.md#bottom",
+       "bias_bodies": 150,
+       "bias_other_bodies": 148
+      },
+      {
+       "ref": "R8",
+       "body_method": 2,
+       "angle_deg": -0.4,
+       "offset_limit_mm": 0.25,
+       "raw_offset_xy_mm": [
+        0.041,
+        -0.038
+       ],
+       "raw_offset_mm": 0.056,
+       "bias_xy_mm": [
+        0.009,
+        -0.012
+       ],
+       "residual_offset_mm": 0.041,
+       "bias_view": "tools/sourcing_data/jlc_previews/2026-11-23-board-12/README.md#bottom",
+       "bias_bodies": 150,
+       "bias_other_bodies": 148
+      }
+     ]
+    },
+    {
+     "pn": "C17985",
+     "row": "pb6-chip1206-c17985",
+     "body_method": 2,
+     "angle_deg": -0.1,
+     "offset_limit_mm": 0.25,
+     "raw_offset_xy_mm": [
+      -0.002,
+      -0.009
+     ],
+     "raw_offset_mm": 0.009,
+     "bias_xy_mm": [
+      -0.004,
+      -0.009
+     ],
+     "residual_offset_mm": 0.002,
+     "bias_view": "tools/sourcing_data/jlc_previews/2026-11-19-board-6/README.md#top",
+     "bias_bodies": 36,
+     "bias_other_bodies": 30,
+     "copies": 4,
+     "other_copies": [
+      {
+       "ref": "R30",
+       "body_method": 2,
+       "angle_deg": -0.1,
+       "offset_limit_mm": 0.25,
+       "raw_offset_xy_mm": [
+        -0.015,
+        -0.001
+       ],
+       "raw_offset_mm": 0.015,
+       "bias_xy_mm": [
+        -0.004,
+        -0.009
+       ],
+       "residual_offset_mm": 0.014,
+       "bias_view": "tools/sourcing_data/jlc_previews/2026-11-19-board-6/README.md#top",
+       "bias_bodies": 36,
+       "bias_other_bodies": 30
+      },
+      {
+       "ref": "R31",
+       "body_method": 2,
+       "angle_deg": -0.0,
+       "offset_limit_mm": 0.25,
+       "raw_offset_xy_mm": [
+        -0.022,
+        -0.001
+       ],
+       "raw_offset_mm": 0.022,
+       "bias_xy_mm": [
+        -0.01,
+        -0.004
+       ],
+       "residual_offset_mm": 0.012,
+       "bias_view": "tools/sourcing_data/jlc_previews/2026-11-19-board-6/README.md#bottom",
+       "bias_bodies": 36,
+       "bias_other_bodies": 30
+      },
+      {
+       "ref": "R32",
+       "body_method": 2,
+       "angle_deg": -0.0,
+       "offset_limit_mm": 0.25,
+       "raw_offset_xy_mm": [
+        -0.024,
+        -0.002
+       ],
+       "raw_offset_mm": 0.024,
+       "bias_xy_mm": [
+        -0.01,
+        -0.004
+       ],
+       "residual_offset_mm": 0.014,
+       "bias_view": "tools/sourcing_data/jlc_previews/2026-11-19-board-6/README.md#bottom",
+       "bias_bodies": 36,
+       "bias_other_bodies": 30
+      }
+     ]
+    },
+    {
+     "pn": "C22107",
+     "row": "pb6-chip1206-c22107",
+     "body_method": 2,
+     "angle_deg": 0.0,
+     "offset_limit_mm": 0.25,
+     "raw_offset_xy_mm": [
+      0.003,
+      -0.012
+     ],
+     "raw_offset_mm": 0.012,
+     "bias_xy_mm": [
+      -0.004,
+      -0.009
+     ],
+     "residual_offset_mm": 0.008,
+     "bias_view": "tools/sourcing_data/jlc_previews/2026-11-19-board-6/README.md#top",
+     "bias_bodies": 36,
+     "bias_other_bodies": 30,
+     "copies": 4,
+     "other_copies": [
+      {
+       "ref": "R38",
+       "body_method": 2,
+       "angle_deg": 0.1,
+       "offset_limit_mm": 0.25,
+       "raw_offset_xy_mm": [
+        -0.0,
+        -0.005
+       ],
+       "raw_offset_mm": 0.005,
+       "bias_xy_mm": [
+        -0.004,
+        -0.009
+       ],
+       "residual_offset_mm": 0.006,
+       "bias_view": "tools/sourcing_data/jlc_previews/2026-11-19-board-6/README.md#top",
+       "bias_bodies": 36,
+       "bias_other_bodies": 30
+      },
+      {
+       "ref": "R39",
+       "body_method": 2,
+       "angle_deg": 0.1,
+       "offset_limit_mm": 0.25,
+       "raw_offset_xy_mm": [
+        0.011,
+        -0.002
+       ],
+       "raw_offset_mm": 0.011,
+       "bias_xy_mm": [
+        -0.01,
+        -0.004
+       ],
+       "residual_offset_mm": 0.021,
+       "bias_view": "tools/sourcing_data/jlc_previews/2026-11-19-board-6/README.md#bottom",
+       "bias_bodies": 36,
+       "bias_other_bodies": 30
+      },
+      {
+       "ref": "R40",
+       "body_method": 2,
+       "angle_deg": 0.1,
+       "offset_limit_mm": 0.25,
+       "raw_offset_xy_mm": [
+        0.003,
+        -0.005
+       ],
+       "raw_offset_mm": 0.006,
+       "bias_xy_mm": [
+        -0.01,
+        -0.004
+       ],
+       "residual_offset_mm": 0.013,
+       "bias_view": "tools/sourcing_data/jlc_previews/2026-11-19-board-6/README.md#bottom",
+       "bias_bodies": 36,
+       "bias_other_bodies": 30
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

@@ -9,12 +9,14 @@
 #[doc("docs/yageo_rc_series_datasheet_en.pdf")]
 pub part R_0R_J_0402: ChipResistor<0ohm, 5%>[R0402] {
     primary { mfr: "Yageo", mpn: "RC0402JR-070RL", footprint: CHIP_0402, supplier lcsc "C60485" }
+    alt { mfr: "UNI-ROYAL", mpn: "0402WGF0000TCE", supplier lcsc "C17168" }
 }
 
 #[doc("docs/yageo_rc_series_datasheet_en.pdf")]
 pub part R_1R_F_0402: ChipResistor<1ohm, 1%>[R0402] {
     primary { mfr: "Yageo", mpn: "RC0402FR-071RL", footprint: CHIP_0402, supplier lcsc "C185446" }
     alt { mfr: "Vishay", mpn: "CRCW04021R00FKED" }
+    alt { mfr: "UNI-ROYAL", mpn: "0402WGF100KTCE", supplier lcsc "C25086" }
 }
 
 #[doc("docs/yageo_rc_series_datasheet_en.pdf")]
@@ -699,6 +701,7 @@ pub part R_9R76_F_0402: ChipResistor<9.76ohm, 1%>[R0402] {
 pub part R_10R_F_0402: ChipResistor<10ohm, 1%>[R0402] {
     primary { mfr: "Yageo", mpn: "RC0402FR-0710RL", footprint: CHIP_0402, supplier lcsc "C138066" }
     alt { mfr: "Vishay", mpn: "CRCW040210R0FKED" }
+    alt { mfr: "UNI-ROYAL", mpn: "0402WGF100JTCE", supplier lcsc "C25077" }
 }
 
 #[doc("docs/yageo_rc_series_datasheet_en.pdf")]
@@ -915,6 +918,7 @@ pub part R_21R5_F_0402: ChipResistor<21.5ohm, 1%>[R0402] {
 pub part R_22R_F_0402: ChipResistor<22ohm, 1%>[R0402] {
     primary { mfr: "Yageo", mpn: "RC0402FR-0722RL", footprint: CHIP_0402, supplier lcsc "C114765" }
     alt { mfr: "Vishay", mpn: "CRCW040222R0FKED" }
+    alt { mfr: "UNI-ROYAL", mpn: "0402WGF220JTCE", supplier lcsc "C25092" }
 }
 
 #[doc("docs/yageo_rc_series_datasheet_en.pdf")]
@@ -1041,6 +1045,7 @@ pub part R_32R4_F_0402: ChipResistor<32.4ohm, 1%>[R0402] {
 pub part R_33R_F_0402: ChipResistor<33ohm, 1%>[R0402] {
     primary { mfr: "Yageo", mpn: "RC0402FR-0733RL", footprint: CHIP_0402, supplier lcsc "C138002" }
     alt { mfr: "Vishay", mpn: "CRCW040233R0FKED" }
+    alt { mfr: "UNI-ROYAL", mpn: "0402WGF330JTCE", supplier lcsc "C25105" }
 }
 
 #[doc("docs/yageo_rc_series_datasheet_en.pdf")]
@@ -1155,6 +1160,7 @@ pub part R_46R4_F_0402: ChipResistor<46.4ohm, 1%>[R0402] {
 pub part R_47R_F_0402: ChipResistor<47ohm, 1%>[R0402] {
     primary { mfr: "Yageo", mpn: "RC0402FR-0747RL", footprint: CHIP_0402, supplier lcsc "C137973" }
     alt { mfr: "Vishay", mpn: "CRCW040247R0FKED" }
+    alt { mfr: "UNI-ROYAL", mpn: "0402WGF470JTCE", supplier lcsc "C25118" }
 }
 
 #[doc("docs/yageo_rc_series_datasheet_en.pdf")]
@@ -1173,12 +1179,14 @@ pub part R_48R7_F_0402: ChipResistor<48.7ohm, 1%>[R0402] {
 pub part R_49R9_F_0402: ChipResistor<49.9ohm, 1%>[R0402] {
     primary { mfr: "Yageo", mpn: "RC0402FR-0749R9L", footprint: CHIP_0402, supplier lcsc "C87044" }
     alt { mfr: "Vishay", mpn: "CRCW040249R9FKED" }
+    alt { mfr: "UNI-ROYAL", mpn: "0402WGF499JTCE", supplier lcsc "C25120" }
 }
 
 #[doc("docs/yageo_rc_series_datasheet_en.pdf")]
 pub part R_51R_F_0402: ChipResistor<51ohm, 1%>[R0402] {
     primary { mfr: "Yageo", mpn: "RC0402FR-0751RL", footprint: CHIP_0402, supplier lcsc "C137960" }
     alt { mfr: "Vishay", mpn: "CRCW040251R0FKED" }
+    alt { mfr: "UNI-ROYAL", mpn: "0402WGF510JTCE", supplier lcsc "C25125" }
 }
 
 #[doc("docs/yageo_rc_series_datasheet_en.pdf")]
@@ -1299,6 +1307,7 @@ pub part R_73R2_F_0402: ChipResistor<73.2ohm, 1%>[R0402] {
 pub part R_75R_F_0402: ChipResistor<75ohm, 1%>[R0402] {
     primary { mfr: "Yageo", mpn: "RC0402FR-0775RL", footprint: CHIP_0402, supplier lcsc "C114757" }
     alt { mfr: "Vishay", mpn: "CRCW040275R0FKED" }
+    alt { mfr: "UNI-ROYAL", mpn: "0402WGF750JTCE", supplier lcsc "C25133" }
 }
 
 #[doc("docs/yageo_rc_series_datasheet_en.pdf")]
@@ -1383,6 +1392,7 @@ pub part R_97R6_F_0402: ChipResistor<97.6ohm, 1%>[R0402] {
 pub part R_100R_F_0402: ChipResistor<100ohm, 1%>[R0402] {
     primary { mfr: "Yageo", mpn: "RC0402FR-07100RL", footprint: CHIP_0402, supplier lcsc "C106232" }
     alt { mfr: "Vishay", mpn: "CRCW0402100RFKED" }
+    alt { mfr: "UNI-ROYAL", mpn: "0402WGF1000TCE", supplier lcsc "C25076" }
 }
 
 #[doc("docs/yageo_rc_series_datasheet_en.pdf")]
@@ -1431,6 +1441,7 @@ pub part R_118R_F_0402: ChipResistor<118ohm, 1%>[R0402] {
 pub part R_120R_F_0402: ChipResistor<120ohm, 1%>[R0402] {
     primary { mfr: "Yageo", mpn: "RC0402FR-07120RL", footprint: CHIP_0402, supplier lcsc "C114758" }
     alt { mfr: "Vishay", mpn: "CRCW0402120RFKED" }
+    alt { mfr: "UNI-ROYAL", mpn: "0402WGF1200TCE", supplier lcsc "C25079" }
 }
 
 #[doc("docs/yageo_rc_series_datasheet_en.pdf")]
@@ -1491,6 +1502,7 @@ pub part R_147R_F_0402: ChipResistor<147ohm, 1%>[R0402] {
 pub part R_150R_F_0402: ChipResistor<150ohm, 1%>[R0402] {
     primary { mfr: "Yageo", mpn: "RC0402FR-07150RL", footprint: CHIP_0402, supplier lcsc "C138054" }
     alt { mfr: "Vishay", mpn: "CRCW0402150RFKED" }
+    alt { mfr: "UNI-ROYAL", mpn: "0402WGF1500TCE", supplier lcsc "C25082" }
 }
 
 #[doc("docs/yageo_rc_series_datasheet_en.pdf")]
@@ -1575,6 +1587,7 @@ pub part R_196R_F_0402: ChipResistor<196ohm, 1%>[R0402] {
 pub part R_200R_F_0402: ChipResistor<200ohm, 1%>[R0402] {
     primary { mfr: "Yageo", mpn: "RC0402FR-07200RL", footprint: CHIP_0402, supplier lcsc "C114764" }
     alt { mfr: "Vishay", mpn: "CRCW0402200RFKED" }
+    alt { mfr: "UNI-ROYAL", mpn: "0402WGF2000TCE", supplier lcsc "C25087" }
 }
 
 #[doc("docs/yageo_rc_series_datasheet_en.pdf")]
@@ -1599,6 +1612,7 @@ pub part R_215R_F_0402: ChipResistor<215ohm, 1%>[R0402] {
 pub part R_220R_F_0402: ChipResistor<220ohm, 1%>[R0402] {
     primary { mfr: "Yageo", mpn: "RC0402FR-07220RL", footprint: CHIP_0402, supplier lcsc "C112291" }
     alt { mfr: "Vishay", mpn: "CRCW0402220RFKED" }
+    alt { mfr: "UNI-ROYAL", mpn: "0402WGF2200TCE", supplier lcsc "C25091" }
 }
 
 #[doc("docs/yageo_rc_series_datasheet_en.pdf")]
@@ -1695,6 +1709,7 @@ pub part R_294R_F_0402: ChipResistor<294ohm, 1%>[R0402] {
 pub part R_300R_F_0402: ChipResistor<300ohm, 1%>[R0402] {
     primary { mfr: "Yageo", mpn: "RC0402FR-07300RL", footprint: CHIP_0402, supplier lcsc "C138010" }
     alt { mfr: "Vishay", mpn: "CRCW0402300RFKED" }
+    alt { mfr: "UNI-ROYAL", mpn: "0402WGF3000TCE", supplier lcsc "C25102" }
 }
 
 #[doc("docs/yageo_rc_series_datasheet_en.pdf")]
@@ -1725,6 +1740,7 @@ pub part R_324R_F_0402: ChipResistor<324ohm, 1%>[R0402] {
 pub part R_330R_F_0402: ChipResistor<330ohm, 1%>[R0402] {
     primary { mfr: "Yageo", mpn: "RC0402FR-07330RL", footprint: CHIP_0402, supplier lcsc "C105875" }
     alt { mfr: "Vishay", mpn: "CRCW0402330RFKED" }
+    alt { mfr: "UNI-ROYAL", mpn: "0402WGF3300TCE", supplier lcsc "C25104" }
 }
 
 #[doc("docs/yageo_rc_series_datasheet_en.pdf")]
@@ -1839,6 +1855,7 @@ pub part R_464R_F_0402: ChipResistor<464ohm, 1%>[R0402] {
 pub part R_470R_F_0402: ChipResistor<470ohm, 1%>[R0402] {
     primary { mfr: "Yageo", mpn: "RC0402FR-07470RL", footprint: CHIP_0402, supplier lcsc "C114877" }
     alt { mfr: "Vishay", mpn: "CRCW0402470RFKED" }
+    alt { mfr: "UNI-ROYAL", mpn: "0402WGF4700TCE", supplier lcsc "C25117" }
 }
 
 #[doc("docs/yageo_rc_series_datasheet_en.pdf")]
@@ -1863,6 +1880,7 @@ pub part R_499R_F_0402: ChipResistor<499ohm, 1%>[R0402] {
 pub part R_510R_F_0402: ChipResistor<510ohm, 1%>[R0402] {
     primary { mfr: "Yageo", mpn: "RC0402FR-07510RL", footprint: CHIP_0402, supplier lcsc "C276273" }
     alt { mfr: "Vishay", mpn: "CRCW0402510RFKED" }
+    alt { mfr: "UNI-ROYAL", mpn: "0402WGF5100TCE", supplier lcsc "C25123" }
 }
 
 #[doc("docs/yageo_rc_series_datasheet_en.pdf")]
@@ -2067,6 +2085,7 @@ pub part R_976R_F_0402: ChipResistor<976ohm, 1%>[R0402] {
 pub part R_1K_F_0402: ChipResistor<1kohm, 1%>[R0402] {
     primary { mfr: "Yageo", mpn: "RC0402FR-071KL", footprint: CHIP_0402, supplier lcsc "C106235" }
     alt { mfr: "Vishay", mpn: "CRCW04021K00FKED" }
+    alt { mfr: "UNI-ROYAL", mpn: "0402WGF1001TCE", supplier lcsc "C11702" }
 }
 
 #[doc("docs/yageo_rc_series_datasheet_en.pdf")]
@@ -2115,6 +2134,7 @@ pub part R_1K18_F_0402: ChipResistor<1.18kohm, 1%>[R0402] {
 pub part R_1K2_F_0402: ChipResistor<1.2kohm, 1%>[R0402] {
     primary { mfr: "Yageo", mpn: "RC0402FR-071K2L", footprint: CHIP_0402, supplier lcsc "C138040" }
     alt { mfr: "Vishay", mpn: "CRCW04021K20FKED" }
+    alt { mfr: "UNI-ROYAL", mpn: "0402WGF1201TCE", supplier lcsc "C25862" }
 }
 
 #[doc("docs/yageo_rc_series_datasheet_en.pdf")]
@@ -2175,6 +2195,7 @@ pub part R_1K47_F_0402: ChipResistor<1.47kohm, 1%>[R0402] {
 pub part R_1K5_F_0402: ChipResistor<1.5kohm, 1%>[R0402] {
     primary { mfr: "Yageo", mpn: "RC0402FR-071K5L", footprint: CHIP_0402, supplier lcsc "C114759" }
     alt { mfr: "Vishay", mpn: "CRCW04021K50FKED" }
+    alt { mfr: "UNI-ROYAL", mpn: "0402WGF1501TCE", supplier lcsc "C25867" }
 }
 
 #[doc("docs/yageo_rc_series_datasheet_en.pdf")]
@@ -2259,6 +2280,7 @@ pub part R_1K96_F_0402: ChipResistor<1.96kohm, 1%>[R0402] {
 pub part R_2K_F_0402: ChipResistor<2kohm, 1%>[R0402] {
     primary { mfr: "Yageo", mpn: "RC0402FR-072KL", footprint: CHIP_0402, supplier lcsc "C60488" }
     alt { mfr: "Vishay", mpn: "CRCW04022K00FKED" }
+    alt { mfr: "UNI-ROYAL", mpn: "0402WGF2001TCE", supplier lcsc "C4109" }
 }
 
 #[doc("docs/yageo_rc_series_datasheet_en.pdf")]
@@ -2283,6 +2305,7 @@ pub part R_2K15_F_0402: ChipResistor<2.15kohm, 1%>[R0402] {
 pub part R_2K2_F_0402: ChipResistor<2.2kohm, 1%>[R0402] {
     primary { mfr: "Yageo", mpn: "RC0402FR-072K2L", footprint: CHIP_0402, supplier lcsc "C114762" }
     alt { mfr: "Vishay", mpn: "CRCW04022K20FKED" }
+    alt { mfr: "UNI-ROYAL", mpn: "0402WGF2201TCE", supplier lcsc "C25879" }
 }
 
 #[doc("docs/yageo_rc_series_datasheet_en.pdf")]
@@ -2313,6 +2336,7 @@ pub part R_2K37_F_0402: ChipResistor<2.37kohm, 1%>[R0402] {
 pub part R_2K4_F_0402: ChipResistor<2.4kohm, 1%>[R0402] {
     primary { mfr: "Yageo", mpn: "RC0402FR-072K4L", footprint: CHIP_0402, supplier lcsc "C112296" }
     alt { mfr: "Vishay", mpn: "CRCW04022K40FKED" }
+    alt { mfr: "UNI-ROYAL", mpn: "0402WGF2401TCE", supplier lcsc "C25882" }
 }
 
 #[doc("docs/yageo_rc_series_datasheet_en.pdf")]
@@ -2409,6 +2433,7 @@ pub part R_3K24_F_0402: ChipResistor<3.24kohm, 1%>[R0402] {
 pub part R_3K3_F_0402: ChipResistor<3.3kohm, 1%>[R0402] {
     primary { mfr: "Yageo", mpn: "RC0402FR-073K3L", footprint: CHIP_0402, supplier lcsc "C137992" }
     alt { mfr: "Vishay", mpn: "CRCW04023K30FKED" }
+    alt { mfr: "UNI-ROYAL", mpn: "0402WGF3301TCE", supplier lcsc "C25890" }
 }
 
 #[doc("docs/yageo_rc_series_datasheet_en.pdf")]
@@ -2463,6 +2488,7 @@ pub part R_3K83_F_0402: ChipResistor<3.83kohm, 1%>[R0402] {
 pub part R_3K9_F_0402: ChipResistor<3.9kohm, 1%>[R0402] {
     primary { mfr: "Yageo", mpn: "RC0402FR-073K9L", footprint: CHIP_0402, supplier lcsc "C131467" }
     alt { mfr: "Vishay", mpn: "CRCW04023K90FKED" }
+    alt { mfr: "UNI-ROYAL", mpn: "0402WGF3901TCE", supplier lcsc "C51721" }
 }
 
 #[doc("docs/yageo_rc_series_datasheet_en.pdf")]
@@ -2523,6 +2549,7 @@ pub part R_4K64_F_0402: ChipResistor<4.64kohm, 1%>[R0402] {
 pub part R_4K7_F_0402: ChipResistor<4.7kohm, 1%>[R0402] {
     primary { mfr: "Yageo", mpn: "RC0402FR-074K7L", footprint: CHIP_0402, supplier lcsc "C105871" }
     alt { mfr: "Vishay", mpn: "CRCW04024K70FKED" }
+    alt { mfr: "UNI-ROYAL", mpn: "0402WGF4701TCE", supplier lcsc "C25900" }
 }
 
 #[doc("docs/yageo_rc_series_datasheet_en.pdf")]
@@ -2547,6 +2574,7 @@ pub part R_4K99_F_0402: ChipResistor<4.99kohm, 1%>[R0402] {
 pub part R_5K1_F_0402: ChipResistor<5.1kohm, 1%>[R0402] {
     primary { mfr: "Yageo", mpn: "RC0402FR-075K1L", footprint: CHIP_0402, supplier lcsc "C105872" }
     alt { mfr: "Vishay", mpn: "CRCW04025K10FKED" }
+    alt { mfr: "UNI-ROYAL", mpn: "0402WGF5101TCE", supplier lcsc "C25905" }
 }
 
 #[doc("docs/yageo_rc_series_datasheet_en.pdf")]
@@ -2577,6 +2605,7 @@ pub part R_5K49_F_0402: ChipResistor<5.49kohm, 1%>[R0402] {
 pub part R_5K6_F_0402: ChipResistor<5.6kohm, 1%>[R0402] {
     primary { mfr: "Yageo", mpn: "RC0402FR-075K6L", footprint: CHIP_0402, supplier lcsc "C163457" }
     alt { mfr: "Vishay", mpn: "CRCW04025K60FKED" }
+    alt { mfr: "UNI-ROYAL", mpn: "0402WGF5601TCE", supplier lcsc "C25908" }
 }
 
 #[doc("docs/yageo_rc_series_datasheet_en.pdf")]
@@ -2637,6 +2666,7 @@ pub part R_6K65_F_0402: ChipResistor<6.65kohm, 1%>[R0402] {
 pub part R_6K8_F_0402: ChipResistor<6.8kohm, 1%>[R0402] {
     primary { mfr: "Yageo", mpn: "RC0402FR-076K8L", footprint: CHIP_0402, supplier lcsc "C93940" }
     alt { mfr: "Vishay", mpn: "CRCW04026K80FKED" }
+    alt { mfr: "UNI-ROYAL", mpn: "0402WGF6801TCE", supplier lcsc "C25917" }
 }
 
 #[doc("docs/yageo_rc_series_datasheet_en.pdf")]
@@ -2667,6 +2697,7 @@ pub part R_7K32_F_0402: ChipResistor<7.32kohm, 1%>[R0402] {
 pub part R_7K5_F_0402: ChipResistor<7.5kohm, 1%>[R0402] {
     primary { mfr: "Yageo", mpn: "RC0402FR-077K5L", footprint: CHIP_0402, supplier lcsc "C137934" }
     alt { mfr: "Vishay", mpn: "CRCW04027K50FKED" }
+    alt { mfr: "UNI-ROYAL", mpn: "0402WGF7501TCE", supplier lcsc "C25918" }
 }
 
 #[doc("docs/yageo_rc_series_datasheet_en.pdf")]
@@ -2691,6 +2722,7 @@ pub part R_8K06_F_0402: ChipResistor<8.06kohm, 1%>[R0402] {
 pub part R_8K2_F_0402: ChipResistor<8.2kohm, 1%>[R0402] {
     primary { mfr: "Yageo", mpn: "RC0402FR-078K2L", footprint: CHIP_0402, supplier lcsc "C137929" }
     alt { mfr: "Vishay", mpn: "CRCW04028K20FKED" }
+    alt { mfr: "UNI-ROYAL", mpn: "0402WGF8201TCE", supplier lcsc "C25924" }
 }
 
 #[doc("docs/yageo_rc_series_datasheet_en.pdf")]
@@ -2751,6 +2783,7 @@ pub part R_9K76_F_0402: ChipResistor<9.76kohm, 1%>[R0402] {
 pub part R_10K_F_0402: ChipResistor<10kohm, 1%>[R0402] {
     primary { mfr: "Yageo", mpn: "RC0402FR-0710KL", footprint: CHIP_0402, supplier lcsc "C60490" }
     alt { mfr: "Vishay", mpn: "CRCW040210K0FKED" }
+    alt { mfr: "UNI-ROYAL", mpn: "0402WGF1002TCE", supplier lcsc "C25744" }
 }
 
 #[doc("docs/yageo_rc_series_datasheet_en.pdf")]
@@ -2799,6 +2832,7 @@ pub part R_11K8_F_0402: ChipResistor<11.8kohm, 1%>[R0402] {
 pub part R_12K_F_0402: ChipResistor<12kohm, 1%>[R0402] {
     primary { mfr: "Yageo", mpn: "RC0402FR-0712KL", footprint: CHIP_0402, supplier lcsc "C114760" }
     alt { mfr: "Vishay", mpn: "CRCW040212K0FKED" }
+    alt { mfr: "UNI-ROYAL", mpn: "0402WGF1202TCE", supplier lcsc "C25752" }
 }
 
 #[doc("docs/yageo_rc_series_datasheet_en.pdf")]
@@ -2859,6 +2893,7 @@ pub part R_14K7_F_0402: ChipResistor<14.7kohm, 1%>[R0402] {
 pub part R_15K_F_0402: ChipResistor<15kohm, 1%>[R0402] {
     primary { mfr: "Yageo", mpn: "RC0402FR-0715KL", footprint: CHIP_0402, supplier lcsc "C114761" }
     alt { mfr: "Vishay", mpn: "CRCW040215K0FKED" }
+    alt { mfr: "UNI-ROYAL", mpn: "0402WGF1502TCE", supplier lcsc "C25756" }
 }
 
 #[doc("docs/yageo_rc_series_datasheet_en.pdf")]
@@ -2913,6 +2948,7 @@ pub part R_17K8_F_0402: ChipResistor<17.8kohm, 1%>[R0402] {
 pub part R_18K_F_0402: ChipResistor<18kohm, 1%>[R0402] {
     primary { mfr: "Yageo", mpn: "RC0402FR-0718KL", footprint: CHIP_0402, supplier lcsc "C138044" }
     alt { mfr: "Vishay", mpn: "CRCW040218K0FKED" }
+    alt { mfr: "UNI-ROYAL", mpn: "0402WGF1802TCE", supplier lcsc "C25762" }
 }
 
 #[doc("docs/yageo_rc_series_datasheet_en.pdf")]
@@ -2943,6 +2979,7 @@ pub part R_19K6_F_0402: ChipResistor<19.6kohm, 1%>[R0402] {
 pub part R_20K_F_0402: ChipResistor<20kohm, 1%>[R0402] {
     primary { mfr: "Yageo", mpn: "RC0402FR-0720KL", footprint: CHIP_0402, supplier lcsc "C93942" }
     alt { mfr: "Vishay", mpn: "CRCW040220K0FKED" }
+    alt { mfr: "UNI-ROYAL", mpn: "0402WGF2002TCE", supplier lcsc "C25765" }
 }
 
 #[doc("docs/yageo_rc_series_datasheet_en.pdf")]
@@ -2967,6 +3004,7 @@ pub part R_21K5_F_0402: ChipResistor<21.5kohm, 1%>[R0402] {
 pub part R_22K_F_0402: ChipResistor<22kohm, 1%>[R0402] {
     primary { mfr: "Yageo", mpn: "RC0402FR-0722KL", footprint: CHIP_0402, supplier lcsc "C82868" }
     alt { mfr: "Vishay", mpn: "CRCW040222K0FKED" }
+    alt { mfr: "UNI-ROYAL", mpn: "0402WGF2202TCE", supplier lcsc "C25768" }
 }
 
 #[doc("docs/yageo_rc_series_datasheet_en.pdf")]
@@ -2997,6 +3035,7 @@ pub part R_23K7_F_0402: ChipResistor<23.7kohm, 1%>[R0402] {
 pub part R_24K_F_0402: ChipResistor<24kohm, 1%>[R0402] {
     primary { mfr: "Yageo", mpn: "RC0402FR-0724KL", footprint: CHIP_0402, supplier lcsc "C138026" }
     alt { mfr: "Vishay", mpn: "CRCW040224K0FKED" }
+    alt { mfr: "UNI-ROYAL", mpn: "0402WGF2402TCE", supplier lcsc "C25769" }
 }
 
 #[doc("docs/yageo_rc_series_datasheet_en.pdf")]
@@ -3033,6 +3072,7 @@ pub part R_26K7_F_0402: ChipResistor<26.7kohm, 1%>[R0402] {
 pub part R_27K_F_0402: ChipResistor<27kohm, 1%>[R0402] {
     primary { mfr: "Yageo", mpn: "RC0402FR-0727KL", footprint: CHIP_0402, supplier lcsc "C138022" }
     alt { mfr: "Vishay", mpn: "CRCW040227K0FKED" }
+    alt { mfr: "UNI-ROYAL", mpn: "0402WGF2702TCE", supplier lcsc "C25771" }
 }
 
 #[doc("docs/yageo_rc_series_datasheet_en.pdf")]
@@ -3093,6 +3133,7 @@ pub part R_32K4_F_0402: ChipResistor<32.4kohm, 1%>[R0402] {
 pub part R_33K_F_0402: ChipResistor<33kohm, 1%>[R0402] {
     primary { mfr: "Yageo", mpn: "RC0402FR-0733KL", footprint: CHIP_0402, supplier lcsc "C138003" }
     alt { mfr: "Vishay", mpn: "CRCW040233K0FKED" }
+    alt { mfr: "UNI-ROYAL", mpn: "0402WGF3302TCE", supplier lcsc "C25779" }
 }
 
 #[doc("docs/yageo_rc_series_datasheet_en.pdf")]
@@ -3147,6 +3188,7 @@ pub part R_38K3_F_0402: ChipResistor<38.3kohm, 1%>[R0402] {
 pub part R_39K_F_0402: ChipResistor<39kohm, 1%>[R0402] {
     primary { mfr: "Yageo", mpn: "RC0402FR-0739KL", footprint: CHIP_0402, supplier lcsc "C137995" }
     alt { mfr: "Vishay", mpn: "CRCW040239K0FKED" }
+    alt { mfr: "UNI-ROYAL", mpn: "0402WGF3902TCE", supplier lcsc "C25783" }
 }
 
 #[doc("docs/yageo_rc_series_datasheet_en.pdf")]
@@ -3207,6 +3249,7 @@ pub part R_46K4_F_0402: ChipResistor<46.4kohm, 1%>[R0402] {
 pub part R_47K_F_0402: ChipResistor<47kohm, 1%>[R0402] {
     primary { mfr: "Yageo", mpn: "RC0402FR-0747KL", footprint: CHIP_0402, supplier lcsc "C93943" }
     alt { mfr: "Vishay", mpn: "CRCW040247K0FKED" }
+    alt { mfr: "UNI-ROYAL", mpn: "0402WGF4702TCE", supplier lcsc "C25792" }
 }
 
 #[doc("docs/yageo_rc_series_datasheet_en.pdf")]
@@ -3225,12 +3268,14 @@ pub part R_48K7_F_0402: ChipResistor<48.7kohm, 1%>[R0402] {
 pub part R_49K9_F_0402: ChipResistor<49.9kohm, 1%>[R0402] {
     primary { mfr: "Yageo", mpn: "RC0402FR-0749K9L", footprint: CHIP_0402, supplier lcsc "C137969" }
     alt { mfr: "Vishay", mpn: "CRCW040249K9FKED" }
+    alt { mfr: "UNI-ROYAL", mpn: "0402WGF4992TCE", supplier lcsc "C25897" }
 }
 
 #[doc("docs/yageo_rc_series_datasheet_en.pdf")]
 pub part R_51K_F_0402: ChipResistor<51kohm, 1%>[R0402] {
     primary { mfr: "Yageo", mpn: "RC0402FR-0751KL", footprint: CHIP_0402, supplier lcsc "C107229" }
     alt { mfr: "Vishay", mpn: "CRCW040251K0FKED" }
+    alt { mfr: "UNI-ROYAL", mpn: "0402WGF5102TCE", supplier lcsc "C25794" }
 }
 
 #[doc("docs/yageo_rc_series_datasheet_en.pdf")]
@@ -3261,6 +3306,7 @@ pub part R_54K9_F_0402: ChipResistor<54.9kohm, 1%>[R0402] {
 pub part R_56K_F_0402: ChipResistor<56kohm, 1%>[R0402] {
     primary { mfr: "Yageo", mpn: "RC0402FR-0756KL", footprint: CHIP_0402, supplier lcsc "C114756" }
     alt { mfr: "Vishay", mpn: "CRCW040256K0FKED" }
+    alt { mfr: "UNI-ROYAL", mpn: "0402WGF5602TCE", supplier lcsc "C25796" }
 }
 
 #[doc("docs/yageo_rc_series_datasheet_en.pdf")]
@@ -3321,6 +3367,7 @@ pub part R_66K5_F_0402: ChipResistor<66.5kohm, 1%>[R0402] {
 pub part R_68K_F_0402: ChipResistor<68kohm, 1%>[R0402] {
     primary { mfr: "Yageo", mpn: "RC0402FR-0768KL", footprint: CHIP_0402, supplier lcsc "C137947" }
     alt { mfr: "Vishay", mpn: "CRCW040268K0FKED" }
+    alt { mfr: "UNI-ROYAL", mpn: "0402WGF6802TCE", supplier lcsc "C36871" }
 }
 
 #[doc("docs/yageo_rc_series_datasheet_en.pdf")]
@@ -3351,6 +3398,7 @@ pub part R_73K2_F_0402: ChipResistor<73.2kohm, 1%>[R0402] {
 pub part R_75K_F_0402: ChipResistor<75kohm, 1%>[R0402] {
     primary { mfr: "Yageo", mpn: "RC0402FR-0775KL", footprint: CHIP_0402, supplier lcsc "C137935" }
     alt { mfr: "Vishay", mpn: "CRCW040275K0FKED" }
+    alt { mfr: "UNI-ROYAL", mpn: "0402WGF7502TCE", supplier lcsc "C25798" }
 }
 
 #[doc("docs/yageo_rc_series_datasheet_en.pdf")]
@@ -3435,6 +3483,7 @@ pub part R_97K6_F_0402: ChipResistor<97.6kohm, 1%>[R0402] {
 pub part R_100K_F_0402: ChipResistor<100kohm, 1%>[R0402] {
     primary { mfr: "Yageo", mpn: "RC0402FR-07100KL", footprint: CHIP_0402, supplier lcsc "C60491" }
     alt { mfr: "Vishay", mpn: "CRCW0402100KFKED" }
+    alt { mfr: "UNI-ROYAL", mpn: "0402WGF1003TCE", supplier lcsc "C25741" }
 }
 
 #[doc("docs/yageo_rc_series_datasheet_en.pdf")]
@@ -3483,6 +3532,7 @@ pub part R_118K_F_0402: ChipResistor<118kohm, 1%>[R0402] {
 pub part R_120K_F_0402: ChipResistor<120kohm, 1%>[R0402] {
     primary { mfr: "Yageo", mpn: "RC0402FR-07120KL", footprint: CHIP_0402, supplier lcsc "C93945" }
     alt { mfr: "Vishay", mpn: "CRCW0402120KFKED" }
+    alt { mfr: "UNI-ROYAL", mpn: "0402WGF1203TCE", supplier lcsc "C25750" }
 }
 
 #[doc("docs/yageo_rc_series_datasheet_en.pdf")]
@@ -3543,6 +3593,7 @@ pub part R_147K_F_0402: ChipResistor<147kohm, 1%>[R0402] {
 pub part R_150K_F_0402: ChipResistor<150kohm, 1%>[R0402] {
     primary { mfr: "Yageo", mpn: "RC0402FR-07150KL", footprint: CHIP_0402, supplier lcsc "C93947" }
     alt { mfr: "Vishay", mpn: "CRCW0402150KFKED" }
+    alt { mfr: "UNI-ROYAL", mpn: "0402WGF1503TCE", supplier lcsc "C25755" }
 }
 
 #[doc("docs/yageo_rc_series_datasheet_en.pdf")]
@@ -3627,6 +3678,7 @@ pub part R_196K_F_0402: ChipResistor<196kohm, 1%>[R0402] {
 pub part R_200K_F_0402: ChipResistor<200kohm, 1%>[R0402] {
     primary { mfr: "Yageo", mpn: "RC0402FR-07200KL", footprint: CHIP_0402, supplier lcsc "C114763" }
     alt { mfr: "Vishay", mpn: "CRCW0402200KFKED" }
+    alt { mfr: "UNI-ROYAL", mpn: "0402WGF2003TCE", supplier lcsc "C25764" }
 }
 
 #[doc("docs/yageo_rc_series_datasheet_en.pdf")]
@@ -3651,6 +3703,7 @@ pub part R_215K_F_0402: ChipResistor<215kohm, 1%>[R0402] {
 pub part R_220K_F_0402: ChipResistor<220kohm, 1%>[R0402] {
     primary { mfr: "Yageo", mpn: "RC0402FR-07220KL", footprint: CHIP_0402, supplier lcsc "C138030" }
     alt { mfr: "Vishay", mpn: "CRCW0402220KFKED" }
+    alt { mfr: "UNI-ROYAL", mpn: "0402WGF2203TCE", supplier lcsc "C25767" }
 }
 
 #[doc("docs/yageo_rc_series_datasheet_en.pdf")]
@@ -3747,6 +3800,7 @@ pub part R_294K_F_0402: ChipResistor<294kohm, 1%>[R0402] {
 pub part R_300K_F_0402: ChipResistor<300kohm, 1%>[R0402] {
     primary { mfr: "Yageo", mpn: "RC0402FR-07300KL", footprint: CHIP_0402, supplier lcsc "C138011" }
     alt { mfr: "Vishay", mpn: "CRCW0402300KFKED" }
+    alt { mfr: "UNI-ROYAL", mpn: "0402WGF3003TCE", supplier lcsc "C25774" }
 }
 
 #[doc("docs/yageo_rc_series_datasheet_en.pdf")]
@@ -3777,6 +3831,7 @@ pub part R_324K_F_0402: ChipResistor<324kohm, 1%>[R0402] {
 pub part R_330K_F_0402: ChipResistor<330kohm, 1%>[R0402] {
     primary { mfr: "Yageo", mpn: "RC0402FR-07330KL", footprint: CHIP_0402, supplier lcsc "C138006" }
     alt { mfr: "Vishay", mpn: "CRCW0402330KFKED" }
+    alt { mfr: "UNI-ROYAL", mpn: "0402WGF3303TCE", supplier lcsc "C25778" }
 }
 
 #[doc("docs/yageo_rc_series_datasheet_en.pdf")]
@@ -3891,6 +3946,7 @@ pub part R_464K_F_0402: ChipResistor<464kohm, 1%>[R0402] {
 pub part R_470K_F_0402: ChipResistor<470kohm, 1%>[R0402] {
     primary { mfr: "Yageo", mpn: "RC0402FR-07470KL", footprint: CHIP_0402, supplier lcsc "C137976" }
     alt { mfr: "Vishay", mpn: "CRCW0402470KFKED" }
+    alt { mfr: "UNI-ROYAL", mpn: "0402WGF4703TCE", supplier lcsc "C25790" }
 }
 
 #[doc("docs/yageo_rc_series_datasheet_en.pdf")]
@@ -4119,6 +4175,7 @@ pub part R_976K_F_0402: ChipResistor<976kohm, 1%>[R0402] {
 pub part R_1M_F_0402: ChipResistor<1Mohm, 1%>[R0402] {
     primary { mfr: "Yageo", mpn: "RC0402FR-071ML", footprint: CHIP_0402, supplier lcsc "C138033" }
     alt { mfr: "Vishay", mpn: "CRCW04021M00FKED" }
+    alt { mfr: "UNI-ROYAL", mpn: "0402WGF1004TCE", supplier lcsc "C26083" }
 }
 
 #[doc("docs/yageo_rc_series_datasheet_en.pdf")]
@@ -4803,6 +4860,7 @@ pub part R_9M76_F_0402: ChipResistor<9.76Mohm, 1%>[R0402] {
 pub part R_10M_F_0402: ChipResistor<10Mohm, 1%>[R0402] {
     primary { mfr: "Yageo", mpn: "RC0402FR-0710ML", footprint: CHIP_0402, supplier lcsc "C138067" }
     alt { mfr: "Vishay", mpn: "CRCW040210M0FKED" }
+    alt { mfr: "UNI-ROYAL", mpn: "0402WGF1005TCE", supplier lcsc "C26082" }
 }
 
 #[doc("docs/yageo_rc_series_datasheet_en.pdf")]

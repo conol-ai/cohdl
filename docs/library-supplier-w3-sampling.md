@@ -37,7 +37,7 @@ Plain, non-polarised, two-terminal chip resistors and MLCCs only: the `ChipResis
 
 ### 3.2 Groups
 
-A group is (footprint-owning package, its version, footprint, part type, manufacturer, series). The series is the MPN's leading letters: Yageo `RC` and `CC`, Vishay `CRCW`, Samsung `CL`, Murata `GRM`.
+A group is (footprint-owning package, its version, footprint, part type, manufacturer, series). The series is the MPN's leading letters: Yageo `RC` and `CC`, Vishay `CRCW`, Samsung `CL`, Murata `GRM`. For UNI-ROYAL chip resistors use the decoded size and power code, e.g. `0402WG`, `0603WA`, `0805W8` or `1206W4` ([decision #125](https://github.com/conol-ai/cohdl/issues/125)).
 - The page's package text is never part of the key, and two parts are never grouped on it alone.
 - Two series are not merged. A future merge needs a written basis, for example the manufacturer's statement that both series share one body and termination drawing, and its own review.
 - A footprint move (new package version) starts new groups.

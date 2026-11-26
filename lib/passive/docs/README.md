@@ -174,3 +174,61 @@ All three have a zero map. That makes 36 bindings: 25 resistors and 11 MLCCs, wi
 - **What changes in a build.** A plain `build` writes the same neutral BOM and CPL. The KiCad netlist gains an `LCSC` field for each instance whose primary entry is newly bound.
 
 **Read on the same board, not bound here.** C52923 (`CL05A105KA5NQNC`, an alternate of `C_1u_25V_X5R_0402`) and C23630 (`CL10A225KO8NNNC`, an alternate of `C_2u2_16V_X5R_0603`) read along their lands on all four copies too. They have an identity and an entry and are left for a change of their own. The three ICs on the board read a quarter or half turn off and are not `passive` parts: their bindings wait for a re-verify board that places them with the candidate rotations.
+
+## UNI-ROYAL 0402 resistors in 0.2.9
+
+The 58 new LCSC bindings are alternates of existing 0402 resistors. Primary parts and land geometry are unchanged. Eight have four method-2 body measurements each on board 4, C25744 has its own board 1 frame, and 49 use the 0402WG W3 sample record. Orientation is known modulo 180°. The 886 earlier bindings remain available (944 total).
+
+The F-lettered jumper C17168 is an alternate of `R_0R_J_0402`. UNI-ROYAL rates its 0402 jumper at <50 mΩ, 1 A rated and 2 A overload. Its datasheet gives no jumper tolerance. The part name retains the primary manufacturer's ordering convention. C25760, the Extended 180 kΩ order line, is outside this B1 alternate set.
+
+[Group record](../../../tools/sourcing_data/w3_records/2026-11-18-chip0402-uniroyal.json) · [Datasheet evidence](../../../tools/passive_data/uniroyal_chip_series.evidence.md)
+
+## UNI-ROYAL 0603, 0805 and 1206 resistors in 0.2.10
+
+This release adds 230 LCSC bindings on alternate entries of existing resistors. All 944 prior bindings carry forward, for 1,174 total. Each new entry has a confirmed manufacturer and part number in the formal map and positive stock on its archived page.
+
+| Series | Direct evidence | Inferred by W3 | Total |
+|---|---:|---:|---:|
+| 0603WA | 7 | 109 | 116 |
+| 0805W8 | 6 | 91 | 97 |
+| 1206W4 | 4 | 13 | 17 |
+
+Board 6 supplied six, five and three distinct samples respectively. Each passed method 2 on both sides at 0° and 37°. Each group also has one earlier direct frame. The group records pin the same pads and footprints used on the preview board at 0.2.8. For these nonpolar bodies the measured axis is known modulo 180°.
+
+The jumpers C21189 (0603), C17477 (0805) and C17888 (1206) are rated below 50 mΩ. Rated and overload currents are 1/2 A, 2/5 A and 2/10 A respectively. UNI-ROYAL specifies no tolerance for its jumpers.
+
+[Board 6 evidence](../../../tools/sourcing_data/jlc_previews/2026-11-19-board-6/README.md) · [W3 group report](../../../tools/sourcing_data/w3_sampling/2026-11-19/groups.md)
+
+## Yageo CC 0402 and Samsung CL capacitors in 0.2.11
+
+This release adds 207 LCSC bindings on existing MLCCs: 169 on Yageo CC 0402 primaries and 38 on Samsung CL alternates. All 1,174 prior bindings carry forward, for 1,381 in all. Each new entry has a confirmed manufacturer and part number in the formal map and positive stock on its archived page. No land changed: the boards used to read the new bindings pinned the `pads.cohdl` and `footprints.cohdl` of 0.2.6 and 0.2.8, and the W3 report checks both files against their hashes.
+
+| Group | Direct evidence | Inferred by W3 | New bindings |
+|---|---:|---:|---:|
+| Yageo CC 0402 | 7 | 162 | 169 |
+| Samsung CL 0402 | 10 | 0 | 10 |
+| Samsung CL 0603 | 2 | 21 | 23 |
+| Samsung CL 0805 | 5 | 0 | 5 |
+
+- **Yageo CC 0402.** The group record has 199 members and 12 samples, two more than the rule's minimum of 10. Five of the samples were already bound, and seven gain a binding from their own rows. C113781 passed by body method 2 on the W3 pilot and on board 4; method 1 had read it at 10.5°, so the pilot archived no row for it, and its row now cites both readings. Not bound: 24 members with no stock, and C576731, whose model a preview did not draw.
+- **Samsung CL.** Board 7 placed every mapped Samsung CL 0402 and 0805 member, plus the 0603 sample C19702. Each was placed four times (top and bottom, 0° and 37°), and every copy passed method 2, within 6.2° and 0.041 mm. All members of the 0402 and 0805 groups were read directly, so those groups need no inference. They bind from their own rows (`pb7-`), except C1525 and C15850, which board 1 had already bound. For the 0603 group, C19702 joins C19666 and C23630 from board 4, giving the three samples the group needs. C23630 passed on all four copies there (−1.2° to +0.5°, within 0.040 mm). It was not bound at the time because it had no map row; its map row dates from 2026-11-18, and its row (`pb4-chip0603-c23630`) is new in this release. The other 21 members are inferred.
+- **Records.** The group records for this release are `w3_records/2026-11-21-chip0402-yageo-cc.json` and `w3_records/2026-11-22-chip0603-samsung-cl.json`. The five resistor records were rebuilt at 0.2.11 with unchanged outcomes. For these nonpolar bodies the axis is known modulo 180°.
+
+[Board 7 evidence](../../../tools/sourcing_data/jlc_previews/2026-11-21-board-7/README.md) · [W3 group report](../../../tools/sourcing_data/w3_sampling/2026-11-22/groups.md)
+
+## Yageo RC 0603, 0805 and 1206 resistors in 0.2.12
+
+This release adds 2,628 LCSC bindings on existing parts: 2,617 on Yageo RC 0603, 0805 and 1206 primaries and 11 on Yageo CC 0603 primaries. All 1,381 prior bindings carry forward, for 4,009 in all. Each new entry has a confirmed manufacturer and part number in the formal map and positive stock on its archived page. No land changed: boards 11 and 12 pinned the `pads.cohdl` and `footprints.cohdl` of 0.2.8, and the W3 report checks both files against their hashes.
+
+| Group | Direct evidence | Inferred by W3 | New bindings |
+|---|---:|---:|---:|
+| Yageo RC 0603 | 45 | 837 | 882 |
+| Yageo RC 0805 | 44 | 823 | 867 |
+| Yageo RC 1206 | 45 | 823 | 868 |
+| Yageo CC 0603 | 11 | 0 | 11 |
+
+- **Yageo RC.** Boards 11 and 12 (2026-11-23) each carried half of every group's sample. With the four or five each group had passed before, every group reaches its 49 required samples; each sample was placed four times (top and bottom, 0° and 37°) and every copy passed method 2, within 5.7° and 0.080 mm. The samples bind from their own rows (`pb11-`, `pb12-`); the other members are inferred under rule `w3-2026-11-12`. Not bound: the members with no stock (83, 97 and 95).
+- **Yageo CC 0603.** The eleven samples that passed on boards 11 and 12 bind from their own rows. The group itself is paused: two of its 14 judged members, C576830 and C576858, were not drawn on either board, above the rule's 10%, so nothing in it is inferred.
+- **Records.** The new group records are `w3_records/2026-11-23-chip0603-yageo-rc.json`, `2026-11-23-chip0805-yageo-rc.json` and `2026-11-23-chip1206-yageo-rc.json`. The seven earlier records were rebuilt at 0.2.12; their controls gained the board 11 and 12 readings and their outcomes are unchanged. For these nonpolar bodies the axis is known modulo 180°.
+
+[Board 11 evidence](../../../tools/sourcing_data/jlc_previews/2026-11-23-board-11/README.md) · [Board 12 evidence](../../../tools/sourcing_data/jlc_previews/2026-11-23-board-12/README.md) · [W3 group report](../../../tools/sourcing_data/w3_sampling/2026-11-23c/groups.md)

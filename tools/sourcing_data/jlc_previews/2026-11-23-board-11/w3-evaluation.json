@@ -1,0 +1,8677 @@
+{
+ "rule": "w3-2026-11-12",
+ "sides": {
+  "top": {
+   "median_xy_mm": [
+    -0.012,
+    -0.0165
+   ],
+   "drawn_bodies": 156
+  },
+  "bottom": {
+   "median_xy_mm": [
+    0.009,
+    -0.011
+   ],
+   "drawn_bodies": 156
+  }
+ },
+ "groups": {
+  "CHIP_0402 ChipResistor UNI-ROYAL 0402WG": {
+   "purpose": "control",
+   "pns": 1,
+   "passed_pns": [
+    "C11702"
+   ],
+   "not_drawn_pns": [],
+   "copies": 4,
+   "passed_copies": 4,
+   "max_angle_deg": 2.8,
+   "max_raw_mm": 0.069,
+   "max_residual_mm": 0.055,
+   "rows": [
+    {
+     "pn": "C11702",
+     "ref": "R1",
+     "side": "top",
+     "group": "CHIP_0402 ChipResistor UNI-ROYAL 0402WG",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 2.8,
+      "offset_limit_mm": 0.128,
+      "raw_offset_xy_mm": [
+       0.021,
+       -0.046
+      ],
+      "raw_offset_mm": 0.051,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.044,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 154
+     },
+     "passed": true
+    },
+    {
+     "pn": "C11702",
+     "ref": "R2",
+     "side": "top",
+     "group": "CHIP_0402 ChipResistor UNI-ROYAL 0402WG",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -1.1,
+      "offset_limit_mm": 0.128,
+      "raw_offset_xy_mm": [
+       -0.028,
+       -0.027
+      ],
+      "raw_offset_mm": 0.039,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.019,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 154
+     },
+     "passed": true
+    },
+    {
+     "pn": "C11702",
+     "ref": "R3",
+     "side": "bottom",
+     "group": "CHIP_0402 ChipResistor UNI-ROYAL 0402WG",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.4,
+      "offset_limit_mm": 0.128,
+      "raw_offset_xy_mm": [
+       0.048,
+       -0.05
+      ],
+      "raw_offset_mm": 0.069,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.055,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 154
+     },
+     "passed": true
+    },
+    {
+     "pn": "C11702",
+     "ref": "R4",
+     "side": "bottom",
+     "group": "CHIP_0402 ChipResistor UNI-ROYAL 0402WG",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.3,
+      "offset_limit_mm": 0.128,
+      "raw_offset_xy_mm": [
+       0.029,
+       -0.05
+      ],
+      "raw_offset_mm": 0.058,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.044,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 154
+     },
+     "passed": true
+    }
+   ]
+  },
+  "CHIP_0402 MLCC Yageo CC": {
+   "purpose": "control",
+   "pns": 1,
+   "passed_pns": [
+    "C113780"
+   ],
+   "not_drawn_pns": [],
+   "copies": 4,
+   "passed_copies": 4,
+   "max_angle_deg": 3.1,
+   "max_raw_mm": 0.057,
+   "max_residual_mm": 0.039,
+   "rows": [
+    {
+     "pn": "C113780",
+     "ref": "C1",
+     "side": "top",
+     "group": "CHIP_0402 MLCC Yageo CC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -1.0,
+      "offset_limit_mm": 0.127,
+      "raw_offset_xy_mm": [
+       -0.025,
+       -0.041
+      ],
+      "raw_offset_mm": 0.048,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.028,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 154
+     },
+     "passed": true
+    },
+    {
+     "pn": "C113780",
+     "ref": "C2",
+     "side": "top",
+     "group": "CHIP_0402 MLCC Yageo CC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -3.1,
+      "offset_limit_mm": 0.128,
+      "raw_offset_xy_mm": [
+       -0.044,
+       -0.036
+      ],
+      "raw_offset_mm": 0.057,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.037,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 154
+     },
+     "passed": true
+    },
+    {
+     "pn": "C113780",
+     "ref": "C3",
+     "side": "bottom",
+     "group": "CHIP_0402 MLCC Yageo CC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.4,
+      "offset_limit_mm": 0.127,
+      "raw_offset_xy_mm": [
+       -0.006,
+       -0.047
+      ],
+      "raw_offset_mm": 0.047,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.039,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 154
+     },
+     "passed": true
+    },
+    {
+     "pn": "C113780",
+     "ref": "C4",
+     "side": "bottom",
+     "group": "CHIP_0402 MLCC Yageo CC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.6,
+      "offset_limit_mm": 0.128,
+      "raw_offset_xy_mm": [
+       -0.004,
+       -0.037
+      ],
+      "raw_offset_mm": 0.037,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.029,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 154
+     },
+     "passed": true
+    }
+   ]
+  },
+  "CHIP_0603 ChipResistor UNI-ROYAL 0603WA": {
+   "purpose": "control",
+   "pns": 1,
+   "passed_pns": [
+    "C21189"
+   ],
+   "not_drawn_pns": [],
+   "copies": 4,
+   "passed_copies": 4,
+   "max_angle_deg": 1.6,
+   "max_raw_mm": 0.061,
+   "max_residual_mm": 0.056,
+   "rows": [
+    {
+     "pn": "C21189",
+     "ref": "R10",
+     "side": "top",
+     "group": "CHIP_0603 ChipResistor UNI-ROYAL 0603WA",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -1.6,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       0.023,
+       -0.051
+      ],
+      "raw_offset_mm": 0.056,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.049,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 154
+     },
+     "passed": true
+    },
+    {
+     "pn": "C21189",
+     "ref": "R11",
+     "side": "bottom",
+     "group": "CHIP_0603 ChipResistor UNI-ROYAL 0603WA",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.2,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       0.045,
+       -0.034
+      ],
+      "raw_offset_mm": 0.056,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.043,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 154
+     },
+     "passed": true
+    },
+    {
+     "pn": "C21189",
+     "ref": "R12",
+     "side": "bottom",
+     "group": "CHIP_0603 ChipResistor UNI-ROYAL 0603WA",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.7,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       0.031,
+       -0.048
+      ],
+      "raw_offset_mm": 0.057,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.043,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 154
+     },
+     "passed": true
+    },
+    {
+     "pn": "C21189",
+     "ref": "R9",
+     "side": "top",
+     "group": "CHIP_0603 ChipResistor UNI-ROYAL 0603WA",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -1.3,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       0.029,
+       -0.054
+      ],
+      "raw_offset_mm": 0.061,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.056,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 154
+     },
+     "passed": true
+    }
+   ]
+  },
+  "CHIP_0603 ChipResistor Yageo RC": {
+   "purpose": "sample",
+   "pns": 23,
+   "passed_pns": [
+    "C14675",
+    "C99782",
+    "C105578",
+    "C108407",
+    "C114605",
+    "C114686",
+    "C123420",
+    "C126805",
+    "C128060",
+    "C137619",
+    "C137678",
+    "C137685",
+    "C137719",
+    "C165760",
+    "C185321",
+    "C185374",
+    "C245959",
+    "C245989",
+    "C273780",
+    "C327396",
+    "C482781",
+    "C482816",
+    "C482931"
+   ],
+   "not_drawn_pns": [],
+   "copies": 92,
+   "passed_copies": 92,
+   "max_angle_deg": 3.4,
+   "max_raw_mm": 0.07,
+   "max_residual_mm": 0.05,
+   "rows": [
+    {
+     "pn": "C14675",
+     "ref": "R149",
+     "side": "top",
+     "group": "CHIP_0603 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 1.3,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       -0.045,
+       -0.053
+      ],
+      "raw_offset_mm": 0.07,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.049,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C14675",
+     "ref": "R150",
+     "side": "top",
+     "group": "CHIP_0603 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -1.4,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       -0.039,
+       -0.041
+      ],
+      "raw_offset_mm": 0.057,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.036,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C14675",
+     "ref": "R151",
+     "side": "bottom",
+     "group": "CHIP_0603 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.1,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       -0.021,
+       -0.041
+      ],
+      "raw_offset_mm": 0.046,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.042,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C14675",
+     "ref": "R152",
+     "side": "bottom",
+     "group": "CHIP_0603 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.1,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       -0.016,
+       -0.041
+      ],
+      "raw_offset_mm": 0.044,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.039,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C99782",
+     "ref": "R281",
+     "side": "top",
+     "group": "CHIP_0603 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 1.2,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       0.009,
+       -0.017
+      ],
+      "raw_offset_mm": 0.019,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.021,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C99782",
+     "ref": "R282",
+     "side": "top",
+     "group": "CHIP_0603 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 2.5,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       0.025,
+       -0.011
+      ],
+      "raw_offset_mm": 0.027,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.037,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C99782",
+     "ref": "R283",
+     "side": "bottom",
+     "group": "CHIP_0603 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.8,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       0.047,
+       -0.02
+      ],
+      "raw_offset_mm": 0.051,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.039,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C99782",
+     "ref": "R284",
+     "side": "bottom",
+     "group": "CHIP_0603 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.8,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       0.039,
+       -0.006
+      ],
+      "raw_offset_mm": 0.039,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.03,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C105578",
+     "ref": "R13",
+     "side": "top",
+     "group": "CHIP_0603 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.3,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       -0.024,
+       -0.037
+      ],
+      "raw_offset_mm": 0.044,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.024,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C105578",
+     "ref": "R14",
+     "side": "top",
+     "group": "CHIP_0603 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -1.0,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       -0.01,
+       -0.027
+      ],
+      "raw_offset_mm": 0.029,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.011,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C105578",
+     "ref": "R15",
+     "side": "bottom",
+     "group": "CHIP_0603 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.4,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       -0.01,
+       -0.042
+      ],
+      "raw_offset_mm": 0.043,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.036,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C105578",
+     "ref": "R16",
+     "side": "bottom",
+     "group": "CHIP_0603 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.9,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       -0.0,
+       -0.027
+      ],
+      "raw_offset_mm": 0.027,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.018,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C108407",
+     "ref": "R17",
+     "side": "top",
+     "group": "CHIP_0603 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 1.1,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       -0.026,
+       0.012
+      ],
+      "raw_offset_mm": 0.029,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.032,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C108407",
+     "ref": "R18",
+     "side": "top",
+     "group": "CHIP_0603 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -1.4,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       -0.007,
+       0.02
+      ],
+      "raw_offset_mm": 0.021,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.037,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C108407",
+     "ref": "R19",
+     "side": "bottom",
+     "group": "CHIP_0603 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.3,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       0.011,
+       0.022
+      ],
+      "raw_offset_mm": 0.025,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.033,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C108407",
+     "ref": "R20",
+     "side": "bottom",
+     "group": "CHIP_0603 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.1,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       0.007,
+       0.034
+      ],
+      "raw_offset_mm": 0.035,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.045,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C114605",
+     "ref": "R49",
+     "side": "top",
+     "group": "CHIP_0603 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.3,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       -0.051,
+       -0.043
+      ],
+      "raw_offset_mm": 0.067,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.047,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C114605",
+     "ref": "R50",
+     "side": "top",
+     "group": "CHIP_0603 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.5,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       -0.05,
+       -0.025
+      ],
+      "raw_offset_mm": 0.056,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.039,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C114605",
+     "ref": "R51",
+     "side": "bottom",
+     "group": "CHIP_0603 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.2,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       -0.016,
+       -0.045
+      ],
+      "raw_offset_mm": 0.048,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.042,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C114605",
+     "ref": "R52",
+     "side": "bottom",
+     "group": "CHIP_0603 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.1,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       -0.014,
+       -0.027
+      ],
+      "raw_offset_mm": 0.03,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.028,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C114686",
+     "ref": "R53",
+     "side": "top",
+     "group": "CHIP_0603 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.3,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       -0.017,
+       0.013
+      ],
+      "raw_offset_mm": 0.021,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.03,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C114686",
+     "ref": "R54",
+     "side": "top",
+     "group": "CHIP_0603 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.4,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       -0.029,
+       0.023
+      ],
+      "raw_offset_mm": 0.037,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.043,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C114686",
+     "ref": "R55",
+     "side": "bottom",
+     "group": "CHIP_0603 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -1.2,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       0.0,
+       0.02
+      ],
+      "raw_offset_mm": 0.02,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.032,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C114686",
+     "ref": "R56",
+     "side": "bottom",
+     "group": "CHIP_0603 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.1,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       0.003,
+       0.021
+      ],
+      "raw_offset_mm": 0.021,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.033,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C123420",
+     "ref": "R61",
+     "side": "top",
+     "group": "CHIP_0603 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -1.7,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       -0.002,
+       -0.039
+      ],
+      "raw_offset_mm": 0.039,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.025,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C123420",
+     "ref": "R62",
+     "side": "top",
+     "group": "CHIP_0603 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -1.0,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       -0.008,
+       -0.036
+      ],
+      "raw_offset_mm": 0.037,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.02,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C123420",
+     "ref": "R63",
+     "side": "bottom",
+     "group": "CHIP_0603 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.9,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       0.032,
+       -0.048
+      ],
+      "raw_offset_mm": 0.058,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.044,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C123420",
+     "ref": "R64",
+     "side": "bottom",
+     "group": "CHIP_0603 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.6,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       0.015,
+       -0.023
+      ],
+      "raw_offset_mm": 0.027,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.013,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C126805",
+     "ref": "R69",
+     "side": "top",
+     "group": "CHIP_0603 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.9,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       -0.03,
+       -0.001
+      ],
+      "raw_offset_mm": 0.03,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.024,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C126805",
+     "ref": "R70",
+     "side": "top",
+     "group": "CHIP_0603 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.8,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       -0.032,
+       0.026
+      ],
+      "raw_offset_mm": 0.041,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.047,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C126805",
+     "ref": "R71",
+     "side": "bottom",
+     "group": "CHIP_0603 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.1,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       -0.025,
+       0.026
+      ],
+      "raw_offset_mm": 0.036,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.05,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C126805",
+     "ref": "R72",
+     "side": "bottom",
+     "group": "CHIP_0603 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.3,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       -0.006,
+       0.021
+      ],
+      "raw_offset_mm": 0.022,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.035,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C128060",
+     "ref": "R73",
+     "side": "top",
+     "group": "CHIP_0603 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -3.4,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       0.006,
+       -0.02
+      ],
+      "raw_offset_mm": 0.021,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.018,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C128060",
+     "ref": "R74",
+     "side": "top",
+     "group": "CHIP_0603 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -1.0,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       -0.023,
+       -0.029
+      ],
+      "raw_offset_mm": 0.037,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.017,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C128060",
+     "ref": "R75",
+     "side": "bottom",
+     "group": "CHIP_0603 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.4,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       -0.013,
+       -0.024
+      ],
+      "raw_offset_mm": 0.027,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.026,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C128060",
+     "ref": "R76",
+     "side": "bottom",
+     "group": "CHIP_0603 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.1,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       -0.017,
+       -0.001
+      ],
+      "raw_offset_mm": 0.017,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.028,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C137619",
+     "ref": "R133",
+     "side": "top",
+     "group": "CHIP_0603 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -1.1,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       0.016,
+       0.01
+      ],
+      "raw_offset_mm": 0.019,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.039,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C137619",
+     "ref": "R134",
+     "side": "top",
+     "group": "CHIP_0603 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.2,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       -0.024,
+       0.027
+      ],
+      "raw_offset_mm": 0.036,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.045,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C137619",
+     "ref": "R135",
+     "side": "bottom",
+     "group": "CHIP_0603 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.1,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       0.029,
+       0.018
+      ],
+      "raw_offset_mm": 0.034,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.035,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C137619",
+     "ref": "R136",
+     "side": "bottom",
+     "group": "CHIP_0603 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.3,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       0.022,
+       0.032
+      ],
+      "raw_offset_mm": 0.039,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.045,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C137678",
+     "ref": "R137",
+     "side": "top",
+     "group": "CHIP_0603 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.9,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       -0.002,
+       -0.02
+      ],
+      "raw_offset_mm": 0.02,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.011,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C137678",
+     "ref": "R138",
+     "side": "top",
+     "group": "CHIP_0603 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.8,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       -0.011,
+       0.022
+      ],
+      "raw_offset_mm": 0.025,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.039,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C137678",
+     "ref": "R139",
+     "side": "bottom",
+     "group": "CHIP_0603 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.3,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       0.013,
+       0.009
+      ],
+      "raw_offset_mm": 0.016,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.02,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C137678",
+     "ref": "R140",
+     "side": "bottom",
+     "group": "CHIP_0603 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.4,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       0.029,
+       0.011
+      ],
+      "raw_offset_mm": 0.031,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.03,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C137685",
+     "ref": "R141",
+     "side": "top",
+     "group": "CHIP_0603 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 1.6,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       0.004,
+       -0.024
+      ],
+      "raw_offset_mm": 0.024,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.018,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C137685",
+     "ref": "R142",
+     "side": "top",
+     "group": "CHIP_0603 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.3,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       -0.003,
+       0.003
+      ],
+      "raw_offset_mm": 0.004,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.021,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C137685",
+     "ref": "R143",
+     "side": "bottom",
+     "group": "CHIP_0603 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.4,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       0.023,
+       0.011
+      ],
+      "raw_offset_mm": 0.025,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.026,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C137685",
+     "ref": "R144",
+     "side": "bottom",
+     "group": "CHIP_0603 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.8,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       0.001,
+       0.008
+      ],
+      "raw_offset_mm": 0.008,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.021,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C137719",
+     "ref": "R145",
+     "side": "top",
+     "group": "CHIP_0603 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 1.7,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       0.008,
+       -0.026
+      ],
+      "raw_offset_mm": 0.027,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.022,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C137719",
+     "ref": "R146",
+     "side": "top",
+     "group": "CHIP_0603 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.0,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       0.001,
+       -0.012
+      ],
+      "raw_offset_mm": 0.012,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.014,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C137719",
+     "ref": "R147",
+     "side": "bottom",
+     "group": "CHIP_0603 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.5,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       0.037,
+       -0.025
+      ],
+      "raw_offset_mm": 0.045,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.031,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C137719",
+     "ref": "R148",
+     "side": "bottom",
+     "group": "CHIP_0603 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.2,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       0.027,
+       -0.003
+      ],
+      "raw_offset_mm": 0.027,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.02,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C165760",
+     "ref": "R157",
+     "side": "top",
+     "group": "CHIP_0603 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 1.3,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       -0.008,
+       -0.063
+      ],
+      "raw_offset_mm": 0.064,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.047,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C165760",
+     "ref": "R158",
+     "side": "top",
+     "group": "CHIP_0603 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.9,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       0.001,
+       -0.046
+      ],
+      "raw_offset_mm": 0.046,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.032,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C165760",
+     "ref": "R159",
+     "side": "bottom",
+     "group": "CHIP_0603 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.3,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       0.013,
+       -0.036
+      ],
+      "raw_offset_mm": 0.038,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.025,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C165760",
+     "ref": "R160",
+     "side": "bottom",
+     "group": "CHIP_0603 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.4,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       0.022,
+       -0.044
+      ],
+      "raw_offset_mm": 0.049,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.035,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C185321",
+     "ref": "R165",
+     "side": "top",
+     "group": "CHIP_0603 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.3,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       -0.058,
+       -0.015
+      ],
+      "raw_offset_mm": 0.06,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.046,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C185321",
+     "ref": "R166",
+     "side": "top",
+     "group": "CHIP_0603 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.8,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       -0.032,
+       0.008
+      ],
+      "raw_offset_mm": 0.033,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.032,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C185321",
+     "ref": "R167",
+     "side": "bottom",
+     "group": "CHIP_0603 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 1.2,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       -0.015,
+       0.005
+      ],
+      "raw_offset_mm": 0.016,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.029,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C185321",
+     "ref": "R168",
+     "side": "bottom",
+     "group": "CHIP_0603 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.3,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       -0.018,
+       0.007
+      ],
+      "raw_offset_mm": 0.019,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.032,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C185374",
+     "ref": "R169",
+     "side": "top",
+     "group": "CHIP_0603 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.5,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       -0.016,
+       -0.06
+      ],
+      "raw_offset_mm": 0.062,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.044,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C185374",
+     "ref": "R170",
+     "side": "top",
+     "group": "CHIP_0603 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 1.0,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       -0.032,
+       -0.035
+      ],
+      "raw_offset_mm": 0.047,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.027,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C185374",
+     "ref": "R171",
+     "side": "bottom",
+     "group": "CHIP_0603 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.9,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       0.01,
+       -0.046
+      ],
+      "raw_offset_mm": 0.047,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.035,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C185374",
+     "ref": "R172",
+     "side": "bottom",
+     "group": "CHIP_0603 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.0,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       0.005,
+       -0.044
+      ],
+      "raw_offset_mm": 0.044,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.033,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C245959",
+     "ref": "R173",
+     "side": "top",
+     "group": "CHIP_0603 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -1.3,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       -0.013,
+       -0.028
+      ],
+      "raw_offset_mm": 0.031,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.012,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C245959",
+     "ref": "R174",
+     "side": "top",
+     "group": "CHIP_0603 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.3,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       -0.026,
+       -0.006
+      ],
+      "raw_offset_mm": 0.027,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.017,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C245959",
+     "ref": "R175",
+     "side": "bottom",
+     "group": "CHIP_0603 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.4,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       0.005,
+       -0.019
+      ],
+      "raw_offset_mm": 0.02,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.009,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C245959",
+     "ref": "R176",
+     "side": "bottom",
+     "group": "CHIP_0603 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.6,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       0.01,
+       -0.012
+      ],
+      "raw_offset_mm": 0.016,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.001,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C245989",
+     "ref": "R177",
+     "side": "top",
+     "group": "CHIP_0603 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.8,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       -0.007,
+       -0.027
+      ],
+      "raw_offset_mm": 0.028,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.012,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C245989",
+     "ref": "R178",
+     "side": "top",
+     "group": "CHIP_0603 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -2.0,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       -0.017,
+       0.01
+      ],
+      "raw_offset_mm": 0.02,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.027,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C245989",
+     "ref": "R179",
+     "side": "bottom",
+     "group": "CHIP_0603 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.1,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       0.005,
+       0.011
+      ],
+      "raw_offset_mm": 0.012,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.022,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C245989",
+     "ref": "R180",
+     "side": "bottom",
+     "group": "CHIP_0603 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.3,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       0.015,
+       0.004
+      ],
+      "raw_offset_mm": 0.016,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.016,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C273780",
+     "ref": "R181",
+     "side": "top",
+     "group": "CHIP_0603 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.2,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       0.036,
+       -0.015
+      ],
+      "raw_offset_mm": 0.039,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.048,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C273780",
+     "ref": "R182",
+     "side": "top",
+     "group": "CHIP_0603 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 1.4,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       0.008,
+       0.0
+      ],
+      "raw_offset_mm": 0.008,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.026,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C273780",
+     "ref": "R183",
+     "side": "bottom",
+     "group": "CHIP_0603 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.4,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       0.047,
+       0.009
+      ],
+      "raw_offset_mm": 0.048,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.043,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C273780",
+     "ref": "R184",
+     "side": "bottom",
+     "group": "CHIP_0603 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 1.1,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       0.029,
+       0.003
+      ],
+      "raw_offset_mm": 0.029,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.024,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C327396",
+     "ref": "R205",
+     "side": "top",
+     "group": "CHIP_0603 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.1,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       -0.01,
+       -0.011
+      ],
+      "raw_offset_mm": 0.015,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.006,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C327396",
+     "ref": "R206",
+     "side": "top",
+     "group": "CHIP_0603 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.1,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       -0.006,
+       -0.018
+      ],
+      "raw_offset_mm": 0.019,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.006,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C327396",
+     "ref": "R207",
+     "side": "bottom",
+     "group": "CHIP_0603 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.2,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       0.024,
+       -0.028
+      ],
+      "raw_offset_mm": 0.037,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.023,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C327396",
+     "ref": "R208",
+     "side": "bottom",
+     "group": "CHIP_0603 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 1.1,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       0.012,
+       -0.008
+      ],
+      "raw_offset_mm": 0.014,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.004,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C482781",
+     "ref": "R209",
+     "side": "top",
+     "group": "CHIP_0603 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.8,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       -0.043,
+       -0.015
+      ],
+      "raw_offset_mm": 0.046,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.031,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C482781",
+     "ref": "R210",
+     "side": "top",
+     "group": "CHIP_0603 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.2,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       -0.048,
+       -0.014
+      ],
+      "raw_offset_mm": 0.05,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.036,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C482781",
+     "ref": "R211",
+     "side": "bottom",
+     "group": "CHIP_0603 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.0,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       -0.015,
+       -0.024
+      ],
+      "raw_offset_mm": 0.028,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.027,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C482781",
+     "ref": "R212",
+     "side": "bottom",
+     "group": "CHIP_0603 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.3,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       -0.016,
+       -0.013
+      ],
+      "raw_offset_mm": 0.021,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.025,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C482816",
+     "ref": "R213",
+     "side": "top",
+     "group": "CHIP_0603 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.6,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       -0.001,
+       -0.044
+      ],
+      "raw_offset_mm": 0.044,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.03,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C482816",
+     "ref": "R214",
+     "side": "top",
+     "group": "CHIP_0603 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -1.0,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       0.005,
+       -0.035
+      ],
+      "raw_offset_mm": 0.035,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.025,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C482816",
+     "ref": "R215",
+     "side": "bottom",
+     "group": "CHIP_0603 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.5,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       0.026,
+       -0.043
+      ],
+      "raw_offset_mm": 0.05,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.036,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C482816",
+     "ref": "R216",
+     "side": "bottom",
+     "group": "CHIP_0603 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.5,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       0.033,
+       -0.024
+      ],
+      "raw_offset_mm": 0.041,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.027,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C482931",
+     "ref": "R217",
+     "side": "top",
+     "group": "CHIP_0603 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.1,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       -0.001,
+       0.014
+      ],
+      "raw_offset_mm": 0.014,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.032,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C482931",
+     "ref": "R218",
+     "side": "top",
+     "group": "CHIP_0603 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -1.0,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       0.002,
+       0.025
+      ],
+      "raw_offset_mm": 0.025,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.044,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C482931",
+     "ref": "R219",
+     "side": "bottom",
+     "group": "CHIP_0603 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.6,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       0.027,
+       0.014
+      ],
+      "raw_offset_mm": 0.03,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.031,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C482931",
+     "ref": "R220",
+     "side": "bottom",
+     "group": "CHIP_0603 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.1,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       0.035,
+       0.027
+      ],
+      "raw_offset_mm": 0.044,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.046,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    }
+   ]
+  },
+  "CHIP_0603 MLCC Yageo CC": {
+   "purpose": "sample",
+   "pns": 7,
+   "passed_pns": [
+    "C108079",
+    "C113811",
+    "C519397",
+    "C576799",
+    "C576820",
+    "C2930551"
+   ],
+   "not_drawn_pns": [
+    "C576858"
+   ],
+   "copies": 28,
+   "passed_copies": 24,
+   "max_angle_deg": 3.7,
+   "max_raw_mm": 0.074,
+   "max_residual_mm": 0.066,
+   "rows": [
+    {
+     "pn": "C108079",
+     "ref": "C5",
+     "side": "top",
+     "group": "CHIP_0603 MLCC Yageo CC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -1.6,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       -0.026,
+       -0.035
+      ],
+      "raw_offset_mm": 0.044,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.023,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 144
+     },
+     "passed": true
+    },
+    {
+     "pn": "C108079",
+     "ref": "C6",
+     "side": "top",
+     "group": "CHIP_0603 MLCC Yageo CC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -3.7,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       -0.029,
+       -0.023
+      ],
+      "raw_offset_mm": 0.037,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.018,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 144
+     },
+     "passed": true
+    },
+    {
+     "pn": "C108079",
+     "ref": "C7",
+     "side": "bottom",
+     "group": "CHIP_0603 MLCC Yageo CC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.5,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       -0.011,
+       -0.023
+      ],
+      "raw_offset_mm": 0.025,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.023,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 144
+     },
+     "passed": true
+    },
+    {
+     "pn": "C108079",
+     "ref": "C8",
+     "side": "bottom",
+     "group": "CHIP_0603 MLCC Yageo CC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.5,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       -0.004,
+       -0.018
+      ],
+      "raw_offset_mm": 0.018,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.015,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 144
+     },
+     "passed": true
+    },
+    {
+     "pn": "C113811",
+     "ref": "C10",
+     "side": "top",
+     "group": "CHIP_0603 MLCC Yageo CC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -1.6,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       -0.013,
+       -0.018
+      ],
+      "raw_offset_mm": 0.022,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.002,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 144
+     },
+     "passed": true
+    },
+    {
+     "pn": "C113811",
+     "ref": "C11",
+     "side": "bottom",
+     "group": "CHIP_0603 MLCC Yageo CC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.3,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       0.004,
+       -0.023
+      ],
+      "raw_offset_mm": 0.023,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.013,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 144
+     },
+     "passed": true
+    },
+    {
+     "pn": "C113811",
+     "ref": "C12",
+     "side": "bottom",
+     "group": "CHIP_0603 MLCC Yageo CC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.2,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       0.008,
+       -0.019
+      ],
+      "raw_offset_mm": 0.021,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.008,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 144
+     },
+     "passed": true
+    },
+    {
+     "pn": "C113811",
+     "ref": "C9",
+     "side": "top",
+     "group": "CHIP_0603 MLCC Yageo CC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.8,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       0.002,
+       -0.042
+      ],
+      "raw_offset_mm": 0.042,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.029,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 144
+     },
+     "passed": true
+    },
+    {
+     "pn": "C519397",
+     "ref": "C17",
+     "side": "top",
+     "group": "CHIP_0603 MLCC Yageo CC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -1.9,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       -0.04,
+       -0.052
+      ],
+      "raw_offset_mm": 0.066,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.045,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 144
+     },
+     "passed": true
+    },
+    {
+     "pn": "C519397",
+     "ref": "C18",
+     "side": "top",
+     "group": "CHIP_0603 MLCC Yageo CC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.3,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       -0.017,
+       -0.044
+      ],
+      "raw_offset_mm": 0.047,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.028,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 144
+     },
+     "passed": true
+    },
+    {
+     "pn": "C519397",
+     "ref": "C19",
+     "side": "bottom",
+     "group": "CHIP_0603 MLCC Yageo CC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.9,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       0.019,
+       -0.053
+      ],
+      "raw_offset_mm": 0.056,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.043,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 144
+     },
+     "passed": true
+    },
+    {
+     "pn": "C519397",
+     "ref": "C20",
+     "side": "bottom",
+     "group": "CHIP_0603 MLCC Yageo CC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.8,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       -0.007,
+       -0.037
+      ],
+      "raw_offset_mm": 0.038,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.031,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 144
+     },
+     "passed": true
+    },
+    {
+     "pn": "C576799",
+     "ref": "C21",
+     "side": "top",
+     "group": "CHIP_0603 MLCC Yageo CC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 2.4,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       -0.037,
+       -0.064
+      ],
+      "raw_offset_mm": 0.074,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.054,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 144
+     },
+     "passed": true
+    },
+    {
+     "pn": "C576799",
+     "ref": "C22",
+     "side": "top",
+     "group": "CHIP_0603 MLCC Yageo CC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -3.4,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       -0.038,
+       -0.051
+      ],
+      "raw_offset_mm": 0.064,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.043,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 144
+     },
+     "passed": true
+    },
+    {
+     "pn": "C576799",
+     "ref": "C23",
+     "side": "bottom",
+     "group": "CHIP_0603 MLCC Yageo CC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.5,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       -0.01,
+       -0.054
+      ],
+      "raw_offset_mm": 0.055,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.047,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 144
+     },
+     "passed": true
+    },
+    {
+     "pn": "C576799",
+     "ref": "C24",
+     "side": "bottom",
+     "group": "CHIP_0603 MLCC Yageo CC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.9,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       -0.027,
+       -0.036
+      ],
+      "raw_offset_mm": 0.045,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.044,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 144
+     },
+     "passed": true
+    },
+    {
+     "pn": "C576820",
+     "ref": "C25",
+     "side": "top",
+     "group": "CHIP_0603 MLCC Yageo CC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 1.0,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       0.01,
+       -0.057
+      ],
+      "raw_offset_mm": 0.058,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.046,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 144
+     },
+     "passed": true
+    },
+    {
+     "pn": "C576820",
+     "ref": "C26",
+     "side": "top",
+     "group": "CHIP_0603 MLCC Yageo CC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.5,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       -0.013,
+       -0.04
+      ],
+      "raw_offset_mm": 0.042,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.024,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 144
+     },
+     "passed": true
+    },
+    {
+     "pn": "C576820",
+     "ref": "C27",
+     "side": "bottom",
+     "group": "CHIP_0603 MLCC Yageo CC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.0,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       0.023,
+       -0.054
+      ],
+      "raw_offset_mm": 0.059,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.045,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 144
+     },
+     "passed": true
+    },
+    {
+     "pn": "C576820",
+     "ref": "C28",
+     "side": "bottom",
+     "group": "CHIP_0603 MLCC Yageo CC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.3,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       0.019,
+       -0.039
+      ],
+      "raw_offset_mm": 0.043,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.03,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 144
+     },
+     "passed": true
+    },
+    {
+     "pn": "C576858",
+     "ref": "C29",
+     "side": "top",
+     "group": "CHIP_0603 MLCC Yageo CC",
+     "preview_status": "unverified",
+     "not_drawn": true,
+     "reading": null,
+     "passed": false
+    },
+    {
+     "pn": "C576858",
+     "ref": "C30",
+     "side": "top",
+     "group": "CHIP_0603 MLCC Yageo CC",
+     "preview_status": "unverified",
+     "not_drawn": true,
+     "reading": null,
+     "passed": false
+    },
+    {
+     "pn": "C576858",
+     "ref": "C31",
+     "side": "bottom",
+     "group": "CHIP_0603 MLCC Yageo CC",
+     "preview_status": "unverified",
+     "not_drawn": true,
+     "reading": null,
+     "passed": false
+    },
+    {
+     "pn": "C576858",
+     "ref": "C32",
+     "side": "bottom",
+     "group": "CHIP_0603 MLCC Yageo CC",
+     "preview_status": "unverified",
+     "not_drawn": true,
+     "reading": null,
+     "passed": false
+    },
+    {
+     "pn": "C2930551",
+     "ref": "C13",
+     "side": "top",
+     "group": "CHIP_0603 MLCC Yageo CC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -2.0,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       0.012,
+       -0.062
+      ],
+      "raw_offset_mm": 0.063,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.051,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 144
+     },
+     "passed": true
+    },
+    {
+     "pn": "C2930551",
+     "ref": "C14",
+     "side": "top",
+     "group": "CHIP_0603 MLCC Yageo CC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 2.2,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       0.04,
+       -0.057
+      ],
+      "raw_offset_mm": 0.07,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.066,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 144
+     },
+     "passed": true
+    },
+    {
+     "pn": "C2930551",
+     "ref": "C15",
+     "side": "bottom",
+     "group": "CHIP_0603 MLCC Yageo CC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.1,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       0.034,
+       -0.055
+      ],
+      "raw_offset_mm": 0.065,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.051,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 144
+     },
+     "passed": true
+    },
+    {
+     "pn": "C2930551",
+     "ref": "C16",
+     "side": "bottom",
+     "group": "CHIP_0603 MLCC Yageo CC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.9,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       0.04,
+       -0.046
+      ],
+      "raw_offset_mm": 0.061,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.047,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 144
+     },
+     "passed": true
+    }
+   ]
+  },
+  "CHIP_0805 ChipResistor UNI-ROYAL 0805W8": {
+   "purpose": "control",
+   "pns": 1,
+   "passed_pns": [
+    "C17477"
+   ],
+   "not_drawn_pns": [],
+   "copies": 4,
+   "passed_copies": 4,
+   "max_angle_deg": 1.6,
+   "max_raw_mm": 0.068,
+   "max_residual_mm": 0.048,
+   "rows": [
+    {
+     "pn": "C17477",
+     "ref": "R5",
+     "side": "top",
+     "group": "CHIP_0805 ChipResistor UNI-ROYAL 0805W8",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.2,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       -0.043,
+       -0.053
+      ],
+      "raw_offset_mm": 0.068,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.048,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 154
+     },
+     "passed": true
+    },
+    {
+     "pn": "C17477",
+     "ref": "R6",
+     "side": "top",
+     "group": "CHIP_0805 ChipResistor UNI-ROYAL 0805W8",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.1,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       -0.024,
+       -0.027
+      ],
+      "raw_offset_mm": 0.036,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.016,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 154
+     },
+     "passed": true
+    },
+    {
+     "pn": "C17477",
+     "ref": "R7",
+     "side": "bottom",
+     "group": "CHIP_0805 ChipResistor UNI-ROYAL 0805W8",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.0,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       -0.005,
+       -0.023
+      ],
+      "raw_offset_mm": 0.024,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.018,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 154
+     },
+     "passed": true
+    },
+    {
+     "pn": "C17477",
+     "ref": "R8",
+     "side": "bottom",
+     "group": "CHIP_0805 ChipResistor UNI-ROYAL 0805W8",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 1.6,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       -0.009,
+       -0.022
+      ],
+      "raw_offset_mm": 0.024,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.021,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 154
+     },
+     "passed": true
+    }
+   ]
+  },
+  "CHIP_0805 ChipResistor Yageo RC": {
+   "purpose": "sample",
+   "pns": 22,
+   "passed_pns": [
+    "C96346",
+    "C114237",
+    "C114519",
+    "C114533",
+    "C114543",
+    "C114546",
+    "C114556",
+    "C114564",
+    "C126352",
+    "C137412",
+    "C137431",
+    "C137465",
+    "C137488",
+    "C137499",
+    "C137531",
+    "C273820",
+    "C273826",
+    "C482958",
+    "C482967",
+    "C483050",
+    "C483150",
+    "C483256"
+   ],
+   "not_drawn_pns": [],
+   "copies": 88,
+   "passed_copies": 88,
+   "max_angle_deg": 2.3,
+   "max_raw_mm": 0.072,
+   "max_residual_mm": 0.058,
+   "rows": [
+    {
+     "pn": "C96346",
+     "ref": "R277",
+     "side": "top",
+     "group": "CHIP_0805 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.4,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       -0.025,
+       -0.044
+      ],
+      "raw_offset_mm": 0.051,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.03,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 112
+     },
+     "passed": true
+    },
+    {
+     "pn": "C96346",
+     "ref": "R278",
+     "side": "top",
+     "group": "CHIP_0805 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.7,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       -0.031,
+       -0.044
+      ],
+      "raw_offset_mm": 0.054,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.033,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 112
+     },
+     "passed": true
+    },
+    {
+     "pn": "C96346",
+     "ref": "R279",
+     "side": "bottom",
+     "group": "CHIP_0805 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.9,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       -0.018,
+       -0.056
+      ],
+      "raw_offset_mm": 0.059,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.052,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 112
+     },
+     "passed": true
+    },
+    {
+     "pn": "C96346",
+     "ref": "R280",
+     "side": "bottom",
+     "group": "CHIP_0805 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.2,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       -0.015,
+       -0.034
+      ],
+      "raw_offset_mm": 0.037,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.033,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 112
+     },
+     "passed": true
+    },
+    {
+     "pn": "C114237",
+     "ref": "R21",
+     "side": "top",
+     "group": "CHIP_0805 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 1.1,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       -0.021,
+       0.026
+      ],
+      "raw_offset_mm": 0.033,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.043,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 112
+     },
+     "passed": true
+    },
+    {
+     "pn": "C114237",
+     "ref": "R22",
+     "side": "top",
+     "group": "CHIP_0805 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.8,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       -0.011,
+       0.011
+      ],
+      "raw_offset_mm": 0.016,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.028,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 112
+     },
+     "passed": true
+    },
+    {
+     "pn": "C114237",
+     "ref": "R23",
+     "side": "bottom",
+     "group": "CHIP_0805 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.8,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       0.009,
+       -0.004
+      ],
+      "raw_offset_mm": 0.01,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.007,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 112
+     },
+     "passed": true
+    },
+    {
+     "pn": "C114237",
+     "ref": "R24",
+     "side": "bottom",
+     "group": "CHIP_0805 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.0,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       0.003,
+       0.027
+      ],
+      "raw_offset_mm": 0.027,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.038,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 112
+     },
+     "passed": true
+    },
+    {
+     "pn": "C114519",
+     "ref": "R25",
+     "side": "top",
+     "group": "CHIP_0805 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -1.0,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       0.008,
+       -0.055
+      ],
+      "raw_offset_mm": 0.056,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.043,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 112
+     },
+     "passed": true
+    },
+    {
+     "pn": "C114519",
+     "ref": "R26",
+     "side": "top",
+     "group": "CHIP_0805 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.8,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       -0.001,
+       -0.023
+      ],
+      "raw_offset_mm": 0.023,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.013,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 112
+     },
+     "passed": true
+    },
+    {
+     "pn": "C114519",
+     "ref": "R27",
+     "side": "bottom",
+     "group": "CHIP_0805 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.4,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       0.025,
+       -0.021
+      ],
+      "raw_offset_mm": 0.033,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.019,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 112
+     },
+     "passed": true
+    },
+    {
+     "pn": "C114519",
+     "ref": "R28",
+     "side": "bottom",
+     "group": "CHIP_0805 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 1.0,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       0.022,
+       -0.022
+      ],
+      "raw_offset_mm": 0.031,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.017,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 112
+     },
+     "passed": true
+    },
+    {
+     "pn": "C114533",
+     "ref": "R29",
+     "side": "top",
+     "group": "CHIP_0805 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.5,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       0.011,
+       -0.053
+      ],
+      "raw_offset_mm": 0.054,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.043,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 112
+     },
+     "passed": true
+    },
+    {
+     "pn": "C114533",
+     "ref": "R30",
+     "side": "top",
+     "group": "CHIP_0805 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.5,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       0.004,
+       -0.03
+      ],
+      "raw_offset_mm": 0.03,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.021,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 112
+     },
+     "passed": true
+    },
+    {
+     "pn": "C114533",
+     "ref": "R31",
+     "side": "bottom",
+     "group": "CHIP_0805 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.7,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       0.05,
+       -0.022
+      ],
+      "raw_offset_mm": 0.055,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.042,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 112
+     },
+     "passed": true
+    },
+    {
+     "pn": "C114533",
+     "ref": "R32",
+     "side": "bottom",
+     "group": "CHIP_0805 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.4,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       0.039,
+       -0.023
+      ],
+      "raw_offset_mm": 0.045,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.032,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 112
+     },
+     "passed": true
+    },
+    {
+     "pn": "C114543",
+     "ref": "R33",
+     "side": "top",
+     "group": "CHIP_0805 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.6,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       -0.008,
+       -0.018
+      ],
+      "raw_offset_mm": 0.02,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.004,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 112
+     },
+     "passed": true
+    },
+    {
+     "pn": "C114543",
+     "ref": "R34",
+     "side": "top",
+     "group": "CHIP_0805 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.9,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       -0.011,
+       -0.022
+      ],
+      "raw_offset_mm": 0.025,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.006,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 112
+     },
+     "passed": true
+    },
+    {
+     "pn": "C114543",
+     "ref": "R35",
+     "side": "bottom",
+     "group": "CHIP_0805 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.0,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       0.025,
+       -0.007
+      ],
+      "raw_offset_mm": 0.026,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.016,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 112
+     },
+     "passed": true
+    },
+    {
+     "pn": "C114543",
+     "ref": "R36",
+     "side": "bottom",
+     "group": "CHIP_0805 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -1.4,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       0.009,
+       -0.003
+      ],
+      "raw_offset_mm": 0.009,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.008,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 112
+     },
+     "passed": true
+    },
+    {
+     "pn": "C114546",
+     "ref": "R37",
+     "side": "top",
+     "group": "CHIP_0805 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.0,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       -0.028,
+       0.0
+      ],
+      "raw_offset_mm": 0.028,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.023,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 112
+     },
+     "passed": true
+    },
+    {
+     "pn": "C114546",
+     "ref": "R38",
+     "side": "top",
+     "group": "CHIP_0805 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.2,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       -0.013,
+       0.006
+      ],
+      "raw_offset_mm": 0.014,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.023,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 112
+     },
+     "passed": true
+    },
+    {
+     "pn": "C114546",
+     "ref": "R39",
+     "side": "bottom",
+     "group": "CHIP_0805 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 1.0,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       0.01,
+       -0.01
+      ],
+      "raw_offset_mm": 0.014,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.001,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 112
+     },
+     "passed": true
+    },
+    {
+     "pn": "C114546",
+     "ref": "R40",
+     "side": "bottom",
+     "group": "CHIP_0805 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.2,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       0.014,
+       0.014
+      ],
+      "raw_offset_mm": 0.02,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.025,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 112
+     },
+     "passed": true
+    },
+    {
+     "pn": "C114556",
+     "ref": "R41",
+     "side": "top",
+     "group": "CHIP_0805 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 1.9,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       0.004,
+       -0.045
+      ],
+      "raw_offset_mm": 0.045,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.033,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 112
+     },
+     "passed": true
+    },
+    {
+     "pn": "C114556",
+     "ref": "R42",
+     "side": "top",
+     "group": "CHIP_0805 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -1.0,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       -0.014,
+       -0.045
+      ],
+      "raw_offset_mm": 0.047,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.029,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 112
+     },
+     "passed": true
+    },
+    {
+     "pn": "C114556",
+     "ref": "R43",
+     "side": "bottom",
+     "group": "CHIP_0805 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.1,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       0.033,
+       -0.056
+      ],
+      "raw_offset_mm": 0.065,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.051,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 112
+     },
+     "passed": true
+    },
+    {
+     "pn": "C114556",
+     "ref": "R44",
+     "side": "bottom",
+     "group": "CHIP_0805 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.1,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       0.004,
+       -0.034
+      ],
+      "raw_offset_mm": 0.034,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.024,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 112
+     },
+     "passed": true
+    },
+    {
+     "pn": "C114564",
+     "ref": "R45",
+     "side": "top",
+     "group": "CHIP_0805 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.0,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       0.003,
+       -0.016
+      ],
+      "raw_offset_mm": 0.016,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.015,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 112
+     },
+     "passed": true
+    },
+    {
+     "pn": "C114564",
+     "ref": "R46",
+     "side": "top",
+     "group": "CHIP_0805 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -1.9,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       0.007,
+       -0.02
+      ],
+      "raw_offset_mm": 0.021,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.019,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 112
+     },
+     "passed": true
+    },
+    {
+     "pn": "C114564",
+     "ref": "R47",
+     "side": "bottom",
+     "group": "CHIP_0805 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.1,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       0.022,
+       -0.006
+      ],
+      "raw_offset_mm": 0.023,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.014,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 112
+     },
+     "passed": true
+    },
+    {
+     "pn": "C114564",
+     "ref": "R48",
+     "side": "bottom",
+     "group": "CHIP_0805 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.6,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       0.037,
+       -0.006
+      ],
+      "raw_offset_mm": 0.037,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.028,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 112
+     },
+     "passed": true
+    },
+    {
+     "pn": "C126352",
+     "ref": "R65",
+     "side": "top",
+     "group": "CHIP_0805 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -1.2,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       -0.019,
+       -0.018
+      ],
+      "raw_offset_mm": 0.026,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.007,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 112
+     },
+     "passed": true
+    },
+    {
+     "pn": "C126352",
+     "ref": "R66",
+     "side": "top",
+     "group": "CHIP_0805 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -1.8,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       -0.027,
+       -0.016
+      ],
+      "raw_offset_mm": 0.031,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.015,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 112
+     },
+     "passed": true
+    },
+    {
+     "pn": "C126352",
+     "ref": "R67",
+     "side": "bottom",
+     "group": "CHIP_0805 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 1.7,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       -0.024,
+       -0.004
+      ],
+      "raw_offset_mm": 0.024,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.034,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 112
+     },
+     "passed": true
+    },
+    {
+     "pn": "C126352",
+     "ref": "R68",
+     "side": "bottom",
+     "group": "CHIP_0805 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.0,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       -0.006,
+       -0.002
+      ],
+      "raw_offset_mm": 0.006,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.017,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 112
+     },
+     "passed": true
+    },
+    {
+     "pn": "C137412",
+     "ref": "R109",
+     "side": "top",
+     "group": "CHIP_0805 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.2,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       0.01,
+       0.023
+      ],
+      "raw_offset_mm": 0.025,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.045,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 112
+     },
+     "passed": true
+    },
+    {
+     "pn": "C137412",
+     "ref": "R110",
+     "side": "top",
+     "group": "CHIP_0805 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 2.2,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       -0.003,
+       0.029
+      ],
+      "raw_offset_mm": 0.029,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.046,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 112
+     },
+     "passed": true
+    },
+    {
+     "pn": "C137412",
+     "ref": "R111",
+     "side": "bottom",
+     "group": "CHIP_0805 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.5,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       0.009,
+       0.003
+      ],
+      "raw_offset_mm": 0.009,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.014,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 112
+     },
+     "passed": true
+    },
+    {
+     "pn": "C137412",
+     "ref": "R112",
+     "side": "bottom",
+     "group": "CHIP_0805 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.4,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       0.022,
+       0.026
+      ],
+      "raw_offset_mm": 0.034,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.039,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 112
+     },
+     "passed": true
+    },
+    {
+     "pn": "C137431",
+     "ref": "R113",
+     "side": "top",
+     "group": "CHIP_0805 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.4,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       -0.022,
+       0.019
+      ],
+      "raw_offset_mm": 0.029,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.037,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 112
+     },
+     "passed": true
+    },
+    {
+     "pn": "C137431",
+     "ref": "R114",
+     "side": "top",
+     "group": "CHIP_0805 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -2.3,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       -0.015,
+       0.029
+      ],
+      "raw_offset_mm": 0.033,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.046,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 112
+     },
+     "passed": true
+    },
+    {
+     "pn": "C137431",
+     "ref": "R115",
+     "side": "bottom",
+     "group": "CHIP_0805 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.9,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       0.003,
+       0.002
+      ],
+      "raw_offset_mm": 0.004,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.014,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 112
+     },
+     "passed": true
+    },
+    {
+     "pn": "C137431",
+     "ref": "R116",
+     "side": "bottom",
+     "group": "CHIP_0805 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.5,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       0.009,
+       0.031
+      ],
+      "raw_offset_mm": 0.032,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.042,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 112
+     },
+     "passed": true
+    },
+    {
+     "pn": "C137465",
+     "ref": "R117",
+     "side": "top",
+     "group": "CHIP_0805 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.0,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       -0.023,
+       0.02
+      ],
+      "raw_offset_mm": 0.03,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.038,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 112
+     },
+     "passed": true
+    },
+    {
+     "pn": "C137465",
+     "ref": "R118",
+     "side": "top",
+     "group": "CHIP_0805 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.1,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       -0.036,
+       0.022
+      ],
+      "raw_offset_mm": 0.042,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.045,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 112
+     },
+     "passed": true
+    },
+    {
+     "pn": "C137465",
+     "ref": "R119",
+     "side": "bottom",
+     "group": "CHIP_0805 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.0,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       -0.023,
+       0.0
+      ],
+      "raw_offset_mm": 0.023,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.034,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 112
+     },
+     "passed": true
+    },
+    {
+     "pn": "C137465",
+     "ref": "R120",
+     "side": "bottom",
+     "group": "CHIP_0805 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.7,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       -0.016,
+       0.021
+      ],
+      "raw_offset_mm": 0.026,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.041,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 112
+     },
+     "passed": true
+    },
+    {
+     "pn": "C137488",
+     "ref": "R121",
+     "side": "top",
+     "group": "CHIP_0805 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.3,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       0.018,
+       -0.002
+      ],
+      "raw_offset_mm": 0.018,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.033,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 112
+     },
+     "passed": true
+    },
+    {
+     "pn": "C137488",
+     "ref": "R122",
+     "side": "top",
+     "group": "CHIP_0805 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -1.4,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       0.008,
+       0.006
+      ],
+      "raw_offset_mm": 0.01,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.03,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 112
+     },
+     "passed": true
+    },
+    {
+     "pn": "C137488",
+     "ref": "R123",
+     "side": "bottom",
+     "group": "CHIP_0805 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.5,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       0.04,
+       -0.015
+      ],
+      "raw_offset_mm": 0.043,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.031,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 112
+     },
+     "passed": true
+    },
+    {
+     "pn": "C137488",
+     "ref": "R124",
+     "side": "bottom",
+     "group": "CHIP_0805 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.3,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       0.03,
+       0.004
+      ],
+      "raw_offset_mm": 0.03,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.026,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 112
+     },
+     "passed": true
+    },
+    {
+     "pn": "C137499",
+     "ref": "R125",
+     "side": "top",
+     "group": "CHIP_0805 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.6,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       -0.012,
+       0.001
+      ],
+      "raw_offset_mm": 0.012,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.018,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 112
+     },
+     "passed": true
+    },
+    {
+     "pn": "C137499",
+     "ref": "R126",
+     "side": "top",
+     "group": "CHIP_0805 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.4,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       -0.016,
+       0.011
+      ],
+      "raw_offset_mm": 0.019,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.028,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 112
+     },
+     "passed": true
+    },
+    {
+     "pn": "C137499",
+     "ref": "R127",
+     "side": "bottom",
+     "group": "CHIP_0805 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.4,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       0.002,
+       -0.01
+      ],
+      "raw_offset_mm": 0.01,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.007,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 112
+     },
+     "passed": true
+    },
+    {
+     "pn": "C137499",
+     "ref": "R128",
+     "side": "bottom",
+     "group": "CHIP_0805 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.6,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       0.004,
+       0.01
+      ],
+      "raw_offset_mm": 0.011,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.022,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 112
+     },
+     "passed": true
+    },
+    {
+     "pn": "C137531",
+     "ref": "R129",
+     "side": "top",
+     "group": "CHIP_0805 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -1.1,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       0.007,
+       -0.02
+      ],
+      "raw_offset_mm": 0.021,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.019,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 112
+     },
+     "passed": true
+    },
+    {
+     "pn": "C137531",
+     "ref": "R130",
+     "side": "top",
+     "group": "CHIP_0805 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 2.3,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       -0.009,
+       -0.008
+      ],
+      "raw_offset_mm": 0.012,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.009,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 112
+     },
+     "passed": true
+    },
+    {
+     "pn": "C137531",
+     "ref": "R131",
+     "side": "bottom",
+     "group": "CHIP_0805 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.0,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       0.024,
+       -0.006
+      ],
+      "raw_offset_mm": 0.025,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.016,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 112
+     },
+     "passed": true
+    },
+    {
+     "pn": "C137531",
+     "ref": "R132",
+     "side": "bottom",
+     "group": "CHIP_0805 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.8,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       0.014,
+       -0.004
+      ],
+      "raw_offset_mm": 0.015,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.009,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 112
+     },
+     "passed": true
+    },
+    {
+     "pn": "C273820",
+     "ref": "R185",
+     "side": "top",
+     "group": "CHIP_0805 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 1.0,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       0.021,
+       -0.04
+      ],
+      "raw_offset_mm": 0.045,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.041,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 112
+     },
+     "passed": true
+    },
+    {
+     "pn": "C273820",
+     "ref": "R186",
+     "side": "top",
+     "group": "CHIP_0805 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.2,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       0.003,
+       -0.045
+      ],
+      "raw_offset_mm": 0.045,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.032,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 112
+     },
+     "passed": true
+    },
+    {
+     "pn": "C273820",
+     "ref": "R187",
+     "side": "bottom",
+     "group": "CHIP_0805 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.8,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       0.045,
+       -0.056
+      ],
+      "raw_offset_mm": 0.072,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.058,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 112
+     },
+     "passed": true
+    },
+    {
+     "pn": "C273820",
+     "ref": "R188",
+     "side": "bottom",
+     "group": "CHIP_0805 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.7,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       0.023,
+       -0.042
+      ],
+      "raw_offset_mm": 0.048,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.034,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 112
+     },
+     "passed": true
+    },
+    {
+     "pn": "C273826",
+     "ref": "R189",
+     "side": "top",
+     "group": "CHIP_0805 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.3,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       -0.048,
+       0.002
+      ],
+      "raw_offset_mm": 0.048,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.04,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 112
+     },
+     "passed": true
+    },
+    {
+     "pn": "C273826",
+     "ref": "R190",
+     "side": "top",
+     "group": "CHIP_0805 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -1.0,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       -0.025,
+       0.009
+      ],
+      "raw_offset_mm": 0.027,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.029,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 112
+     },
+     "passed": true
+    },
+    {
+     "pn": "C273826",
+     "ref": "R191",
+     "side": "bottom",
+     "group": "CHIP_0805 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.7,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       -0.011,
+       -0.018
+      ],
+      "raw_offset_mm": 0.021,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.021,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 112
+     },
+     "passed": true
+    },
+    {
+     "pn": "C273826",
+     "ref": "R192",
+     "side": "bottom",
+     "group": "CHIP_0805 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.5,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       -0.001,
+       0.014
+      ],
+      "raw_offset_mm": 0.014,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.027,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 112
+     },
+     "passed": true
+    },
+    {
+     "pn": "C482958",
+     "ref": "R221",
+     "side": "top",
+     "group": "CHIP_0805 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -1.1,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       -0.023,
+       -0.06
+      ],
+      "raw_offset_mm": 0.064,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.045,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 112
+     },
+     "passed": true
+    },
+    {
+     "pn": "C482958",
+     "ref": "R222",
+     "side": "top",
+     "group": "CHIP_0805 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.2,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       -0.026,
+       -0.022
+      ],
+      "raw_offset_mm": 0.034,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.015,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 112
+     },
+     "passed": true
+    },
+    {
+     "pn": "C482958",
+     "ref": "R223",
+     "side": "bottom",
+     "group": "CHIP_0805 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.8,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       0.002,
+       -0.025
+      ],
+      "raw_offset_mm": 0.025,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.016,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 112
+     },
+     "passed": true
+    },
+    {
+     "pn": "C482958",
+     "ref": "R224",
+     "side": "bottom",
+     "group": "CHIP_0805 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.6,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       0.006,
+       -0.023
+      ],
+      "raw_offset_mm": 0.024,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.012,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 112
+     },
+     "passed": true
+    },
+    {
+     "pn": "C482967",
+     "ref": "R225",
+     "side": "top",
+     "group": "CHIP_0805 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.1,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       -0.035,
+       -0.048
+      ],
+      "raw_offset_mm": 0.059,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.039,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 112
+     },
+     "passed": true
+    },
+    {
+     "pn": "C482967",
+     "ref": "R226",
+     "side": "top",
+     "group": "CHIP_0805 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.6,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       -0.047,
+       -0.026
+      ],
+      "raw_offset_mm": 0.054,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.036,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 112
+     },
+     "passed": true
+    },
+    {
+     "pn": "C482967",
+     "ref": "R227",
+     "side": "bottom",
+     "group": "CHIP_0805 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.1,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       -0.01,
+       -0.021
+      ],
+      "raw_offset_mm": 0.023,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.021,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 112
+     },
+     "passed": true
+    },
+    {
+     "pn": "C482967",
+     "ref": "R228",
+     "side": "bottom",
+     "group": "CHIP_0805 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -1.5,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       -0.016,
+       -0.021
+      ],
+      "raw_offset_mm": 0.026,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.027,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 112
+     },
+     "passed": true
+    },
+    {
+     "pn": "C483050",
+     "ref": "R229",
+     "side": "top",
+     "group": "CHIP_0805 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.8,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       -0.031,
+       -0.017
+      ],
+      "raw_offset_mm": 0.035,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.019,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 112
+     },
+     "passed": true
+    },
+    {
+     "pn": "C483050",
+     "ref": "R230",
+     "side": "top",
+     "group": "CHIP_0805 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -1.0,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       -0.041,
+       -0.019
+      ],
+      "raw_offset_mm": 0.045,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.029,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 112
+     },
+     "passed": true
+    },
+    {
+     "pn": "C483050",
+     "ref": "R231",
+     "side": "bottom",
+     "group": "CHIP_0805 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.0,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       -0.01,
+       -0.005
+      ],
+      "raw_offset_mm": 0.011,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.02,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 112
+     },
+     "passed": true
+    },
+    {
+     "pn": "C483050",
+     "ref": "R232",
+     "side": "bottom",
+     "group": "CHIP_0805 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.6,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       -0.017,
+       0.001
+      ],
+      "raw_offset_mm": 0.017,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.029,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 112
+     },
+     "passed": true
+    },
+    {
+     "pn": "C483150",
+     "ref": "R233",
+     "side": "top",
+     "group": "CHIP_0805 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.4,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       -0.016,
+       0.003
+      ],
+      "raw_offset_mm": 0.016,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.02,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 112
+     },
+     "passed": true
+    },
+    {
+     "pn": "C483150",
+     "ref": "R234",
+     "side": "top",
+     "group": "CHIP_0805 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.5,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       -0.045,
+       0.008
+      ],
+      "raw_offset_mm": 0.046,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.041,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 112
+     },
+     "passed": true
+    },
+    {
+     "pn": "C483150",
+     "ref": "R235",
+     "side": "bottom",
+     "group": "CHIP_0805 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.4,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       -0.039,
+       -0.016
+      ],
+      "raw_offset_mm": 0.042,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.048,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 112
+     },
+     "passed": true
+    },
+    {
+     "pn": "C483150",
+     "ref": "R236",
+     "side": "bottom",
+     "group": "CHIP_0805 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.4,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       -0.016,
+       0.006
+      ],
+      "raw_offset_mm": 0.017,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.03,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 112
+     },
+     "passed": true
+    },
+    {
+     "pn": "C483256",
+     "ref": "R237",
+     "side": "top",
+     "group": "CHIP_0805 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.2,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       0.025,
+       0.002
+      ],
+      "raw_offset_mm": 0.025,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.041,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 112
+     },
+     "passed": true
+    },
+    {
+     "pn": "C483256",
+     "ref": "R238",
+     "side": "top",
+     "group": "CHIP_0805 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.6,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       0.02,
+       0.017
+      ],
+      "raw_offset_mm": 0.026,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.046,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 112
+     },
+     "passed": true
+    },
+    {
+     "pn": "C483256",
+     "ref": "R239",
+     "side": "bottom",
+     "group": "CHIP_0805 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.7,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       0.044,
+       -0.007
+      ],
+      "raw_offset_mm": 0.045,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.035,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 112
+     },
+     "passed": true
+    },
+    {
+     "pn": "C483256",
+     "ref": "R240",
+     "side": "bottom",
+     "group": "CHIP_0805 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.7,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       0.038,
+       0.018
+      ],
+      "raw_offset_mm": 0.042,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.041,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 112
+     },
+     "passed": true
+    }
+   ]
+  },
+  "CHIP_1206 ChipResistor Yageo RC": {
+   "purpose": "sample",
+   "pns": 23,
+   "passed_pns": [
+    "C114942",
+    "C131050",
+    "C131398",
+    "C137107",
+    "C137148",
+    "C137182",
+    "C137209",
+    "C137231",
+    "C137393",
+    "C163373",
+    "C185260",
+    "C274027",
+    "C274064",
+    "C274094",
+    "C488584",
+    "C488642",
+    "C488718",
+    "C488769",
+    "C488782",
+    "C488801",
+    "C488903",
+    "C488919",
+    "C489013"
+   ],
+   "not_drawn_pns": [],
+   "copies": 92,
+   "passed_copies": 92,
+   "max_angle_deg": 1.0,
+   "max_raw_mm": 0.076,
+   "max_residual_mm": 0.076,
+   "rows": [
+    {
+     "pn": "C114942",
+     "ref": "R57",
+     "side": "top",
+     "group": "CHIP_1206 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.3,
+      "offset_limit_mm": 0.25,
+      "raw_offset_xy_mm": [
+       0.002,
+       -0.031
+      ],
+      "raw_offset_mm": 0.031,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.02,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C114942",
+     "ref": "R58",
+     "side": "top",
+     "group": "CHIP_1206 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.2,
+      "offset_limit_mm": 0.25,
+      "raw_offset_xy_mm": [
+       0.0,
+       -0.032
+      ],
+      "raw_offset_mm": 0.032,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.02,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C114942",
+     "ref": "R59",
+     "side": "bottom",
+     "group": "CHIP_1206 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.4,
+      "offset_limit_mm": 0.25,
+      "raw_offset_xy_mm": [
+       0.007,
+       -0.043
+      ],
+      "raw_offset_mm": 0.044,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.032,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C114942",
+     "ref": "R60",
+     "side": "bottom",
+     "group": "CHIP_1206 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.2,
+      "offset_limit_mm": 0.25,
+      "raw_offset_xy_mm": [
+       0.021,
+       -0.014
+      ],
+      "raw_offset_mm": 0.025,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.012,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C131050",
+     "ref": "R77",
+     "side": "top",
+     "group": "CHIP_1206 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.7,
+      "offset_limit_mm": 0.25,
+      "raw_offset_xy_mm": [
+       -0.009,
+       0.005
+      ],
+      "raw_offset_mm": 0.01,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.022,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C131050",
+     "ref": "R78",
+     "side": "top",
+     "group": "CHIP_1206 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.3,
+      "offset_limit_mm": 0.25,
+      "raw_offset_xy_mm": [
+       -0.002,
+       0.029
+      ],
+      "raw_offset_mm": 0.029,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.047,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C131050",
+     "ref": "R79",
+     "side": "bottom",
+     "group": "CHIP_1206 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.1,
+      "offset_limit_mm": 0.25,
+      "raw_offset_xy_mm": [
+       0.038,
+       0.043
+      ],
+      "raw_offset_mm": 0.057,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.061,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C131050",
+     "ref": "R80",
+     "side": "bottom",
+     "group": "CHIP_1206 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.1,
+      "offset_limit_mm": 0.25,
+      "raw_offset_xy_mm": [
+       0.024,
+       0.033
+      ],
+      "raw_offset_mm": 0.041,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.046,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C131398",
+     "ref": "R81",
+     "side": "top",
+     "group": "CHIP_1206 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.1,
+      "offset_limit_mm": 0.25,
+      "raw_offset_xy_mm": [
+       -0.041,
+       -0.032
+      ],
+      "raw_offset_mm": 0.052,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.033,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C131398",
+     "ref": "R82",
+     "side": "top",
+     "group": "CHIP_1206 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.5,
+      "offset_limit_mm": 0.25,
+      "raw_offset_xy_mm": [
+       -0.034,
+       -0.029
+      ],
+      "raw_offset_mm": 0.045,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.025,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C131398",
+     "ref": "R83",
+     "side": "bottom",
+     "group": "CHIP_1206 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.5,
+      "offset_limit_mm": 0.25,
+      "raw_offset_xy_mm": [
+       -0.023,
+       -0.04
+      ],
+      "raw_offset_mm": 0.046,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.043,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C131398",
+     "ref": "R84",
+     "side": "bottom",
+     "group": "CHIP_1206 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.0,
+      "offset_limit_mm": 0.25,
+      "raw_offset_xy_mm": [
+       -0.007,
+       -0.021
+      ],
+      "raw_offset_mm": 0.022,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.019,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C137107",
+     "ref": "R85",
+     "side": "top",
+     "group": "CHIP_1206 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.1,
+      "offset_limit_mm": 0.25,
+      "raw_offset_xy_mm": [
+       0.024,
+       -0.002
+      ],
+      "raw_offset_mm": 0.024,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.039,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C137107",
+     "ref": "R86",
+     "side": "top",
+     "group": "CHIP_1206 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -1.0,
+      "offset_limit_mm": 0.25,
+      "raw_offset_xy_mm": [
+       0.008,
+       0.027
+      ],
+      "raw_offset_mm": 0.028,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.048,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C137107",
+     "ref": "R87",
+     "side": "bottom",
+     "group": "CHIP_1206 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.0,
+      "offset_limit_mm": 0.25,
+      "raw_offset_xy_mm": [
+       0.063,
+       0.043
+      ],
+      "raw_offset_mm": 0.076,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.076,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C137107",
+     "ref": "R88",
+     "side": "bottom",
+     "group": "CHIP_1206 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.2,
+      "offset_limit_mm": 0.25,
+      "raw_offset_xy_mm": [
+       0.038,
+       0.032
+      ],
+      "raw_offset_mm": 0.05,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.052,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C137148",
+     "ref": "R89",
+     "side": "top",
+     "group": "CHIP_1206 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.2,
+      "offset_limit_mm": 0.25,
+      "raw_offset_xy_mm": [
+       0.003,
+       -0.002
+      ],
+      "raw_offset_mm": 0.004,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.021,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C137148",
+     "ref": "R90",
+     "side": "top",
+     "group": "CHIP_1206 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.1,
+      "offset_limit_mm": 0.25,
+      "raw_offset_xy_mm": [
+       -0.006,
+       0.029
+      ],
+      "raw_offset_mm": 0.03,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.046,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C137148",
+     "ref": "R91",
+     "side": "bottom",
+     "group": "CHIP_1206 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.3,
+      "offset_limit_mm": 0.25,
+      "raw_offset_xy_mm": [
+       0.022,
+       0.044
+      ],
+      "raw_offset_mm": 0.049,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.057,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C137148",
+     "ref": "R92",
+     "side": "bottom",
+     "group": "CHIP_1206 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.1,
+      "offset_limit_mm": 0.25,
+      "raw_offset_xy_mm": [
+       0.014,
+       0.033
+      ],
+      "raw_offset_mm": 0.036,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.044,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C137182",
+     "ref": "R93",
+     "side": "top",
+     "group": "CHIP_1206 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.2,
+      "offset_limit_mm": 0.25,
+      "raw_offset_xy_mm": [
+       -0.028,
+       0.002
+      ],
+      "raw_offset_mm": 0.028,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.024,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C137182",
+     "ref": "R94",
+     "side": "top",
+     "group": "CHIP_1206 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.1,
+      "offset_limit_mm": 0.25,
+      "raw_offset_xy_mm": [
+       -0.012,
+       0.021
+      ],
+      "raw_offset_mm": 0.024,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.038,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C137182",
+     "ref": "R95",
+     "side": "bottom",
+     "group": "CHIP_1206 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.2,
+      "offset_limit_mm": 0.25,
+      "raw_offset_xy_mm": [
+       -0.01,
+       0.041
+      ],
+      "raw_offset_mm": 0.042,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.055,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C137182",
+     "ref": "R96",
+     "side": "bottom",
+     "group": "CHIP_1206 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.7,
+      "offset_limit_mm": 0.25,
+      "raw_offset_xy_mm": [
+       0.009,
+       0.03
+      ],
+      "raw_offset_mm": 0.031,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.041,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C137209",
+     "ref": "R100",
+     "side": "bottom",
+     "group": "CHIP_1206 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.2,
+      "offset_limit_mm": 0.25,
+      "raw_offset_xy_mm": [
+       -0.009,
+       0.037
+      ],
+      "raw_offset_mm": 0.038,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.051,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C137209",
+     "ref": "R97",
+     "side": "top",
+     "group": "CHIP_1206 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.2,
+      "offset_limit_mm": 0.25,
+      "raw_offset_xy_mm": [
+       -0.026,
+       -0.001
+      ],
+      "raw_offset_mm": 0.026,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.021,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C137209",
+     "ref": "R98",
+     "side": "top",
+     "group": "CHIP_1206 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.3,
+      "offset_limit_mm": 0.25,
+      "raw_offset_xy_mm": [
+       -0.026,
+       0.023
+      ],
+      "raw_offset_mm": 0.035,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.042,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C137209",
+     "ref": "R99",
+     "side": "bottom",
+     "group": "CHIP_1206 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.1,
+      "offset_limit_mm": 0.25,
+      "raw_offset_xy_mm": [
+       0.008,
+       0.044
+      ],
+      "raw_offset_mm": 0.045,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.055,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C137231",
+     "ref": "R101",
+     "side": "top",
+     "group": "CHIP_1206 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.1,
+      "offset_limit_mm": 0.25,
+      "raw_offset_xy_mm": [
+       0.022,
+       0.001
+      ],
+      "raw_offset_mm": 0.022,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.038,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C137231",
+     "ref": "R102",
+     "side": "top",
+     "group": "CHIP_1206 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.5,
+      "offset_limit_mm": 0.25,
+      "raw_offset_xy_mm": [
+       0.009,
+       0.009
+      ],
+      "raw_offset_mm": 0.013,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.033,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C137231",
+     "ref": "R103",
+     "side": "bottom",
+     "group": "CHIP_1206 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.2,
+      "offset_limit_mm": 0.25,
+      "raw_offset_xy_mm": [
+       0.024,
+       0.012
+      ],
+      "raw_offset_mm": 0.027,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.027,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C137231",
+     "ref": "R104",
+     "side": "bottom",
+     "group": "CHIP_1206 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.2,
+      "offset_limit_mm": 0.25,
+      "raw_offset_xy_mm": [
+       0.033,
+       0.01
+      ],
+      "raw_offset_mm": 0.034,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.032,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C137393",
+     "ref": "R105",
+     "side": "top",
+     "group": "CHIP_1206 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.0,
+      "offset_limit_mm": 0.25,
+      "raw_offset_xy_mm": [
+       -0.041,
+       -0.06
+      ],
+      "raw_offset_mm": 0.073,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.052,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C137393",
+     "ref": "R106",
+     "side": "top",
+     "group": "CHIP_1206 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.1,
+      "offset_limit_mm": 0.25,
+      "raw_offset_xy_mm": [
+       -0.027,
+       -0.049
+      ],
+      "raw_offset_mm": 0.056,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.036,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C137393",
+     "ref": "R107",
+     "side": "bottom",
+     "group": "CHIP_1206 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.0,
+      "offset_limit_mm": 0.25,
+      "raw_offset_xy_mm": [
+       0.009,
+       -0.034
+      ],
+      "raw_offset_mm": 0.035,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.023,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C137393",
+     "ref": "R108",
+     "side": "bottom",
+     "group": "CHIP_1206 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.2,
+      "offset_limit_mm": 0.25,
+      "raw_offset_xy_mm": [
+       -0.009,
+       -0.033
+      ],
+      "raw_offset_mm": 0.034,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.028,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C163373",
+     "ref": "R153",
+     "side": "top",
+     "group": "CHIP_1206 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.6,
+      "offset_limit_mm": 0.25,
+      "raw_offset_xy_mm": [
+       -0.065,
+       0.001
+      ],
+      "raw_offset_mm": 0.065,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.056,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C163373",
+     "ref": "R154",
+     "side": "top",
+     "group": "CHIP_1206 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -1.0,
+      "offset_limit_mm": 0.25,
+      "raw_offset_xy_mm": [
+       -0.039,
+       0.012
+      ],
+      "raw_offset_mm": 0.041,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.039,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C163373",
+     "ref": "R155",
+     "side": "bottom",
+     "group": "CHIP_1206 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.1,
+      "offset_limit_mm": 0.25,
+      "raw_offset_xy_mm": [
+       -0.007,
+       0.007
+      ],
+      "raw_offset_mm": 0.01,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.024,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C163373",
+     "ref": "R156",
+     "side": "bottom",
+     "group": "CHIP_1206 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.4,
+      "offset_limit_mm": 0.25,
+      "raw_offset_xy_mm": [
+       -0.014,
+       0.015
+      ],
+      "raw_offset_mm": 0.021,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.035,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C185260",
+     "ref": "R161",
+     "side": "top",
+     "group": "CHIP_1206 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.3,
+      "offset_limit_mm": 0.25,
+      "raw_offset_xy_mm": [
+       0.002,
+       0.005
+      ],
+      "raw_offset_mm": 0.005,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.026,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C185260",
+     "ref": "R162",
+     "side": "top",
+     "group": "CHIP_1206 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.5,
+      "offset_limit_mm": 0.25,
+      "raw_offset_xy_mm": [
+       -0.011,
+       0.01
+      ],
+      "raw_offset_mm": 0.015,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.027,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C185260",
+     "ref": "R163",
+     "side": "bottom",
+     "group": "CHIP_1206 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.1,
+      "offset_limit_mm": 0.25,
+      "raw_offset_xy_mm": [
+       -0.003,
+       0.009
+      ],
+      "raw_offset_mm": 0.009,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.023,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C185260",
+     "ref": "R164",
+     "side": "bottom",
+     "group": "CHIP_1206 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.2,
+      "offset_limit_mm": 0.25,
+      "raw_offset_xy_mm": [
+       0.007,
+       0.013
+      ],
+      "raw_offset_mm": 0.015,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.024,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C274027",
+     "ref": "R193",
+     "side": "top",
+     "group": "CHIP_1206 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.3,
+      "offset_limit_mm": 0.25,
+      "raw_offset_xy_mm": [
+       0.014,
+       -0.03
+      ],
+      "raw_offset_mm": 0.033,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.029,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C274027",
+     "ref": "R194",
+     "side": "top",
+     "group": "CHIP_1206 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.7,
+      "offset_limit_mm": 0.25,
+      "raw_offset_xy_mm": [
+       0.016,
+       -0.022
+      ],
+      "raw_offset_mm": 0.027,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.029,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C274027",
+     "ref": "R195",
+     "side": "bottom",
+     "group": "CHIP_1206 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.1,
+      "offset_limit_mm": 0.25,
+      "raw_offset_xy_mm": [
+       0.022,
+       -0.039
+      ],
+      "raw_offset_mm": 0.045,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.031,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C274027",
+     "ref": "R196",
+     "side": "bottom",
+     "group": "CHIP_1206 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.2,
+      "offset_limit_mm": 0.25,
+      "raw_offset_xy_mm": [
+       0.032,
+       -0.019
+      ],
+      "raw_offset_mm": 0.037,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.024,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C274064",
+     "ref": "R197",
+     "side": "top",
+     "group": "CHIP_1206 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.1,
+      "offset_limit_mm": 0.25,
+      "raw_offset_xy_mm": [
+       0.013,
+       -0.002
+      ],
+      "raw_offset_mm": 0.013,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.029,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C274064",
+     "ref": "R198",
+     "side": "top",
+     "group": "CHIP_1206 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.5,
+      "offset_limit_mm": 0.25,
+      "raw_offset_xy_mm": [
+       0.016,
+       -0.015
+      ],
+      "raw_offset_mm": 0.022,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.028,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C274064",
+     "ref": "R199",
+     "side": "bottom",
+     "group": "CHIP_1206 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.0,
+      "offset_limit_mm": 0.25,
+      "raw_offset_xy_mm": [
+       0.06,
+       -0.027
+      ],
+      "raw_offset_mm": 0.066,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.053,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C274064",
+     "ref": "R200",
+     "side": "bottom",
+     "group": "CHIP_1206 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.1,
+      "offset_limit_mm": 0.25,
+      "raw_offset_xy_mm": [
+       0.037,
+       -0.003
+      ],
+      "raw_offset_mm": 0.037,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.029,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C274094",
+     "ref": "R201",
+     "side": "top",
+     "group": "CHIP_1206 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.2,
+      "offset_limit_mm": 0.25,
+      "raw_offset_xy_mm": [
+       0.017,
+       -0.06
+      ],
+      "raw_offset_mm": 0.062,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.052,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C274094",
+     "ref": "R202",
+     "side": "top",
+     "group": "CHIP_1206 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.3,
+      "offset_limit_mm": 0.25,
+      "raw_offset_xy_mm": [
+       0.011,
+       -0.042
+      ],
+      "raw_offset_mm": 0.043,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.034,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C274094",
+     "ref": "R203",
+     "side": "bottom",
+     "group": "CHIP_1206 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.3,
+      "offset_limit_mm": 0.25,
+      "raw_offset_xy_mm": [
+       0.029,
+       -0.033
+      ],
+      "raw_offset_mm": 0.044,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.03,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C274094",
+     "ref": "R204",
+     "side": "bottom",
+     "group": "CHIP_1206 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.1,
+      "offset_limit_mm": 0.25,
+      "raw_offset_xy_mm": [
+       0.028,
+       -0.037
+      ],
+      "raw_offset_mm": 0.046,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.032,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C488584",
+     "ref": "R241",
+     "side": "top",
+     "group": "CHIP_1206 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.1,
+      "offset_limit_mm": 0.25,
+      "raw_offset_xy_mm": [
+       -0.005,
+       -0.03
+      ],
+      "raw_offset_mm": 0.03,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.015,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C488584",
+     "ref": "R242",
+     "side": "top",
+     "group": "CHIP_1206 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.2,
+      "offset_limit_mm": 0.25,
+      "raw_offset_xy_mm": [
+       -0.02,
+       -0.022
+      ],
+      "raw_offset_mm": 0.03,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.01,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C488584",
+     "ref": "R243",
+     "side": "bottom",
+     "group": "CHIP_1206 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.0,
+      "offset_limit_mm": 0.25,
+      "raw_offset_xy_mm": [
+       0.01,
+       -0.04
+      ],
+      "raw_offset_mm": 0.041,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.029,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C488584",
+     "ref": "R244",
+     "side": "bottom",
+     "group": "CHIP_1206 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.2,
+      "offset_limit_mm": 0.25,
+      "raw_offset_xy_mm": [
+       0.009,
+       -0.021
+      ],
+      "raw_offset_mm": 0.023,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.01,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C488642",
+     "ref": "R245",
+     "side": "top",
+     "group": "CHIP_1206 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.4,
+      "offset_limit_mm": 0.25,
+      "raw_offset_xy_mm": [
+       -0.016,
+       -0.055
+      ],
+      "raw_offset_mm": 0.057,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.039,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C488642",
+     "ref": "R246",
+     "side": "top",
+     "group": "CHIP_1206 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.1,
+      "offset_limit_mm": 0.25,
+      "raw_offset_xy_mm": [
+       -0.011,
+       -0.042
+      ],
+      "raw_offset_mm": 0.043,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.026,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C488642",
+     "ref": "R247",
+     "side": "bottom",
+     "group": "CHIP_1206 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.0,
+      "offset_limit_mm": 0.25,
+      "raw_offset_xy_mm": [
+       0.003,
+       -0.033
+      ],
+      "raw_offset_mm": 0.033,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.023,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C488642",
+     "ref": "R248",
+     "side": "bottom",
+     "group": "CHIP_1206 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.0,
+      "offset_limit_mm": 0.25,
+      "raw_offset_xy_mm": [
+       0.009,
+       -0.038
+      ],
+      "raw_offset_mm": 0.039,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.027,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C488718",
+     "ref": "R249",
+     "side": "top",
+     "group": "CHIP_1206 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.0,
+      "offset_limit_mm": 0.25,
+      "raw_offset_xy_mm": [
+       -0.03,
+       0.001
+      ],
+      "raw_offset_mm": 0.03,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.025,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C488718",
+     "ref": "R250",
+     "side": "top",
+     "group": "CHIP_1206 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.0,
+      "offset_limit_mm": 0.25,
+      "raw_offset_xy_mm": [
+       -0.035,
+       -0.01
+      ],
+      "raw_offset_mm": 0.036,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.024,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C488718",
+     "ref": "R251",
+     "side": "bottom",
+     "group": "CHIP_1206 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.4,
+      "offset_limit_mm": 0.25,
+      "raw_offset_xy_mm": [
+       -0.022,
+       -0.023
+      ],
+      "raw_offset_mm": 0.032,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.033,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C488718",
+     "ref": "R252",
+     "side": "bottom",
+     "group": "CHIP_1206 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.2,
+      "offset_limit_mm": 0.25,
+      "raw_offset_xy_mm": [
+       -0.015,
+       -0.005
+      ],
+      "raw_offset_mm": 0.016,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.025,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C488769",
+     "ref": "R253",
+     "side": "top",
+     "group": "CHIP_1206 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.4,
+      "offset_limit_mm": 0.25,
+      "raw_offset_xy_mm": [
+       -0.01,
+       0.001
+      ],
+      "raw_offset_mm": 0.01,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.018,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C488769",
+     "ref": "R254",
+     "side": "top",
+     "group": "CHIP_1206 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.5,
+      "offset_limit_mm": 0.25,
+      "raw_offset_xy_mm": [
+       -0.002,
+       -0.016
+      ],
+      "raw_offset_mm": 0.016,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.01,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C488769",
+     "ref": "R255",
+     "side": "bottom",
+     "group": "CHIP_1206 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.0,
+      "offset_limit_mm": 0.25,
+      "raw_offset_xy_mm": [
+       0.005,
+       -0.027
+      ],
+      "raw_offset_mm": 0.027,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.016,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C488769",
+     "ref": "R256",
+     "side": "bottom",
+     "group": "CHIP_1206 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.3,
+      "offset_limit_mm": 0.25,
+      "raw_offset_xy_mm": [
+       0.013,
+       -0.006
+      ],
+      "raw_offset_mm": 0.014,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.006,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C488782",
+     "ref": "R257",
+     "side": "top",
+     "group": "CHIP_1206 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.3,
+      "offset_limit_mm": 0.25,
+      "raw_offset_xy_mm": [
+       0.009,
+       0.003
+      ],
+      "raw_offset_mm": 0.009,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.029,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C488782",
+     "ref": "R258",
+     "side": "top",
+     "group": "CHIP_1206 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.4,
+      "offset_limit_mm": 0.25,
+      "raw_offset_xy_mm": [
+       0.001,
+       -0.011
+      ],
+      "raw_offset_mm": 0.011,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.014,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C488782",
+     "ref": "R259",
+     "side": "bottom",
+     "group": "CHIP_1206 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.1,
+      "offset_limit_mm": 0.25,
+      "raw_offset_xy_mm": [
+       0.01,
+       -0.027
+      ],
+      "raw_offset_mm": 0.029,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.016,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C488782",
+     "ref": "R260",
+     "side": "bottom",
+     "group": "CHIP_1206 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.0,
+      "offset_limit_mm": 0.25,
+      "raw_offset_xy_mm": [
+       0.03,
+       -0.009
+      ],
+      "raw_offset_mm": 0.031,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.021,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C488801",
+     "ref": "R261",
+     "side": "top",
+     "group": "CHIP_1206 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.1,
+      "offset_limit_mm": 0.25,
+      "raw_offset_xy_mm": [
+       -0.019,
+       0.0
+      ],
+      "raw_offset_mm": 0.019,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.018,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C488801",
+     "ref": "R262",
+     "side": "top",
+     "group": "CHIP_1206 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.4,
+      "offset_limit_mm": 0.25,
+      "raw_offset_xy_mm": [
+       -0.02,
+       -0.008
+      ],
+      "raw_offset_mm": 0.022,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.012,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C488801",
+     "ref": "R263",
+     "side": "bottom",
+     "group": "CHIP_1206 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.1,
+      "offset_limit_mm": 0.25,
+      "raw_offset_xy_mm": [
+       0.004,
+       -0.027
+      ],
+      "raw_offset_mm": 0.027,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.017,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C488801",
+     "ref": "R264",
+     "side": "bottom",
+     "group": "CHIP_1206 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.4,
+      "offset_limit_mm": 0.25,
+      "raw_offset_xy_mm": [
+       -0.002,
+       -0.004
+      ],
+      "raw_offset_mm": 0.004,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.013,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C488903",
+     "ref": "R265",
+     "side": "top",
+     "group": "CHIP_1206 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.0,
+      "offset_limit_mm": 0.25,
+      "raw_offset_xy_mm": [
+       -0.012,
+       -0.004
+      ],
+      "raw_offset_mm": 0.013,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.013,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C488903",
+     "ref": "R266",
+     "side": "top",
+     "group": "CHIP_1206 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.1,
+      "offset_limit_mm": 0.25,
+      "raw_offset_xy_mm": [
+       -0.026,
+       0.005
+      ],
+      "raw_offset_mm": 0.026,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.026,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C488903",
+     "ref": "R267",
+     "side": "bottom",
+     "group": "CHIP_1206 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.0,
+      "offset_limit_mm": 0.25,
+      "raw_offset_xy_mm": [
+       -0.004,
+       0.013
+      ],
+      "raw_offset_mm": 0.014,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.027,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C488903",
+     "ref": "R268",
+     "side": "bottom",
+     "group": "CHIP_1206 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.1,
+      "offset_limit_mm": 0.25,
+      "raw_offset_xy_mm": [
+       -0.005,
+       0.014
+      ],
+      "raw_offset_mm": 0.015,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.029,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C488919",
+     "ref": "R269",
+     "side": "top",
+     "group": "CHIP_1206 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.0,
+      "offset_limit_mm": 0.25,
+      "raw_offset_xy_mm": [
+       -0.04,
+       0.001
+      ],
+      "raw_offset_mm": 0.04,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.033,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C488919",
+     "ref": "R270",
+     "side": "top",
+     "group": "CHIP_1206 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.0,
+      "offset_limit_mm": 0.25,
+      "raw_offset_xy_mm": [
+       0.004,
+       -0.003
+      ],
+      "raw_offset_mm": 0.005,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.021,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C488919",
+     "ref": "R271",
+     "side": "bottom",
+     "group": "CHIP_1206 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.0,
+      "offset_limit_mm": 0.25,
+      "raw_offset_xy_mm": [
+       0.023,
+       0.009
+      ],
+      "raw_offset_mm": 0.025,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.024,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C488919",
+     "ref": "R272",
+     "side": "bottom",
+     "group": "CHIP_1206 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.1,
+      "offset_limit_mm": 0.25,
+      "raw_offset_xy_mm": [
+       0.018,
+       0.015
+      ],
+      "raw_offset_mm": 0.023,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.028,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C489013",
+     "ref": "R273",
+     "side": "top",
+     "group": "CHIP_1206 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.0,
+      "offset_limit_mm": 0.25,
+      "raw_offset_xy_mm": [
+       -0.016,
+       -0.001
+      ],
+      "raw_offset_mm": 0.016,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.016,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C489013",
+     "ref": "R274",
+     "side": "top",
+     "group": "CHIP_1206 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.2,
+      "offset_limit_mm": 0.25,
+      "raw_offset_xy_mm": [
+       -0.041,
+       0.03
+      ],
+      "raw_offset_mm": 0.051,
+      "bias_xy_mm": [
+       -0.012,
+       -0.0165
+      ],
+      "residual_offset_mm": 0.055,
+      "bias_view": "top",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C489013",
+     "ref": "R275",
+     "side": "bottom",
+     "group": "CHIP_1206 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.0,
+      "offset_limit_mm": 0.25,
+      "raw_offset_xy_mm": [
+       -0.017,
+       0.043
+      ],
+      "raw_offset_mm": 0.046,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.06,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    },
+    {
+     "pn": "C489013",
+     "ref": "R276",
+     "side": "bottom",
+     "group": "CHIP_1206 ChipResistor Yageo RC",
+     "preview_status": "body",
+     "not_drawn": false,
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.0,
+      "offset_limit_mm": 0.25,
+      "raw_offset_xy_mm": [
+       -0.027,
+       0.036
+      ],
+      "raw_offset_mm": 0.045,
+      "bias_xy_mm": [
+       0.009,
+       -0.011
+      ],
+      "residual_offset_mm": 0.059,
+      "bias_view": "bottom",
+      "bias_bodies": 156,
+      "bias_other_bodies": 110
+     },
+     "passed": true
+    }
+   ]
+  }
+ }
+}

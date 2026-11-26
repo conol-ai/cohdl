@@ -24,14 +24,14 @@
  },
  "built_by": "tools/w3_record.py",
  "stock_source": {
-  "path": "tools/sourcing_data/lcsc_backfill/2026-11-24-zener2/confirmed.json",
-  "sha256": "d33180e8a408c4d7f28d2a308c885e7c2841e4e0316623c3f81df580e3db2462"
+  "path": "tools/sourcing_data/lcsc_backfill/2026-11-26-merge-zener2/confirmed.json",
+  "sha256": "2d335ade87ce3657067c32bd209162994ec59248b810411e67731954b4d5c75e"
  },
  "groups": [
   {
-   "id": "passive-0.2.8-CHIP_0402-ChipResistor-Yageo-RC",
+   "id": "passive-0.2.12-CHIP_0402-ChipResistor-Yageo-RC",
    "package": "passive",
-   "package_version": "0.2.8",
+   "package_version": "0.2.12",
    "footprint": "CHIP_0402",
    "type": "ChipResistor",
    "mfr": "Yageo",

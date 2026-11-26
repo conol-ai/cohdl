@@ -57,8 +57,8 @@ hash = "sha256:3b7879ab142f14e9b87c09e144e37e25dd54b9ed67d91d65d4ed823433f6e75f"
 
 [[package]]
 name = "misc"
-version = "0.1.1"
-hash = "sha256:e54a7d8b49abf495644d31f2b1f4da83eeebbac3bada3d1392643789b44dcf73"
+version = "0.1.2"
+hash = "sha256:56ab9ad64d72e9f503451a75ccc3ce5fae3a0d9e56ca2ee7478b0a8ff18c3162"
 
 [[package]]
 name = "osc"
@@ -67,8 +67,8 @@ hash = "sha256:4e981974b3df2f29478e12113746541f1efe6797534b3c16dd17e36a128f63de"
 
 [[package]]
 name = "passive"
-version = "0.2.8"
-hash = "sha256:1433797553489da1d2c2a2d68c6014469da4e88339b57e969155a2a8fe154576"
+version = "0.2.12"
+hash = "sha256:cb495abf5b83c80be92a9ffda85f2bb28544e8da8e9b3820d7e0d0d19b620e55"
 
 [[package]]
 name = "qfn"

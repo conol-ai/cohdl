@@ -4,12 +4,20 @@ pub trait Mounting_Hole {
     designator_prefix: "M"
 }
 
+// Test points are probe-access features, not ICs: give them a "TP"
+// designator prefix instead of the default "U".
+pub trait Test_Point {
+    designator_prefix: "TP"
+}
+
 #[doc("docs/README.md")]
 pub device TestPoint {
     pins {
         required SIGNAL: 1 [passive]
     }
 }
+
+impl Test_Point for TestPoint {}
 
 #[doc("docs/README.md")]
 pub device MechanicalMountingHole {

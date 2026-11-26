@@ -130,9 +130,6 @@ fn build_misc_library() -> (
     cohdl::pipeline::Checked,
     Option<cohdl::pipeline::BuildArtifacts>,
 ) {
-    let root = manifest();
-    let misc_source = std::fs::read_to_string(root.join("lib/misc/src/misc.cohdl"))
-        .expect("lib/misc/src/misc.cohdl must exist");
     let consumer = r#"
 design MiscFootprints {
     inst test_point: TEST_POINT_ROUND_1MM
@@ -141,14 +138,77 @@ design MiscFootprints {
     nc: test_point.SIGNAL, mounting_hole_pth.PAD
 }
 "#;
+    build_misc_consumer(consumer, &LockState::default())
+}
+
+/// Build `consumer` against the live `lib/misc` source with a prior
+/// `design.lock` state.
+fn build_misc_consumer(
+    consumer: &str,
+    prior: &LockState,
+) -> (
+    cohdl::pipeline::Checked,
+    Option<cohdl::pipeline::BuildArtifacts>,
+) {
+    let root = manifest();
+    let misc_source = std::fs::read_to_string(root.join("lib/misc/src/misc.cohdl"))
+        .expect("lib/misc/src/misc.cohdl must exist");
     let files = vec![
         ("src/misc.cohdl".to_string(), misc_source),
         ("src/consumer.cohdl".to_string(), consumer.to_string()),
     ];
     let mut checked = check_files_in("misc", &files, None).expect("selection");
-    let artifacts = build_artifacts(&mut checked, &LockState::default());
+    let artifacts = build_artifacts(&mut checked, prior);
     checked.diags.sort(&checked.sm);
     (checked, artifacts)
+}
+
+#[test]
+fn misc_test_points_take_the_tp_designator_prefix() {
+    let consumer = r#"
+design MiscDesignators {
+    inst tp_a: TEST_POINT_ROUND_1MM
+    inst tp_b: TEST_POINT_ROUND_1MM
+    inst hole: MOUNTING_HOLE_M2_NPTH
+    nc: tp_a.SIGNAL, tp_b.SIGNAL
+}
+"#;
+    let (checked, artifacts) = build_misc_consumer(consumer, &LockState::default());
+    let artifacts = artifacts.unwrap_or_else(|| panic!("{}", checked.diags.render(&checked.sm)));
+    let d = &artifacts.lock.designators;
+    assert_eq!(d["MiscDesignators::tp_a"], "TP1", "{d:?}");
+    assert_eq!(d["MiscDesignators::tp_b"], "TP2", "{d:?}");
+    assert_eq!(d["MiscDesignators::hole"], "M1", "{d:?}");
+    assert!(
+        !d.values().any(|v| v.starts_with('U')),
+        "no misc primitive may consume the U series: {d:?}"
+    );
+}
+
+#[test]
+fn misc_locked_test_point_keeps_its_u_designator_new_ones_get_tp() {
+    // A board locked before misc 0.1.2 holds `tp_x = U7`. Re-building it
+    // against the TP-prefixed library keeps U7 (RFC-005: a prior assignment
+    // is never renumbered); only the newly-added test point takes TP1.
+    let prior = LockState::parse("[designators]\n\"MiscDesignators::tp_x\" = \"U7\"\n")
+        .expect("lock parses");
+    let consumer = r#"
+design MiscDesignators {
+    inst tp_x: TEST_POINT_ROUND_1MM
+    inst tp_new: TEST_POINT_ROUND_1MM
+    nc: tp_x.SIGNAL, tp_new.SIGNAL
+}
+"#;
+    let (checked, artifacts) = build_misc_consumer(consumer, &prior);
+    let artifacts = artifacts.unwrap_or_else(|| panic!("{}", checked.diags.render(&checked.sm)));
+    let d = &artifacts.lock.designators;
+    assert_eq!(d["MiscDesignators::tp_x"], "U7", "{d:?}");
+    assert_eq!(d["MiscDesignators::tp_new"], "TP1", "{d:?}");
+    assert!(
+        artifacts.netlist.contains("(ref \"U7\")") && artifacts.netlist.contains("(ref \"TP1\")"),
+        "netlist must carry both designators:\n{}",
+        artifacts.netlist
+    );
 }
 
 #[test]

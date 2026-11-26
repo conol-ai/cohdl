@@ -1,0 +1,21 @@
+{
+ "schema_version": 1,
+ "note": "Board 12's first package (18df571b, 2026-11-23) stopped at the assembler's BOM step and took no placement preview: these part numbers were not selected, with a shortage warning (40 needed per part number). They are that first package's facts, not readings of this record's preview, which was taken with the package f66bc5b3 that replaces them. Readings use method 2 on archived lossless pixels.",
+ "package": "passive",
+ "package_version": "0.2.8",
+ "land": {
+  "lib/passive/src/footprints.cohdl": "e1bb40b6077130cc37f7c1d9962f9d57a15e45cbf17689d183f5f74e51e37f96",
+  "lib/passive/src/pads.cohdl": "6e9f4bdd4345a52e14a05ac241c441dd44c9a1ee8f545bcd83a890f40db9ceff"
+ },
+ "bom": "package/preview_board_12-lcsc-bom.csv",
+ "checks": "checks.json",
+ "measurements": "measurements.json",
+ "short_at_preview": {
+  "C137563": "2026-11-23 preview-board-12 package 18df571b (page read 2097; BOM step: 37 in stock, 40 needed)",
+  "C163413": "2026-11-23 preview-board-12 package 18df571b (page read 61; BOM step: 16 in stock, 40 needed)",
+  "C185290": "2026-11-23 preview-board-12 package 18df571b (page read 37; BOM step: 17 in stock, 40 needed)",
+  "C273881": "2026-11-23 preview-board-12 package 18df571b (page read 5244; BOM step: 17 in stock, 40 needed)",
+  "C274065": "2026-11-23 preview-board-12 package 18df571b (page read 35; BOM step: 35 in stock, 40 needed)"
+ },
+ "body_method": 2
+}

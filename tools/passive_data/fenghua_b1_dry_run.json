@@ -1,0 +1,319 @@
+{
+ "_provenance": {
+  "status": "dry run: no part, alternate, map row or binding is written from this file",
+  "source": "B1 snapshot tools/sourcing_data/jlc_catalog/2026-10-30/catalog.json (confirmed JLCPCB pages), rows whose manufacturer reads 'FH (Guangdong Fenghua Advanced Tech)'",
+  "rules": "tools/passive_data/fenghua_general_mlcc.evidence.md (How To Order, specification p. 2)",
+  "meaning": "key is '<EIA size>|<rated volts>|<dielectric>|<farads>', as in samsung_b1.json; value is a Fenghua part number JLCPCB stocks as Basic or Preferred for that exact combination, with the tolerance the library pairs with the dielectric",
+  "blocked_on": "the library's manufacturer name (maintainer) and a reviewed alias with its issue",
+  "generator": "tools/fenghua_b1_report.py"
+ },
+ "matched": {
+  "0402|50|C0G|1.2e-11": {
+   "mpn": "0402CG120J500NT",
+   "pn": "C1547",
+   "category": "basic"
+  },
+  "0402|50|C0G|1.5e-11": {
+   "mpn": "0402CG150J500NT",
+   "pn": "C1548",
+   "category": "basic"
+  },
+  "0402|50|C0G|1.8e-11": {
+   "mpn": "0402CG180J500NT",
+   "pn": "C1549",
+   "category": "basic"
+  },
+  "0402|50|C0G|1e-10": {
+   "mpn": "0402CG101J500NT",
+   "pn": "C1546",
+   "category": "basic"
+  },
+  "0402|50|C0G|2.2e-11": {
+   "mpn": "0402CG220J500NT",
+   "pn": "C1555",
+   "category": "basic"
+  },
+  "0402|50|C0G|2.7e-11": {
+   "mpn": "0402CG270J500NT",
+   "pn": "C1557",
+   "category": "preferred"
+  },
+  "0402|50|C0G|3.3e-11": {
+   "mpn": "0402CG330J500NT",
+   "pn": "C1562",
+   "category": "basic"
+  },
+  "0402|50|C0G|4.7e-11": {
+   "mpn": "0402CG470J500NT",
+   "pn": "C1567",
+   "category": "basic"
+  },
+  "0402|50|X7R|1.5e-10": {
+   "mpn": "0402B151K500NT",
+   "pn": "C1527",
+   "category": "preferred"
+  },
+  "0402|50|X7R|1e-09": {
+   "mpn": "0402B102K500NT",
+   "pn": "C1523",
+   "category": "basic"
+  },
+  "0402|50|X7R|2.2e-08": {
+   "mpn": "0402B223K500NT",
+   "pn": "C1532",
+   "category": "basic"
+  },
+  "0402|50|X7R|2.2e-09": {
+   "mpn": "0402B222K500NT",
+   "pn": "C1531",
+   "category": "preferred"
+  },
+  "0402|50|X7R|2.2e-10": {
+   "mpn": "0402B221K500NT",
+   "pn": "C1530",
+   "category": "basic"
+  },
+  "0402|50|X7R|4.7e-09": {
+   "mpn": "0402B472K500NT",
+   "pn": "C1538",
+   "category": "basic"
+  },
+  "0402|50|X7R|4.7e-10": {
+   "mpn": "0402B471K500NT",
+   "pn": "C1537",
+   "category": "preferred"
+  },
+  "0402|50|X7R|6.8e-09": {
+   "mpn": "0402B682K500NT",
+   "pn": "C1542",
+   "category": "preferred"
+  },
+  "0603|25|X7R|3.3e-07": {
+   "mpn": "0603B334K250NT",
+   "pn": "C1615",
+   "category": "preferred"
+  },
+  "0603|50|X7R|1.5e-08": {
+   "mpn": "0603B153K500NT",
+   "pn": "C1596",
+   "category": "preferred"
+  },
+  "0603|50|X7R|1.5e-09": {
+   "mpn": "0603B152K500NT",
+   "pn": "C1595",
+   "category": "preferred"
+  },
+  "0603|50|X7R|1.5e-10": {
+   "mpn": "0603B151K500NT",
+   "pn": "C1594",
+   "category": "basic"
+  },
+  "0603|50|X7R|1e-08": {
+   "mpn": "0603B103K500NT",
+   "pn": "C57112",
+   "category": "basic"
+  },
+  "0603|50|X7R|2.2e-09": {
+   "mpn": "0603B222K500NT",
+   "pn": "C1604",
+   "category": "basic"
+  },
+  "0603|50|X7R|4.7e-09": {
+   "mpn": "0603B472K500NT",
+   "pn": "C53987",
+   "category": "basic"
+  },
+  "0603|50|X7R|4.7e-10": {
+   "mpn": "0603B471K500NT",
+   "pn": "C1620",
+   "category": "basic"
+  },
+  "0603|50|X7R|6.8e-09": {
+   "mpn": "0603B682K500NT",
+   "pn": "C1631",
+   "category": "basic"
+  },
+  "0603|50|X7R|6.8e-10": {
+   "mpn": "0603B681K500NT",
+   "pn": "C1630",
+   "category": "preferred"
+  },
+  "0805|50|C0G|1.2e-11": {
+   "mpn": "0805CG120J500NT",
+   "pn": "C1792",
+   "category": "preferred"
+  },
+  "0805|50|C0G|1.8e-11": {
+   "mpn": "0805CG180J500NT",
+   "pn": "C1797",
+   "category": "preferred"
+  },
+  "0805|50|X7R|3.3e-07": {
+   "mpn": "0805B334K500NT",
+   "pn": "C1740",
+   "category": "preferred"
+  },
+  "0805|50|X7R|3.3e-08": {
+   "mpn": "0805B333K500NT",
+   "pn": "C1739",
+   "category": "basic"
+  },
+  "1206|50|X7R|2.2e-07": {
+   "mpn": "1206B224K500NT",
+   "pn": "C1857",
+   "category": "preferred"
+  }
+ },
+ "unmatched": [
+  {
+   "pn": "C1550",
+   "mpn": "0402CG1R0C500NT",
+   "reason": "tolerance C, the library pairs J"
+  },
+  {
+   "pn": "C1552",
+   "mpn": "0402CG1R5C500NT",
+   "reason": "tolerance C, the library pairs J"
+  },
+  {
+   "pn": "C1554",
+   "mpn": "0402CG200J500NT",
+   "reason": "no library part"
+  },
+  {
+   "pn": "C1559",
+   "mpn": "0402CG2R2C500NT",
+   "reason": "tolerance C, the library pairs J"
+  },
+  {
+   "pn": "C1561",
+   "mpn": "0402CG2R7C500NT",
+   "reason": "tolerance C, the library pairs J"
+  },
+  {
+   "pn": "C1565",
+   "mpn": "0402CG3R3C500NT",
+   "reason": "tolerance C, the library pairs J"
+  },
+  {
+   "pn": "C1569",
+   "mpn": "0402CG4R7C500NT",
+   "reason": "tolerance C, the library pairs J"
+  },
+  {
+   "pn": "C1570",
+   "mpn": "0402CG300J500NT",
+   "reason": "no library part"
+  },
+  {
+   "pn": "C1576",
+   "mpn": "0402CG6R8C500NT",
+   "reason": "tolerance C, the library pairs J"
+  },
+  {
+   "pn": "C1600",
+   "mpn": "0603B201K500NT",
+   "reason": "no library part"
+  },
+  {
+   "pn": "C1609",
+   "mpn": "0603B272K500NT",
+   "reason": "no library part"
+  },
+  {
+   "pn": "C1658",
+   "mpn": "0603CG300J500NT",
+   "reason": "no library part"
+  },
+  {
+   "pn": "C1669",
+   "mpn": "0603CG4R7C500NT",
+   "reason": "tolerance C, the library pairs J"
+  },
+  {
+   "pn": "C1679",
+   "mpn": "0603CG6R8C500NT",
+   "reason": "tolerance C, the library pairs J"
+  },
+  {
+   "pn": "C1685",
+   "mpn": "0603CG8R2C500NT",
+   "reason": "tolerance C, the library pairs J"
+  },
+  {
+   "pn": "C1716",
+   "mpn": "0805B151K500NT",
+   "reason": "no library part"
+  },
+  {
+   "pn": "C1717",
+   "mpn": "0805B152K500NT",
+   "reason": "no library part"
+  },
+  {
+   "pn": "C1743",
+   "mpn": "0805B471K500NT",
+   "reason": "no library part"
+  },
+  {
+   "pn": "C1744",
+   "mpn": "0805B472K500NT",
+   "reason": "no library part"
+  },
+  {
+   "pn": "C1755",
+   "mpn": "0805B682K500NT",
+   "reason": "no library part"
+  },
+  {
+   "pn": "C1846",
+   "mpn": "1206B103K500NT",
+   "reason": "no library part"
+  },
+  {
+   "pn": "C9196",
+   "mpn": "1206B102K202NT",
+   "reason": "no library part"
+  },
+  {
+   "pn": "C29823",
+   "mpn": "1206B475K500NT",
+   "reason": "no library part: its Yageo primary is unconfirmed"
+  },
+  {
+   "pn": "C30274",
+   "mpn": "0402CG6R0C500NT (SMTonly)",
+   "reason": "not decoded"
+  },
+  {
+   "pn": "C37474",
+   "mpn": "0603CG6R0C500NT",
+   "reason": "tolerance C, the library pairs J"
+  },
+  {
+   "pn": "C46219",
+   "mpn": "0603CG3R0C500NT",
+   "reason": "tolerance C, the library pairs J"
+  }
+ ],
+ "not_mlcc": [
+  {
+   "pn": "C1043",
+   "mpn": "CMI201209U2R2KT",
+   "package": "0805",
+   "reason": "not an MLCC part number"
+  },
+  {
+   "pn": "C1049",
+   "mpn": "CMI321609U4R7KT",
+   "package": "1206",
+   "reason": "not an MLCC part number"
+  },
+  {
+   "pn": "C1051",
+   "mpn": "CMI321609X100KT",
+   "package": "1206",
+   "reason": "not an MLCC part number"
+  }
+ ]
+}

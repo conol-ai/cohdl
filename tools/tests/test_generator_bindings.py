@@ -553,7 +553,8 @@ class CommittedTablesTests(unittest.TestCase):
                                          row, row["id"])
                         self.assertEqual(bound["package_version"], PASSIVE_VERSION, row["id"])
                 if archive.parent.name == "2026-11-07-w3-pilot-0402":
-                    self.assertEqual(len(kept), 44)
+                    # 44 adopted by the Yageo RC record; six more by the Yageo CC 0402 record (passive 0.2.11).
+                    self.assertEqual(len(kept), 50)
                     # Tony's example on #107: the archive says +4.2 deg and 0.114 mm, the record -0.1 and 0.014.
                     note = by_id["w3p-chip0402-c105637"]["evidence"]["note"]
                     self.assertIn("(+4.2 deg mod 180) and is centred on them (0.114 mm)", note)

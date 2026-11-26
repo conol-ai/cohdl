@@ -113,6 +113,10 @@ fn regenerate_passives(root: &std::path::Path) -> GeneratedPassives {
         fixture.root.join("lib/passive/cohdl.toml"),
     )
     .unwrap();
+    let catalog = "tools/sourcing_data/jlc_catalog/2026-10-30/catalog.json";
+    let destination = fixture.root.join(catalog);
+    std::fs::create_dir_all(destination.parent().unwrap()).unwrap();
+    std::fs::copy(root.join(catalog), destination).unwrap();
     for record in frame_evidence_records(root) {
         let target = fixture.root.join(&record);
         std::fs::create_dir_all(target.parent().unwrap()).unwrap();

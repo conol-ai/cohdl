@@ -1,0 +1,28 @@
+{
+ "schema_version": 1,
+ "note": "Board 11's first package (1c047d9e, 2026-11-23) stopped at the assembler's BOM step with eleven of these part numbers short, and its second (5c9034a6) with C163370 short; neither took a placement preview. They are those packages' facts, not readings of this record's preview, which was taken with the package e458932c that replaces them. Readings use method 2 on archived lossless pixels.",
+ "package": "passive",
+ "package_version": "0.2.8",
+ "land": {
+  "lib/passive/src/footprints.cohdl": "e1bb40b6077130cc37f7c1d9962f9d57a15e45cbf17689d183f5f74e51e37f96",
+  "lib/passive/src/pads.cohdl": "6e9f4bdd4345a52e14a05ac241c441dd44c9a1ee8f545bcd83a890f40db9ceff"
+ },
+ "bom": "package/preview_board_11-lcsc-bom.csv",
+ "checks": "checks.json",
+ "measurements": "measurements.json",
+ "short_at_preview": {
+  "C14664": "2026-11-23 preview-board-11 package 1c047d9e (page read 72047; BOM step: 12 in stock, 40 needed)",
+  "C137225": "2026-11-23 preview-board-11 package 1c047d9e (page read 36; BOM step: 36 in stock, 40 needed)",
+  "C137677": "2026-11-23 preview-board-11 package 1c047d9e (page read 909; BOM step: 0 in stock, 40 needed)",
+  "C137778": "2026-11-23 preview-board-11 package 1c047d9e (page read 1718; BOM step: 18 in stock, 40 needed)",
+  "C163408": "2026-11-23 preview-board-11 package 1c047d9e (page read 131; BOM step: 5 in stock, 40 needed)",
+  "C185340": "2026-11-23 preview-board-11 package 1c047d9e (page read 93; BOM step: 18 in stock, 40 needed)",
+  "C273747": "2026-11-23 preview-board-11 package 1c047d9e (page read 43; BOM step: 13 in stock, 40 needed)",
+  "C273977": "2026-11-23 preview-board-11 package 1c047d9e (page read 41; BOM step: 1 in stock, 40 needed)",
+  "C483098": "2026-11-23 preview-board-11 package 1c047d9e (page read 37; BOM step: 37 in stock, 40 needed)",
+  "C483138": "2026-11-23 preview-board-11 package 1c047d9e (page read 38; BOM step: 38 in stock, 40 needed)",
+  "C488917": "2026-11-23 preview-board-11 package 1c047d9e (page read 35; BOM step: 35 in stock, 40 needed)",
+  "C163370": "2026-11-23 preview-board-11 package 5c9034a6 (page read 30; BOM step: 30 in stock, 40 needed)"
+ },
+ "body_method": 2
+}

@@ -1,0 +1,2658 @@
+{
+ "rule": "w3-2026-11-12",
+ "sides": {
+  "top": {
+   "median_xy_mm": [
+    0.011,
+    0.004
+   ],
+   "drawn_bodies": 48
+  },
+  "bottom": {
+   "median_xy_mm": [
+    0.009,
+    0.006
+   ],
+   "drawn_bodies": 48
+  }
+ },
+ "groups": {
+  "CHIP_0603 MLCC Yageo CC": {
+   "purpose": "control",
+   "pns": 1,
+   "passed_pns": [
+    "C107039"
+   ],
+   "copies": 4,
+   "passed_copies": 4,
+   "max_angle_deg": 1.4,
+   "max_raw_mm": 0.028,
+   "max_residual_mm": 0.033,
+   "rows": [
+    {
+     "pn": "C107039",
+     "ref": "C1",
+     "side": "top",
+     "group": "CHIP_0603 MLCC Yageo CC",
+     "preview_status": "body",
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.2,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       -0.001,
+       -0.009
+      ],
+      "raw_offset_mm": 0.009,
+      "bias_xy_mm": [
+       0.011,
+       0.004
+      ],
+      "residual_offset_mm": 0.018,
+      "bias_view": "top",
+      "bias_bodies": 48,
+      "bias_other_bodies": 46
+     },
+     "passed": true
+    },
+    {
+     "pn": "C107039",
+     "ref": "C2",
+     "side": "top",
+     "group": "CHIP_0603 MLCC Yageo CC",
+     "preview_status": "body",
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -1.4,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       0.004,
+       -0.009
+      ],
+      "raw_offset_mm": 0.01,
+      "bias_xy_mm": [
+       0.011,
+       0.004
+      ],
+      "residual_offset_mm": 0.015,
+      "bias_view": "top",
+      "bias_bodies": 48,
+      "bias_other_bodies": 46
+     },
+     "passed": true
+    },
+    {
+     "pn": "C107039",
+     "ref": "C3",
+     "side": "bottom",
+     "group": "CHIP_0603 MLCC Yageo CC",
+     "preview_status": "body",
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.1,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       0.007,
+       -0.027
+      ],
+      "raw_offset_mm": 0.028,
+      "bias_xy_mm": [
+       0.009,
+       0.006
+      ],
+      "residual_offset_mm": 0.033,
+      "bias_view": "bottom",
+      "bias_bodies": 48,
+      "bias_other_bodies": 46
+     },
+     "passed": true
+    },
+    {
+     "pn": "C107039",
+     "ref": "C4",
+     "side": "bottom",
+     "group": "CHIP_0603 MLCC Yageo CC",
+     "preview_status": "body",
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.3,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       0.007,
+       -0.001
+      ],
+      "raw_offset_mm": 0.007,
+      "bias_xy_mm": [
+       0.009,
+       0.006
+      ],
+      "residual_offset_mm": 0.007,
+      "bias_view": "bottom",
+      "bias_bodies": 48,
+      "bias_other_bodies": 46
+     },
+     "passed": true
+    }
+   ]
+  },
+  "CHIP_0402 MLCC Yageo CC": {
+   "purpose": "control",
+   "pns": 1,
+   "passed_pns": [
+    "C113780"
+   ],
+   "copies": 4,
+   "passed_copies": 4,
+   "max_angle_deg": 3.1,
+   "max_raw_mm": 0.042,
+   "max_residual_mm": 0.039,
+   "rows": [
+    {
+     "pn": "C113780",
+     "ref": "C5",
+     "side": "top",
+     "group": "CHIP_0402 MLCC Yageo CC",
+     "preview_status": "body",
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -3.1,
+      "offset_limit_mm": 0.128,
+      "raw_offset_xy_mm": [
+       0.012,
+       -0.019
+      ],
+      "raw_offset_mm": 0.022,
+      "bias_xy_mm": [
+       0.011,
+       0.004
+      ],
+      "residual_offset_mm": 0.023,
+      "bias_view": "top",
+      "bias_bodies": 48,
+      "bias_other_bodies": 46
+     },
+     "passed": true
+    },
+    {
+     "pn": "C113780",
+     "ref": "C6",
+     "side": "top",
+     "group": "CHIP_0402 MLCC Yageo CC",
+     "preview_status": "body",
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -3.1,
+      "offset_limit_mm": 0.128,
+      "raw_offset_xy_mm": [
+       0.031,
+       -0.029
+      ],
+      "raw_offset_mm": 0.042,
+      "bias_xy_mm": [
+       0.011,
+       0.004
+      ],
+      "residual_offset_mm": 0.039,
+      "bias_view": "top",
+      "bias_bodies": 48,
+      "bias_other_bodies": 46
+     },
+     "passed": true
+    },
+    {
+     "pn": "C113780",
+     "ref": "C7",
+     "side": "bottom",
+     "group": "CHIP_0402 MLCC Yageo CC",
+     "preview_status": "body",
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 1.0,
+      "offset_limit_mm": 0.128,
+      "raw_offset_xy_mm": [
+       0.015,
+       -0.007
+      ],
+      "raw_offset_mm": 0.017,
+      "bias_xy_mm": [
+       0.009,
+       0.006
+      ],
+      "residual_offset_mm": 0.014,
+      "bias_view": "bottom",
+      "bias_bodies": 48,
+      "bias_other_bodies": 46
+     },
+     "passed": true
+    },
+    {
+     "pn": "C113780",
+     "ref": "C8",
+     "side": "bottom",
+     "group": "CHIP_0402 MLCC Yageo CC",
+     "preview_status": "body",
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -1.5,
+      "offset_limit_mm": 0.128,
+      "raw_offset_xy_mm": [
+       0.009,
+       -0.003
+      ],
+      "raw_offset_mm": 0.009,
+      "bias_xy_mm": [
+       0.009,
+       0.006
+      ],
+      "residual_offset_mm": 0.009,
+      "bias_view": "bottom",
+      "bias_bodies": 48,
+      "bias_other_bodies": 46
+     },
+     "passed": true
+    }
+   ]
+  },
+  "CHIP_0402 MLCC Samsung CL": {
+   "purpose": "sample",
+   "pns": 11,
+   "passed_pns": [
+    "C13533",
+    "C14441",
+    "C14445",
+    "C15195",
+    "C1525",
+    "C16772",
+    "C26404",
+    "C307331",
+    "C32949",
+    "C47339",
+    "C52923"
+   ],
+   "copies": 44,
+   "passed_copies": 44,
+   "max_angle_deg": 6.2,
+   "max_raw_mm": 0.041,
+   "max_residual_mm": 0.041,
+   "rows": [
+    {
+     "pn": "C13533",
+     "ref": "C9",
+     "side": "top",
+     "group": "CHIP_0402 MLCC Samsung CL",
+     "preview_status": "body",
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.3,
+      "offset_limit_mm": 0.128,
+      "raw_offset_xy_mm": [
+       0.027,
+       0.025
+      ],
+      "raw_offset_mm": 0.037,
+      "bias_xy_mm": [
+       0.011,
+       0.004
+      ],
+      "residual_offset_mm": 0.026,
+      "bias_view": "top",
+      "bias_bodies": 48,
+      "bias_other_bodies": 26
+     },
+     "passed": true
+    },
+    {
+     "pn": "C13533",
+     "ref": "C10",
+     "side": "top",
+     "group": "CHIP_0402 MLCC Samsung CL",
+     "preview_status": "body",
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -1.6,
+      "offset_limit_mm": 0.128,
+      "raw_offset_xy_mm": [
+       0.011,
+       0.034
+      ],
+      "raw_offset_mm": 0.036,
+      "bias_xy_mm": [
+       0.011,
+       0.004
+      ],
+      "residual_offset_mm": 0.03,
+      "bias_view": "top",
+      "bias_bodies": 48,
+      "bias_other_bodies": 26
+     },
+     "passed": true
+    },
+    {
+     "pn": "C13533",
+     "ref": "C11",
+     "side": "bottom",
+     "group": "CHIP_0402 MLCC Samsung CL",
+     "preview_status": "body",
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -1.2,
+      "offset_limit_mm": 0.128,
+      "raw_offset_xy_mm": [
+       0.012,
+       0.024
+      ],
+      "raw_offset_mm": 0.027,
+      "bias_xy_mm": [
+       0.009,
+       0.006
+      ],
+      "residual_offset_mm": 0.018,
+      "bias_view": "bottom",
+      "bias_bodies": 48,
+      "bias_other_bodies": 26
+     },
+     "passed": true
+    },
+    {
+     "pn": "C13533",
+     "ref": "C12",
+     "side": "bottom",
+     "group": "CHIP_0402 MLCC Samsung CL",
+     "preview_status": "body",
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 1.8,
+      "offset_limit_mm": 0.128,
+      "raw_offset_xy_mm": [
+       0.008,
+       0.026
+      ],
+      "raw_offset_mm": 0.027,
+      "bias_xy_mm": [
+       0.009,
+       0.006
+      ],
+      "residual_offset_mm": 0.02,
+      "bias_view": "bottom",
+      "bias_bodies": 48,
+      "bias_other_bodies": 26
+     },
+     "passed": true
+    },
+    {
+     "pn": "C14441",
+     "ref": "C13",
+     "side": "top",
+     "group": "CHIP_0402 MLCC Samsung CL",
+     "preview_status": "body",
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.3,
+      "offset_limit_mm": 0.128,
+      "raw_offset_xy_mm": [
+       0.028,
+       0.028
+      ],
+      "raw_offset_mm": 0.04,
+      "bias_xy_mm": [
+       0.011,
+       0.004
+      ],
+      "residual_offset_mm": 0.029,
+      "bias_view": "top",
+      "bias_bodies": 48,
+      "bias_other_bodies": 26
+     },
+     "passed": true
+    },
+    {
+     "pn": "C14441",
+     "ref": "C14",
+     "side": "top",
+     "group": "CHIP_0402 MLCC Samsung CL",
+     "preview_status": "body",
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 1.4,
+      "offset_limit_mm": 0.128,
+      "raw_offset_xy_mm": [
+       0.03,
+       0.027
+      ],
+      "raw_offset_mm": 0.04,
+      "bias_xy_mm": [
+       0.011,
+       0.004
+      ],
+      "residual_offset_mm": 0.03,
+      "bias_view": "top",
+      "bias_bodies": 48,
+      "bias_other_bodies": 26
+     },
+     "passed": true
+    },
+    {
+     "pn": "C14441",
+     "ref": "C15",
+     "side": "bottom",
+     "group": "CHIP_0402 MLCC Samsung CL",
+     "preview_status": "body",
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.6,
+      "offset_limit_mm": 0.128,
+      "raw_offset_xy_mm": [
+       0.016,
+       0.024
+      ],
+      "raw_offset_mm": 0.029,
+      "bias_xy_mm": [
+       0.009,
+       0.006
+      ],
+      "residual_offset_mm": 0.019,
+      "bias_view": "bottom",
+      "bias_bodies": 48,
+      "bias_other_bodies": 26
+     },
+     "passed": true
+    },
+    {
+     "pn": "C14441",
+     "ref": "C16",
+     "side": "bottom",
+     "group": "CHIP_0402 MLCC Samsung CL",
+     "preview_status": "body",
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.2,
+      "offset_limit_mm": 0.128,
+      "raw_offset_xy_mm": [
+       0.006,
+       0.034
+      ],
+      "raw_offset_mm": 0.035,
+      "bias_xy_mm": [
+       0.009,
+       0.006
+      ],
+      "residual_offset_mm": 0.028,
+      "bias_view": "bottom",
+      "bias_bodies": 48,
+      "bias_other_bodies": 26
+     },
+     "passed": true
+    },
+    {
+     "pn": "C14445",
+     "ref": "C17",
+     "side": "top",
+     "group": "CHIP_0402 MLCC Samsung CL",
+     "preview_status": "body",
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 2.3,
+      "offset_limit_mm": 0.127,
+      "raw_offset_xy_mm": [
+       0.023,
+       -0.021
+      ],
+      "raw_offset_mm": 0.031,
+      "bias_xy_mm": [
+       0.011,
+       0.004
+      ],
+      "residual_offset_mm": 0.028,
+      "bias_view": "top",
+      "bias_bodies": 48,
+      "bias_other_bodies": 26
+     },
+     "passed": true
+    },
+    {
+     "pn": "C14445",
+     "ref": "C18",
+     "side": "top",
+     "group": "CHIP_0402 MLCC Samsung CL",
+     "preview_status": "body",
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -1.7,
+      "offset_limit_mm": 0.128,
+      "raw_offset_xy_mm": [
+       0.006,
+       -0.004
+      ],
+      "raw_offset_mm": 0.007,
+      "bias_xy_mm": [
+       0.011,
+       0.004
+      ],
+      "residual_offset_mm": 0.009,
+      "bias_view": "top",
+      "bias_bodies": 48,
+      "bias_other_bodies": 26
+     },
+     "passed": true
+    },
+    {
+     "pn": "C14445",
+     "ref": "C19",
+     "side": "bottom",
+     "group": "CHIP_0402 MLCC Samsung CL",
+     "preview_status": "body",
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.6,
+      "offset_limit_mm": 0.127,
+      "raw_offset_xy_mm": [
+       -0.001,
+       -0.005
+      ],
+      "raw_offset_mm": 0.005,
+      "bias_xy_mm": [
+       0.009,
+       0.006
+      ],
+      "residual_offset_mm": 0.015,
+      "bias_view": "bottom",
+      "bias_bodies": 48,
+      "bias_other_bodies": 26
+     },
+     "passed": true
+    },
+    {
+     "pn": "C14445",
+     "ref": "C20",
+     "side": "bottom",
+     "group": "CHIP_0402 MLCC Samsung CL",
+     "preview_status": "body",
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -2.4,
+      "offset_limit_mm": 0.128,
+      "raw_offset_xy_mm": [
+       0.009,
+       -0.003
+      ],
+      "raw_offset_mm": 0.009,
+      "bias_xy_mm": [
+       0.009,
+       0.006
+      ],
+      "residual_offset_mm": 0.009,
+      "bias_view": "bottom",
+      "bias_bodies": 48,
+      "bias_other_bodies": 26
+     },
+     "passed": true
+    },
+    {
+     "pn": "C15195",
+     "ref": "C25",
+     "side": "top",
+     "group": "CHIP_0402 MLCC Samsung CL",
+     "preview_status": "body",
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 1.9,
+      "offset_limit_mm": 0.128,
+      "raw_offset_xy_mm": [
+       -0.004,
+       0.022
+      ],
+      "raw_offset_mm": 0.022,
+      "bias_xy_mm": [
+       0.011,
+       0.004
+      ],
+      "residual_offset_mm": 0.023,
+      "bias_view": "top",
+      "bias_bodies": 48,
+      "bias_other_bodies": 26
+     },
+     "passed": true
+    },
+    {
+     "pn": "C15195",
+     "ref": "C26",
+     "side": "top",
+     "group": "CHIP_0402 MLCC Samsung CL",
+     "preview_status": "body",
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.2,
+      "offset_limit_mm": 0.128,
+      "raw_offset_xy_mm": [
+       0.006,
+       0.006
+      ],
+      "raw_offset_mm": 0.008,
+      "bias_xy_mm": [
+       0.011,
+       0.004
+      ],
+      "residual_offset_mm": 0.005,
+      "bias_view": "top",
+      "bias_bodies": 48,
+      "bias_other_bodies": 26
+     },
+     "passed": true
+    },
+    {
+     "pn": "C15195",
+     "ref": "C27",
+     "side": "bottom",
+     "group": "CHIP_0402 MLCC Samsung CL",
+     "preview_status": "body",
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.3,
+      "offset_limit_mm": 0.128,
+      "raw_offset_xy_mm": [
+       0.003,
+       0.001
+      ],
+      "raw_offset_mm": 0.003,
+      "bias_xy_mm": [
+       0.009,
+       0.006
+      ],
+      "residual_offset_mm": 0.008,
+      "bias_view": "bottom",
+      "bias_bodies": 48,
+      "bias_other_bodies": 26
+     },
+     "passed": true
+    },
+    {
+     "pn": "C15195",
+     "ref": "C28",
+     "side": "bottom",
+     "group": "CHIP_0402 MLCC Samsung CL",
+     "preview_status": "body",
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.4,
+      "offset_limit_mm": 0.128,
+      "raw_offset_xy_mm": [
+       0.014,
+       0.005
+      ],
+      "raw_offset_mm": 0.015,
+      "bias_xy_mm": [
+       0.009,
+       0.006
+      ],
+      "residual_offset_mm": 0.005,
+      "bias_view": "bottom",
+      "bias_bodies": 48,
+      "bias_other_bodies": 26
+     },
+     "passed": true
+    },
+    {
+     "pn": "C1525",
+     "ref": "C29",
+     "side": "top",
+     "group": "CHIP_0402 MLCC Samsung CL",
+     "preview_status": "body",
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -1.0,
+      "offset_limit_mm": 0.127,
+      "raw_offset_xy_mm": [
+       -0.012,
+       0.022
+      ],
+      "raw_offset_mm": 0.025,
+      "bias_xy_mm": [
+       0.011,
+       0.004
+      ],
+      "residual_offset_mm": 0.029,
+      "bias_view": "top",
+      "bias_bodies": 48,
+      "bias_other_bodies": 26
+     },
+     "passed": true
+    },
+    {
+     "pn": "C1525",
+     "ref": "C30",
+     "side": "top",
+     "group": "CHIP_0402 MLCC Samsung CL",
+     "preview_status": "body",
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -1.1,
+      "offset_limit_mm": 0.128,
+      "raw_offset_xy_mm": [
+       -0.011,
+       0.023
+      ],
+      "raw_offset_mm": 0.025,
+      "bias_xy_mm": [
+       0.011,
+       0.004
+      ],
+      "residual_offset_mm": 0.029,
+      "bias_view": "top",
+      "bias_bodies": 48,
+      "bias_other_bodies": 26
+     },
+     "passed": true
+    },
+    {
+     "pn": "C1525",
+     "ref": "C31",
+     "side": "bottom",
+     "group": "CHIP_0402 MLCC Samsung CL",
+     "preview_status": "body",
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 1.8,
+      "offset_limit_mm": 0.127,
+      "raw_offset_xy_mm": [
+       0.002,
+       0.024
+      ],
+      "raw_offset_mm": 0.024,
+      "bias_xy_mm": [
+       0.009,
+       0.006
+      ],
+      "residual_offset_mm": 0.019,
+      "bias_view": "bottom",
+      "bias_bodies": 48,
+      "bias_other_bodies": 26
+     },
+     "passed": true
+    },
+    {
+     "pn": "C1525",
+     "ref": "C32",
+     "side": "bottom",
+     "group": "CHIP_0402 MLCC Samsung CL",
+     "preview_status": "body",
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.1,
+      "offset_limit_mm": 0.128,
+      "raw_offset_xy_mm": [
+       0.0,
+       0.033
+      ],
+      "raw_offset_mm": 0.033,
+      "bias_xy_mm": [
+       0.009,
+       0.006
+      ],
+      "residual_offset_mm": 0.028,
+      "bias_view": "bottom",
+      "bias_bodies": 48,
+      "bias_other_bodies": 26
+     },
+     "passed": true
+    },
+    {
+     "pn": "C16772",
+     "ref": "C37",
+     "side": "top",
+     "group": "CHIP_0402 MLCC Samsung CL",
+     "preview_status": "body",
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -1.8,
+      "offset_limit_mm": 0.127,
+      "raw_offset_xy_mm": [
+       0.017,
+       0.033
+      ],
+      "raw_offset_mm": 0.037,
+      "bias_xy_mm": [
+       0.011,
+       0.004
+      ],
+      "residual_offset_mm": 0.03,
+      "bias_view": "top",
+      "bias_bodies": 48,
+      "bias_other_bodies": 26
+     },
+     "passed": true
+    },
+    {
+     "pn": "C16772",
+     "ref": "C38",
+     "side": "top",
+     "group": "CHIP_0402 MLCC Samsung CL",
+     "preview_status": "body",
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -2.4,
+      "offset_limit_mm": 0.128,
+      "raw_offset_xy_mm": [
+       0.016,
+       0.023
+      ],
+      "raw_offset_mm": 0.028,
+      "bias_xy_mm": [
+       0.011,
+       0.004
+      ],
+      "residual_offset_mm": 0.02,
+      "bias_view": "top",
+      "bias_bodies": 48,
+      "bias_other_bodies": 26
+     },
+     "passed": true
+    },
+    {
+     "pn": "C16772",
+     "ref": "C39",
+     "side": "bottom",
+     "group": "CHIP_0402 MLCC Samsung CL",
+     "preview_status": "body",
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.4,
+      "offset_limit_mm": 0.127,
+      "raw_offset_xy_mm": [
+       0.003,
+       0.023
+      ],
+      "raw_offset_mm": 0.023,
+      "bias_xy_mm": [
+       0.009,
+       0.006
+      ],
+      "residual_offset_mm": 0.018,
+      "bias_view": "bottom",
+      "bias_bodies": 48,
+      "bias_other_bodies": 26
+     },
+     "passed": true
+    },
+    {
+     "pn": "C16772",
+     "ref": "C40",
+     "side": "bottom",
+     "group": "CHIP_0402 MLCC Samsung CL",
+     "preview_status": "body",
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.4,
+      "offset_limit_mm": 0.128,
+      "raw_offset_xy_mm": [
+       0.005,
+       0.037
+      ],
+      "raw_offset_mm": 0.037,
+      "bias_xy_mm": [
+       0.009,
+       0.006
+      ],
+      "residual_offset_mm": 0.031,
+      "bias_view": "bottom",
+      "bias_bodies": 48,
+      "bias_other_bodies": 26
+     },
+     "passed": true
+    },
+    {
+     "pn": "C26404",
+     "ref": "C53",
+     "side": "top",
+     "group": "CHIP_0402 MLCC Samsung CL",
+     "preview_status": "body",
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -1.4,
+      "offset_limit_mm": 0.127,
+      "raw_offset_xy_mm": [
+       0.02,
+       0.027
+      ],
+      "raw_offset_mm": 0.034,
+      "bias_xy_mm": [
+       0.011,
+       0.004
+      ],
+      "residual_offset_mm": 0.025,
+      "bias_view": "top",
+      "bias_bodies": 48,
+      "bias_other_bodies": 26
+     },
+     "passed": true
+    },
+    {
+     "pn": "C26404",
+     "ref": "C54",
+     "side": "top",
+     "group": "CHIP_0402 MLCC Samsung CL",
+     "preview_status": "body",
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 3.6,
+      "offset_limit_mm": 0.128,
+      "raw_offset_xy_mm": [
+       0.009,
+       0.032
+      ],
+      "raw_offset_mm": 0.033,
+      "bias_xy_mm": [
+       0.011,
+       0.004
+      ],
+      "residual_offset_mm": 0.028,
+      "bias_view": "top",
+      "bias_bodies": 48,
+      "bias_other_bodies": 26
+     },
+     "passed": true
+    },
+    {
+     "pn": "C26404",
+     "ref": "C55",
+     "side": "bottom",
+     "group": "CHIP_0402 MLCC Samsung CL",
+     "preview_status": "body",
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.2,
+      "offset_limit_mm": 0.127,
+      "raw_offset_xy_mm": [
+       0.005,
+       0.026
+      ],
+      "raw_offset_mm": 0.026,
+      "bias_xy_mm": [
+       0.009,
+       0.006
+      ],
+      "residual_offset_mm": 0.02,
+      "bias_view": "bottom",
+      "bias_bodies": 48,
+      "bias_other_bodies": 26
+     },
+     "passed": true
+    },
+    {
+     "pn": "C26404",
+     "ref": "C56",
+     "side": "bottom",
+     "group": "CHIP_0402 MLCC Samsung CL",
+     "preview_status": "body",
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.6,
+      "offset_limit_mm": 0.128,
+      "raw_offset_xy_mm": [
+       -0.001,
+       0.031
+      ],
+      "raw_offset_mm": 0.031,
+      "bias_xy_mm": [
+       0.009,
+       0.006
+      ],
+      "residual_offset_mm": 0.027,
+      "bias_view": "bottom",
+      "bias_bodies": 48,
+      "bias_other_bodies": 26
+     },
+     "passed": true
+    },
+    {
+     "pn": "C307331",
+     "ref": "C57",
+     "side": "top",
+     "group": "CHIP_0402 MLCC Samsung CL",
+     "preview_status": "body",
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.3,
+      "offset_limit_mm": 0.127,
+      "raw_offset_xy_mm": [
+       0.04,
+       -0.011
+      ],
+      "raw_offset_mm": 0.041,
+      "bias_xy_mm": [
+       0.011,
+       0.004
+      ],
+      "residual_offset_mm": 0.033,
+      "bias_view": "top",
+      "bias_bodies": 48,
+      "bias_other_bodies": 26
+     },
+     "passed": true
+    },
+    {
+     "pn": "C307331",
+     "ref": "C58",
+     "side": "top",
+     "group": "CHIP_0402 MLCC Samsung CL",
+     "preview_status": "body",
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -1.9,
+      "offset_limit_mm": 0.128,
+      "raw_offset_xy_mm": [
+       0.022,
+       0.005
+      ],
+      "raw_offset_mm": 0.023,
+      "bias_xy_mm": [
+       0.011,
+       0.004
+      ],
+      "residual_offset_mm": 0.011,
+      "bias_view": "top",
+      "bias_bodies": 48,
+      "bias_other_bodies": 26
+     },
+     "passed": true
+    },
+    {
+     "pn": "C307331",
+     "ref": "C59",
+     "side": "bottom",
+     "group": "CHIP_0402 MLCC Samsung CL",
+     "preview_status": "body",
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.4,
+      "offset_limit_mm": 0.127,
+      "raw_offset_xy_mm": [
+       0.027,
+       0.001
+      ],
+      "raw_offset_mm": 0.027,
+      "bias_xy_mm": [
+       0.009,
+       0.006
+      ],
+      "residual_offset_mm": 0.019,
+      "bias_view": "bottom",
+      "bias_bodies": 48,
+      "bias_other_bodies": 26
+     },
+     "passed": true
+    },
+    {
+     "pn": "C307331",
+     "ref": "C60",
+     "side": "bottom",
+     "group": "CHIP_0402 MLCC Samsung CL",
+     "preview_status": "body",
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 2.4,
+      "offset_limit_mm": 0.128,
+      "raw_offset_xy_mm": [
+       0.01,
+       0.011
+      ],
+      "raw_offset_mm": 0.015,
+      "bias_xy_mm": [
+       0.009,
+       0.006
+      ],
+      "residual_offset_mm": 0.005,
+      "bias_view": "bottom",
+      "bias_bodies": 48,
+      "bias_other_bodies": 26
+     },
+     "passed": true
+    },
+    {
+     "pn": "C32949",
+     "ref": "C61",
+     "side": "top",
+     "group": "CHIP_0402 MLCC Samsung CL",
+     "preview_status": "body",
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.2,
+      "offset_limit_mm": 0.127,
+      "raw_offset_xy_mm": [
+       0.03,
+       0.024
+      ],
+      "raw_offset_mm": 0.038,
+      "bias_xy_mm": [
+       0.011,
+       0.004
+      ],
+      "residual_offset_mm": 0.028,
+      "bias_view": "top",
+      "bias_bodies": 48,
+      "bias_other_bodies": 26
+     },
+     "passed": true
+    },
+    {
+     "pn": "C32949",
+     "ref": "C62",
+     "side": "top",
+     "group": "CHIP_0402 MLCC Samsung CL",
+     "preview_status": "body",
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.7,
+      "offset_limit_mm": 0.128,
+      "raw_offset_xy_mm": [
+       0.015,
+       0.017
+      ],
+      "raw_offset_mm": 0.023,
+      "bias_xy_mm": [
+       0.011,
+       0.004
+      ],
+      "residual_offset_mm": 0.014,
+      "bias_view": "top",
+      "bias_bodies": 48,
+      "bias_other_bodies": 26
+     },
+     "passed": true
+    },
+    {
+     "pn": "C32949",
+     "ref": "C63",
+     "side": "bottom",
+     "group": "CHIP_0402 MLCC Samsung CL",
+     "preview_status": "body",
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.7,
+      "offset_limit_mm": 0.127,
+      "raw_offset_xy_mm": [
+       0.02,
+       0.024
+      ],
+      "raw_offset_mm": 0.031,
+      "bias_xy_mm": [
+       0.009,
+       0.006
+      ],
+      "residual_offset_mm": 0.021,
+      "bias_view": "bottom",
+      "bias_bodies": 48,
+      "bias_other_bodies": 26
+     },
+     "passed": true
+    },
+    {
+     "pn": "C32949",
+     "ref": "C64",
+     "side": "bottom",
+     "group": "CHIP_0402 MLCC Samsung CL",
+     "preview_status": "body",
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 2.3,
+      "offset_limit_mm": 0.128,
+      "raw_offset_xy_mm": [
+       0.012,
+       0.028
+      ],
+      "raw_offset_mm": 0.03,
+      "bias_xy_mm": [
+       0.009,
+       0.006
+      ],
+      "residual_offset_mm": 0.022,
+      "bias_view": "bottom",
+      "bias_bodies": 48,
+      "bias_other_bodies": 26
+     },
+     "passed": true
+    },
+    {
+     "pn": "C47339",
+     "ref": "C65",
+     "side": "top",
+     "group": "CHIP_0402 MLCC Samsung CL",
+     "preview_status": "body",
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.0,
+      "offset_limit_mm": 0.128,
+      "raw_offset_xy_mm": [
+       0.026,
+       -0.026
+      ],
+      "raw_offset_mm": 0.037,
+      "bias_xy_mm": [
+       0.011,
+       0.004
+      ],
+      "residual_offset_mm": 0.034,
+      "bias_view": "top",
+      "bias_bodies": 48,
+      "bias_other_bodies": 26
+     },
+     "passed": true
+    },
+    {
+     "pn": "C47339",
+     "ref": "C66",
+     "side": "top",
+     "group": "CHIP_0402 MLCC Samsung CL",
+     "preview_status": "body",
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 2.1,
+      "offset_limit_mm": 0.128,
+      "raw_offset_xy_mm": [
+       0.015,
+       -0.008
+      ],
+      "raw_offset_mm": 0.017,
+      "bias_xy_mm": [
+       0.011,
+       0.004
+      ],
+      "residual_offset_mm": 0.013,
+      "bias_view": "top",
+      "bias_bodies": 48,
+      "bias_other_bodies": 26
+     },
+     "passed": true
+    },
+    {
+     "pn": "C47339",
+     "ref": "C67",
+     "side": "bottom",
+     "group": "CHIP_0402 MLCC Samsung CL",
+     "preview_status": "body",
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -1.6,
+      "offset_limit_mm": 0.128,
+      "raw_offset_xy_mm": [
+       0.023,
+       -0.012
+      ],
+      "raw_offset_mm": 0.026,
+      "bias_xy_mm": [
+       0.009,
+       0.006
+      ],
+      "residual_offset_mm": 0.023,
+      "bias_view": "bottom",
+      "bias_bodies": 48,
+      "bias_other_bodies": 26
+     },
+     "passed": true
+    },
+    {
+     "pn": "C47339",
+     "ref": "C68",
+     "side": "bottom",
+     "group": "CHIP_0402 MLCC Samsung CL",
+     "preview_status": "body",
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -1.9,
+      "offset_limit_mm": 0.128,
+      "raw_offset_xy_mm": [
+       0.011,
+       -0.01
+      ],
+      "raw_offset_mm": 0.015,
+      "bias_xy_mm": [
+       0.009,
+       0.006
+      ],
+      "residual_offset_mm": 0.016,
+      "bias_view": "bottom",
+      "bias_bodies": 48,
+      "bias_other_bodies": 26
+     },
+     "passed": true
+    },
+    {
+     "pn": "C52923",
+     "ref": "C69",
+     "side": "top",
+     "group": "CHIP_0402 MLCC Samsung CL",
+     "preview_status": "body",
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -1.6,
+      "offset_limit_mm": 0.127,
+      "raw_offset_xy_mm": [
+       -0.02,
+       -0.023
+      ],
+      "raw_offset_mm": 0.03,
+      "bias_xy_mm": [
+       0.011,
+       0.004
+      ],
+      "residual_offset_mm": 0.041,
+      "bias_view": "top",
+      "bias_bodies": 48,
+      "bias_other_bodies": 26
+     },
+     "passed": true
+    },
+    {
+     "pn": "C52923",
+     "ref": "C70",
+     "side": "top",
+     "group": "CHIP_0402 MLCC Samsung CL",
+     "preview_status": "body",
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -6.2,
+      "offset_limit_mm": 0.128,
+      "raw_offset_xy_mm": [
+       0.002,
+       -0.018
+      ],
+      "raw_offset_mm": 0.018,
+      "bias_xy_mm": [
+       0.011,
+       0.004
+      ],
+      "residual_offset_mm": 0.024,
+      "bias_view": "top",
+      "bias_bodies": 48,
+      "bias_other_bodies": 26
+     },
+     "passed": true
+    },
+    {
+     "pn": "C52923",
+     "ref": "C71",
+     "side": "bottom",
+     "group": "CHIP_0402 MLCC Samsung CL",
+     "preview_status": "body",
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.5,
+      "offset_limit_mm": 0.127,
+      "raw_offset_xy_mm": [
+       0.004,
+       -0.015
+      ],
+      "raw_offset_mm": 0.016,
+      "bias_xy_mm": [
+       0.009,
+       0.006
+      ],
+      "residual_offset_mm": 0.022,
+      "bias_view": "bottom",
+      "bias_bodies": 48,
+      "bias_other_bodies": 26
+     },
+     "passed": true
+    },
+    {
+     "pn": "C52923",
+     "ref": "C72",
+     "side": "bottom",
+     "group": "CHIP_0402 MLCC Samsung CL",
+     "preview_status": "body",
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.5,
+      "offset_limit_mm": 0.128,
+      "raw_offset_xy_mm": [
+       0.005,
+       -0.009
+      ],
+      "raw_offset_mm": 0.01,
+      "bias_xy_mm": [
+       0.009,
+       0.006
+      ],
+      "residual_offset_mm": 0.016,
+      "bias_view": "bottom",
+      "bias_bodies": 48,
+      "bias_other_bodies": 26
+     },
+     "passed": true
+    }
+   ]
+  },
+  "CHIP_0805 MLCC Samsung CL": {
+   "purpose": "sample",
+   "pns": 6,
+   "passed_pns": [
+    "C14857",
+    "C15850",
+    "C1790",
+    "C1804",
+    "C53134",
+    "C5378"
+   ],
+   "copies": 24,
+   "passed_copies": 24,
+   "max_angle_deg": 1.2,
+   "max_raw_mm": 0.04,
+   "max_residual_mm": 0.046,
+   "rows": [
+    {
+     "pn": "C14857",
+     "ref": "C21",
+     "side": "top",
+     "group": "CHIP_0805 MLCC Samsung CL",
+     "preview_status": "body",
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.6,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       -0.026,
+       0.031
+      ],
+      "raw_offset_mm": 0.04,
+      "bias_xy_mm": [
+       0.011,
+       0.004
+      ],
+      "residual_offset_mm": 0.046,
+      "bias_view": "top",
+      "bias_bodies": 48,
+      "bias_other_bodies": 36
+     },
+     "passed": true
+    },
+    {
+     "pn": "C14857",
+     "ref": "C22",
+     "side": "top",
+     "group": "CHIP_0805 MLCC Samsung CL",
+     "preview_status": "body",
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.6,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       0.0,
+       0.015
+      ],
+      "raw_offset_mm": 0.015,
+      "bias_xy_mm": [
+       0.011,
+       0.004
+      ],
+      "residual_offset_mm": 0.016,
+      "bias_view": "top",
+      "bias_bodies": 48,
+      "bias_other_bodies": 36
+     },
+     "passed": true
+    },
+    {
+     "pn": "C14857",
+     "ref": "C23",
+     "side": "bottom",
+     "group": "CHIP_0805 MLCC Samsung CL",
+     "preview_status": "body",
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.1,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       -0.004,
+       0.028
+      ],
+      "raw_offset_mm": 0.028,
+      "bias_xy_mm": [
+       0.009,
+       0.006
+      ],
+      "residual_offset_mm": 0.026,
+      "bias_view": "bottom",
+      "bias_bodies": 48,
+      "bias_other_bodies": 36
+     },
+     "passed": true
+    },
+    {
+     "pn": "C14857",
+     "ref": "C24",
+     "side": "bottom",
+     "group": "CHIP_0805 MLCC Samsung CL",
+     "preview_status": "body",
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.1,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       0.006,
+       0.031
+      ],
+      "raw_offset_mm": 0.032,
+      "bias_xy_mm": [
+       0.009,
+       0.006
+      ],
+      "residual_offset_mm": 0.025,
+      "bias_view": "bottom",
+      "bias_bodies": 48,
+      "bias_other_bodies": 36
+     },
+     "passed": true
+    },
+    {
+     "pn": "C15850",
+     "ref": "C33",
+     "side": "top",
+     "group": "CHIP_0805 MLCC Samsung CL",
+     "preview_status": "body",
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.3,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       0.005,
+       -0.028
+      ],
+      "raw_offset_mm": 0.028,
+      "bias_xy_mm": [
+       0.011,
+       0.004
+      ],
+      "residual_offset_mm": 0.033,
+      "bias_view": "top",
+      "bias_bodies": 48,
+      "bias_other_bodies": 36
+     },
+     "passed": true
+    },
+    {
+     "pn": "C15850",
+     "ref": "C34",
+     "side": "top",
+     "group": "CHIP_0805 MLCC Samsung CL",
+     "preview_status": "body",
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.3,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       -0.001,
+       -0.012
+      ],
+      "raw_offset_mm": 0.012,
+      "bias_xy_mm": [
+       0.011,
+       0.004
+      ],
+      "residual_offset_mm": 0.02,
+      "bias_view": "top",
+      "bias_bodies": 48,
+      "bias_other_bodies": 36
+     },
+     "passed": true
+    },
+    {
+     "pn": "C15850",
+     "ref": "C35",
+     "side": "bottom",
+     "group": "CHIP_0805 MLCC Samsung CL",
+     "preview_status": "body",
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.1,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       -0.008,
+       -0.026
+      ],
+      "raw_offset_mm": 0.027,
+      "bias_xy_mm": [
+       0.009,
+       0.006
+      ],
+      "residual_offset_mm": 0.036,
+      "bias_view": "bottom",
+      "bias_bodies": 48,
+      "bias_other_bodies": 36
+     },
+     "passed": true
+    },
+    {
+     "pn": "C15850",
+     "ref": "C36",
+     "side": "bottom",
+     "group": "CHIP_0805 MLCC Samsung CL",
+     "preview_status": "body",
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.3,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       0.009,
+       -0.002
+      ],
+      "raw_offset_mm": 0.009,
+      "bias_xy_mm": [
+       0.009,
+       0.006
+      ],
+      "residual_offset_mm": 0.008,
+      "bias_view": "bottom",
+      "bias_bodies": 48,
+      "bias_other_bodies": 36
+     },
+     "passed": true
+    },
+    {
+     "pn": "C1790",
+     "ref": "C41",
+     "side": "top",
+     "group": "CHIP_0805 MLCC Samsung CL",
+     "preview_status": "body",
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.8,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       0.033,
+       0.001
+      ],
+      "raw_offset_mm": 0.033,
+      "bias_xy_mm": [
+       0.011,
+       0.004
+      ],
+      "residual_offset_mm": 0.022,
+      "bias_view": "top",
+      "bias_bodies": 48,
+      "bias_other_bodies": 36
+     },
+     "passed": true
+    },
+    {
+     "pn": "C1790",
+     "ref": "C42",
+     "side": "top",
+     "group": "CHIP_0805 MLCC Samsung CL",
+     "preview_status": "body",
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.5,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       0.004,
+       0.015
+      ],
+      "raw_offset_mm": 0.016,
+      "bias_xy_mm": [
+       0.011,
+       0.004
+      ],
+      "residual_offset_mm": 0.013,
+      "bias_view": "top",
+      "bias_bodies": 48,
+      "bias_other_bodies": 36
+     },
+     "passed": true
+    },
+    {
+     "pn": "C1790",
+     "ref": "C43",
+     "side": "bottom",
+     "group": "CHIP_0805 MLCC Samsung CL",
+     "preview_status": "body",
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.1,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       -0.017,
+       -0.0
+      ],
+      "raw_offset_mm": 0.017,
+      "bias_xy_mm": [
+       0.009,
+       0.006
+      ],
+      "residual_offset_mm": 0.027,
+      "bias_view": "bottom",
+      "bias_bodies": 48,
+      "bias_other_bodies": 36
+     },
+     "passed": true
+    },
+    {
+     "pn": "C1790",
+     "ref": "C44",
+     "side": "bottom",
+     "group": "CHIP_0805 MLCC Samsung CL",
+     "preview_status": "body",
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 1.1,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       0.011,
+       0.008
+      ],
+      "raw_offset_mm": 0.014,
+      "bias_xy_mm": [
+       0.009,
+       0.006
+      ],
+      "residual_offset_mm": 0.003,
+      "bias_view": "bottom",
+      "bias_bodies": 48,
+      "bias_other_bodies": 36
+     },
+     "passed": true
+    },
+    {
+     "pn": "C1804",
+     "ref": "C45",
+     "side": "top",
+     "group": "CHIP_0805 MLCC Samsung CL",
+     "preview_status": "body",
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -1.2,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       0.034,
+       -0.002
+      ],
+      "raw_offset_mm": 0.034,
+      "bias_xy_mm": [
+       0.011,
+       0.004
+      ],
+      "residual_offset_mm": 0.024,
+      "bias_view": "top",
+      "bias_bodies": 48,
+      "bias_other_bodies": 36
+     },
+     "passed": true
+    },
+    {
+     "pn": "C1804",
+     "ref": "C46",
+     "side": "top",
+     "group": "CHIP_0805 MLCC Samsung CL",
+     "preview_status": "body",
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.7,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       0.028,
+       0.01
+      ],
+      "raw_offset_mm": 0.03,
+      "bias_xy_mm": [
+       0.011,
+       0.004
+      ],
+      "residual_offset_mm": 0.018,
+      "bias_view": "top",
+      "bias_bodies": 48,
+      "bias_other_bodies": 36
+     },
+     "passed": true
+    },
+    {
+     "pn": "C1804",
+     "ref": "C47",
+     "side": "bottom",
+     "group": "CHIP_0805 MLCC Samsung CL",
+     "preview_status": "body",
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.1,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       0.029,
+       -0.003
+      ],
+      "raw_offset_mm": 0.029,
+      "bias_xy_mm": [
+       0.009,
+       0.006
+      ],
+      "residual_offset_mm": 0.022,
+      "bias_view": "bottom",
+      "bias_bodies": 48,
+      "bias_other_bodies": 36
+     },
+     "passed": true
+    },
+    {
+     "pn": "C1804",
+     "ref": "C48",
+     "side": "bottom",
+     "group": "CHIP_0805 MLCC Samsung CL",
+     "preview_status": "body",
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.2,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       0.012,
+       0.012
+      ],
+      "raw_offset_mm": 0.017,
+      "bias_xy_mm": [
+       0.009,
+       0.006
+      ],
+      "residual_offset_mm": 0.007,
+      "bias_view": "bottom",
+      "bias_bodies": 48,
+      "bias_other_bodies": 36
+     },
+     "passed": true
+    },
+    {
+     "pn": "C53134",
+     "ref": "C73",
+     "side": "top",
+     "group": "CHIP_0805 MLCC Samsung CL",
+     "preview_status": "body",
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.3,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       -0.028,
+       0.006
+      ],
+      "raw_offset_mm": 0.029,
+      "bias_xy_mm": [
+       0.011,
+       0.004
+      ],
+      "residual_offset_mm": 0.039,
+      "bias_view": "top",
+      "bias_bodies": 48,
+      "bias_other_bodies": 36
+     },
+     "passed": true
+    },
+    {
+     "pn": "C53134",
+     "ref": "C74",
+     "side": "top",
+     "group": "CHIP_0805 MLCC Samsung CL",
+     "preview_status": "body",
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.9,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       -0.002,
+       0.009
+      ],
+      "raw_offset_mm": 0.009,
+      "bias_xy_mm": [
+       0.011,
+       0.004
+      ],
+      "residual_offset_mm": 0.014,
+      "bias_view": "top",
+      "bias_bodies": 48,
+      "bias_other_bodies": 36
+     },
+     "passed": true
+    },
+    {
+     "pn": "C53134",
+     "ref": "C75",
+     "side": "bottom",
+     "group": "CHIP_0805 MLCC Samsung CL",
+     "preview_status": "body",
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.4,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       0.004,
+       0.001
+      ],
+      "raw_offset_mm": 0.004,
+      "bias_xy_mm": [
+       0.009,
+       0.006
+      ],
+      "residual_offset_mm": 0.007,
+      "bias_view": "bottom",
+      "bias_bodies": 48,
+      "bias_other_bodies": 36
+     },
+     "passed": true
+    },
+    {
+     "pn": "C53134",
+     "ref": "C76",
+     "side": "bottom",
+     "group": "CHIP_0805 MLCC Samsung CL",
+     "preview_status": "body",
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.5,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       0.01,
+       0.007
+      ],
+      "raw_offset_mm": 0.012,
+      "bias_xy_mm": [
+       0.009,
+       0.006
+      ],
+      "residual_offset_mm": 0.001,
+      "bias_view": "bottom",
+      "bias_bodies": 48,
+      "bias_other_bodies": 36
+     },
+     "passed": true
+    },
+    {
+     "pn": "C5378",
+     "ref": "C77",
+     "side": "top",
+     "group": "CHIP_0805 MLCC Samsung CL",
+     "preview_status": "body",
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.1,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       0.03,
+       -0.026
+      ],
+      "raw_offset_mm": 0.04,
+      "bias_xy_mm": [
+       0.011,
+       0.004
+      ],
+      "residual_offset_mm": 0.036,
+      "bias_view": "top",
+      "bias_bodies": 48,
+      "bias_other_bodies": 36
+     },
+     "passed": true
+    },
+    {
+     "pn": "C5378",
+     "ref": "C78",
+     "side": "top",
+     "group": "CHIP_0805 MLCC Samsung CL",
+     "preview_status": "body",
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.7,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       0.021,
+       -0.01
+      ],
+      "raw_offset_mm": 0.023,
+      "bias_xy_mm": [
+       0.011,
+       0.004
+      ],
+      "residual_offset_mm": 0.017,
+      "bias_view": "top",
+      "bias_bodies": 48,
+      "bias_other_bodies": 36
+     },
+     "passed": true
+    },
+    {
+     "pn": "C5378",
+     "ref": "C79",
+     "side": "bottom",
+     "group": "CHIP_0805 MLCC Samsung CL",
+     "preview_status": "body",
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.1,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       0.011,
+       -0.027
+      ],
+      "raw_offset_mm": 0.029,
+      "bias_xy_mm": [
+       0.009,
+       0.006
+      ],
+      "residual_offset_mm": 0.033,
+      "bias_view": "bottom",
+      "bias_bodies": 48,
+      "bias_other_bodies": 36
+     },
+     "passed": true
+    },
+    {
+     "pn": "C5378",
+     "ref": "C80",
+     "side": "bottom",
+     "group": "CHIP_0805 MLCC Samsung CL",
+     "preview_status": "body",
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.4,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       0.01,
+       -0.006
+      ],
+      "raw_offset_mm": 0.012,
+      "bias_xy_mm": [
+       0.009,
+       0.006
+      ],
+      "residual_offset_mm": 0.012,
+      "bias_view": "bottom",
+      "bias_bodies": 48,
+      "bias_other_bodies": 36
+     },
+     "passed": true
+    }
+   ]
+  },
+  "CHIP_0603 MLCC Samsung CL": {
+   "purpose": "sample",
+   "pns": 1,
+   "passed_pns": [
+    "C19702"
+   ],
+   "copies": 4,
+   "passed_copies": 4,
+   "max_angle_deg": 0.6,
+   "max_raw_mm": 0.026,
+   "max_residual_mm": 0.035,
+   "rows": [
+    {
+     "pn": "C19702",
+     "ref": "C49",
+     "side": "top",
+     "group": "CHIP_0603 MLCC Samsung CL",
+     "preview_status": "body",
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.3,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       0.001,
+       -0.009
+      ],
+      "raw_offset_mm": 0.009,
+      "bias_xy_mm": [
+       0.011,
+       0.004
+      ],
+      "residual_offset_mm": 0.016,
+      "bias_view": "top",
+      "bias_bodies": 48,
+      "bias_other_bodies": 46
+     },
+     "passed": true
+    },
+    {
+     "pn": "C19702",
+     "ref": "C50",
+     "side": "top",
+     "group": "CHIP_0603 MLCC Samsung CL",
+     "preview_status": "body",
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.6,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       -0.005,
+       -0.009
+      ],
+      "raw_offset_mm": 0.01,
+      "bias_xy_mm": [
+       0.011,
+       0.004
+      ],
+      "residual_offset_mm": 0.021,
+      "bias_view": "top",
+      "bias_bodies": 48,
+      "bias_other_bodies": 46
+     },
+     "passed": true
+    },
+    {
+     "pn": "C19702",
+     "ref": "C51",
+     "side": "bottom",
+     "group": "CHIP_0603 MLCC Samsung CL",
+     "preview_status": "body",
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.5,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       -0.007,
+       -0.025
+      ],
+      "raw_offset_mm": 0.026,
+      "bias_xy_mm": [
+       0.009,
+       0.006
+      ],
+      "residual_offset_mm": 0.035,
+      "bias_view": "bottom",
+      "bias_bodies": 48,
+      "bias_other_bodies": 46
+     },
+     "passed": true
+    },
+    {
+     "pn": "C19702",
+     "ref": "C52",
+     "side": "bottom",
+     "group": "CHIP_0603 MLCC Samsung CL",
+     "preview_status": "body",
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.3,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       0.007,
+       -0.005
+      ],
+      "raw_offset_mm": 0.009,
+      "bias_xy_mm": [
+       0.009,
+       0.006
+      ],
+      "residual_offset_mm": 0.011,
+      "bias_view": "bottom",
+      "bias_bodies": 48,
+      "bias_other_bodies": 46
+     },
+     "passed": true
+    }
+   ]
+  },
+  "CHIP_0402 ChipResistor UNI-ROYAL 0402WG": {
+   "purpose": "control",
+   "pns": 1,
+   "passed_pns": [
+    "C11702"
+   ],
+   "copies": 4,
+   "passed_copies": 4,
+   "max_angle_deg": 3.3,
+   "max_raw_mm": 0.029,
+   "max_residual_mm": 0.041,
+   "rows": [
+    {
+     "pn": "C11702",
+     "ref": "R1",
+     "side": "top",
+     "group": "CHIP_0402 ChipResistor UNI-ROYAL 0402WG",
+     "preview_status": "body",
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -3.3,
+      "offset_limit_mm": 0.128,
+      "raw_offset_xy_mm": [
+       -0.028,
+       -0.008
+      ],
+      "raw_offset_mm": 0.029,
+      "bias_xy_mm": [
+       0.011,
+       0.004
+      ],
+      "residual_offset_mm": 0.041,
+      "bias_view": "top",
+      "bias_bodies": 48,
+      "bias_other_bodies": 46
+     },
+     "passed": true
+    },
+    {
+     "pn": "C11702",
+     "ref": "R2",
+     "side": "top",
+     "group": "CHIP_0402 ChipResistor UNI-ROYAL 0402WG",
+     "preview_status": "body",
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.1,
+      "offset_limit_mm": 0.128,
+      "raw_offset_xy_mm": [
+       -0.001,
+       -0.001
+      ],
+      "raw_offset_mm": 0.001,
+      "bias_xy_mm": [
+       0.011,
+       0.004
+      ],
+      "residual_offset_mm": 0.013,
+      "bias_view": "top",
+      "bias_bodies": 48,
+      "bias_other_bodies": 46
+     },
+     "passed": true
+    },
+    {
+     "pn": "C11702",
+     "ref": "R3",
+     "side": "bottom",
+     "group": "CHIP_0402 ChipResistor UNI-ROYAL 0402WG",
+     "preview_status": "body",
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.0,
+      "offset_limit_mm": 0.128,
+      "raw_offset_xy_mm": [
+       -0.003,
+       0.001
+      ],
+      "raw_offset_mm": 0.003,
+      "bias_xy_mm": [
+       0.009,
+       0.006
+      ],
+      "residual_offset_mm": 0.013,
+      "bias_view": "bottom",
+      "bias_bodies": 48,
+      "bias_other_bodies": 46
+     },
+     "passed": true
+    },
+    {
+     "pn": "C11702",
+     "ref": "R4",
+     "side": "bottom",
+     "group": "CHIP_0402 ChipResistor UNI-ROYAL 0402WG",
+     "preview_status": "body",
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 1.0,
+      "offset_limit_mm": 0.128,
+      "raw_offset_xy_mm": [
+       0.008,
+       0.02
+      ],
+      "raw_offset_mm": 0.022,
+      "bias_xy_mm": [
+       0.009,
+       0.006
+      ],
+      "residual_offset_mm": 0.014,
+      "bias_view": "bottom",
+      "bias_bodies": 48,
+      "bias_other_bodies": 46
+     },
+     "passed": true
+    }
+   ]
+  },
+  "CHIP_0805 ChipResistor UNI-ROYAL 0805W8": {
+   "purpose": "control",
+   "pns": 1,
+   "passed_pns": [
+    "C17477"
+   ],
+   "copies": 4,
+   "passed_copies": 4,
+   "max_angle_deg": 1.2,
+   "max_raw_mm": 0.03,
+   "max_residual_mm": 0.022,
+   "rows": [
+    {
+     "pn": "C17477",
+     "ref": "R5",
+     "side": "top",
+     "group": "CHIP_0805 ChipResistor UNI-ROYAL 0805W8",
+     "preview_status": "body",
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.5,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       0.011,
+       0.003
+      ],
+      "raw_offset_mm": 0.011,
+      "bias_xy_mm": [
+       0.011,
+       0.004
+      ],
+      "residual_offset_mm": 0.001,
+      "bias_view": "top",
+      "bias_bodies": 48,
+      "bias_other_bodies": 46
+     },
+     "passed": true
+    },
+    {
+     "pn": "C17477",
+     "ref": "R6",
+     "side": "top",
+     "group": "CHIP_0805 ChipResistor UNI-ROYAL 0805W8",
+     "preview_status": "body",
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -1.2,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       0.022,
+       0.012
+      ],
+      "raw_offset_mm": 0.025,
+      "bias_xy_mm": [
+       0.011,
+       0.004
+      ],
+      "residual_offset_mm": 0.014,
+      "bias_view": "top",
+      "bias_bodies": 48,
+      "bias_other_bodies": 46
+     },
+     "passed": true
+    },
+    {
+     "pn": "C17477",
+     "ref": "R7",
+     "side": "bottom",
+     "group": "CHIP_0805 ChipResistor UNI-ROYAL 0805W8",
+     "preview_status": "body",
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.1,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       0.03,
+       -0.0
+      ],
+      "raw_offset_mm": 0.03,
+      "bias_xy_mm": [
+       0.009,
+       0.006
+      ],
+      "residual_offset_mm": 0.022,
+      "bias_view": "bottom",
+      "bias_bodies": 48,
+      "bias_other_bodies": 46
+     },
+     "passed": true
+    },
+    {
+     "pn": "C17477",
+     "ref": "R8",
+     "side": "bottom",
+     "group": "CHIP_0805 ChipResistor UNI-ROYAL 0805W8",
+     "preview_status": "body",
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.3,
+      "offset_limit_mm": 0.228,
+      "raw_offset_xy_mm": [
+       0.016,
+       0.007
+      ],
+      "raw_offset_mm": 0.017,
+      "bias_xy_mm": [
+       0.009,
+       0.006
+      ],
+      "residual_offset_mm": 0.007,
+      "bias_view": "bottom",
+      "bias_bodies": 48,
+      "bias_other_bodies": 46
+     },
+     "passed": true
+    }
+   ]
+  },
+  "CHIP_1206 ChipResistor UNI-ROYAL 1206W4": {
+   "purpose": "control",
+   "pns": 1,
+   "passed_pns": [
+    "C17888"
+   ],
+   "copies": 4,
+   "passed_copies": 4,
+   "max_angle_deg": 0.9,
+   "max_raw_mm": 0.033,
+   "max_residual_mm": 0.029,
+   "rows": [
+    {
+     "pn": "C17888",
+     "ref": "R9",
+     "side": "top",
+     "group": "CHIP_1206 ChipResistor UNI-ROYAL 1206W4",
+     "preview_status": "body",
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.1,
+      "offset_limit_mm": 0.25,
+      "raw_offset_xy_mm": [
+       0.001,
+       0.031
+      ],
+      "raw_offset_mm": 0.031,
+      "bias_xy_mm": [
+       0.011,
+       0.004
+      ],
+      "residual_offset_mm": 0.029,
+      "bias_view": "top",
+      "bias_bodies": 48,
+      "bias_other_bodies": 46
+     },
+     "passed": true
+    },
+    {
+     "pn": "C17888",
+     "ref": "R10",
+     "side": "top",
+     "group": "CHIP_1206 ChipResistor UNI-ROYAL 1206W4",
+     "preview_status": "body",
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.9,
+      "offset_limit_mm": 0.25,
+      "raw_offset_xy_mm": [
+       0.002,
+       0.026
+      ],
+      "raw_offset_mm": 0.026,
+      "bias_xy_mm": [
+       0.011,
+       0.004
+      ],
+      "residual_offset_mm": 0.024,
+      "bias_view": "top",
+      "bias_bodies": 48,
+      "bias_other_bodies": 46
+     },
+     "passed": true
+    },
+    {
+     "pn": "C17888",
+     "ref": "R11",
+     "side": "bottom",
+     "group": "CHIP_1206 ChipResistor UNI-ROYAL 1206W4",
+     "preview_status": "body",
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.0,
+      "offset_limit_mm": 0.25,
+      "raw_offset_xy_mm": [
+       0.026,
+       0.021
+      ],
+      "raw_offset_mm": 0.033,
+      "bias_xy_mm": [
+       0.009,
+       0.006
+      ],
+      "residual_offset_mm": 0.023,
+      "bias_view": "bottom",
+      "bias_bodies": 48,
+      "bias_other_bodies": 46
+     },
+     "passed": true
+    },
+    {
+     "pn": "C17888",
+     "ref": "R12",
+     "side": "bottom",
+     "group": "CHIP_1206 ChipResistor UNI-ROYAL 1206W4",
+     "preview_status": "body",
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 0.0,
+      "offset_limit_mm": 0.25,
+      "raw_offset_xy_mm": [
+       0.015,
+       0.027
+      ],
+      "raw_offset_mm": 0.031,
+      "bias_xy_mm": [
+       0.009,
+       0.006
+      ],
+      "residual_offset_mm": 0.022,
+      "bias_view": "bottom",
+      "bias_bodies": 48,
+      "bias_other_bodies": 46
+     },
+     "passed": true
+    }
+   ]
+  },
+  "CHIP_0603 ChipResistor UNI-ROYAL 0603WA": {
+   "purpose": "control",
+   "pns": 1,
+   "passed_pns": [
+    "C21189"
+   ],
+   "copies": 4,
+   "passed_copies": 4,
+   "max_angle_deg": 1.4,
+   "max_raw_mm": 0.03,
+   "max_residual_mm": 0.021,
+   "rows": [
+    {
+     "pn": "C21189",
+     "ref": "R13",
+     "side": "top",
+     "group": "CHIP_0603 ChipResistor UNI-ROYAL 0603WA",
+     "preview_status": "body",
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.3,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       0.028,
+       -0.008
+      ],
+      "raw_offset_mm": 0.029,
+      "bias_xy_mm": [
+       0.011,
+       0.004
+      ],
+      "residual_offset_mm": 0.021,
+      "bias_view": "top",
+      "bias_bodies": 48,
+      "bias_other_bodies": 46
+     },
+     "passed": true
+    },
+    {
+     "pn": "C21189",
+     "ref": "R14",
+     "side": "top",
+     "group": "CHIP_0603 ChipResistor UNI-ROYAL 0603WA",
+     "preview_status": "body",
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.0,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       0.012,
+       0.0
+      ],
+      "raw_offset_mm": 0.012,
+      "bias_xy_mm": [
+       0.011,
+       0.004
+      ],
+      "residual_offset_mm": 0.004,
+      "bias_view": "top",
+      "bias_bodies": 48,
+      "bias_other_bodies": 46
+     },
+     "passed": true
+    },
+    {
+     "pn": "C21189",
+     "ref": "R15",
+     "side": "bottom",
+     "group": "CHIP_0603 ChipResistor UNI-ROYAL 0603WA",
+     "preview_status": "body",
+     "reading": {
+      "body_method": 2,
+      "angle_deg": 1.4,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       0.027,
+       0.012
+      ],
+      "raw_offset_mm": 0.03,
+      "bias_xy_mm": [
+       0.009,
+       0.006
+      ],
+      "residual_offset_mm": 0.019,
+      "bias_view": "bottom",
+      "bias_bodies": 48,
+      "bias_other_bodies": 46
+     },
+     "passed": true
+    },
+    {
+     "pn": "C21189",
+     "ref": "R16",
+     "side": "bottom",
+     "group": "CHIP_0603 ChipResistor UNI-ROYAL 0603WA",
+     "preview_status": "body",
+     "reading": {
+      "body_method": 2,
+      "angle_deg": -0.1,
+      "offset_limit_mm": 0.206,
+      "raw_offset_xy_mm": [
+       0.009,
+       0.014
+      ],
+      "raw_offset_mm": 0.017,
+      "bias_xy_mm": [
+       0.009,
+       0.006
+      ],
+      "residual_offset_mm": 0.008,
+      "bias_view": "bottom",
+      "bias_bodies": 48,
+      "bias_other_bodies": 46
+     },
+     "passed": true
+    }
+   ]
+  }
+ }
+}

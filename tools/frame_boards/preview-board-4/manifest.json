@@ -2,7 +2,7 @@
  "name": "preview_board_4",
  "dependencies": {
   "std": "0.3.0",
-  "passive": "0.2.8",
+  "passive": "0.2.12",
   "esd": "0.1.4",
   "load-switch": "0.2.2",
   "@contrib/audio-amp": "0.2.1",
@@ -1144,7 +1144,7 @@
    "footprint": "passive::CHIP_0402",
    "part": "passive::ChipResistor<100kohm, 1%>[R0402]",
    "pn": "C25741",
-   "mfr": "UNI-ROYAL(Uniroyal Elec)",
+   "mfr": "UNI-ROYAL",
    "mpn": "0402WGF1003TCE",
    "pins": [
     "A",
@@ -1188,7 +1188,7 @@
     }
    ],
    "purpose": "E",
-   "note": "OWT 100k (14); UNI-ROYAL 0402WGF1003TCE; device supplies pins only; no map row, no library entry",
+   "note": "OWT 100k (14); UNI-ROYAL 0402WGF1003TCE; device supplies pins only; no map row or library entry at the original preview",
    "jlc_package": "0402",
    "category": "basic",
    "stock": 8504307,
@@ -1199,7 +1199,7 @@
    "footprint": "passive::CHIP_0402",
    "part": "passive::ChipResistor<1kohm, 1%>[R0402]",
    "pn": "C11702",
-   "mfr": "UNI-ROYAL(Uniroyal Elec)",
+   "mfr": "UNI-ROYAL",
    "mpn": "0402WGF1001TCE",
    "pins": [
     "A",
@@ -1243,7 +1243,7 @@
     }
    ],
    "purpose": "E",
-   "note": "OWT 1k (12); UNI-ROYAL 0402WGF1001TCE; device supplies pins only; no map row, no library entry",
+   "note": "OWT 1k (12); UNI-ROYAL 0402WGF1001TCE; device supplies pins only; no map row or library entry at the original preview",
    "jlc_package": "0402",
    "category": "basic",
    "stock": 21756652,
@@ -1254,7 +1254,7 @@
    "footprint": "passive::CHIP_0402",
    "part": "passive::ChipResistor<1Mohm, 1%>[R0402]",
    "pn": "C26083",
-   "mfr": "UNI-ROYAL(Uniroyal Elec)",
+   "mfr": "UNI-ROYAL",
    "mpn": "0402WGF1004TCE",
    "pins": [
     "A",
@@ -1298,7 +1298,7 @@
     }
    ],
    "purpose": "E",
-   "note": "OWT 1M (5); UNI-ROYAL 0402WGF1004TCE; device supplies pins only; no map row, no library entry",
+   "note": "OWT 1M (5); UNI-ROYAL 0402WGF1004TCE; device supplies pins only; no map row or library entry at the original preview",
    "jlc_package": "0402",
    "category": "basic",
    "stock": 2986704,
@@ -1309,7 +1309,7 @@
    "footprint": "passive::CHIP_0402",
    "part": "passive::ChipResistor<0ohm, 5%>[R0402]",
    "pn": "C17168",
-   "mfr": "UNI-ROYAL(Uniroyal Elec)",
+   "mfr": "UNI-ROYAL",
    "mpn": "0402WGF0000TCE",
    "pins": [
     "A",
@@ -1353,7 +1353,7 @@
     }
    ],
    "purpose": "E",
-   "note": "OWT 0R (3); UNI-ROYAL 0402WGF0000TCE; device supplies pins only; no map row, no library entry",
+   "note": "OWT 0R (3); UNI-ROYAL 0402WGF0000TCE; device supplies pins only; no map row or library entry at the original preview",
    "jlc_package": "0402",
    "category": "basic",
    "stock": 11396175,
@@ -1364,7 +1364,7 @@
    "footprint": "passive::CHIP_0402",
    "part": "passive::ChipResistor<22kohm, 1%>[R0402]",
    "pn": "C25768",
-   "mfr": "UNI-ROYAL(Uniroyal Elec)",
+   "mfr": "UNI-ROYAL",
    "mpn": "0402WGF2202TCE",
    "pins": [
     "A",
@@ -1408,7 +1408,7 @@
     }
    ],
    "purpose": "E",
-   "note": "OWT 22k (2); UNI-ROYAL 0402WGF2202TCE; device supplies pins only; no map row, no library entry",
+   "note": "OWT 22k (2); UNI-ROYAL 0402WGF2202TCE; device supplies pins only; no map row or library entry at the original preview",
    "jlc_package": "0402",
    "category": "basic",
    "stock": 1205510,
@@ -1419,7 +1419,7 @@
    "footprint": "passive::CHIP_0402",
    "part": "passive::ChipResistor<5.1kohm, 1%>[R0402]",
    "pn": "C25905",
-   "mfr": "UNI-ROYAL(Uniroyal Elec)",
+   "mfr": "UNI-ROYAL",
    "mpn": "0402WGF5101TCE",
    "pins": [
     "A",
@@ -1463,7 +1463,7 @@
     }
    ],
    "purpose": "E",
-   "note": "OWT 5.1k (2); UNI-ROYAL 0402WGF5101TCE; device supplies pins only; no map row, no library entry",
+   "note": "OWT 5.1k (2); UNI-ROYAL 0402WGF5101TCE; device supplies pins only; no map row or library entry at the original preview",
    "jlc_package": "0402",
    "category": "basic",
    "stock": 3809515,
@@ -1474,7 +1474,7 @@
    "footprint": "passive::CHIP_0402",
    "part": "passive::ChipResistor<22ohm, 1%>[R0402]",
    "pn": "C25092",
-   "mfr": "UNI-ROYAL(Uniroyal Elec)",
+   "mfr": "UNI-ROYAL",
    "mpn": "0402WGF220JTCE",
    "pins": [
     "A",
@@ -1518,7 +1518,7 @@
     }
    ],
    "purpose": "E",
-   "note": "OWT 22R; UNI-ROYAL 0402WGF220JTCE; device supplies pins only; no map row, no library entry",
+   "note": "OWT 22R; UNI-ROYAL 0402WGF220JTCE; device supplies pins only; no map row or library entry at the original preview",
    "jlc_package": "0402",
    "category": "basic",
    "stock": 2962686,
@@ -1529,7 +1529,7 @@
    "footprint": "passive::CHIP_0402",
    "part": "passive::ChipResistor<3.3kohm, 1%>[R0402]",
    "pn": "C25890",
-   "mfr": "UNI-ROYAL(Uniroyal Elec)",
+   "mfr": "UNI-ROYAL",
    "mpn": "0402WGF3301TCE",
    "pins": [
     "A",
@@ -1573,7 +1573,7 @@
     }
    ],
    "purpose": "E",
-   "note": "OWT 3.3k; UNI-ROYAL 0402WGF3301TCE; device supplies pins only; no map row, no library entry",
+   "note": "OWT 3.3k; UNI-ROYAL 0402WGF3301TCE; device supplies pins only; no map row or library entry at the original preview",
    "jlc_package": "0402",
    "category": "basic",
    "stock": 1599853,
@@ -1628,7 +1628,7 @@
     }
    ],
    "purpose": "E",
-   "note": "OWT 4.7uF 0402 (5); Samsung CL05A475MP5NRNC, a 20% part; device supplies pins only; no map row, no library entry",
+   "note": "OWT 4.7uF 0402 (5); Samsung CL05A475MP5NRNC, a 20% part; device supplies pins only; no map row or library entry at the original preview",
    "jlc_package": "0402",
    "category": "basic",
    "stock": 2403008,
@@ -1683,7 +1683,7 @@
     }
    ],
    "purpose": "E",
-   "note": "OWT C57; Fenghua 0402CG150J500NT; device supplies pins only; no map row, no library entry",
+   "note": "OWT C57; Fenghua 0402CG150J500NT; device supplies pins only; no map row or library entry at the original preview",
    "jlc_package": "0402",
    "category": "basic",
    "stock": 1356902,

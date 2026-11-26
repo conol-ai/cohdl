@@ -21,7 +21,16 @@ cache. The request cap is the pages left plus two (``robots.txt``), behind a gua
 that is neither cached nor on the list is refused with ``PolicyError`` before a request is
 sent, and its identity is reported ``fetch_failed``. ``run`` then prints how many
 ``fetch_failed`` identities are in the batch and how many are outside it (refused, off the
-list), for the run's README. Every other rule (user agent, 2 s per host, ``robots.txt``, no
+list), for the run's README. Pass ``--batch`` the directory of all the batch's new parts when
+SUBSET_LIB is only some of them (those the catalog snapshot lists): the count then also says
+how many of the batch were not planned for.
+
+The official map must cite one confirmed snapshot (``tools/w3_groups.py``), so a run has to
+re-read every identity the map already holds. An identity an earlier run read that is not in
+the library (an order line of a real board, for one) would otherwise keep its old snapshot.
+``run`` therefore reads, besides the library, every (manufacturer, MPN) of ``--map`` that the
+library lacks: it copies the library's ``.cohdl`` files to a temporary directory and adds one
+AVL block per such identity. It prints how many it carried. Every other rule (user agent, 2 s per host, ``robots.txt``, no
 ``/api``, stop after two 403/429) stays the shared client's (``tools/sourcing/http.py``).
 """
 from __future__ import annotations
@@ -29,7 +38,9 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import shutil
 import sys
+import tempfile
 from pathlib import Path
 
 TOOLS = Path(__file__).resolve().parent
@@ -48,6 +59,30 @@ SITEMAP_INDEX = "https://jlcpcb.com/sitemap-index.xml"
 def batch_identities(subset: Path) -> set[tuple[str, str]]:
     """The (manufacturer, MPN) identities of SUBSET that the backfill looks up."""
     return {(r.mfr, r.mpn) for r in lb.extract_avl_rows(subset) if r.mpn and lb.normalize_mpn(r.mpn)}
+
+
+def carried_identities(lib_dir: Path, map_path: Path) -> list[tuple[str, str]]:
+    """The map's (manufacturer, MPN) identities that no AVL entry of LIB_DIR names, sorted."""
+    held = {(r.mfr, r.mpn) for r in lb.extract_avl_rows(lib_dir)}
+    rows = json.loads(map_path.read_text())["rows"]
+    return sorted({(row["mfr"], row["mpn"]) for row in rows} - held)
+
+
+def lib_with_carried(lib_dir: Path, carried: list[tuple[str, str]], tmp: Path) -> Path:
+    """A copy of LIB_DIR's sources under TMP, plus one AVL block per carried identity."""
+    out = tmp / "lib"
+    for path in sorted(lib_dir.rglob("*.cohdl")):
+        target = out / path.relative_to(lib_dir)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(path, target)
+    blocks = [f"primary {{ mfr: {json.dumps(mfr, ensure_ascii=False)}, mpn: {json.dumps(mpn, ensure_ascii=False)} }}"
+              for mfr, mpn in carried]
+    extra = out / "_carried_from_map" / "identities.cohdl"
+    extra.parent.mkdir(parents=True)
+    extra.write_text("\n".join(blocks) + "\n", encoding="utf-8")
+    if sorted({(r.mfr, r.mpn) for r in lb.extract_avl_rows(extra.parent)}) != carried:
+        raise SystemExit("a carried identity does not survive being written as an AVL block")
+    return out
 
 
 def uncached_candidates(subset: Path, cache: Path) -> tuple[int, list[str]]:
@@ -103,6 +138,18 @@ def fetch_failed_split(review: Path, batch: set[tuple[str, str]]) -> tuple[int, 
     return inside, len(rows) - inside
 
 
+def fetch_failed_line(review: Path, planned: set[tuple[str, str]], batch: set[tuple[str, str]] | None) -> str:
+    if batch is None:
+        inside, outside = fetch_failed_split(review, planned)
+        return f"fetch_failed: {inside} in the batch, {outside} outside it (refused: off the approved list)"
+    if not planned <= batch:
+        raise SystemExit("--subset names an identity that --batch does not hold")
+    inside, outside = fetch_failed_split(review, batch)
+    among_planned, _ = fetch_failed_split(review, planned)
+    return (f"fetch_failed: {inside} in the batch ({among_planned} of them planned for, "
+            f"{inside - among_planned} not planned for), {outside} outside it (refused: off the approved list)")
+
+
 def cmd_run(args) -> int:
     approved = check_approved(args.approved, args.sha256)
     count, left = uncached_candidates(args.subset, args.cache_dir)
@@ -111,18 +158,23 @@ def cmd_run(args) -> int:
         raise SystemExit(f"{len(off_list)} uncached candidate pages are not on the approved list "
                          f"(first: {off_list[0]}); plan again")
     print(f"{count} identities; {len(left)} of the {len(approved)} approved pages still to fetch")
+    carried = carried_identities(args.lib_dir, args.map) if args.map.is_file() else []
+    print(f"{len(carried)} identities of the map are not in the library and are read as well"
+          + (f" (first: {carried[0][0]} {carried[0][1]})" if carried else ""))
     undo = guard(http.FetchClient, frozenset(left))
     try:
-        args.output_dir.mkdir(parents=True, exist_ok=True)
-        status = lb.main(["--allowed-host", HOST, "--cache-dir", str(args.cache_dir),
-                          "--output-dir", str(args.output_dir), "--date", args.date,
-                          "--max-requests", str(len(left) + 2), "--lib-dir", str(args.lib_dir)])
+        with tempfile.TemporaryDirectory() as tmp:
+            lib_dir = lib_with_carried(args.lib_dir, carried, Path(tmp)) if carried else args.lib_dir
+            args.output_dir.mkdir(parents=True, exist_ok=True)
+            status = lb.main(["--allowed-host", HOST, "--cache-dir", str(args.cache_dir),
+                              "--output-dir", str(args.output_dir), "--date", args.date,
+                              "--max-requests", str(len(left) + 2), "--lib-dir", str(lib_dir)])
     finally:
         undo()
     review = args.output_dir / "review.json"
     if review.is_file():
-        inside, outside = fetch_failed_split(review, batch_identities(args.subset))
-        print(f"fetch_failed: {inside} in the batch, {outside} outside it (refused: off the approved list)")
+        batch = batch_identities(args.batch) if args.batch else None
+        print(fetch_failed_line(review, batch_identities(args.subset), batch))
     return status
 
 
@@ -141,6 +193,9 @@ def build_parser() -> argparse.ArgumentParser:
     run.add_argument("--output-dir", type=Path, required=True)
     run.add_argument("--date", required=True)
     run.add_argument("--lib-dir", type=Path, default=REPO / "lib")
+    run.add_argument("--batch", type=Path, help="all the batch's new parts, when --subset is only some of them")
+    run.add_argument("--map", type=Path, default=REPO / "tools/sourcing_data/lcsc_map.json",
+                     help="the official map; its identities missing from the library are read as well")
     return p
 
 

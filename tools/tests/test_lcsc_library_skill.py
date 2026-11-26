@@ -120,7 +120,7 @@ class RunTests(unittest.TestCase):
 
     A, B, C = (f"https://jlcpcb.com/partdetail/{x}" for x in "abc")
 
-    def run_with(self, approved_urls, left, review_rows=()):
+    def run_with(self, approved_urls, left, review_rows=(), batch=None):
         calls = []
 
         def fake_main(argv):
@@ -134,7 +134,7 @@ class RunTests(unittest.TestCase):
 
         saved = approved.uncached_candidates, approved.batch_identities, approved.lb.main
         approved.uncached_candidates = lambda subset, cache: (2, left)
-        approved.batch_identities = lambda subset: {("M", "in")}
+        approved.batch_identities = lambda path: batch if batch and path.name == "batch" else {("M", "in")}
         approved.lb.main = fake_main
         try:
             with tempfile.TemporaryDirectory() as d:
@@ -143,7 +143,8 @@ class RunTests(unittest.TestCase):
                 path.write_bytes(data)
                 args = approved.build_parser().parse_args([
                     "run", "--approved", str(path), "--sha256", hashlib.sha256(data).hexdigest(),
-                    "--subset", d, "--cache-dir", d, "--output-dir", str(Path(d) / "out"), "--date", "2026-11-25"])
+                    "--subset", d, "--cache-dir", d, "--output-dir", str(Path(d) / "out"), "--date", "2026-11-25",
+                    "--map", str(Path(d) / "no-map.json")] + (["--batch", str(Path(d) / "batch")] if batch else []))
                 with redirect_stdout(io.StringIO()) as out:
                     status = approved.cmd_run(args)
                 return status, calls, out.getvalue()
@@ -164,6 +165,38 @@ class RunTests(unittest.TestCase):
         rows = [{"mfr": "M", "mpn": "in"}, {"mfr": "M", "mpn": "out"}, {"mfr": "N", "mpn": "in"}]
         _, _, printed = self.run_with([self.A], [self.A], rows)
         self.assertIn("fetch_failed: 1 in the batch, 2 outside it", printed)
+
+    def test_with_the_whole_batch_named_the_count_says_how_many_were_not_planned_for(self):
+        # SUBSET is the snapshot-listed part ("M", "in"); the batch also holds ("M", "out").
+        rows = [{"mfr": "M", "mpn": "in"}, {"mfr": "M", "mpn": "out"}, {"mfr": "N", "mpn": "in"}]
+        _, _, printed = self.run_with([self.A], [self.A], rows, batch={("M", "in"), ("M", "out")})
+        self.assertIn("fetch_failed: 2 in the batch (1 of them planned for, 1 not planned for), 1 outside it", printed)
+
+
+class CarriedTests(unittest.TestCase):
+    """An identity the map holds and the library lacks is read too, so the map keeps one snapshot."""
+
+    def test_a_map_identity_missing_from_the_library_is_added_to_a_copy_of_it(self):
+        with tempfile.TemporaryDirectory() as d:
+            lib = Path(d) / "lib"
+            (lib / "p/src").mkdir(parents=True)
+            (lib / "p/src/a.cohdl").write_text('pub part A: D { primary { mfr: "M", mpn: "held" } }\n')
+            (lib / "p/docs").mkdir()
+            (lib / "p/docs/sheet.pdf").write_bytes(b"%PDF")
+            path = Path(d) / "map.json"
+            path.write_text(json.dumps({"rows": [{"mfr": "M", "mpn": "held"}, {"mfr": "UNI-ROYAL", "mpn": "0402X"}]}))
+            carried = approved.carried_identities(lib, path)
+            self.assertEqual(carried, [("UNI-ROYAL", "0402X")])
+            copy = approved.lib_with_carried(lib, carried, Path(d) / "tmp")
+            read = {(r.mfr, r.mpn) for r in approved.lb.extract_avl_rows(copy)}
+            self.assertEqual(read, {("M", "held"), ("UNI-ROYAL", "0402X")})
+            self.assertFalse(list(copy.rglob("*.pdf")))  # sources only
+            self.assertEqual(approved.carried_identities(copy, path), [])
+
+    def test_the_official_map_has_an_identity_the_library_lacks(self):
+        # The case the rule exists for: without it a plain run leaves this row on an older snapshot.
+        carried = approved.carried_identities(ROOT / "lib", ROOT / "tools/sourcing_data/lcsc_map.json")
+        self.assertIn(("UNI-ROYAL", "0402WGF1803TCE"), carried)
 
 
 if __name__ == "__main__":

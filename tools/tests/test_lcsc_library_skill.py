@@ -105,7 +105,10 @@ class RunTests(unittest.TestCase):
         def fake_main(argv):
             calls.append(argv)
             out = Path(argv[argv.index("--output-dir") + 1])
-            (out / "review.json").write_text(json.dumps({"fetch_failed": list(review_rows)}))
+            # The shape lcsc_backfill.py writes: one row per identity for review, with its reason.
+            rows = [dict(row, candidates=[], reason="fetch_failed") for row in review_rows]
+            rows.append({"candidates": [], "mfr": "M", "mpn": "other", "reason": "no_candidate"})
+            (out / "review.json").write_text(json.dumps({"fetch_failures": 0, "rows": rows, "schema_version": 1}))
             return 0
 
         saved = approved.uncached_candidates, approved.batch_identities, approved.lb.main

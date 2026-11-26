@@ -108,6 +108,12 @@ sh tools/examples_golden.sh . <batch>               # every example must report 
 
 Count tests (bindings, frame rows, map rows) are updated to the new numbers, never loosened. A test of a new rule must fail on the tree before the change. When the batch stacks on unmerged PRs, also trial-merge it with the open PRs it touches and run the full suite there.
 
+**Merging main (or another batch) into a batch.** When both sides promoted a backfill run, `lcsc_map.json` would cite two confirmed snapshots, and `tools/w3_groups.py` refuses that ("the map cites more than one confirmed snapshot"). Do not hand-merge the map:
+
+1. Replay the promotions in `tools/tests/test_promote_lcsc_map.py` with both sides' runs, and take the merged frame rows (the other side's file plus this side's new rows, before the W3 sampled rows).
+2. Rerun the backfill **offline** over the merged library: `run` with an empty approved list and an empty `--subset` sends no request, and refuses every uncached page. Pass `--lib-dir` a temporary copy of the library plus any MPNs an earlier run read that are not in it (`tools/sourcing_data/lcsc_backfill/2026-11-26-merge-main/README.md`). It must map every identity of both sides with the same part number, class and rule; if not, stop.
+3. Promote it, add it to the replay test, regenerate every W3 record (`tools/w3_record.py`; only `stock_source` should change) and the dated datasheet-links report, and update the count tests.
+
 ### 9. Draft PR
 
 - Title the family and the counts ("173 SOD-323/523 Zeners, 35 bound"). The body: what was added, the evidence and where it is, what stays unbound and why, decisions waiting on the maintainer, and the test results.

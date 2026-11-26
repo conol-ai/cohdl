@@ -98,7 +98,7 @@ def cmd_plan(args) -> int:
 
 def fetch_failed_split(review: Path, batch: set[tuple[str, str]]) -> tuple[int, int]:
     """(fetch_failed identities in the batch, outside it) in a run's review.json."""
-    rows = json.loads(review.read_text())["fetch_failed"]
+    rows = [row for row in json.loads(review.read_text())["rows"] if row["reason"] == "fetch_failed"]
     inside = sum((row["mfr"], row["mpn"]) in batch for row in rows)
     return inside, len(rows) - inside
 

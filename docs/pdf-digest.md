@@ -26,11 +26,14 @@ re-derived here.
 
 - The consumer is **Option 1, an explicit `digest` action** on `PdfView`
   (§8).
-- Every digest carries **all 20 intent sections**. Numeric and table material
-  is transcribed with a page per row. Advisory material is rewritten in our
-  own words with a page, never quoted (§4).
-- A digest passes only if it answers **at least 80%** of the replayed real
-  queries in the top-20 intents (§10).
+- Every digest carries a **core set of sections, plus the sections its part
+  class requires** (§4.3, revised 2026-11-27 after review). Numeric and table
+  material is transcribed with a page per row. Advisory material is rewritten
+  in our own words with a page, never quoted (§4).
+- A digest passes a **two-part acceptance test**: a per-class fixed query list
+  answered completely, plus a replay of real queries where at least 5 exist
+  for that document (§10.1, revised 2026-11-27). This replaces the earlier
+  single 80% bar.
 - **Publication, the PDF rule, distribution, and the merge with part notes**
   are decided (§6):
   - digests are public and contain facts only;
@@ -51,6 +54,15 @@ re-derived here.
   - **Rule B:** a PDF ships unless one of four conditions holds.
   - **Rule C:** a digest's validity is `local` when its PDF ships and
     `deferred` when it does not.
+- **Owner's principles P1 and P2 (2026-11-27)** (§6.5):
+  - **P1:** acquisition preference, with extraction from pages that have no
+    text layer done once, at library build time;
+  - **P2:** manufacturer originals are preferred, but distribution is
+    accepted where the licence permits, including anything JLC itself
+    distributes, with takedowns handled reactively. Replacing distributor
+    copies is deferred until a trigger occurs.
+- **The 100 drafts are reviewed in order of measured demand**, not all up
+  front (§4.5).
 
 ## 1. Problem
 
@@ -190,12 +202,33 @@ What each page holds, according to the repository's records:
   describes this exact MPN; pages 1–3 are the -12A/-12B/-12C variants and were
   not used for any fact here."
 
-If the inventory's HRO document has this hash, then 28 of 32 page reads were
-of a sheet for a different MPN. Two things remain unverified:
+**The document has no usable text layer** (measured by the PR reviewer,
+2026-11-27, on a machine with `pdftotext`; recorded here as fact):
+- 4 pages, SHA-256 `c5a4131f…`, matching the record above.
+- All four pages are CAD vector drawings.
+- Extracted text per page: 927 characters on page 1 (the materials table, in
+  Chinese), then 56, 143 and 87 characters on pages 2–4 (`SECTION B-B`,
+  `ROHS`, a few letters).
+- The string `TYPE-C-31-M-12` appears on no page. `pdftotext` reports
+  `Unknown character collection 'PDFAUTOCAD-Identity0'`.
+
+Consequences:
+- **A mechanically generated page map cannot say which sheet is which MPN.**
+  The §8.3 `page_map` shape gives nothing useful for this document.
+- **`find` cannot work on this document at all.** There is no text to search.
+- **"The exact MPN is on page 4" remains an unverified repository record.**
+  Two independent attempts to check it failed for lack of a text layer: ours,
+  for lack of a PDF tool, and the reviewer's, for lack of text. Only visual
+  inspection can settle it.
+- **The page-1 reads are not established as wrong.** What is known: 28 of 32
+  reads landed on a sheet that the repository's own records describe as a
+  variant. Nobody has visually confirmed that description.
+
+Two further points remain unverified:
 
 - **The inventory's hash.** It has not been compared with this one.
-- **The page contents.** They were not inspected for this document. This
-  machine has no PDF tool: `pdfinfo`, `pdftotext`, `pdftoppm`, `mutool`, `qpdf`,
+- **The page contents.** Nobody has visually inspected them. This machine has
+  no PDF tool: `pdfinfo`, `pdftotext`, `pdftoppm`, `mutool`, `qpdf`,
   `gs`, `magick`/`convert`, `pypdf` and PyMuPDF are all absent. So the page
   assignment above rests on the two quoted records, not on a reading of the
   PDF.
@@ -223,8 +256,18 @@ list are among them:
 | RS2257 | `lib/@contrib/analog-switch/docs/rs2257.pdf` |
 
 **`.evidence.md` records where a package does not ship the PDF.** There are
-68 such files, for example in `lib/sod/docs/`, `lib/esd/docs/` and
-`lib/connectors/docs/`. `lib/esd/docs/tpd1e05u06.evidence.md` records the
+68 such files in packages, for example in `lib/sod/docs/`, `lib/esd/docs/`
+and `lib/connectors/docs/`.
+- **Count on `origin/main` (9458edc), corrected after review.** The
+  repository holds 70 `.evidence.md` files. 68 are under `lib/`, in 17
+  packages. The other 2 are generator inputs, not package files:
+  `tools/passive_data/fenghua_general_mlcc.evidence.md` and
+  `tools/passive_data/uniroyal_chip_series.evidence.md`.
+- **Count once the open stack lands.** The total becomes 76 (74 under `lib/`)
+  when #130, #137 and #138 land. They add six files: three in `diode`
+  (`hongjiacheng-zener`, `sot23`, `hongjiacheng-zener-sod323-sod523`), plus
+  one each in `transistor`, `mosfet` and `esd`.
+- The size figures in §10.5 were measured before those six exist. `lib/esd/docs/tpd1e05u06.evidence.md` records the
 source URL, an "Original PDF SHA-256", and "Facts used" with page numbers. It
 ends: "The third-party PDF is not redistributed by this repository."
 `LIBRARY.md` never mentions `.evidence.md`. Under Rule B (§6.3), these
@@ -311,11 +354,30 @@ For example:
 - **Projects only receive digests after `cohdl update`.**
 - **The digest is public.** It contains facts only (§6.1, decision 1).
 
+**Ordering constraint with the open library stack** (recorded after review,
+2026-11-27):
+- Moving the 100 drafts into their packages bumps every affected package
+  once (§4.5).
+- The open pull requests already bump versions in some of the same packages.
+  #130 takes `diode` to 0.1.3, #137 takes it to 0.1.4 (and `transistor` to
+  0.2.2, `mosfet` to 0.1.1, `esd` to 0.1.5), and #138 takes `diode` to 0.1.5.
+  On `origin/main` today `diode` is 0.1.2 and `transistor` is 0.2.1.
+- Whichever lands second must redo its versions, and the `cohdl.lock` rows
+  of every consumer.
+- **Rule:** the draft move lands after the open stack (#130, #137, #138), and
+  is rebased onto it, so that the stack's version numbers stand and only the
+  move is renumbered. Any later digest commit takes the next patch version
+  after whatever is on `main` when it lands.
+
 ## 4. Content schema (`pdf-digest/1`)
 
 The owner's requirement is that a digest contains enough for the agent not to
-need the PDF in ordinary work. **All 20 intent sections are mandatory.** They
-are not a menu.
+need the PDF in ordinary work. After review (2026-11-27), that requirement is
+met per part class rather than by making all 23 headings mandatory for every
+part. A small discrete part does not need an RF or boot-strapping section.
+**Every digest carries the core sections, plus every section its part class
+requires** (§4.3). The headings and their order are fixed, so a heading an
+agent looks for is always in the same place.
 
 A digest is still an index to a pinned document, and the PDF remains
 available (§8). One case always needs the PDF: transcribing a land-pattern
@@ -381,10 +443,13 @@ A digest in a package has `status: "draft"` or `"reviewed"`. Only `"reviewed"` i
 The table gives each section's heading and its writing rule. **T** means
 transcribe (§4.1 rule 2). **W** means our own words (§4.1 rule 3).
 
-A section that cannot apply to the part (an RF section for a TVS diode, say)
-holds `Not applicable: <reason> (p. N)`, citing the page that establishes the
-part's class. "Not applicable" is never used for "not found". Not found is a
-gap.
+There are 23 headings, numbered 0–22. Every heading appears in every digest,
+in this order. Which ones must be filled depends on the part class
+(§4.3.1). A heading that is not required for the class, or cannot apply to
+the part, holds `Not applicable: <reason> (p. N)`. The reason is mandatory:
+a bare `Not applicable` is rejected by the checker. The page cited is the one
+that establishes the part's class. "Not applicable" is never used for "not
+found". Not found is a gap.
 
 | # | Heading | What it holds | Rule |
 |---|---|---|---|
@@ -393,7 +458,7 @@ gap.
 | 2 | PCB layout and keepout | Keepout and clearance dimensions, via and copper requirements | T for numbers; W for advice |
 | 3 | Supply current, run/active mode | Each value with its mode, frequency, voltage and temperature conditions | T |
 | 4 | Land pattern and package dimensions | Dimension symbols with nominal, min and max columns; pitch; exposed pad | T |
-| 5 | Value index | Every value transcribed anywhere in the digest, sorted, with its parameter, unit, section and page. This answers the "numeric literal only" intent, which is a kind of query, not a topic | T, derived |
+| 5 | Value index | Every value transcribed anywhere in the digest, sorted, with its parameter, unit, section and page. This answers the "numeric literal only" intent, which is a kind of query, not a topic. **Generated by the checker from the other sections, or verified by it against them. Never hand-written**, because a hand-written index drifts from the sections it indexes | Generated |
 | 6 | Supply or power consumption, mode not stated by the source | Only values whose mode the source leaves unstated; never a guessed mode | T |
 | 7 | Absolute maximum ratings | Kept separate from section 19 | T |
 | 8 | Pinout and pin description | Pad, datasheet name and type as printed; function in our words | T for names and types; W for function |
@@ -415,6 +480,46 @@ gap.
 Sections 0, 5, 21 and 22 are structural. Sections 1–20 correspond one-to-one,
 in order, to the intents in §1.4. In section 5's slot, the "numeric literal
 only" intent is served by the value index.
+
+#### 4.3.1 Core sections and class-required sections
+
+**Core: required in every digest.**
+- 0 Page map;
+- 1 Pin and signal names;
+- 4 Land pattern and package dimensions;
+- 5 Value index (generated);
+- 7 Absolute maximum ratings;
+- 8 Pinout and pin description;
+- 10 Ordering codes and variant comparison;
+- 21 Gaps;
+- 22 Usage notes.
+
+**Required by class.** In this table, "R" means the section is required, and
+a blank means it holds `Not applicable: <reason>` unless the document covers
+it.
+
+| Section | mcu | ldo | dcdc | diode/tvs | connector | crystal/osc | esd | load-switch | usb | sensor |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 2 PCB layout and keepout | R | R | R | | | R | R | R | R | |
+| 3 Supply current, run/active | R | R | R | | | R | | R | R | R |
+| 6 Supply or power, mode not stated | R | R | R | | | R | | R | R | R |
+| 9 Diode/TVS reverse ratings | | | | R | | | R | | | |
+| 11 Output current and inrush | | R | R | | | | | R | R | |
+| 12 Strapping and boot mode | R | | | | | | | | R | |
+| 13 Supply current, low-power modes | R | | | | | | | | R | R |
+| 14 Regulator output-voltage setting | | R | R | | | | | | | |
+| 15 RF transmit | R if the part has a radio | | | | | | | | | |
+| 16 Crystal and load capacitance | R | | | | | R | | | R if it needs a crystal | |
+| 17 Regulator external components | | R | R | | | | | R | | |
+| 18 Supply voltage | R | R | R | | | R | | R | R | R |
+| 19 Recommended operating conditions | R | R | R | R | R | R | R | R | R | R |
+| 20 Thermal | R | R | R | R | | | | R | | |
+
+**How this table was made, stated plainly.** It is derived from what each
+section means, not from per-class query data. The inventory recorded 57
+intents over 228 queries, but its queries were not labelled by part class.
+§10.1 specifies how to derive the per-class query lists from the data, and
+this table is to be checked against them once they exist.
 
 ### 4.4 What a digest never contains
 
@@ -455,7 +560,7 @@ The merge changes the schema (decision 4). `part-note/1` is retired and
 | Not established by the sources | 21 Gaps |
 
 The device-pin, identity and LCSC checks in `tools/part_notes.py` carry over
-unchanged to the merged checker (§7 step 3).
+unchanged to the merged checker (§7 step 5).
 
 **The 100 existing part notes.** They move into their packages as drafts (the
 owner's decision):
@@ -468,8 +573,18 @@ owner's decision):
 - **Conversion does not review anything.** Every converted file keeps
   `status: "draft"`. Sections the old note did not have are filled with
   `Not yet extracted`, which is valid only in a draft.
-- A draft becomes `reviewed` only through §7 steps 2–4, in its own commit and
+- A draft becomes `reviewed` only through §7 steps 3–6, in its own commit and
   patch release.
+- **Review is ordered by measured demand, not done wholesale** (owner's
+  decision, 2026-11-27). At 30–60 minutes of reviewer time per digest (§7),
+  reviewing all 100 drafts up front is 50–100 hours. The measured call
+  distribution does not justify that: the inventory saw 284 documents, and
+  repetition concentrates on a few.
+  - "Measured demand" means: drafts whose source document has recorded
+    `PdfView` calls in the inventory are reviewed first, in descending order
+    of call count, with projects reached as the tie-break.
+  - A draft whose document has no recorded calls waits. It stays a draft,
+    and is never served, until demand is recorded or someone needs it.
 - Moving the drafts in changes every affected package's content, so each
   affected package takes one patch version bump for the move (decision 3).
 
@@ -527,18 +642,32 @@ document's bytes are seen.
 1. **First check.** The first `capture` of the document is called with
    `expectedSha256` equal to the digest's hash. The worker records the result
    against `(package, version, source.sha256)`.
+   - **Only a real PDF can count** (revised after review, 2026-11-27). The
+     received bytes must begin with the PDF signature `%PDF-` (within the
+     first 1024 bytes, as the PDF format allows), and must parse to a page
+     count. Otherwise the download is a fetch failure, not a mismatch, and
+     the digest's state does not change. This covers an HTML page, a
+     bot-protection response, a 404 body and a truncated download, which are
+     the fetch-class failures in §1.2.
 2. **Match.** The digest stays served and is labelled `deferred, matched
    <date>`. A match is not permanent trust:
    - every later `capture` of the document hashes the download again (capture
      already computes the hash, so this costs nothing extra);
    - a recorded match expires after **30 days**, after which the label
      returns to `deferred` (unchecked) until the next capture.
-3. **Mismatch.** The bytes at the recorded URL are not the bytes the digest
-   was written from. That digest is invalid, and so is **every `deferred`
-   digest in the same package version**. The consumer stops serving them
-   until the package publishes a re-extracted digest in a new patch version.
-   - `local` digests in that version are unaffected, because their bytes are
-     verified locally.
+3. **Mismatch.** A real PDF arrived, and its hash differs from the digest's.
+   The bytes at the recorded URL are not the bytes the digest was written
+   from.
+   - **Only that document's digest is invalidated** (revised after review,
+     2026-11-27). The key is `source.sha256` within the package version. No
+     other digest in the package is affected, whether `deferred` or `local`.
+   - The earlier revision invalidated every `deferred` digest in the package
+     version. That was too broad. Hash-only packages hold many independent
+     documents: `sod` has 8 `.evidence.md` records and `do214` has 9, from
+     two vendors (Diodes and Hongjiacheng). One vendor reissuing one file
+     says nothing about the others.
+   - The consumer stops serving that digest until the package publishes a
+     re-extracted digest in a new patch version.
    - The cause may be a vendor republishing (§5.2) rather than a wrong digest.
      The rule treats both the same way, because either way the pinned
      document can no longer be confirmed.
@@ -547,9 +676,9 @@ document's bytes are seen.
    agent may use its values, but must cite them as digest values, never as
    inspected pages.
 
-The invalid state is held by the cohdl-ai worker, keyed by package and
-version, and is shared across projects and sessions. A new patch version
-starts fresh.
+The invalid state is held by the cohdl-ai worker, keyed by package, version
+and `source.sha256`, and is shared across projects and sessions. A new patch
+version starts fresh.
 
 ### 5.2 Vendor republishing
 
@@ -600,7 +729,8 @@ one-line hint in §8.4.
 - The vendor PDFs already committed stay committed. `LIBRARY.md` §2 requires
   them ("Save unmodified PDFs under the manufacturer library's `docs/`
   directory"), there are 106 of them, and that position does not change.
-- The 68 `.evidence.md` records saying "The third-party PDF is not
+- The 68 `.evidence.md` records in packages (70 repository-wide, 74 in
+  packages once #130, #137 and #138 land; §2) saying "The third-party PDF is not
   redistributed by this repository" are the exception case of decision 2 (now
   Rule B, §6.3). They are not a second policy.
 
@@ -696,13 +826,32 @@ Notes on the conditions:
   obtain them.
 - The 106 PDFs already committed stay committed (decision 1). Rule B applies
   when a PDF is added. The 4 committed PDFs above 8 MiB are not removed.
+- **Two consequences, stated outright** rather than left to arithmetic:
+  - Under condition 3, **`passive` can never accept another PDF**, because it
+    *is* the current ceiling (27,288,503 B). Any addition exceeds it.
+  - Under condition 4, **a package of a few kilobytes cannot accept an
+    ordinary datasheet**. `transistor` is 4,824 B, so its archive may reach
+    96,480 B, leaving room for a PDF of at most 91,656 B. Of the 106 committed
+    PDFs, only 2 are that small. Both are one-page footprint extracts, not
+    datasheets: 12,952 B (`samtec-ssw-double-row-smt-footprint.pdf`) and
+    26,311 B (`wdfn2.5x2.5-10-footprint.pdf`). p10 is 0.28 MB. The same holds
+    for `@contrib/fuel-gauge` (5,054 B; room for 96,026 B, the same 2 fit)
+    and `switches` (8,580 B; room for 163,020 B, 6 of the 106 fit). "Never"
+    is therefore true for any real datasheet, but not literally for every
+    file.
+  - Both follow from the provisional thresholds, and both should be
+    reconsidered with them.
+- **Condition 1 and LCSC-served copies.** Under P2 (§6.5), anything JLC
+  itself distributes is acceptable to distribute. So condition 1 does not
+  keep an LCSC-served copy out: such a copy ships unless condition 2, 3 or 4
+  holds.
 
 **Rule C: what hash-only means.** A hash-only package loses nothing except
 local byte validation. Its digests ship and are served like any other. Their
 validity state is `deferred` instead of `local`, as defined in §5.1: trusted
 as written until the first `capture` checks the bytes, re-checked on every
-capture, a match expiring after 30 days, and a mismatch invalidating the
-package version's deferred digests until re-extraction.
+capture, a match expiring after 30 days, and a mismatch (only when a real
+PDF arrived) invalidating that document's digest alone until re-extraction.
 
 Nothing in §6 remains open. Applying Rule B to the 56 missing documents waits
 on the measurement in §10.5, which is a sequencing condition, not an open
@@ -720,39 +869,114 @@ This is a working distinction, not legal advice.
 | Drawings, figures, curves, photographs | Expression | Never reproduced; located by the page map |
 | A vendor's website terms of use | A contractual limit, per vendor | An explicit prohibition of redistribution keeps the PDF out (Rule B condition 1); its digest still ships (Rule A) |
 
+### 6.5 Owner's principles P1 and P2 (decided 2026-11-27)
+
+**P1: document acquisition preference, in order.**
+1. **The manufacturer's original PDF, with a usable text layer.**
+2. **The manufacturer's original, without a text layer.** Facts are extracted
+   by a multimodal model that looks at rendered pages, and reviewed under §7.
+3. **A distributor copy (LCSC/JLC)**, only when the manufacturer's original
+   cannot be obtained.
+
+**P1(2) is a one-off cost at library build or update time.** It is not paid
+at design time, and not per project. This is the whole point of shipping a
+digest: a document like the HRO drawing (§1.5), which no text search can
+read, is looked at once, when the package is built or updated, and its facts
+ship to every project that installs the package. Without a digest, every
+project that needs it pays for page renders again, as the inventory shows.
+
+**P2: originals preferred; distribution accepted, with the risk on record.**
+- We want manufacturer originals, not distributor renderings.
+- Distribution is acceptable where the licence permits. At this stage,
+  anything JLC itself distributes is acceptable to us.
+- Takedown notices will be handled reactively, not pre-emptively. **This is
+  the owner's accepted risk, recorded 2026-11-27.**
+- P2 decides Rule B condition 1 for LCSC-served copies: they are not kept out
+  under condition 1 (§6.3).
+
+**Replacing distributor copies with originals is deferred, not a standing
+obligation.** Nothing in this design requires existing distributor copies to
+be swapped for manufacturer originals over time. A replacement happens only
+after a trigger has actually occurred:
+- a takedown notice for that copy; or
+- a demonstrated quality problem with that copy (for example, a distributor
+  rendering that differs from the manufacturer's document).
+
+New acquisitions still follow the P1 order.
+
 ## 7. Extraction process and quality bar
 
-1. **Draft.** A model drafts the digest from the pinned bytes only: the shipped
-   PDF, or a download whose SHA-256 matches the evidence record. It works from
-   rendered pages and text extraction (`LIBRARY.md` §2: `pdfinfo`, `pdftotext`,
-   `shasum -a 256`), and fills in `extracted`. A draft may be committed into
-   the package with `status: "draft"`. It is never served (§8.3).
-2. **Verify.** A person checks every number against its cited page in the
-   rendered PDF. They check every own-words paragraph against its cited page
-   for meaning, and confirm it is not a quotation. They check the page map row
-   by row. Drawings are checked visually: `LIBRARY.md` warns that "Text
-   extraction alone will not reveal mirrored geometry, diagram orientation, or
-   drawing-layer mistakes". Only then does the reviewer set `reviewed` and
-   `status: "reviewed"`.
-3. **Check.** A checker run in CI enforces the following. It is
+1. **Acquire.** Obtain the document in P1 order (§6.5): the manufacturer's
+   original with a text layer; else the original without one; else a
+   distributor copy. Record which case applies. The first action is to check
+   for a text layer with `pdfinfo` and `pdftotext` (`LIBRARY.md` §2). The HRO
+   drawing (§1.5) shows that this cannot be assumed from the file type.
+2. **Draft.** A model drafts the digest from the pinned bytes only: the shipped
+   PDF, or a download whose SHA-256 matches the evidence record.
+   - With a text layer, it works from text extraction and rendered pages.
+   - Without one, it works from rendered pages alone (P1(2)). This is done
+     once, at library build or update time.
+
+   It fills in `extracted`. It does not write the value index (section 5);
+   the checker generates it. A draft may be committed into the package with
+   `status: "draft"`, and it is never served (§8.3).
+3. **Verify: the library's existing transcription procedure, not a new
+   one** (revised after review, 2026-11-27). A digest is verified with the
+   same procedure the library already uses for transcribing footprints and
+   pin maps:
+   - a neutral kit, with source comments stripped;
+   - blind controls;
+   - two independent readers;
+   - disagreements settled by measurement, not by discussion.
+
+   According to the reviewer, that procedure is step 4 of the `lcsc-library`
+   skill. That skill is not present on the machine this document was written
+   on, so the reference is the reviewer's and has not been checked here. The
+   digest process points to that procedure and does not redefine a weaker
+   one. The earlier revision's single-reader check is withdrawn.
+   - **Two readers agreeing is not proof.** The reviewer reports that in the
+     RGE0024M footprint case (`TI_RGE0024M`, `lib/@ti/power-switch`), both
+     readers agreed and both were wrong. The record of that review was not
+     located in this repository. Blind controls and measurement are what
+     catch an error two readers share.
+   - **Advisory text** is checked against its cited page for meaning and
+     confirmed not to be a quotation (§4.1 rule 3).
+   - **Drawings** are checked visually. `LIBRARY.md` warns that "Text
+     extraction alone will not reveal mirrored geometry, diagram orientation,
+     or drawing-layer mistakes".
+
+   Only after this does the reviewer set `reviewed` and `status:
+   "reviewed"`.
+4. **Reviewer time.** The estimate is **30–60 minutes per digest**. For the
+   100 existing drafts, that is 50–100 hours of review. The measured demand
+   does not justify spending that up front, so drafts are reviewed in order
+   of measured demand (§4.5). A new digest is written when a document's
+   recorded calls justify it.
+5. **Check.** A checker run in CI enforces the following. It is
    `tools/part_notes.py`, extended to the merged schema, keeping its existing
    device-pin, identity and LCSC checks.
    - the header schema;
    - the §5.1 validity rule against the package's own files;
    - all 23 headings (sections 0–22) present and in order;
+   - the core sections, and every section the part class requires (§4.3.1),
+     filled;
+   - every `Not applicable` carrying a reason;
    - every table row cites a page;
    - **every cited page is within `1..pages`, and `pages` equals the real page
      count** of the shipped PDF (§11.3);
+   - **section 5 (value index) generated by the checker from the other
+     sections, or verified against them**; a hand-written index that differs
+     fails;
    - a non-empty Gaps section;
    - `device`, `parts` and `identities` resolve to real library declarations
      and AVL entries;
    - `Not yet extracted` appears only in a draft.
-4. **Accept.** The digest passes the replay acceptance test in §10.
-5. **Commit.** One digest per commit, which covers one source document; for a
+6. **Accept.** The digest passes the two-part acceptance test in §10.1.
+7. **Commit.** One digest per commit, which covers one source document; for a
    single-part datasheet that is one part. A family document covers its listed
    parts in the same commit. Each digest addition or change is a patch version
    bump of its package (decision 3). A patch release may batch several digest
-   commits.
+   commits. The ordering constraint with the open library stack is in §3.2.
 
 **A digest may be committed into a package with `status: "draft"`.** This
 replaces the earlier rule that kept drafts out of packages. The owner chose to
@@ -763,7 +987,7 @@ Two rules make that safe for agents:
 - **The consumer never serves a draft** (§8.3). A draft is never a value
   source.
 - **A draft never counts toward acceptance coverage** (§11.2). Only a
-  `reviewed` digest passes §7 step 4.
+  `reviewed` digest passes §7 step 6.
 
 The cost is in §4.5: draft text travels to every install, and its errors are
 visible on disk even though they are never served.
@@ -1006,33 +1230,66 @@ digest existed, and does not record it as an open item.
 
 ## 10. Acceptance test and measurement
 
-### 10.1 Acceptance test: replaying real queries
+### 10.1 Acceptance test: class query list plus replay
 
-Before a digest is released, the `find` queries recorded in the inventory are
-replayed against it:
+Revised after review (2026-11-27). The earlier single bar, "80% of the
+replayed real queries", does not generalise. The inventory holds 228 queries
+over 284 documents, under one query per document, and many documents have
+none. A bar defined over a document's own queries is undefined for most
+documents, and meaningless for those with one or two.
 
-- **Query set.** Every one of the 228 recorded `find` queries that was issued
-  against this document's SHA-256, and whose intent is one of the top 20
-  (§1.4).
-- **Covered.** A query counts as covered only if the digest answers it with a
-  cited value: a row in the matching section that contains the asked-for value
-  and its page. A Gaps entry is not coverage. It is reported separately as
-  "answered by gap". An answer found only in an unreviewed text, such as a
+The test now has two parts. A digest must pass both parts that apply to it.
+
+**(a) The class query list, answered completely.** Each part class (§4.3.1)
+has a fixed list of questions. Every digest of that class must answer every
+question on the list: either with a cited value, or with a `Not applicable`
+whose reason is accepted by the reviewer. There is no partial credit.
+
+The lists cannot be written honestly yet. Writing them now would be invention,
+for two reasons: the inventory's 57 intents are not labelled by part class,
+and the per-intent breakdown beyond the top 20 is not in this document. Instead,
+this document specifies how the lists are derived:
+1. Label each of the 228 recorded queries with the part class of the document
+   it was issued against. The document's SHA-256 maps it to a library package
+   and part, and the part to a class.
+2. For each class, take every intent that has at least one query against a
+   document of that class.
+3. Turn each such intent into one fixed question, written so that it applies
+   to any part of the class. For example, "supply current in run/active mode"
+   becomes "What is the supply current in each run/active mode, with its
+   conditions?".
+4. Check each class's list against the required sections in §4.3.1. A
+   question with no required section to answer it means the table is wrong.
+   A required section with no question means the section may not be needed
+   for that class.
+5. Fix the lists before any digest of that class is extracted, and store them
+   next to the checker.
+
+The classes to derive first are the ten in §4.3.1: mcu, ldo, dcdc,
+diode/tvs, connector, crystal/oscillator, esd, load-switch, usb and sensor. A
+class with no labelled queries keeps the §4.3.1 sections as its only
+requirement, and says so.
+
+**(b) Replay, only where real queries exist.** The recorded `find` queries
+against this document's SHA-256 are replayed, but only for a document with at
+least **N = 5** recorded queries.
+- **Covered:** a query counts as covered only if the digest answers it with a
+  cited value. A Gaps entry is not coverage; it is reported separately as
+  "answered by gap". An answer found only in unreviewed text, such as a
   converted part-note draft, is not coverage (§11.2).
-- **Bar.** At least 80% of the replayed top-20-intent queries are covered.
-  This is the owner's target. It is measured per digest and reported in
-  aggregate.
+- **Bar:** at least 80% covered.
+- **Why N = 5:** with 5 queries, an 80% bar allows exactly one miss. Below 5,
+  one query moves the result by 25 points or more, so the bar either demands
+  perfection (at 4 queries, 80% means 4 of 4) or measures noise. Above 5, too
+  few documents would qualify to test anything. How many documents reach 5
+  is not known from this document; it is computed from the inventory when the
+  lists in (a) are derived.
 
-This is a measurement on a real query set, not a judgement call. The query
-set, the covered criterion and the bar are all fixed before extraction
-begins. Scoring is a binary decision per query, and the scored sheet is kept
-with the pilot results.
-
-The replay covers only queries that were actually issued against a document.
-A document that was rendered often but rarely searched has few or no
-queries; for the HRO drawing, the count against its hash is not yet known.
-For such a document the test is weak, and the page-image metrics in §10.2
-carry more weight.
+This is a measurement on fixed query sets, not a judgement call. The lists,
+the covered criterion, N and the bar are all fixed before extraction begins.
+Scoring is a binary decision per question, and the scored sheet is kept with
+the results. A document with fewer than 5 queries is accepted on (a) alone,
+and the page-image metrics in §10.2 carry more weight for it.
 
 ### 10.2 Metrics
 
@@ -1045,7 +1302,7 @@ Before and after windows, per document and per package version:
 | Page images returned per document per session | `capture` + `view` + `read` renders | Down |
 | Fetch-class failures | HTML-instead-of-PDF 44, timeout 21, bot refusal 13, 404/410 8, hash mismatch 3: **89** in the inventory | Down, but see the note below |
 | Hint ignored | Captures and views whose result carried the §8.4 hint and which the agent followed with another render of the same document, with no `digest` call in between | Down. If high, the mitigations are not working |
-| Replay coverage | §10.1 | At least 80% |
+| Acceptance | §10.1: the class query list answered completely; replay of at least 80% where N ≥ 5 queries exist | Pass |
 | Call duration | Measured start and end per call (§10.3) | Reported once measured; no claim before that |
 
 **About fetch-class failures:**
@@ -1065,30 +1322,50 @@ latency claim.
 
 ### 10.4 Rollout order
 
-1. **Pilot: the HRO TYPE-C-31-M-12 family drawing.** One document; 34 calls in
-   20 projects; reads concentrated on one page.
-   - All 20 sections are filled for the exact MPN, whose sheet is page 4 by
-     the repository's records (§1.5).
-   - The page map covers every page, so an agent heading for page 1 is told
-     that it is a variant sheet.
-   - Before extraction, compare the inventory's hash for this document with
-     `c5a4131f…`, and inspect pages 1–4 on a machine that has a PDF tool.
+Revised after review (2026-11-27). The HRO drawing is no longer the pilot. It
+has no text layer (§1.5), so the generated page map, `find` and the replay
+test all fail on it for reasons unrelated to digests.
+
+1. **Pilot: RT9080 and TPS25982.** These are two ordinary manufacturer
+   datasheets where a text layer is expected:
+   - RT9080: `lib/@contrib/ldo/docs/rt9080.pdf`; 23 calls in 8 projects;
+     reads concentrated on p1 and p5.
+   - TPS25982: `lib/@ti/power-switch/docs/tps25982.pdf`; reads concentrated
+     on p1 and p4.
+
+   Both PDFs ship in their packages (`local` validity), and both already have
+   a draft part note (`docs/part-notes/@contrib/ldo/RT9080.md`,
+   `docs/part-notes/@ti/power-switch/EFUSE_TPS259823ONRGET.md`). The pilot
+   therefore also exercises the conversion in §4.5.
+   - **The first implementation action is to verify the text layer** of both
+     files with `pdfinfo` and `pdftotext`, before committing to this pilot.
+     Neither machine used so far has those tools, so "a text layer is
+     expected" is unverified. If either file lacks one, it is replaced by the
+     next document in step 2 that has one.
 2. **Small parts whose reads concentrate on one page:** TPD1E05U06 (p7),
-   USBLC6-2 (p1–2), RS2257 (p1–2), RT9080 (p1, p5) and TPS25982 (p1, p4).
-   TPD1E05U06 is hash-only today. Under Rule A its digest still ships, and the
-   SHA-256 lookup in §8.3 step 2 makes it reachable from the vendor URL. It is
-   the pilot's first `deferred` digest, and it exercises the first-capture
-   check in §5.1. No generated page map exists for it, because there are no
-   shipped bytes to extract from.
+   USBLC6-2 (p1–2) and RS2257 (p1–2).
+   - TPD1E05U06 is hash-only today. Under Rule A its digest still ships, and
+     the SHA-256 lookup in §8.3 step 2 makes it reachable from the vendor URL.
+     It is the first `deferred` digest, and it exercises the first-capture
+     check in §5.1. No generated page map exists for it, because there are no
+     shipped bytes to extract from.
 3. **Large datasheets with many calls:** FUSB302B (131 calls in 16 projects),
-   STM32F072CB (58 in 8) and RT6150A/B (39 in 8). These go last, after the
-   pilot shows adoption.
+   STM32F072CB (58 in 8) and RT6150A/B (39 in 8). These go after the pilot
+   shows adoption.
+4. **The HRO TYPE-C-31-M-12 drawing, page map only, later.** One document; 34
+   calls in 20 projects; reads concentrated on page 1. It needs either one
+   human pass over the rendered pages, or P1(2) multimodal extraction at
+   build time, to produce a page map that says which sheet is which MPN.
+   - That pass is also what finally verifies or refutes the repository's
+     "exact MPN on sheet 4" record (§1.5).
+   - Before it, compare the inventory's hash for this document with
+     `c5a4131f…`.
 
 Each step needs a package release and `cohdl update` in the measured projects.
 
 **Success.** The pilot succeeds when digest adoption is measurably above
-zero, page images for the HRO document fall, and replay coverage meets the
-bar. If adoption stays low despite the §8.4 mitigations, the next step is the
+zero, page images for the RT9080 and TPS25982 documents fall, and both digests
+pass §10.1. If adoption stays low despite the §8.4 mitigations, the next step is the
 prompt wording in §9, not more digests.
 
 ### 10.5 Size measurement: the gate for applying Rule B
@@ -1117,7 +1394,11 @@ means 10^6 bytes, MiB means 2^20 bytes.
 | Git object store (shared repository) | 265.6 MiB packed (`git count-objects -v`: `size-pack` 271,999 KiB) |
 | Largest package archives today (all non-dot files, which is the tar file set) | `passive` 27.3 MB; `connectors` 24.1 MB |
 
-**The evidence-only set.** It is **68 files in 17 packages**, not 68
+**The evidence-only set.** Measured on the worktree, which matched
+`origin/main` (9458edc) for `lib/`: 70 `.evidence.md` files in the
+repository, of which 2 are generator inputs under `tools/passive_data/` (§2).
+Under `lib/` there are 74 once #130, #137 and #138 land; the six new records
+were not part of this measurement. It is **68 files in 17 packages**, not 68
 packages:
 
 | Package | Files | Package | Files |
@@ -1277,15 +1558,20 @@ so they ship to every install while remaining unreviewed.
 - **Never served.** The `digest` action never returns a draft's content
   (§8.3), so a draft cannot raise adoption or lower page images either. A
   metric that moves because of a draft indicates a consumer bug.
+- **Reviewed by measured demand, not all at once.** At 30–60 minutes each
+  (§7 step 4), the 100 drafts are 50–100 hours of review. They are reviewed
+  in order of recorded `PdfView` calls in the inventory, and a draft with no
+  recorded calls waits (§4.5). Until reviewed, none of them counts as
+  coverage, whatever it contains.
 
 ### 11.3 Requirement on the merged checker
 
-The digest checker (§7 step 3) must, at minimum, reject any
+The digest checker (§7 step 5) must, at minimum, reject any
 citation whose page is outside `1..pages`, and must confirm `pages` against
 the real page count of the shipped PDF. For a hash-only document, the
 `.evidence.md` record must also record the page count, which it does not today.
 A citation that names an existing page can still be wrong; only the human
-verification in §7 step 2 catches that.
+verification in §7 step 3 catches that.
 
 ### 11.4 The failure classification does not add up
 
@@ -1332,8 +1618,8 @@ notes, the review process) stays in this document, and the rules point to it.
 > **Validity.** A digest is `local` when its PDF ships: CI and the lock file
 > check its SHA-256 against that file. Otherwise it is `deferred`: served as
 > written until a capture downloads the PDF; every capture re-hashes it, a
-> match lapses after 30 days, and a mismatch invalidates the version's deferred
-> digests until a re-extracted patch release.
+> match lapses after 30 days, and a real PDF that mismatches invalidates that
+> document's digest alone until a re-extracted patch release.
 
 **The acceptance checklist would gain:**
 
@@ -1373,7 +1659,10 @@ notes, the review process) stays in this document, and the rules point to it.
    the access path.
 7. **Venue and PDF rule.** **Resolved (decisions 1 and 2, §6.1; the
    catalog-scale exception, §6.2).**
-8. **Page-map quality for drawings.** Drawings with no text layer produce
-   empty generated page-map rows (§8.3). If the HRO pilot shows that, a
-   reviewed page-map-only file may be worth allowing for documents that do not
-   yet have a full digest.
+8. **Page-map quality for drawings.** **Partly settled (2026-11-27).** The
+   HRO measurement (§1.5) confirms that a drawing with no text layer gives an
+   empty or useless generated page map. Such a document gets its page map
+   from P1(2) extraction or one human pass at build time (§6.5, §10.4 step 4),
+   inside a digest. What remains open: whether a page-map-only digest, with
+   the other required sections left as `Not yet extracted`, may be marked
+   `reviewed` for a drawing-only document.

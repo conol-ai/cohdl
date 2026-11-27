@@ -21,6 +21,12 @@ SPELLINGS = FULL.parent / "2026-11-06-full-spellings"
 SAMSUNG = FULL.parent / "2026-11-07-samsung-b1"
 # diode 0.1.2 and esd 0.1.3: the six Hongjiacheng diode and TVS parts.
 HONGJIACHENG = FULL.parent / "2026-11-11-hongjiacheng"
+# diode 0.1.3: the 128 SOD-123 Zeners the B1 snapshot lists from Hongjiacheng.
+ZENER = FULL.parent / "2026-11-21-hongjiacheng-zener"
+SOT23 = FULL.parent / "2026-11-23-sot23"
+SOT23_2 = FULL.parent / "2026-11-24-sot23-2"
+# diode 0.1.5: 35 of the 71 SOD-323/SOD-523 Zeners (36 stay in review, page_unparsed).
+ZENER2 = FULL.parent / "2026-11-24-zener2"
 EMPTY = {"schema_version": 1, "supplier": "lcsc", "rows": []}
 
 
@@ -84,9 +90,38 @@ class PromoteTests(unittest.TestCase):
         code, out, _ = self.promote("--aliases", str(current), run=HONGJIACHENG)
         self.assertEqual(code, 0)
         self.assertIn("12327 rows, 12327 changed", out)
+        # The UNI-ROYAL run (2026-11-18, after the reviewed alias) adds 289 resistors and re-dates every row.
         code, out, _ = self.promote("--aliases", str(pm.ALIASES), run=FULL.parent / "2026-11-18-uniroyal")
         self.assertEqual(code, 0)
         self.assertIn("12616 rows, 12616 changed", out)
+        # The Zener run (2026-11-21) adds the 128 snapshot Zeners and re-dates the rows it read.
+        code, out, _ = self.promote("--aliases", str(current), run=ZENER)
+        self.assertEqual(code, 0)
+        self.assertIn("12744 rows, 12455 changed", out)
+        # Merging main: one offline run over both sides re-dates every row to a single snapshot.
+        code, out, _ = self.promote("--aliases", str(pm.ALIASES), run=FULL.parent / "2026-11-26-merge-main")
+        self.assertEqual(code, 0)
+        self.assertIn("12744 rows, 12744 changed", out)
+        # The SOT-23 run adds 86 identities (70 read on boards 15 and 16, 16 already cached) and re-dates its rows.
+        code, out, _ = self.promote("--aliases", str(current), run=SOT23)
+        self.assertEqual(code, 0)
+        self.assertIn("12830 rows, 12541 changed", out)
+        # The second SOT-23 run adds the other 39 read at pad 1 and re-dates its rows.
+        code, out, _ = self.promote("--aliases", str(current), run=SOT23_2)
+        self.assertEqual(code, 0)
+        self.assertIn("12869 rows, 12580 changed", out)
+        # Merging the updated Zener branch: one offline run re-dates every row to a single snapshot.
+        code, out, _ = self.promote("--aliases", str(pm.ALIASES), run=FULL.parent / "2026-11-26-merge-sot23")
+        self.assertEqual(code, 0)
+        self.assertIn("12869 rows, 12869 changed", out)
+        # The SOD-323/SOD-523 Zener run adds 35 snapshot Zeners and re-dates its rows.
+        code, out, _ = self.promote("--aliases", str(current), run=ZENER2)
+        self.assertEqual(code, 0)
+        self.assertIn("12904 rows, 12615 changed", out)
+        # Merging the updated SOT-23 branch: one offline run re-dates every row to a single snapshot.
+        code, out, _ = self.promote("--aliases", str(pm.ALIASES), run=FULL.parent / "2026-11-26-merge-zener2")
+        self.assertEqual(code, 0)
+        self.assertIn("12904 rows, 12904 changed", out)
         self.assertEqual(self.map.read_bytes(), (ROOT / "tools/sourcing_data/lcsc_map.json").read_bytes())
 
     def test_check_writes_nothing(self):

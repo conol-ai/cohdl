@@ -1,0 +1,13 @@
+Designator,Mid X,Mid Y,Layer,Rotation
+Q1,9.0000mm,19.0000mm,Top,90
+Q2,19.0000mm,19.0000mm,Top,127
+Q3,9.0000mm,9.0000mm,Bottom,90
+Q4,19.0000mm,9.0000mm,Bottom,53
+Q5,29.0000mm,19.0000mm,Top,90
+Q6,39.0000mm,19.0000mm,Top,127
+Q7,29.0000mm,9.0000mm,Bottom,90
+Q8,39.0000mm,9.0000mm,Bottom,53
+Q9,49.0000mm,19.0000mm,Top,90
+Q10,59.0000mm,19.0000mm,Top,127
+Q11,49.0000mm,9.0000mm,Bottom,90
+Q12,59.0000mm,9.0000mm,Bottom,53

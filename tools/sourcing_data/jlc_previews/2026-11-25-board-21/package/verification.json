@@ -1,0 +1,41 @@
+{
+  "board": "preview-board-21",
+  "commit": "48575b198e15fd8fd5736dcc57d31e5c0cf1ec85",
+  "dirty": false,
+  "cohdl_version": "cohdl 0.10.0 (aarch64-apple-darwin)",
+  "kicad_cli_version": "10.0.7",
+  "placements": 52,
+  "top": 26,
+  "bottom": 26,
+  "part_numbers": [
+    "C19077462",
+    "C19077463",
+    "C19077464",
+    "C19077465",
+    "C19077466",
+    "C22395575",
+    "C22395576",
+    "C22395577",
+    "C22395578",
+    "C22395579",
+    "C22395580",
+    "C22395581",
+    "C22395582"
+  ],
+  "netlist_lcsc_fields": 52,
+  "checks": {
+    "manifest_regenerated": "preview_board_21.py",
+    "library_bindings_in_supplier_bom": true,
+    "smt_pos_neutral_equals_compiler": true,
+    "smt_pos_mapped_equals_compiler": true,
+    "kicad_position_side_top_angle_agree": "52 of 52",
+    "bottom_angles": "compared only by smt_pos.py against the compiler; KiCad encodes them its own way",
+    "bom_cpl_netlist_cross_check": true
+  },
+  "source_sha256": {
+    "preview_board_21.kicad_pcb": "75c47bb41b34f519ae4bf36c823cc11065789c142d043a622ae4bcf8986923fd",
+    "preview_board_21-lcsc-map.json": "bbc54c1537154ac10a2c0206eb76917fea36333f5fb1d1ce5411c8626879fa2b",
+    "preview_board_21-cpl.csv": "078a21fca332c27d6c383cdad7821ac89f9de98fdcafd265dc2df7f9982613ce"
+  },
+  "supplier_preview": "not uploaded"
+}

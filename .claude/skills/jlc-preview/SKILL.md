@@ -16,13 +16,14 @@ The flow builds the preview package, works the assembler's web pages in the pers
 
 ## Steps
 
-1. **Build the package** from a clean tree (`tools/frame_boards/<board>/README.md` has the command):
+1. **Build the package** from a clean tree:
    ```sh
    K=/Applications/KiCad/KiCad.app/Contents
    python3 -I tools/frame_boards/preview_package.py <board> -o <scratch>/<board>-preview-<commit>.zip \
-     --cohdl target/debug/cohdl --kicad-cli $K/MacOS/kicad-cli \
+     --cohdl target/debug/cohdl --kicad-cli tools/sourcing_data/jlc_previews/2026-11-09-reverify-2/kicad-cli-no-refdes \
      --kicad-python $K/Frameworks/Python.framework/Versions/Current/bin/python3
    ```
+   The `kicad-cli-no-refdes` wrapper is KiCad's `kicad-cli` with the reference designators left out of the Gerber silkscreen. The preview draws them in red over the parts, where they disturb the readings (boards 13 and 14). Build every new package with it. A board's `README.md` records the command its earlier packages were built with, which may be the plain `kicad-cli`; do not copy that one.
    Give the person the ZIP's SHA-256 when asking for the go-ahead.
 2. **Run the preview** (Arc open, the person signed in):
    ```sh

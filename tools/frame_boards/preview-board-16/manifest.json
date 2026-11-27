@@ -1,0 +1,1605 @@
+{
+ "name": "preview_board_16",
+ "dependencies": {
+  "mosfet": "0.1.1",
+  "sot": "0.1.2",
+  "std": "0.3.0"
+ },
+ "rows": [
+  {
+   "name": "Q_HJC_2SK3018_C20069148",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "mosfet::NMOS_SOT23<30V, 100mA>",
+   "pn": "C20069148",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "2SK3018",
+   "pins": [
+    "Gate",
+    "Source",
+    "Drain"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      10.0,
+      10.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      20.0,
+      10.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      10.0,
+      20.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      20.0,
+      20.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 302323,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Q_HJC_FDV301N_C20069151",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "mosfet::NMOS_SOT23<25V, 220mA>",
+   "pn": "C20069151",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "FDV301N",
+   "pins": [
+    "Gate",
+    "Source",
+    "Drain"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      30.0,
+      10.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      40.0,
+      10.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      30.0,
+      20.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      40.0,
+      20.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 6525,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Q_HJC_2N7002K_C22379475",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "mosfet::NMOS_SOT23<60V, 340mA>",
+   "pn": "C22379475",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "2N7002K",
+   "pins": [
+    "Gate",
+    "Source",
+    "Drain"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      50.0,
+      10.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      60.0,
+      10.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      50.0,
+      20.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      60.0,
+      20.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 2387918,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Q_HJC_HL3400_C22469448",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "mosfet::NMOS_SOT23<30V, 5.6A>",
+   "pn": "C22469448",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "HL3400",
+   "pins": [
+    "Gate",
+    "Source",
+    "Drain"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      70.0,
+      10.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      80.0,
+      10.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      70.0,
+      20.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      80.0,
+      20.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 1320769,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Q_HJC_HL2306_C28646262",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "mosfet::NMOS_SOT23<30V, 3.5A>",
+   "pn": "C28646262",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "HL2306",
+   "pins": [
+    "Gate",
+    "Source",
+    "Drain"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      90.0,
+      10.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      100.0,
+      10.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      90.0,
+      20.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      100.0,
+      20.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 13557,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Q_HJC_HL2302_C28646268",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "mosfet::NMOS_SOT23<20V, 3A>",
+   "pn": "C28646268",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "HL2302",
+   "pins": [
+    "Gate",
+    "Source",
+    "Drain"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      110.0,
+      10.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      120.0,
+      10.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      110.0,
+      20.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      120.0,
+      20.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 61925,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Q_HJC_HL3402_C28646271",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "mosfet::NMOS_SOT23<30V, 2.5A>",
+   "pn": "C28646271",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "HL3402",
+   "pins": [
+    "Gate",
+    "Source",
+    "Drain"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      130.0,
+      10.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      140.0,
+      10.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      130.0,
+      20.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      140.0,
+      20.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 182994,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Q_HJC_HL2312_C28646272",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "mosfet::NMOS_SOT23<20V, 5.5A>",
+   "pn": "C28646272",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "HL2312",
+   "pins": [
+    "Gate",
+    "Source",
+    "Drain"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      150.0,
+      10.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      160.0,
+      10.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      150.0,
+      20.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      160.0,
+      20.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 17208,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Q_HJC_HL3416_C28646273",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "mosfet::NMOS_SOT23<20V, 6.5A>",
+   "pn": "C28646273",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "HL3416",
+   "pins": [
+    "Gate",
+    "Source",
+    "Drain"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      10.0,
+      30.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      20.0,
+      30.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      10.0,
+      40.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      20.0,
+      40.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 114484,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Q_HJC_2N7002_C7420321",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "mosfet::NMOS_SOT23<60V, 115mA>",
+   "pn": "C7420321",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "2N7002",
+   "pins": [
+    "Gate",
+    "Source",
+    "Drain"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      30.0,
+      30.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      40.0,
+      30.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      30.0,
+      40.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      40.0,
+      40.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 1091503,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Q_HJC_BSS123_C7420338",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "mosfet::NMOS_SOT23<100V, 170mA>",
+   "pn": "C7420338",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BSS123",
+   "pins": [
+    "Gate",
+    "Source",
+    "Drain"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      50.0,
+      30.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      60.0,
+      30.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      50.0,
+      40.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      60.0,
+      40.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 847527,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Q_HJC_BSS138_C7420339",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "mosfet::NMOS_SOT23<50V, 340mA>",
+   "pn": "C7420339",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BSS138",
+   "pins": [
+    "Gate",
+    "Source",
+    "Drain"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      70.0,
+      30.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      80.0,
+      30.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      70.0,
+      40.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      80.0,
+      40.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 23003,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Q_HJC_HL2300_C7420343",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "mosfet::NMOS_SOT23<20V, 4.5A>",
+   "pn": "C7420343",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "HL2300",
+   "pins": [
+    "Gate",
+    "Source",
+    "Drain"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      90.0,
+      30.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      100.0,
+      30.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      90.0,
+      40.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      100.0,
+      40.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 366139,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Q_HJC_HL2304_C7420346",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "mosfet::NMOS_SOT23<30V, 3.6A>",
+   "pn": "C7420346",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "HL2304",
+   "pins": [
+    "Gate",
+    "Source",
+    "Drain"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      110.0,
+      30.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      120.0,
+      30.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      110.0,
+      40.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      120.0,
+      40.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 44252,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Q_HJC_HL2310A_C7420347",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "mosfet::NMOS_SOT23<60V, 3A>",
+   "pn": "C7420347",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "HL2310A",
+   "pins": [
+    "Gate",
+    "Source",
+    "Drain"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      130.0,
+      30.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      140.0,
+      30.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      130.0,
+      40.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      140.0,
+      40.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 73584,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Q_HJC_HL3400A_C7420348",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "mosfet::NMOS_SOT23<30V, 5.8A>",
+   "pn": "C7420348",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "HL3400A",
+   "pins": [
+    "Gate",
+    "Source",
+    "Drain"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      150.0,
+      30.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      160.0,
+      30.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      150.0,
+      40.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      160.0,
+      40.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 456422,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Q_JSCJ_2N7002_C8545",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "mosfet::NMOS_SOT23<60V, 115mA>",
+   "pn": "C8545",
+   "mfr": "Jiangsu Changjing Electronics Technology",
+   "mpn": "2N7002",
+   "pins": [
+    "Gate",
+    "Source",
+    "Drain"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      10.0,
+      50.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      20.0,
+      50.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      10.0,
+      60.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      20.0,
+      60.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'Jiangsu Changjing Electronics Technology Co., Ltd.', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "basic",
+   "stock": 3066118,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Q_VISHAY_SI2301CDS_T1_GE3_C10487",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "mosfet::PMOS_SOT23<20V, 3.1A>",
+   "pn": "C10487",
+   "mfr": "Vishay",
+   "mpn": "SI2301CDS-T1-GE3",
+   "pins": [
+    "Gate",
+    "Source",
+    "Drain"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      30.0,
+      50.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      40.0,
+      50.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      30.0,
+      60.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      40.0,
+      60.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'Vishay Intertech', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "basic",
+   "stock": 109849,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Q_HJC_HL3401_C22469449",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "mosfet::PMOS_SOT23<30V, 4.4A>",
+   "pn": "C22469449",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "HL3401",
+   "pins": [
+    "Gate",
+    "Source",
+    "Drain"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      50.0,
+      50.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      60.0,
+      50.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      50.0,
+      60.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      60.0,
+      60.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 373861,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Q_HJC_HL2305_C28646261",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "mosfet::PMOS_SOT23<12V, 3.6A>",
+   "pn": "C28646261",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "HL2305",
+   "pins": [
+    "Gate",
+    "Source",
+    "Drain"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      70.0,
+      50.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      80.0,
+      50.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      70.0,
+      60.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      80.0,
+      60.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 143319,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Q_HJC_HL2309_C28646263",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "mosfet::PMOS_SOT23<60V, 1.25A>",
+   "pn": "C28646263",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "HL2309",
+   "pins": [
+    "Gate",
+    "Source",
+    "Drain"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      90.0,
+      50.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      100.0,
+      50.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      90.0,
+      60.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      100.0,
+      60.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 148697,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Q_HJC_HL6042_C28646264",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "mosfet::PMOS_SOT23<20V, 5A>",
+   "pn": "C28646264",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "HL6042",
+   "pins": [
+    "Gate",
+    "Source",
+    "Drain"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      110.0,
+      50.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      120.0,
+      50.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      110.0,
+      60.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      120.0,
+      60.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 227758,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Q_HJC_HL3407A_C28646269",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "mosfet::PMOS_SOT23<30V, 4.1A>",
+   "pn": "C28646269",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "HL3407A",
+   "pins": [
+    "Gate",
+    "Source",
+    "Drain"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      130.0,
+      50.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      140.0,
+      50.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      130.0,
+      60.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      140.0,
+      60.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 68130,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Q_HJC_HL3415A_C28646270",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "mosfet::PMOS_SOT23<20V, 5.6A>",
+   "pn": "C28646270",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "HL3415A",
+   "pins": [
+    "Gate",
+    "Source",
+    "Drain"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      150.0,
+      50.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      160.0,
+      50.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      150.0,
+      60.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      160.0,
+      60.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 101165,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Q_HJC_HL2307_C28646274",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "mosfet::PMOS_SOT23<30V, 2.6A>",
+   "pn": "C28646274",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "HL2307",
+   "pins": [
+    "Gate",
+    "Source",
+    "Drain"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      10.0,
+      70.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      20.0,
+      70.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      10.0,
+      80.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      20.0,
+      80.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 1720,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Q_HJC_BSS84_C7420340",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "mosfet::PMOS_SOT23<60V, 170mA>",
+   "pn": "C7420340",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BSS84",
+   "pins": [
+    "Gate",
+    "Source",
+    "Drain"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      30.0,
+      70.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      40.0,
+      70.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      30.0,
+      80.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      40.0,
+      80.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 195996,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Q_HJC_HL2301A_C7420344",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "mosfet::PMOS_SOT23<20V, 2.3A>",
+   "pn": "C7420344",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "HL2301A",
+   "pins": [
+    "Gate",
+    "Source",
+    "Drain"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      50.0,
+      70.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      60.0,
+      70.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      50.0,
+      80.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      60.0,
+      80.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 48153,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Q_HJC_HL2303_C7420345",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "mosfet::PMOS_SOT23<30V, 1.9A>",
+   "pn": "C7420345",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "HL2303",
+   "pins": [
+    "Gate",
+    "Source",
+    "Drain"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      70.0,
+      70.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      80.0,
+      70.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      70.0,
+      80.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      80.0,
+      80.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 354640,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Q_HJC_HL3401A_C7420349",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "mosfet::PMOS_SOT23<30V, 4.2A>",
+   "pn": "C7420349",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "HL3401A",
+   "pins": [
+    "Gate",
+    "Source",
+    "Drain"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      90.0,
+      70.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      100.0,
+      70.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      90.0,
+      80.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      100.0,
+      80.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 271909,
+   "page_fetched": "2026-10-30"
+  }
+ ]
+}

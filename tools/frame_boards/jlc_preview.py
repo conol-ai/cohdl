@@ -371,7 +371,11 @@ def verdicts(marks, fps, readings, attribution=measure_preview.ATTRIBUTION):
       (``measure_preview.owners``), at its pad 1 within
       ``measure_preview.MARK_ANGLE_TOL``: "mark". A part with no mark, with
       several, with its mark elsewhere, or of a kind that has no pin 1
-      (``measure_preview.expects_mark``) goes to "manual review";
+      (``measure_preview.expects_mark``) goes to "manual review". So does a
+      two-terminal polarised part (``measure_preview.signed``: a diode or an
+      LED) with one mark at pad 1: its signs are a '+' and a '-' or band, and a
+      lone one at pad 1 may be the '+' (preview board 20 drew 13 Zeners' '+'
+      over our pad 1, five with the '-' not found);
     - a part whose model is not drawn (bare pads and the centroid marker) is
       "unverified", and a drawn part without its evidence goes to "manual review".
     Neither of the last two passes, and no instance's evidence covers another's.
@@ -412,7 +416,13 @@ def verdicts(marks, fps, readings, attribution=measure_preview.ATTRIBUTION):
             where = ("pin 1 mark %.1f deg counter-clockwise from pad 1 about the origin, seen from the top "
                      "(limit %g either way), %.2f mm from pad 1"
                      % (delta, measure_preview.MARK_ANGLE_TOL, math.hypot(mark[0] - pad["x"], mark[1] - pad["y"])))
-            out[ref] = ("mark", where) if measure_preview.mark_ok(delta) else ("manual review", "drawn; " + where)
+            if not measure_preview.mark_ok(delta):
+                out[ref] = ("manual review", "drawn; " + where)
+            elif measure_preview.signed(fp):
+                out[ref] = ("manual review", "drawn, with one sign of its own at pad 1: a two-terminal part's sign "
+                            "may be its '+' as well as its '-' or band, so it is read by hand; " + where)
+            else:
+                out[ref] = ("mark", where)
     return out
 
 

@@ -350,6 +350,17 @@ MARK_ANGLE_TOL = 20.0
 # Two-terminal parts with no pin 1: resistors, inductors and ferrite beads by
 # their designator, and the passive library's two-pad lands.
 NON_POLAR_REFS = ("R", "L", "FB")
+# Two-terminal polarised parts, by their designator: their models carry signs (a '+',
+# a '-' or band, an arrow), not a pin 1 mark, and a lone sign at pad 1 may be the '+'.
+SIGNED_REFS = ("D", "LED")
+
+
+def signed(fp):
+    """Whether FP is a two-terminal polarised part (SIGNED_REFS) whose one mark at pad 1
+    proves nothing: preview board 20 drew 13 Zeners' '+' over our pad 1, and on five
+    copies found no '-'."""
+    return (len({p["num"] for p in numbered(fp)}) <= 2
+            and fp["ref"].rstrip("0123456789") in SIGNED_REFS)
 
 
 def numbered(fp):

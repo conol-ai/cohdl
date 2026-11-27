@@ -1,0 +1,2170 @@
+{
+ "schema_version": 1,
+ "note": "Transcription of the manufacturer datasheets of the SOT-23 bipolar transistors and MOSFETs in the B1 snapshot (jlc_catalog/2026-10-30). Each PDF was fetched on 2026-11-23 through the LCSC datasheet link the snapshot page gives and read from its rendered pin diagram; the PDFs are not committed, their SHA-256 is. Parts whose manufacturer has no reviewed alias (MDD, LRC), whose sheet has no numbered pin diagram (AO3400A, AO3401A) or that are already in the library (C2146) are not here.",
+ "parts": [
+  {
+   "c": "C8545",
+   "mfr": "Jiangsu Changjing Electronics Technology",
+   "mpn": "2N7002",
+   "kind": "nmos",
+   "pins": {
+    "1": "G",
+    "2": "S",
+    "3": "D"
+   },
+   "ratings": {
+    "vds_v": 60,
+    "vgs_max_v": 20,
+    "id_a": 0.115,
+    "rds_on": [
+     {
+      "max_ohm": 5.0,
+      "vgs_v": 10
+     },
+     {
+      "max_ohm": 7.0,
+      "vgs_v": 5
+     }
+    ]
+   },
+   "marking": "7002",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/a141b8bd86b14475955ac8c4d3eea0a8.pdf?productCode=C8545",
+    "sha256": "7941fb423af7c6c6c8979063a7e8819bb19217ece275efcce18948950a41d9f6",
+    "bytes": 1575038,
+    "fetched": "2026-11-23T06:32:09Z",
+    "pinout": "page 1, 'SOT-23' package box: numbered 3D package (1,2,3) with legend '1. GATE 2. SOURCE 3. DRAIN'; 'Equivalent Circuit' shows body diode only"
+   },
+   "gate_esd": false,
+   "notes": "PDF header spells the maker 'JIANGSU CHANGJIANG ELECTRONICS TECHNOLOGY CO., LTD' (JCET); input mfr says 'Changjing'. Same company, spelling differs."
+  },
+  {
+   "c": "C7420321",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "2N7002",
+   "kind": "nmos",
+   "pins": {
+    "1": "G",
+    "2": "S",
+    "3": "D"
+   },
+   "ratings": {
+    "vds_v": 60,
+    "vgs_max_v": 20,
+    "id_a": 0.115,
+    "rds_on": [
+     {
+      "max_ohm": 5.0,
+      "vgs_v": 10
+     },
+     {
+      "max_ohm": 7.0,
+      "vgs_v": 5
+     }
+    ]
+   },
+   "marking": "7002",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/ee9c3f6fbed80ffd70ecaec0eec4608b.pdf?productCode=C7420321",
+    "sha256": "66e0f45bde31274223131a7e07ea92ef625db8777c70fbe0f54d32b72e859e1b",
+    "bytes": 293916,
+    "fetched": "2026-11-23T06:32:03Z",
+    "pinout": "page 1, section 'Reference News' (numbered SOT-23 pin diagram + circuit symbol)"
+   },
+   "gate_esd": false,
+   "notes": "PDF by Zhuhai Hongjiacheng Technology co., Ltd (matches mfr). Pinout diagram is an outlined SOT-23 body with boxed pin numbers 1 (G), 2 (S), 3 (D) and marking text in the body."
+  },
+  {
+   "c": "C22379475",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "2N7002K",
+   "kind": "nmos",
+   "pins": {
+    "1": "G",
+    "2": "S",
+    "3": "D"
+   },
+   "ratings": {
+    "vds_v": 60,
+    "vgs_max_v": 20,
+    "id_a": 0.34,
+    "rds_on": [
+     {
+      "max_ohm": 5.0,
+      "vgs_v": 10
+     },
+     {
+      "max_ohm": 5.3,
+      "vgs_v": 4.5
+     }
+    ]
+   },
+   "marking": "72K",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/a2f43c1a60a861bf3c8ac550bcf5f81c.pdf?productCode=C22379475",
+    "sha256": "b69fa0671c8c604820d8432507e7f94914e717725f54dd34c691cd6488b92441",
+    "bytes": 267229,
+    "fetched": "2026-11-23T06:32:11Z",
+    "pinout": "page 1, section 'Reference News' (numbered SOT-23 pin diagram + circuit symbol)"
+   },
+   "gate_esd": true,
+   "notes": "PDF by Zhuhai Hongjiacheng Technology co., Ltd (matches mfr). Pinout diagram is an outlined SOT-23 body with boxed pin numbers 1 (G), 2 (S), 3 (D) and marking text in the body. Circuit symbol labels a 'Gate Protection Diode' (G-S zener); feature list says 'ESD protected'."
+  },
+  {
+   "c": "C20069148",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "2SK3018",
+   "kind": "nmos",
+   "pins": {
+    "1": "G",
+    "2": "S",
+    "3": "D"
+   },
+   "ratings": {
+    "vds_v": 30,
+    "vgs_max_v": 20,
+    "id_a": 0.1,
+    "rds_on": [
+     {
+      "max_ohm": 8.0,
+      "vgs_v": 4
+     },
+     {
+      "max_ohm": 13.0,
+      "vgs_v": 2.5
+     }
+    ]
+   },
+   "marking": "KN",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/d9ee02f5692ee279bd006ca86ac6144f.pdf?productCode=C20069148",
+    "sha256": "fc33f558a3b6646d69704be08c7ba716ae1c6585641c07358c3962a721faa363",
+    "bytes": 161285,
+    "fetched": "2026-11-23T06:32:22Z",
+    "pinout": "page 1, section 'Function Diagram' (numbered SOT-23 pin diagram + circuit symbol)"
+   },
+   "gate_esd": true,
+   "notes": "PDF by Zhuhai Hongjiacheng Technology co., Ltd (matches mfr). Pinout diagram is an outlined SOT-23 body with boxed pin numbers 1 (G), 2 (S), 3 (D) and marking text in the body. Circuit symbol labels a 'Gate Protection Diode' (G-S zener)."
+  },
+  {
+   "c": "C7420338",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BSS123",
+   "kind": "nmos",
+   "pins": {
+    "1": "G",
+    "2": "S",
+    "3": "D"
+   },
+   "ratings": {
+    "vds_v": 100,
+    "vgs_max_v": 20,
+    "id_a": 0.17,
+    "rds_on": [
+     {
+      "max_ohm": 6.0,
+      "vgs_v": 10
+     },
+     {
+      "max_ohm": 10.0,
+      "vgs_v": 4.5
+     }
+    ]
+   },
+   "marking": "B123",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/c4325252cad6684b476878fc56426b42.pdf?productCode=C7420338",
+    "sha256": "6eac7bca229b828071c1835e71b56e79df36d3ea3d7163444b096b776e628e1f",
+    "bytes": 174807,
+    "fetched": "2026-11-23T06:33:36Z",
+    "pinout": "page 1, section 'Function Diagram' (numbered SOT-23 pin diagram + circuit symbol)"
+   },
+   "gate_esd": false,
+   "notes": "PDF by Zhuhai Hongjiacheng Technology co., Ltd (matches mfr). Pinout diagram is an outlined SOT-23 body with boxed pin numbers 1 (G), 2 (S), 3 (D) and marking text in the body."
+  },
+  {
+   "c": "C7420339",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BSS138",
+   "kind": "nmos",
+   "pins": {
+    "1": "G",
+    "2": "S",
+    "3": "D"
+   },
+   "ratings": {
+    "vds_v": 50,
+    "vgs_max_v": 20,
+    "id_a": 0.34,
+    "rds_on": [
+     {
+      "max_ohm": 2.5,
+      "vgs_v": 10
+     },
+     {
+      "max_ohm": 3.0,
+      "vgs_v": 4.5
+     }
+    ]
+   },
+   "marking": "SS",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/514e3e5ec4f4cdec2b1076b59af25652.pdf?productCode=C7420339",
+    "sha256": "a6da12f00e3463dc84a23ae145d643f3e4b8ca2d3efe78ddbd8c52529e9366c2",
+    "bytes": 227794,
+    "fetched": "2026-11-23T06:33:38Z",
+    "pinout": "page 1, section 'Function Diagram' (numbered SOT-23 pin diagram + circuit symbol)"
+   },
+   "gate_esd": false,
+   "notes": "PDF by Zhuhai Hongjiacheng Technology co., Ltd (matches mfr). Pinout diagram is an outlined SOT-23 body with boxed pin numbers 1 (G), 2 (S), 3 (D) and marking text in the body."
+  },
+  {
+   "c": "C20069151",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "FDV301N",
+   "kind": "nmos",
+   "pins": {
+    "1": "G",
+    "2": "S",
+    "3": "D"
+   },
+   "ratings": {
+    "vds_v": 25,
+    "vgs_max_v": 8,
+    "id_a": 0.22,
+    "rds_on": [
+     {
+      "max_ohm": 4.0,
+      "vgs_v": 4.5
+     },
+     {
+      "max_ohm": 5.0,
+      "vgs_v": 2.7
+     }
+    ]
+   },
+   "marking": "301",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/b5027b8e8503488acb0e816b3d5d32ef.pdf?productCode=C20069151",
+    "sha256": "54a43566356a7af674b4f8d1aca5c71ccb390e1818a3186a79e4f7f781036b70",
+    "bytes": 305467,
+    "fetched": "2026-11-23T06:33:50Z",
+    "pinout": "page 1, section 'Reference News' (numbered SOT-23 pin diagram + circuit symbol)"
+   },
+   "gate_esd": true,
+   "notes": "PDF by Zhuhai Hongjiacheng Technology co., Ltd (matches mfr). Pinout diagram is an outlined SOT-23 body with boxed pin numbers 1 (G), 2 (S), 3 (D) and marking text in the body. Circuit symbol labels a 'Gate Protection Diode'; ratings list ESD 6.0 kV HBM."
+  },
+  {
+   "c": "C7420343",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "HL2300",
+   "kind": "nmos",
+   "pins": {
+    "1": "G",
+    "2": "S",
+    "3": "D"
+   },
+   "ratings": {
+    "vds_v": 20,
+    "vgs_max_v": 10,
+    "id_a": 4.5,
+    "rds_on": [
+     {
+      "max_ohm": 0.025,
+      "vgs_v": 4.5
+     },
+     {
+      "max_ohm": 0.032,
+      "vgs_v": 2.5
+     }
+    ]
+   },
+   "marking": "2300",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/b9176fb4877093dd15012b1e3dc5d15f.pdf?productCode=C7420343",
+    "sha256": "d96a66be71a245295ef6221cdc62952cc5d762afd250c839d55b7a3b98391226",
+    "bytes": 371271,
+    "fetched": "2026-11-23T06:34:28Z",
+    "pinout": "page 1, section 'Function Diagram' (numbered SOT-23 pin diagram + circuit symbol)"
+   },
+   "gate_esd": false,
+   "notes": "PDF by Zhuhai Hongjiacheng Technology co., Ltd (matches mfr). Pinout diagram is an outlined SOT-23 body with boxed pin numbers 1 (G), 2 (S), 3 (D) and marking text in the body."
+  },
+  {
+   "c": "C28646268",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "HL2302",
+   "kind": "nmos",
+   "pins": {
+    "1": "G",
+    "2": "S",
+    "3": "D"
+   },
+   "ratings": {
+    "vds_v": 20,
+    "vgs_max_v": 10,
+    "id_a": 3.0,
+    "rds_on": [
+     {
+      "max_ohm": 0.045,
+      "vgs_v": 4.5
+     },
+     {
+      "max_ohm": 0.058,
+      "vgs_v": 2.5
+     }
+    ]
+   },
+   "marking": "S2",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/695d9072c429fc188dc22a70ed423a24.pdf?productCode=C28646268",
+    "sha256": "5c9c2dd25dc5706b67ffff15bafb42b67902aaf3d89acb5a006a6c306b8c8b5f",
+    "bytes": 279694,
+    "fetched": "2026-11-23T06:34:34Z",
+    "pinout": "page 1, section 'Reference News' (numbered SOT-23 pin diagram + circuit symbol)"
+   },
+   "gate_esd": false,
+   "notes": "PDF by Zhuhai Hongjiacheng Technology co., Ltd (matches mfr). Pinout diagram is an outlined SOT-23 body with boxed pin numbers 1 (G), 2 (S), 3 (D) and marking text in the body."
+  },
+  {
+   "c": "C7420346",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "HL2304",
+   "kind": "nmos",
+   "pins": {
+    "1": "G",
+    "2": "S",
+    "3": "D"
+   },
+   "ratings": {
+    "vds_v": 30,
+    "vgs_max_v": 20,
+    "id_a": 3.6,
+    "rds_on": [
+     {
+      "max_ohm": 0.06,
+      "vgs_v": 10
+     },
+     {
+      "max_ohm": 0.075,
+      "vgs_v": 4.5
+     }
+    ]
+   },
+   "marking": "S4",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/381a28edee7b5ac281f483a73488e540.pdf?productCode=C7420346",
+    "sha256": "5fce0fd90d759679b7b6446ed45a70e75325992036013104f600ac5bb434b81d",
+    "bytes": 300310,
+    "fetched": "2026-11-23T06:34:39Z",
+    "pinout": "page 1, section 'Function Diagram' (numbered SOT-23 pin diagram + circuit symbol)"
+   },
+   "gate_esd": false,
+   "notes": "PDF by Zhuhai Hongjiacheng Technology co., Ltd (matches mfr). Pinout diagram is an outlined SOT-23 body with boxed pin numbers 1 (G), 2 (S), 3 (D) and marking text in the body."
+  },
+  {
+   "c": "C28646262",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "HL2306",
+   "kind": "nmos",
+   "pins": {
+    "1": "G",
+    "2": "S",
+    "3": "D"
+   },
+   "ratings": {
+    "vds_v": 30,
+    "vgs_max_v": 20,
+    "id_a": 3.5,
+    "rds_on": [
+     {
+      "max_ohm": 0.039,
+      "vgs_v": 10
+     },
+     {
+      "max_ohm": 0.059,
+      "vgs_v": 4.5
+     }
+    ]
+   },
+   "marking": "S6",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/382cf96ba750e1ea04d34a7d9db755a8.pdf?productCode=C28646262",
+    "sha256": "be4952c90e38b976e382122831fedcfd6d1126b5ad8fcd5df9b451dcfb8c3e68",
+    "bytes": 286956,
+    "fetched": "2026-11-23T06:34:44Z",
+    "pinout": "page 1, section 'Reference News' (numbered SOT-23 pin diagram + circuit symbol)"
+   },
+   "gate_esd": false,
+   "notes": "PDF by Zhuhai Hongjiacheng Technology co., Ltd (matches mfr). Pinout diagram is an outlined SOT-23 body with boxed pin numbers 1 (G), 2 (S), 3 (D) and marking text in the body."
+  },
+  {
+   "c": "C7420347",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "HL2310A",
+   "kind": "nmos",
+   "pins": {
+    "1": "G",
+    "2": "S",
+    "3": "D"
+   },
+   "ratings": {
+    "vds_v": 60,
+    "vgs_max_v": 20,
+    "id_a": 3.0,
+    "rds_on": [
+     {
+      "max_ohm": 0.105,
+      "vgs_v": 10
+     },
+     {
+      "max_ohm": 0.125,
+      "vgs_v": 4.5
+     }
+    ]
+   },
+   "marking": "S10",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/eca34b7540b34f6806549376e81030dc.pdf?productCode=C7420347",
+    "sha256": "7b5a307a8631fc8bfe671674408ee96930f7e542838bf6ecf244347fef75519f",
+    "bytes": 187580,
+    "fetched": "2026-11-23T06:34:52Z",
+    "pinout": "page 1, section 'Function Diagram' (numbered SOT-23 pin diagram + circuit symbol)"
+   },
+   "gate_esd": false,
+   "notes": "PDF by Zhuhai Hongjiacheng Technology co., Ltd (matches mfr). Pinout diagram is an outlined SOT-23 body with boxed pin numbers 1 (G), 2 (S), 3 (D) and marking text in the body."
+  },
+  {
+   "c": "C28646272",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "HL2312",
+   "kind": "nmos",
+   "pins": {
+    "1": "G",
+    "2": "S",
+    "3": "D"
+   },
+   "ratings": {
+    "vds_v": 20,
+    "vgs_max_v": 10,
+    "id_a": 5.5,
+    "rds_on": [
+     {
+      "max_ohm": 0.025,
+      "vgs_v": 4.5
+     },
+     {
+      "max_ohm": 0.032,
+      "vgs_v": 2.5
+     }
+    ]
+   },
+   "marking": "S12",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/01c3d13175c6b972f4f29dd3c8c0f858.pdf?productCode=C28646272",
+    "sha256": "72b0171b28fc00e99bd8f8fdf55bb9a66d1c82cf8d71eb0a239dbc25fb39350d",
+    "bytes": 315333,
+    "fetched": "2026-11-23T06:34:54Z",
+    "pinout": "page 1, section 'Reference News' (numbered SOT-23 pin diagram + circuit symbol)"
+   },
+   "gate_esd": false,
+   "notes": "PDF by Zhuhai Hongjiacheng Technology co., Ltd (matches mfr). Pinout diagram is an outlined SOT-23 body with boxed pin numbers 1 (G), 2 (S), 3 (D) and marking text in the body."
+  },
+  {
+   "c": "C22469448",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "HL3400",
+   "kind": "nmos",
+   "pins": {
+    "1": "G",
+    "2": "S",
+    "3": "D"
+   },
+   "ratings": {
+    "vds_v": 30,
+    "vgs_max_v": 12,
+    "id_a": 5.6,
+    "rds_on": [
+     {
+      "max_ohm": 0.027,
+      "vgs_v": 10
+     },
+     {
+      "max_ohm": 0.033,
+      "vgs_v": 4.5
+     }
+    ]
+   },
+   "marking": "A09T",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/bd5e0dde9c521859386cfe9e8936b896.pdf?productCode=C22469448",
+    "sha256": "8be09005d59e0542b16cf6ef7c80a8c0a2ae8715667ae1c07f8d21f2619f3a68",
+    "bytes": 316031,
+    "fetched": "2026-11-23T06:34:57Z",
+    "pinout": "page 1, section 'Function Diagram' (numbered SOT-23 pin diagram + circuit symbol)"
+   },
+   "gate_esd": false,
+   "notes": "PDF by Zhuhai Hongjiacheng Technology co., Ltd (matches mfr). Pinout diagram is an outlined SOT-23 body with boxed pin numbers 1 (G), 2 (S), 3 (D) and marking text in the body."
+  },
+  {
+   "c": "C7420348",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "HL3400A",
+   "kind": "nmos",
+   "pins": {
+    "1": "G",
+    "2": "S",
+    "3": "D"
+   },
+   "ratings": {
+    "vds_v": 30,
+    "vgs_max_v": 12,
+    "id_a": 5.8,
+    "rds_on": [
+     {
+      "max_ohm": 0.035,
+      "vgs_v": 10
+     },
+     {
+      "max_ohm": 0.04,
+      "vgs_v": 4.5
+     }
+    ]
+   },
+   "marking": "R0",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/a556ae83302c22a950d2c01a5b7a9c21.pdf?productCode=C7420348",
+    "sha256": "3d88447e63a6618e7244625bee19131e68b7692f7de168de4b165ded198f887d",
+    "bytes": 303326,
+    "fetched": "2026-11-23T06:34:59Z",
+    "pinout": "page 1, section 'Function Diagram' (numbered SOT-23 pin diagram + circuit symbol)"
+   },
+   "gate_esd": false,
+   "notes": "PDF by Zhuhai Hongjiacheng Technology co., Ltd (matches mfr). Pinout diagram is an outlined SOT-23 body with boxed pin numbers 1 (G), 2 (S), 3 (D) and marking text in the body."
+  },
+  {
+   "c": "C28646271",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "HL3402",
+   "kind": "nmos",
+   "pins": {
+    "1": "G",
+    "2": "S",
+    "3": "D"
+   },
+   "ratings": {
+    "vds_v": 30,
+    "vgs_max_v": 12,
+    "id_a": 2.5,
+    "rds_on": [
+     {
+      "max_ohm": 0.05,
+      "vgs_v": 10
+     },
+     {
+      "max_ohm": 0.058,
+      "vgs_v": 4.5
+     }
+    ]
+   },
+   "marking": "R2",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/611257823c8c9980dd472ca40aa8494a.pdf?productCode=C28646271",
+    "sha256": "4be2ec92cdc1256c7fc15975b2a82d18a775a8dc9270c73069b554d5e23060bd",
+    "bytes": 296296,
+    "fetched": "2026-11-23T06:35:06Z",
+    "pinout": "page 1, section 'Reference News' (numbered SOT-23 pin diagram + circuit symbol)"
+   },
+   "gate_esd": false,
+   "notes": "PDF by Zhuhai Hongjiacheng Technology co., Ltd (matches mfr). Pinout diagram is an outlined SOT-23 body with boxed pin numbers 1 (G), 2 (S), 3 (D) and marking text in the body."
+  },
+  {
+   "c": "C28646273",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "HL3416",
+   "kind": "nmos",
+   "pins": {
+    "1": "G",
+    "2": "S",
+    "3": "D"
+   },
+   "ratings": {
+    "vds_v": 20,
+    "vgs_max_v": 10,
+    "id_a": 6.5,
+    "rds_on": [
+     {
+      "max_ohm": 0.022,
+      "vgs_v": 4.5
+     },
+     {
+      "max_ohm": 0.026,
+      "vgs_v": 2.5
+     }
+    ]
+   },
+   "marking": "R16",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/98bc48675ffca2c67131e18d04866148.pdf?productCode=C28646273",
+    "sha256": "3f0f464c81984931c43cb90b6c712480222ae324ab3128e32586c931fa54fcf0",
+    "bytes": 311560,
+    "fetched": "2026-11-23T06:35:13Z",
+    "pinout": "page 1, section 'Reference News' (numbered SOT-23 pin diagram + circuit symbol)"
+   },
+   "gate_esd": true,
+   "notes": "PDF by Zhuhai Hongjiacheng Technology co., Ltd (matches mfr). Pinout diagram is an outlined SOT-23 body with boxed pin numbers 1 (G), 2 (S), 3 (D) and marking text in the body. Circuit symbol shows back-to-back zener between G and S (unlabelled); ratings list 'ESD Protected Up to' 2.0 kV HBM."
+  },
+  {
+   "c": "C8512",
+   "mfr": "Jiangsu Changjing Electronics Technology",
+   "mpn": "MMBT2222A 1P",
+   "kind": "npn",
+   "pins": {
+    "1": "B",
+    "2": "E",
+    "3": "C"
+   },
+   "ratings": {
+    "vceo_v": 40,
+    "ic_ma": 600,
+    "pd_mw": 300
+   },
+   "marking": null,
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/a14b816c20b944fb9354469570bb6fa8.pdf?productCode=C8512",
+    "sha256": "af383629b6a3bbb5165656557e940a95ef2e2fa77d5565ebe27eb5f499c91c2c",
+    "bytes": 618956,
+    "fetched": "2026-11-23T06:35:55Z",
+    "pinout": "p1 SOT-23 box: pin list '1. BASE 2.EMITTER 3.COLLECTOR' with numbered package sketch"
+   },
+   "notes": "JCST (Jiangsu Changjiang) datasheet; marking row in hFE classification table is unreadable (broken font glyphs, extracts as '13'); MPN suffix suggests 1P but not confirmed from PDF"
+  },
+  {
+   "c": "C20526",
+   "mfr": "Jiangsu Changjing Electronics Technology",
+   "mpn": "MMBT3904(RANGE:100-300)",
+   "kind": "npn",
+   "pins": {
+    "1": "B",
+    "2": "E",
+    "3": "C"
+   },
+   "ratings": {
+    "vceo_v": 40,
+    "ic_ma": 200,
+    "pd_mw": 200
+   },
+   "marking": "1AM",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/9335632bcfa83df8351353eab379720e.pdf?productCode=C20526",
+    "sha256": "6c2034cb0bd0d85be51c9c4f82aad838a688aa70c20de1a71681be8ec02b659b",
+    "bytes": 674831,
+    "fetched": "2026-11-23T06:36:07Z",
+    "pinout": "p1 SOT-23 box: '1. BASE 2. EMITTER 3. COLLECTOR' with numbered package sketch; marking drawing '1AM= Device code'"
+   },
+   "notes": "JSCJ datasheet"
+  },
+  {
+   "c": "C2145",
+   "mfr": "Jiangsu Changjing Electronics Technology",
+   "mpn": "MMBT5551(RANGE:200-300)",
+   "kind": "npn",
+   "pins": {
+    "1": "B",
+    "2": "E",
+    "3": "C"
+   },
+   "ratings": {
+    "vceo_v": 160,
+    "ic_ma": 600,
+    "pd_mw": 300
+   },
+   "marking": "G1",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/fbe794687e874b67878cb4333bd9a287.pdf?productCode=C2145",
+    "sha256": "bcafa6150cec3814670b5f266e16558c2763583c1c8c32d05de599085a7132c9",
+    "bytes": 545833,
+    "fetched": "2026-11-23T06:36:38Z",
+    "pinout": "p1 SOT-23 box '1. BASE 2. EMITTER 3. COLLECTOR' with numbered package sketch; 'MARKING: G1'"
+   },
+   "notes": "PDF header is JCST 'Jiangsu Changjiang Electronics Technology' (C,Mar,2013), mfr field says Jiangsu Changjing"
+  },
+  {
+   "c": "C6749",
+   "mfr": "Jiangsu Changjing Electronics Technology",
+   "mpn": "S9013 J3(RANGE:200-350)",
+   "kind": "npn",
+   "pins": {
+    "1": "B",
+    "2": "E",
+    "3": "C"
+   },
+   "ratings": {
+    "vceo_v": 25,
+    "ic_ma": 500,
+    "pd_mw": 300
+   },
+   "marking": "J3",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/bf11abf8836c4d2b9000c65fe7847c35.pdf?productCode=C6749",
+    "sha256": "fee39c20da52831605f91a37094f41cfe473a6e772b181986a08ca6fc32e4c8b",
+    "bytes": 684821,
+    "fetched": "2026-11-23T06:37:16Z",
+    "pinout": "p1 SOT-23 box '1. BASE 2. EMITTER 3. COLLECTOR' with numbered package sketch; 'MARKING: J3'"
+   },
+   "notes": "PDF header is JCST 'Jiangsu Changjiang Electronics Technology' (B,Nov,2011), mfr field says Jiangsu Changjing"
+  },
+  {
+   "c": "C2150",
+   "mfr": "Jiangsu Changjing Electronics Technology",
+   "mpn": "SS8050(RANGE:200-350)",
+   "kind": "npn",
+   "pins": {
+    "1": "B",
+    "2": "E",
+    "3": "C"
+   },
+   "ratings": {
+    "vceo_v": 25,
+    "ic_ma": 1500,
+    "pd_mw": 300
+   },
+   "marking": "Y1",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/4ff606b799fb417839f247d7874b1994.pdf?productCode=C2150",
+    "sha256": "11ad015d48e25844ac83d2745f8feb99532b23f7d5164ff76188dc28763b7ec4",
+    "bytes": 804888,
+    "fetched": "2026-11-23T06:37:36Z",
+    "pinout": "p1 SOT-23 box '1. BASE 2. EMITTER 3. COLLECTOR' with numbered package sketch; 'MARKING: Y1'"
+   },
+   "notes": "JSCJ datasheet; MPN range 200-350 = rank H"
+  },
+  {
+   "c": "C7420324",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "2SC1623",
+   "kind": "npn",
+   "pins": {
+    "1": "B",
+    "2": "E",
+    "3": "C"
+   },
+   "ratings": {
+    "vceo_v": 50,
+    "ic_ma": 100,
+    "pd_mw": 200
+   },
+   "marking": null,
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/379c483201f0c9a4dfddb75cc66a9c18.pdf?productCode=C7420324",
+    "sha256": "629a2a4b3cc2dca8865a6dbf11aff122c56292dac2192a3633f0ec44f4082ecc",
+    "bytes": 257427,
+    "fetched": "2026-11-23T06:32:16Z",
+    "pinout": "p1 'Function Diagram' (numbered SOT-23 top view 1=B 2=E 3=C + schematic symbol)"
+   },
+   "notes": "PDF by Zhuhai Hongjiacheng (R+O); marking is hFE-bin dependent: XX = L4/L5/L6/L7 (2SC1623-L4..L7); MPN has no bin suffix"
+  },
+  {
+   "c": "C20069143",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "2SC1815",
+   "kind": "npn",
+   "pins": {
+    "1": "B",
+    "2": "E",
+    "3": "C"
+   },
+   "ratings": {
+    "vceo_v": 50,
+    "ic_ma": 150,
+    "pd_mw": 200
+   },
+   "marking": "HF",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/575ab316c53842b947f26073dd4452bf.pdf?productCode=C20069143",
+    "sha256": "e527af031d45b02149adc8c4b1d11c875f1ae43682bf35c19100b822184959cb",
+    "bytes": 240497,
+    "fetched": "2026-11-23T06:32:17Z",
+    "pinout": "p1 'Function Diagram'"
+   }
+  },
+  {
+   "c": "C28646266",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "2SC3356",
+   "kind": "npn",
+   "pins": {
+    "1": "B",
+    "2": "E",
+    "3": "C"
+   },
+   "ratings": {
+    "vceo_v": 12,
+    "ic_ma": 100,
+    "pd_mw": 200
+   },
+   "marking": null,
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/459ae8011e7edbf0ab9b812d7806b0d3.pdf?productCode=C28646266",
+    "sha256": "89a3693044b0e1ff3f416ceded5da116a0d9c75c0c3802a9cdb925e5365bd516",
+    "bytes": 260306,
+    "fetched": "2026-11-23T06:32:20Z",
+    "pinout": "p1 'Function Diagram'"
+   },
+   "notes": "marking is hFE-bin dependent: XX = R23/R24/R25 (2SC3356-R23..R25); MPN has no bin suffix"
+  },
+  {
+   "c": "C20069132",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BC817-16",
+   "kind": "npn",
+   "pins": {
+    "1": "B",
+    "2": "E",
+    "3": "C"
+   },
+   "ratings": {
+    "vceo_v": 45,
+    "ic_ma": 500,
+    "pd_mw": 300
+   },
+   "marking": "6A",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/e6f5f8527cdccc48e2a9cf5afe3db066.pdf?productCode=C20069132",
+    "sha256": "edb122dfa3183af4b8c70bf4e05718c7c9a69c485e032337cce23544c3d913b0",
+    "bytes": 270424,
+    "fetched": "2026-11-23T06:33:17Z",
+    "pinout": "p1 'Function Diagram'"
+   },
+   "notes": "PDF covers BC817 thru BC818 (-16/-25/-40); shared by BC817-16/-25/-40"
+  },
+  {
+   "c": "C20069154",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BC817-25",
+   "kind": "npn",
+   "pins": {
+    "1": "B",
+    "2": "E",
+    "3": "C"
+   },
+   "ratings": {
+    "vceo_v": 45,
+    "ic_ma": 500,
+    "pd_mw": 300
+   },
+   "marking": "6B",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/e6f5f8527cdccc48e2a9cf5afe3db066.pdf?productCode=C20069154",
+    "sha256": "edb122dfa3183af4b8c70bf4e05718c7c9a69c485e032337cce23544c3d913b0",
+    "bytes": 270424,
+    "fetched": "2026-11-23T06:33:19Z",
+    "pinout": "p1 'Function Diagram'"
+   },
+   "notes": "PDF covers BC817 thru BC818 (-16/-25/-40); shared by BC817-16/-25/-40"
+  },
+  {
+   "c": "C20069155",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BC817-40",
+   "kind": "npn",
+   "pins": {
+    "1": "B",
+    "2": "E",
+    "3": "C"
+   },
+   "ratings": {
+    "vceo_v": 45,
+    "ic_ma": 500,
+    "pd_mw": 300
+   },
+   "marking": "6C",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/e6f5f8527cdccc48e2a9cf5afe3db066.pdf?productCode=C20069155",
+    "sha256": "edb122dfa3183af4b8c70bf4e05718c7c9a69c485e032337cce23544c3d913b0",
+    "bytes": 270424,
+    "fetched": "2026-11-23T06:33:22Z",
+    "pinout": "p1 'Function Diagram'"
+   },
+   "notes": "PDF covers BC817 thru BC818 (-16/-25/-40); shared by BC817-16/-25/-40"
+  },
+  {
+   "c": "C20069134",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BC846B",
+   "kind": "npn",
+   "pins": {
+    "1": "B",
+    "2": "E",
+    "3": "C"
+   },
+   "ratings": {
+    "vceo_v": 65,
+    "ic_ma": 100,
+    "pd_mw": 200
+   },
+   "marking": "1B",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/dfa3ce0c72ea7ca041deccbacb11485d.pdf?productCode=C20069134",
+    "sha256": "a71d4649fb880823d0072d46b0fed785bd4d31e8d5924b52b421d6bae73a104d",
+    "bytes": 269501,
+    "fetched": "2026-11-23T06:33:24Z",
+    "pinout": "p1 'Function Diagram'"
+   },
+   "notes": "PDF covers BC846 thru BC848; shared by BC846B/BC847B/BC847C"
+  },
+  {
+   "c": "C20069135",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BC847B",
+   "kind": "npn",
+   "pins": {
+    "1": "B",
+    "2": "E",
+    "3": "C"
+   },
+   "ratings": {
+    "vceo_v": 45,
+    "ic_ma": 100,
+    "pd_mw": 200
+   },
+   "marking": "1F",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/dfa3ce0c72ea7ca041deccbacb11485d.pdf?productCode=C20069135",
+    "sha256": "a71d4649fb880823d0072d46b0fed785bd4d31e8d5924b52b421d6bae73a104d",
+    "bytes": 269501,
+    "fetched": "2026-11-23T06:33:27Z",
+    "pinout": "p1 'Function Diagram'"
+   },
+   "notes": "PDF covers BC846 thru BC848; shared by BC846B/BC847B/BC847C"
+  },
+  {
+   "c": "C7420337",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BC847C",
+   "kind": "npn",
+   "pins": {
+    "1": "B",
+    "2": "E",
+    "3": "C"
+   },
+   "ratings": {
+    "vceo_v": 45,
+    "ic_ma": 100,
+    "pd_mw": 200
+   },
+   "marking": "1G",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/dfa3ce0c72ea7ca041deccbacb11485d.pdf?productCode=C7420337",
+    "sha256": "a71d4649fb880823d0072d46b0fed785bd4d31e8d5924b52b421d6bae73a104d",
+    "bytes": 269501,
+    "fetched": "2026-11-23T06:33:28Z",
+    "pinout": "p1 'Function Diagram'"
+   },
+   "notes": "PDF covers BC846 thru BC848; shared by BC846B/BC847B/BC847C"
+  },
+  {
+   "c": "C28646275",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "FMMT493",
+   "kind": "npn",
+   "pins": {
+    "1": "B",
+    "2": "E",
+    "3": "C"
+   },
+   "ratings": {
+    "vceo_v": 100,
+    "ic_ma": 1000,
+    "pd_mw": 250
+   },
+   "marking": "493",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/0ead9d6debe2bb8cdc9ca891f41005e3.pdf?productCode=C28646275",
+    "sha256": "5d34084f25f2a5d76e6905b4e0ff9cf16dd6c26c4be0533f1de1223594071736",
+    "bytes": 276013,
+    "fetched": "2026-11-23T06:33:52Z",
+    "pinout": "p1 'Function Diagram'"
+   }
+  },
+  {
+   "c": "C7420351",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "MMBT2222A",
+   "kind": "npn",
+   "pins": {
+    "1": "B",
+    "2": "E",
+    "3": "C"
+   },
+   "ratings": {
+    "vceo_v": 40,
+    "ic_ma": 600,
+    "pd_mw": 300
+   },
+   "marking": "1P",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/1a87f9ca595266617fa46b8ddd7fd5ac.pdf?productCode=C7420351",
+    "sha256": "73b4ff3401d7b04e44ec7dd7cd15bce00a93cdc4661da02b20184e9f1d553747",
+    "bytes": 168865,
+    "fetched": "2026-11-23T06:35:50Z",
+    "pinout": "p1 'Function Diagram'"
+   }
+  },
+  {
+   "c": "C7420353",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "MMBT3904",
+   "kind": "npn",
+   "pins": {
+    "1": "B",
+    "2": "E",
+    "3": "C"
+   },
+   "ratings": {
+    "vceo_v": 40,
+    "ic_ma": 200,
+    "pd_mw": 200
+   },
+   "marking": "1AM",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/d976ec302fc5db0d525f0fb7333952e3.pdf?productCode=C7420353",
+    "sha256": "99de97ac538492cd81f3122f735560386ee78cba6e78ae1549e86a76045cb478",
+    "bytes": 270349,
+    "fetched": "2026-11-23T06:36:03Z",
+    "pinout": "p1 'Function Diagram'"
+   }
+  },
+  {
+   "c": "C7420355",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "MMBT4401",
+   "kind": "npn",
+   "pins": {
+    "1": "B",
+    "2": "E",
+    "3": "C"
+   },
+   "ratings": {
+    "vceo_v": 40,
+    "ic_ma": 600,
+    "pd_mw": 300
+   },
+   "marking": "2X",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/36e9d6f5169e37b664791a1568c3cffe.pdf?productCode=C7420355",
+    "sha256": "56f1bdb751828c038fec117799856408851022cb814c9a2c8123ee55f3e8fb20",
+    "bytes": 170854,
+    "fetched": "2026-11-23T06:36:18Z",
+    "pinout": "p1 'Function Diagram'"
+   }
+  },
+  {
+   "c": "C7420357",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "MMBT5551",
+   "kind": "npn",
+   "pins": {
+    "1": "B",
+    "2": "E",
+    "3": "C"
+   },
+   "ratings": {
+    "vceo_v": 160,
+    "ic_ma": 600,
+    "pd_mw": 300
+   },
+   "marking": "G1",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/ca1cdce35c0850bb191d1ef467d6eaaf.pdf?productCode=C7420357",
+    "sha256": "7723e0fc4bf81c91d1d965a3fa04f287d74654013bfdc0efa3cd5c35a8c317f9",
+    "bytes": 260584,
+    "fetched": "2026-11-23T06:36:35Z",
+    "pinout": "p1 'Function Diagram'"
+   }
+  },
+  {
+   "c": "C20069139",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "MMBTA06",
+   "kind": "npn",
+   "pins": {
+    "1": "B",
+    "2": "E",
+    "3": "C"
+   },
+   "ratings": {
+    "vceo_v": 80,
+    "ic_ma": 500,
+    "pd_mw": 300
+   },
+   "marking": "1GM",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/556fa9682bbc17436b94d559d4524fbf.pdf?productCode=C20069139",
+    "sha256": "eca33c6541f74100b2481fa892b209b78f8c57fc599a8620023444e07a1117e0",
+    "bytes": 256650,
+    "fetched": "2026-11-23T06:36:40Z",
+    "pinout": "p1 'Function Diagram'"
+   }
+  },
+  {
+   "c": "C20069138",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "MMBTA42",
+   "kind": "npn",
+   "pins": {
+    "1": "B",
+    "2": "E",
+    "3": "C"
+   },
+   "ratings": {
+    "vceo_v": 300,
+    "ic_ma": 500,
+    "pd_mw": 350
+   },
+   "marking": "1D",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/7c1a7c6c065736635c3960d8226b3cf7.pdf?productCode=C20069138",
+    "sha256": "734f759be2c4599a2dbf510c7578689323612a015ab086abae05d1703eb03f0e",
+    "bytes": 256437,
+    "fetched": "2026-11-23T06:36:42Z",
+    "pinout": "p1 'Function Diagram'"
+   }
+  },
+  {
+   "c": "C20069141",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "MMBTA44",
+   "kind": "npn",
+   "pins": {
+    "1": "B",
+    "2": "E",
+    "3": "C"
+   },
+   "ratings": {
+    "vceo_v": 400,
+    "ic_ma": 200,
+    "pd_mw": 350
+   },
+   "marking": "3D",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/cbf951a311b9968108580f492db79073.pdf?productCode=C20069141",
+    "sha256": "1056e403a2ffc6e1c6072e7c6aafecc3ecc6f5993e101001949ab233acb91e80",
+    "bytes": 257841,
+    "fetched": "2026-11-23T06:36:44Z",
+    "pinout": "p1 'Function Diagram'"
+   }
+  },
+  {
+   "c": "C20069125",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "S8050",
+   "kind": "npn",
+   "pins": {
+    "1": "B",
+    "2": "E",
+    "3": "C"
+   },
+   "ratings": {
+    "vceo_v": 25,
+    "ic_ma": 500,
+    "pd_mw": 300
+   },
+   "marking": "J3Y",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/b850ef7a2550a6f5d433c2653f503655.pdf?productCode=C20069125",
+    "sha256": "bfad4f9d64283e31b0efbed92b6cfcb059c78225395c8d096a354921577d1b7b",
+    "bytes": 242490,
+    "fetched": "2026-11-23T06:36:55Z",
+    "pinout": "p1 'Function Diagram'"
+   }
+  },
+  {
+   "c": "C20069127",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "S9013",
+   "kind": "npn",
+   "pins": {
+    "1": "B",
+    "2": "E",
+    "3": "C"
+   },
+   "ratings": {
+    "vceo_v": 25,
+    "ic_ma": 500,
+    "pd_mw": 300
+   },
+   "marking": "J3",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/be084ec448f9ceb5e4eea4d77fff607b.pdf?productCode=C20069127",
+    "sha256": "2d0ef2f5db539a10619d8aaa4dff258a2f1d88f93360f69c35779251b7e11608",
+    "bytes": 242829,
+    "fetched": "2026-11-23T06:37:14Z",
+    "pinout": "p1 'Function Diagram'"
+   }
+  },
+  {
+   "c": "C20069130",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "S9014",
+   "kind": "npn",
+   "pins": {
+    "1": "B",
+    "2": "E",
+    "3": "C"
+   },
+   "ratings": {
+    "vceo_v": 45,
+    "ic_ma": 100,
+    "pd_mw": 200
+   },
+   "marking": "J6",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/329bf78845e96e4c9c4acfbfd56fd44a.pdf?productCode=C20069130",
+    "sha256": "a7001c43c48250f38bf3d8dd0ef3da3b7898f0f894ba505b03752e3536bd4a02",
+    "bytes": 239755,
+    "fetched": "2026-11-23T06:37:18Z",
+    "pinout": "p1 'Function Diagram'"
+   }
+  },
+  {
+   "c": "C7420370",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "SS8050",
+   "kind": "npn",
+   "pins": {
+    "1": "B",
+    "2": "E",
+    "3": "C"
+   },
+   "ratings": {
+    "vceo_v": 25,
+    "ic_ma": 1500,
+    "pd_mw": 300
+   },
+   "marking": "Y1",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/501b8aae617559c5bdc5811d3c5641ef.pdf?productCode=C7420370",
+    "sha256": "cef7f64952ce716f60219b2a7fb227821d1860ab6fde6223f12d7504d8b86e39",
+    "bytes": 261971,
+    "fetched": "2026-11-23T06:37:34Z",
+    "pinout": "p1 'Function Diagram'"
+   }
+  },
+  {
+   "c": "C10487",
+   "mfr": "Vishay",
+   "mpn": "SI2301CDS-T1-GE3",
+   "kind": "pmos",
+   "pins": {
+    "1": "G",
+    "2": "S",
+    "3": "D"
+   },
+   "ratings": {
+    "vds_v": -20,
+    "vgs_max_v": 8,
+    "id_a": -3.1,
+    "rds_on": [
+     {
+      "max_ohm": 0.112,
+      "vgs_v": -4.5
+     },
+     {
+      "max_ohm": 0.142,
+      "vgs_v": -2.5
+     }
+    ]
+   },
+   "marking": "N1",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/f80dd06337c57ccfc2bd2185d147b710.pdf?productCode=C10487",
+    "sha256": "54dbab870c4de746422a9ddefdd19d3d78acde5ace00d0f7239d665f3bb83387",
+    "bytes": 202597,
+    "fetched": "2026-11-23T06:37:26Z",
+    "pinout": "page 1 'TO-236 (SOT-23)' Top View with boxed pin numbers G 1, S 2, D 3 and 'Si2301CDS (N1)* Marking Code'; confirmed by page 7 AN807 text 'Pin 1 is the gate, pin 2 is the source, and pin 3 is the drain'"
+   },
+   "gate_esd": false,
+   "notes": "Vishay Siliconix Si2301CDS datasheet (S10-2430-Rev. C, 25-Oct-10); ordering info lists Si2301CDS-T1-GE3. Circuit symbol shows body diode only."
+  },
+  {
+   "c": "C7420340",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BSS84",
+   "kind": "pmos",
+   "pins": {
+    "1": "G",
+    "2": "S",
+    "3": "D"
+   },
+   "ratings": {
+    "vds_v": -60,
+    "vgs_max_v": 20,
+    "id_a": -0.17,
+    "rds_on": [
+     {
+      "max_ohm": 8.0,
+      "vgs_v": -10
+     },
+     {
+      "max_ohm": 10.0,
+      "vgs_v": -4.5
+     }
+    ]
+   },
+   "marking": "B84",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/128638b67c2dbe83a0e5022b114c203a.pdf?productCode=C7420340",
+    "sha256": "37c71d18dfb03c73c78df915ac6d5ca278590e545b1de08293184d523959fcd3",
+    "bytes": 330020,
+    "fetched": "2026-11-23T06:33:40Z",
+    "pinout": "page 1, section 'Function Diagram' (numbered SOT-23 pin diagram + circuit symbol)"
+   },
+   "gate_esd": false,
+   "notes": "PDF by Zhuhai Hongjiacheng Technology co., Ltd (matches mfr). Pinout diagram is an outlined SOT-23 body with boxed pin numbers 1 (G), 2 (S), 3 (D) and marking text in the body. Ratings table prints PD as '-0.68' W (sign typo)."
+  },
+  {
+   "c": "C7420344",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "HL2301A",
+   "kind": "pmos",
+   "pins": {
+    "1": "G",
+    "2": "S",
+    "3": "D"
+   },
+   "ratings": {
+    "vds_v": -20,
+    "vgs_max_v": 8,
+    "id_a": -2.3,
+    "rds_on": [
+     {
+      "max_ohm": 0.112,
+      "vgs_v": -4.5
+     },
+     {
+      "max_ohm": 0.142,
+      "vgs_v": -2.5
+     }
+    ]
+   },
+   "marking": "S1",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/78cd90218c080012e3a8576d42395946.pdf?productCode=C7420344",
+    "sha256": "a2ba9124c2879afa67b9e8ace5570784508afdb8553884db019251dda811c35b",
+    "bytes": 287696,
+    "fetched": "2026-11-23T06:34:31Z",
+    "pinout": "page 1, section 'Reference News' (numbered SOT-23 pin diagram + circuit symbol)"
+   },
+   "gate_esd": false,
+   "notes": "PDF by Zhuhai Hongjiacheng Technology co., Ltd (matches mfr). Pinout diagram is an outlined SOT-23 body with boxed pin numbers 1 (G), 2 (S), 3 (D) and marking text in the body. Ratings table is inconsistent: ID -2.3 A at TA=25C but -3.5 A at TA=70C; two PD values (0.7, 0.4 W) both under a TA=25C label."
+  },
+  {
+   "c": "C7420345",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "HL2303",
+   "kind": "pmos",
+   "pins": {
+    "1": "G",
+    "2": "S",
+    "3": "D"
+   },
+   "ratings": {
+    "vds_v": -30,
+    "vgs_max_v": 20,
+    "id_a": -1.9,
+    "rds_on": [
+     {
+      "max_ohm": 0.19,
+      "vgs_v": -10
+     },
+     {
+      "max_ohm": 0.33,
+      "vgs_v": -4.5
+     }
+    ]
+   },
+   "marking": "S3",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/b301e4693bf4b1ca6de963fd85341941.pdf?productCode=C7420345",
+    "sha256": "2cb09c3a96d14d9fc15bcea33203122bee9d29d842bf851159ed38cf6104f31c",
+    "bytes": 292570,
+    "fetched": "2026-11-23T06:34:36Z",
+    "pinout": "page 1, section 'Reference News' (numbered SOT-23 pin diagram + circuit symbol)"
+   },
+   "gate_esd": false,
+   "notes": "PDF by Zhuhai Hongjiacheng Technology co., Ltd (matches mfr). Pinout diagram is an outlined SOT-23 body with boxed pin numbers 1 (G), 2 (S), 3 (D) and marking text in the body."
+  },
+  {
+   "c": "C28646261",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "HL2305",
+   "kind": "pmos",
+   "pins": {
+    "1": "G",
+    "2": "S",
+    "3": "D"
+   },
+   "ratings": {
+    "vds_v": -12,
+    "vgs_max_v": 12,
+    "id_a": -3.6,
+    "rds_on": [
+     {
+      "max_ohm": 0.03,
+      "vgs_v": -4.5
+     },
+     {
+      "max_ohm": 0.053,
+      "vgs_v": -2.5
+     }
+    ]
+   },
+   "marking": "S5",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/7be5d35984524c05529f9955eb221a93.pdf?productCode=C28646261",
+    "sha256": "7f658686acd1b66d78aa1f528f6a675d2d84a0488ef6141f4c4798cf0e98ae0f",
+    "bytes": 293159,
+    "fetched": "2026-11-23T06:34:42Z",
+    "pinout": "page 1, section 'Reference News' (numbered SOT-23 pin diagram + circuit symbol)"
+   },
+   "gate_esd": false,
+   "notes": "PDF by Zhuhai Hongjiacheng Technology co., Ltd (matches mfr). Pinout diagram is an outlined SOT-23 body with boxed pin numbers 1 (G), 2 (S), 3 (D) and marking text in the body."
+  },
+  {
+   "c": "C28646274",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "HL2307",
+   "kind": "pmos",
+   "pins": {
+    "1": "G",
+    "2": "S",
+    "3": "D"
+   },
+   "ratings": {
+    "vds_v": -30,
+    "vgs_max_v": 20,
+    "id_a": -2.6,
+    "rds_on": [
+     {
+      "max_ohm": 0.09,
+      "vgs_v": -10
+     },
+     {
+      "max_ohm": 0.15,
+      "vgs_v": -4.5
+     }
+    ]
+   },
+   "marking": "S7",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/9bfeadd54ca373e831cf5f8559240c1f.pdf?productCode=C28646274",
+    "sha256": "678f442661db1bc4878c251298b63e7e1aa12c339db0000e6d856355eb86dc01",
+    "bytes": 300549,
+    "fetched": "2026-11-23T06:34:47Z",
+    "pinout": "page 1, section 'Reference News' (numbered SOT-23 pin diagram + circuit symbol)"
+   },
+   "gate_esd": false,
+   "notes": "PDF by Zhuhai Hongjiacheng Technology co., Ltd (matches mfr). Pinout diagram is an outlined SOT-23 body with boxed pin numbers 1 (G), 2 (S), 3 (D) and marking text in the body."
+  },
+  {
+   "c": "C28646263",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "HL2309",
+   "kind": "pmos",
+   "pins": {
+    "1": "G",
+    "2": "S",
+    "3": "D"
+   },
+   "ratings": {
+    "vds_v": -60,
+    "vgs_max_v": 20,
+    "id_a": -1.25,
+    "rds_on": [
+     {
+      "max_ohm": 0.34,
+      "vgs_v": -10
+     },
+     {
+      "max_ohm": 0.55,
+      "vgs_v": -4.5
+     }
+    ]
+   },
+   "marking": "S9",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/95581365875dd826476ebafd364e5f0a.pdf?productCode=C28646263",
+    "sha256": "6f2a0d9acca2e926f6c9328145023d5b4af1eb3c403749bb53da1a0f99419065",
+    "bytes": 184114,
+    "fetched": "2026-11-23T06:34:50Z",
+    "pinout": "page 1, section 'Reference News' (numbered SOT-23 pin diagram + circuit symbol)"
+   },
+   "gate_esd": false,
+   "notes": "PDF by Zhuhai Hongjiacheng Technology co., Ltd (matches mfr). Pinout diagram is an outlined SOT-23 body with boxed pin numbers 1 (G), 2 (S), 3 (D) and marking text in the body."
+  },
+  {
+   "c": "C22469449",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "HL3401",
+   "kind": "pmos",
+   "pins": {
+    "1": "G",
+    "2": "S",
+    "3": "D"
+   },
+   "ratings": {
+    "vds_v": -30,
+    "vgs_max_v": 12,
+    "id_a": -4.4,
+    "rds_on": [
+     {
+      "max_ohm": 0.055,
+      "vgs_v": -10
+     },
+     {
+      "max_ohm": 0.068,
+      "vgs_v": -4.5
+     },
+     {
+      "max_ohm": 0.096,
+      "vgs_v": -2.5
+     }
+    ]
+   },
+   "marking": "A19T",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/2f9f30d6d03a430ce07910b57b40becd.pdf?productCode=C22469449",
+    "sha256": "3788c3859333c5c71359aa0a77bd38149028cef0271702604d1ace00e49ee461",
+    "bytes": 316057,
+    "fetched": "2026-11-23T06:35:02Z",
+    "pinout": "page 1, section 'Function Diagram' (numbered SOT-23 pin diagram + circuit symbol)"
+   },
+   "gate_esd": false,
+   "notes": "PDF by Zhuhai Hongjiacheng Technology co., Ltd (matches mfr). Pinout diagram is an outlined SOT-23 body with boxed pin numbers 1 (G), 2 (S), 3 (D) and marking text in the body."
+  },
+  {
+   "c": "C7420349",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "HL3401A",
+   "kind": "pmos",
+   "pins": {
+    "1": "G",
+    "2": "S",
+    "3": "D"
+   },
+   "ratings": {
+    "vds_v": -30,
+    "vgs_max_v": 12,
+    "id_a": -4.2,
+    "rds_on": [
+     {
+      "max_ohm": 0.065,
+      "vgs_v": -10
+     },
+     {
+      "max_ohm": 0.075,
+      "vgs_v": -4.5
+     },
+     {
+      "max_ohm": 0.09,
+      "vgs_v": -2.5
+     }
+    ]
+   },
+   "marking": "R1",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/495196612b48eb2789ddaea370d93320.pdf?productCode=C7420349",
+    "sha256": "990d8a9c4635cb9737c49cbf65b8a7bab95e3fd50f2d920edf79bb3dac963f0f",
+    "bytes": 306697,
+    "fetched": "2026-11-23T06:35:04Z",
+    "pinout": "page 1, section 'Function Diagram' (numbered SOT-23 pin diagram + circuit symbol)"
+   },
+   "gate_esd": false,
+   "notes": "PDF by Zhuhai Hongjiacheng Technology co., Ltd (matches mfr). Pinout diagram is an outlined SOT-23 body with boxed pin numbers 1 (G), 2 (S), 3 (D) and marking text in the body."
+  },
+  {
+   "c": "C28646269",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "HL3407A",
+   "kind": "pmos",
+   "pins": {
+    "1": "G",
+    "2": "S",
+    "3": "D"
+   },
+   "ratings": {
+    "vds_v": -30,
+    "vgs_max_v": 20,
+    "id_a": -4.1,
+    "rds_on": [
+     {
+      "max_ohm": 0.055,
+      "vgs_v": -10
+     },
+     {
+      "max_ohm": 0.068,
+      "vgs_v": -4.5
+     }
+    ]
+   },
+   "marking": "R7",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/d9f2b01051924459f4e285fade8ea4b6.pdf?productCode=C28646269",
+    "sha256": "0cc127f257986f38df0f81da7be0d93d3acd561ed853c3136884d6c1946c5156",
+    "bytes": 190329,
+    "fetched": "2026-11-23T06:35:09Z",
+    "pinout": "page 1, section 'Reference News' (numbered SOT-23 pin diagram + circuit symbol)"
+   },
+   "gate_esd": false,
+   "notes": "PDF by Zhuhai Hongjiacheng Technology co., Ltd (matches mfr). Pinout diagram is an outlined SOT-23 body with boxed pin numbers 1 (G), 2 (S), 3 (D) and marking text in the body. Header uses a different Hongjiacheng logo variant; footer company name unchanged."
+  },
+  {
+   "c": "C28646270",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "HL3415A",
+   "kind": "pmos",
+   "pins": {
+    "1": "G",
+    "2": "S",
+    "3": "D"
+   },
+   "ratings": {
+    "vds_v": -20,
+    "vgs_max_v": 12,
+    "id_a": -5.6,
+    "rds_on": [
+     {
+      "max_ohm": 0.042,
+      "vgs_v": -4.5
+     },
+     {
+      "max_ohm": 0.055,
+      "vgs_v": -2.5
+     }
+    ]
+   },
+   "marking": "R15",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/10f8413d7bdcc3691a25ed2ea536b591.pdf?productCode=C28646270",
+    "sha256": "ab035c8ee8b042c9031c39ed55649946e246333d6872b575dea9da23801c016c",
+    "bytes": 184929,
+    "fetched": "2026-11-23T06:35:11Z",
+    "pinout": "page 1, section 'Reference News' (numbered SOT-23 pin diagram + circuit symbol)"
+   },
+   "gate_esd": true,
+   "notes": "PDF by Zhuhai Hongjiacheng Technology co., Ltd (matches mfr). Pinout diagram is an outlined SOT-23 body with boxed pin numbers 1 (G), 2 (S), 3 (D) and marking text in the body. Circuit symbol shows back-to-back zener between G and S (unlabelled); ratings list 'ESD Protected Up to' 2.0 kV HBM."
+  },
+  {
+   "c": "C28646264",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "HL6042",
+   "kind": "pmos",
+   "pins": {
+    "1": "G",
+    "2": "S",
+    "3": "D"
+   },
+   "ratings": {
+    "vds_v": -20,
+    "vgs_max_v": 10,
+    "id_a": -5.0,
+    "rds_on": [
+     {
+      "max_ohm": 0.043,
+      "vgs_v": -4.5
+     },
+     {
+      "max_ohm": 0.055,
+      "vgs_v": -2.5
+     }
+    ]
+   },
+   "marking": "6042",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/f29575026f220cef1468eb1a684e054b.pdf?productCode=C28646264",
+    "sha256": "713608a9f859bb766e65f43f8c217fac342e5a050b029f2c0b5fb596608bc586",
+    "bytes": 309782,
+    "fetched": "2026-11-23T06:35:16Z",
+    "pinout": "page 1, section 'Reference News' (numbered SOT-23 pin diagram + circuit symbol)"
+   },
+   "gate_esd": false,
+   "notes": "PDF by Zhuhai Hongjiacheng Technology co., Ltd (matches mfr). Pinout diagram is an outlined SOT-23 body with boxed pin numbers 1 (G), 2 (S), 3 (D) and marking text in the body."
+  },
+  {
+   "c": "C8326",
+   "mfr": "Jiangsu Changjing Electronics Technology",
+   "mpn": "MMBT5401(RANGE:200-300)",
+   "kind": "pnp",
+   "pins": {
+    "1": "B",
+    "2": "E",
+    "3": "C"
+   },
+   "ratings": {
+    "vceo_v": 150,
+    "ic_ma": 600,
+    "pd_mw": 300
+   },
+   "marking": "2L",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/553ad12786934f14af6e8e5497602bb3.pdf?productCode=C8326",
+    "sha256": "fd51383fe57d0d44a864dd9ad1f0b0c3574b0b833ab2b9c17a6cc924ce3968e8",
+    "bytes": 761000,
+    "fetched": "2026-11-23T06:36:26Z",
+    "pinout": "p1 SOT-23 box '1. BASE 2. EMITTER 3. COLLECTOR' with numbered package sketch; 'MARKING: 2L'"
+   },
+   "notes": "PDF header is JCST 'Jiangsu Changjiang Electronics Technology' (C,Nov,2012), mfr field says Jiangsu Changjing; Read-tool render of p1 came out mostly blank, read via poppler render instead; PNP ratings given as negative in PDF; magnitudes recorded"
+  },
+  {
+   "c": "C105432",
+   "mfr": "Jiangsu Changjing Electronics Technology",
+   "mpn": "S8550(RANGE:120-200)",
+   "kind": "pnp",
+   "pins": {
+    "1": "B",
+    "2": "E",
+    "3": "C"
+   },
+   "ratings": {
+    "vceo_v": 25,
+    "ic_ma": 500,
+    "pd_mw": 300
+   },
+   "marking": "2TY",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/e048f602aee74d95b954be40ef1dcefb.pdf?productCode=C105432",
+    "sha256": "3d1e3f3b160e2c19883a2a8b586ab50a0a54e39778a90b167a4ed4f02cb72fee",
+    "bytes": 743051,
+    "fetched": "2026-11-23T06:37:06Z",
+    "pinout": "p1 SOT-23 box '1. BASE 2. EMITTER 3. COLLECTOR' with numbered package sketch; 'MARKING : 2TY'"
+   },
+   "notes": "PDF header is JCST 'Jiangsu Changjiang Electronics Technology' (D,Oct,2014), mfr field says Jiangsu Changjing; MPN range 120-200 = rank L; PNP ratings given as negative in PDF; magnitudes recorded"
+  },
+  {
+   "c": "C8543",
+   "mfr": "Jiangsu Changjing Electronics Technology",
+   "mpn": "S9012 2T1(RANGE:200-350)",
+   "kind": "pnp",
+   "pins": {
+    "1": "B",
+    "2": "E",
+    "3": "C"
+   },
+   "ratings": {
+    "vceo_v": 25,
+    "ic_ma": 500,
+    "pd_mw": 300
+   },
+   "marking": "2T1",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/81758eca2ae741fda50bc80cf57f353a.pdf?productCode=C8543",
+    "sha256": "91e50ac7c99f273b31127168b9e17765210dcd36244d9644e0a6915ac637e21f",
+    "bytes": 858056,
+    "fetched": "2026-11-23T06:37:11Z",
+    "pinout": "p1 SOT-23 box '1. BASE 2. EMITTER 3. COLLECTOR' with numbered package sketch; 'MARKING: 2T1'"
+   },
+   "notes": "PDF header is JCST 'Jiangsu Changjiang Electronics Technology' (C,Oct,2014), mfr field says Jiangsu Changjing; MPN range 200-350 = rank H; PNP ratings given as negative in PDF; magnitudes recorded"
+  },
+  {
+   "c": "C2149",
+   "mfr": "Jiangsu Changjing Electronics Technology",
+   "mpn": "S9015(RANGE:300-400)",
+   "kind": "pnp",
+   "pins": {
+    "1": "B",
+    "2": "E",
+    "3": "C"
+   },
+   "ratings": {
+    "vceo_v": 45,
+    "ic_ma": 100,
+    "pd_mw": 200
+   },
+   "marking": "M6",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/cd7f303935f0427d91f8840ad5941896.pdf?productCode=C2149",
+    "sha256": "d6a83dd249d9fa72d00dc297455f5c9cd86f9b8e6ba3f2cea7691fe3fbf27701",
+    "bytes": 358746,
+    "fetched": "2026-11-23T06:37:23Z",
+    "pinout": "p1 SOT-23 box '1. BASE 2. EMITTER 3. COLLECTOR' with numbered package sketch; 'MARKING: M6'"
+   },
+   "notes": "PDF header is JCST 'Jiangsu Changjiang Electronics Technology' (B,Dec,2011), mfr field says Jiangsu Changjing; MPN says RANGE 300-400 but PDF hFE classes are only L 200-450 / H 450-1000; PNP ratings given as negative in PDF; magnitudes recorded"
+  },
+  {
+   "c": "C8542",
+   "mfr": "Jiangsu Changjing Electronics Technology",
+   "mpn": "SS8550 Y2(RANGE:200-350)",
+   "kind": "pnp",
+   "pins": {
+    "1": "B",
+    "2": "E",
+    "3": "C"
+   },
+   "ratings": {
+    "vceo_v": 25,
+    "ic_ma": 1500,
+    "pd_mw": 300
+   },
+   "marking": "Y2",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/cb6ce14f0ca24dea88b16feea188c1f4.pdf?productCode=C8542",
+    "sha256": "27fbb2c399ee13c4816f5a7e6703b9fa8afb50073c605b74a3c3629a30720be5",
+    "bytes": 2495223,
+    "fetched": "2026-11-23T06:37:42Z",
+    "pinout": "p1 SOT-23 box '1. BASE 2. EMITTER 3. COLLECTOR' with numbered package sketch; marking 'Y2' in hFE classification table"
+   },
+   "notes": "PDF header is JCST 'Jiangsu Changjiang Electronics Technology' (A,Apr,2011), mfr field says Jiangsu Changjing; PNP ratings given as negative in PDF; magnitudes recorded"
+  },
+  {
+   "c": "C7420323",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "2SA812",
+   "kind": "pnp",
+   "pins": {
+    "1": "B",
+    "2": "E",
+    "3": "C"
+   },
+   "ratings": {
+    "vceo_v": 50,
+    "ic_ma": 100,
+    "pd_mw": 200
+   },
+   "marking": "M6",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/535c6f60719ea77f51dbc1a1a583574e.pdf?productCode=C7420323",
+    "sha256": "fb41be0f364abb78a397dfed8e59eea5da680a855bb0af2bf209930ee5d60eb4",
+    "bytes": 237356,
+    "fetched": "2026-11-23T06:32:13Z",
+    "pinout": "p1 'Function Diagram' (numbered top view + PNP symbol, arrow into emitter pin 2)"
+   },
+   "notes": "PNP ratings given as negative in PDF; magnitudes recorded"
+  },
+  {
+   "c": "C20069142",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BC807-40",
+   "kind": "pnp",
+   "pins": {
+    "1": "B",
+    "2": "E",
+    "3": "C"
+   },
+   "ratings": {
+    "vceo_v": 45,
+    "ic_ma": 500,
+    "pd_mw": 300
+   },
+   "marking": "5C",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/8bb96ba7ef724800883bca1491793548.pdf?productCode=C20069142",
+    "sha256": "77dd43798471fe2b61f19a3a1c6b4d59e5514a45550aada60d53cca0677fc648",
+    "bytes": 271422,
+    "fetched": "2026-11-23T06:33:14Z",
+    "pinout": "p1 'Function Diagram'"
+   },
+   "notes": "PDF covers BC807 thru BC808; PNP ratings given as negative in PDF; magnitudes recorded"
+  },
+  {
+   "c": "C20069136",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BC856B",
+   "kind": "pnp",
+   "pins": {
+    "1": "B",
+    "2": "E",
+    "3": "C"
+   },
+   "ratings": {
+    "vceo_v": 65,
+    "ic_ma": 100,
+    "pd_mw": 200
+   },
+   "marking": "3B",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/34b8a64bb4264d7494da21acdc53fad9.pdf?productCode=C20069136",
+    "sha256": "eb69d62c5add0b99685a725670acf1119b72aecdab40578f0ceb6bc206927fc3",
+    "bytes": 264898,
+    "fetched": "2026-11-23T06:33:31Z",
+    "pinout": "p1 'Function Diagram'"
+   },
+   "notes": "PDF covers BC856 thru BC858; shared by BC856B/BC857C; PNP ratings given as negative in PDF; magnitudes recorded"
+  },
+  {
+   "c": "C20069137",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BC857C",
+   "kind": "pnp",
+   "pins": {
+    "1": "B",
+    "2": "E",
+    "3": "C"
+   },
+   "ratings": {
+    "vceo_v": 45,
+    "ic_ma": 100,
+    "pd_mw": 200
+   },
+   "marking": "3G",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/34b8a64bb4264d7494da21acdc53fad9.pdf?productCode=C20069137",
+    "sha256": "eb69d62c5add0b99685a725670acf1119b72aecdab40578f0ceb6bc206927fc3",
+    "bytes": 264898,
+    "fetched": "2026-11-23T06:33:34Z",
+    "pinout": "p1 'Function Diagram'"
+   },
+   "notes": "PDF covers BC856 thru BC858; shared by BC856B/BC857C; PNP ratings given as negative in PDF; magnitudes recorded"
+  },
+  {
+   "c": "C7420352",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "MMBT2907A",
+   "kind": "pnp",
+   "pins": {
+    "1": "B",
+    "2": "E",
+    "3": "C"
+   },
+   "ratings": {
+    "vceo_v": 60,
+    "ic_ma": 600,
+    "pd_mw": 250
+   },
+   "marking": "2F",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/0130ccbadefb85445939a0f5b15ecfdc.pdf?productCode=C7420352",
+    "sha256": "291ed476f115a66d1fdd95edb8a99d9a2f8653d09258d5f57b683b39b873975a",
+    "bytes": 276463,
+    "fetched": "2026-11-23T06:35:57Z",
+    "pinout": "p1 'Function Diagram'"
+   },
+   "notes": "PNP ratings given as negative in PDF; magnitudes recorded"
+  },
+  {
+   "c": "C7420354",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "MMBT3906",
+   "kind": "pnp",
+   "pins": {
+    "1": "B",
+    "2": "E",
+    "3": "C"
+   },
+   "ratings": {
+    "vceo_v": 40,
+    "ic_ma": 200,
+    "pd_mw": 200
+   },
+   "marking": "2A",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/660fe8d678de859b4adc55e0fcda7a21.pdf?productCode=C7420354",
+    "sha256": "f00fa00451318e1485e3c1a17062eb637ce3ea8012ffcaa5ed1d0cc92a745b6d",
+    "bytes": 270140,
+    "fetched": "2026-11-23T06:36:13Z",
+    "pinout": "p1 'Function Diagram'"
+   },
+   "notes": "PNP ratings given as negative in PDF; magnitudes recorded"
+  },
+  {
+   "c": "C20069140",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "MMBT4403",
+   "kind": "pnp",
+   "pins": {
+    "1": "B",
+    "2": "E",
+    "3": "C"
+   },
+   "ratings": {
+    "vceo_v": 40,
+    "ic_ma": 600,
+    "pd_mw": 300
+   },
+   "marking": "2T",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/419b19c63ca271c282538451dffdd353.pdf?productCode=C20069140",
+    "sha256": "c097f7df33a321cc87b810f7648920d549c7bfbe324a287e10fd22a39ec41b5a",
+    "bytes": 289976,
+    "fetched": "2026-11-23T06:36:21Z",
+    "pinout": "p1 'Function Diagram'"
+   },
+   "notes": "PNP ratings given as negative in PDF; magnitudes recorded"
+  },
+  {
+   "c": "C7420356",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "MMBT5401",
+   "kind": "pnp",
+   "pins": {
+    "1": "B",
+    "2": "E",
+    "3": "C"
+   },
+   "ratings": {
+    "vceo_v": 150,
+    "ic_ma": 600,
+    "pd_mw": 300
+   },
+   "marking": "2L",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/8c8a3d50206fb3970722386d5e109cee.pdf?productCode=C7420356",
+    "sha256": "dcbd94fe432f8c34a343ac6bc9b8268aad05f2958f9cfaa756aac2cc265a5a17",
+    "bytes": 257300,
+    "fetched": "2026-11-23T06:36:23Z",
+    "pinout": "p1 'Function Diagram'"
+   },
+   "notes": "PNP ratings given as negative in PDF; magnitudes recorded"
+  },
+  {
+   "c": "C20069147",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "MMBTA56",
+   "kind": "pnp",
+   "pins": {
+    "1": "B",
+    "2": "E",
+    "3": "C"
+   },
+   "ratings": {
+    "vceo_v": 80,
+    "ic_ma": 500,
+    "pd_mw": 225
+   },
+   "marking": "2GM",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/c60aecd04748005d72953a5c4d086ca2.pdf?productCode=C20069147",
+    "sha256": "9030c5a35e2f71a246ae07c8e661133c2531a525f3ec2f7514623793db5a1751",
+    "bytes": 254508,
+    "fetched": "2026-11-23T06:36:46Z",
+    "pinout": "p1 'Function Diagram'"
+   },
+   "notes": "PNP ratings given as negative in PDF; magnitudes recorded"
+  },
+  {
+   "c": "C20069146",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "MMBTA92",
+   "kind": "pnp",
+   "pins": {
+    "1": "B",
+    "2": "E",
+    "3": "C"
+   },
+   "ratings": {
+    "vceo_v": 300,
+    "ic_ma": 500,
+    "pd_mw": 350
+   },
+   "marking": "2D",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/223a4eff8a15dc0cec0a1a4673e75bf0.pdf?productCode=C20069146",
+    "sha256": "527d2d82fc79b1a960dbb16c28f431268cccf5e1fc03c164518c8902ad944447",
+    "bytes": 268735,
+    "fetched": "2026-11-23T06:36:48Z",
+    "pinout": "p1 'Function Diagram'"
+   },
+   "notes": "PNP ratings given as negative in PDF; magnitudes recorded"
+  },
+  {
+   "c": "C20069126",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "S8550",
+   "kind": "pnp",
+   "pins": {
+    "1": "B",
+    "2": "E",
+    "3": "C"
+   },
+   "ratings": {
+    "vceo_v": 25,
+    "ic_ma": 500,
+    "pd_mw": 300
+   },
+   "marking": "2TY",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/9bb4ebcdc4cb785f5370f93ae6b96414.pdf?productCode=C20069126",
+    "sha256": "8d45070130d8ca818e07ba0ecb4b58393223368745eba24cea096a50f508b04f",
+    "bytes": 243720,
+    "fetched": "2026-11-23T06:37:03Z",
+    "pinout": "p1 'Function Diagram'"
+   },
+   "notes": "PNP ratings given as negative in PDF; magnitudes recorded"
+  },
+  {
+   "c": "C20069129",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "S9012",
+   "kind": "pnp",
+   "pins": {
+    "1": "B",
+    "2": "E",
+    "3": "C"
+   },
+   "ratings": {
+    "vceo_v": 25,
+    "ic_ma": 500,
+    "pd_mw": 300
+   },
+   "marking": "2T1",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/bc52d41e8333824adbdadcb8b6daf90c.pdf?productCode=C20069129",
+    "sha256": "c08ed62236d0a6eecf524e2aded566d0fd477bdaa501128563c5f53c4cf55405",
+    "bytes": 262264,
+    "fetched": "2026-11-23T06:37:08Z",
+    "pinout": "p1 'Function Diagram'"
+   },
+   "notes": "PNP ratings given as negative in PDF; magnitudes recorded"
+  },
+  {
+   "c": "C20069131",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "S9015",
+   "kind": "pnp",
+   "pins": {
+    "1": "B",
+    "2": "E",
+    "3": "C"
+   },
+   "ratings": {
+    "vceo_v": 45,
+    "ic_ma": 100,
+    "pd_mw": 200
+   },
+   "marking": "M6",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/732ed27b7070b055b4f2a59d9ece4e85.pdf?productCode=C20069131",
+    "sha256": "d67eeafe481f4c5f3d99425d60f0ab028fb5bfc34e6d8dc4353053f81db17c4f",
+    "bytes": 240283,
+    "fetched": "2026-11-23T06:37:21Z",
+    "pinout": "p1 'Function Diagram'"
+   },
+   "notes": "marking M6 is the same code this vendor's 2SA812 datasheet (C7420323) shows; PNP ratings given as negative in PDF; magnitudes recorded"
+  },
+  {
+   "c": "C7420371",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "SS8550",
+   "kind": "pnp",
+   "pins": {
+    "1": "B",
+    "2": "E",
+    "3": "C"
+   },
+   "ratings": {
+    "vceo_v": 25,
+    "ic_ma": 1500,
+    "pd_mw": 300
+   },
+   "marking": "Y2",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/afc54d0c4228622523e0d006ff370ec6.pdf?productCode=C7420371",
+    "sha256": "24d3c2b6fcc2954434792fb6ec2f3840c55d57da557f5f3d0b0ac3e7e12965ff",
+    "bytes": 277803,
+    "fetched": "2026-11-23T06:37:39Z",
+    "pinout": "p1 'Function Diagram'"
+   },
+   "notes": "PNP ratings given as negative in PDF; magnitudes recorded"
+  }
+ ]
+}

@@ -1,0 +1,167 @@
+{
+ "schema_version": 1,
+ "method": "read by eye from contact sheets of the lossless exports (the crops of ../2026-11-21-board-8/contact_sheet.py at a 2.5 mm square): the model's cathode band and its '-' sign against our pad 1 (the land's band end, where our silkscreen bar is), on each of the four copies, with the candidate rotate 180 applied in the supplier CPL",
+ "readings": {
+  "cathode at pad 1": "band and '-' at our pad 1 on all four copies with rotate 180 applied: the candidate is confirmed",
+  "reversed": "band and '-' at our pad 2 on some copy: the candidate is refuted",
+  "not drawn": "the assembler drew a placeholder, no model: nothing read"
+ },
+ "parts": [
+  {
+   "pn": "C22395577",
+   "mpn": "BZX584C10",
+   "land": "sod::SOD1608X70N",
+   "designators": [
+    "D1",
+    "D2",
+    "D3",
+    "D4"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C22395578",
+   "mpn": "BZX584C11",
+   "land": "sod::SOD1608X70N",
+   "designators": [
+    "D5",
+    "D6",
+    "D7",
+    "D8"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C22395579",
+   "mpn": "BZX584C12",
+   "land": "sod::SOD1608X70N",
+   "designators": [
+    "D9",
+    "D10",
+    "D11",
+    "D12"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C22395580",
+   "mpn": "BZX584C13",
+   "land": "sod::SOD1608X70N",
+   "designators": [
+    "D13",
+    "D14",
+    "D15",
+    "D16"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C19077466",
+   "mpn": "BZX584C15",
+   "land": "sod::SOD1608X70N",
+   "designators": [
+    "D17",
+    "D18",
+    "D19",
+    "D20"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C22395581",
+   "mpn": "BZX584C18",
+   "land": "sod::SOD1608X70N",
+   "designators": [
+    "D21",
+    "D22",
+    "D23",
+    "D24"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C22395582",
+   "mpn": "BZX584C39",
+   "land": "sod::SOD1608X70N",
+   "designators": [
+    "D25",
+    "D26",
+    "D27",
+    "D28"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C19077462",
+   "mpn": "BZX584C3V3",
+   "land": "sod::SOD1608X70N",
+   "designators": [
+    "D29",
+    "D30",
+    "D31",
+    "D32"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C22395575",
+   "mpn": "BZX584C3V9",
+   "land": "sod::SOD1608X70N",
+   "designators": [
+    "D33",
+    "D34",
+    "D35",
+    "D36"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C22395576",
+   "mpn": "BZX584C4V3",
+   "land": "sod::SOD1608X70N",
+   "designators": [
+    "D37",
+    "D38",
+    "D39",
+    "D40"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C19077463",
+   "mpn": "BZX584C5V1",
+   "land": "sod::SOD1608X70N",
+   "designators": [
+    "D41",
+    "D42",
+    "D43",
+    "D44"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C19077464",
+   "mpn": "BZX584C5V6",
+   "land": "sod::SOD1608X70N",
+   "designators": [
+    "D45",
+    "D46",
+    "D47",
+    "D48"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C19077465",
+   "mpn": "BZX584C9V1",
+   "land": "sod::SOD1608X70N",
+   "designators": [
+    "D49",
+    "D50",
+    "D51",
+    "D52"
+   ],
+   "reading": "cathode at pad 1"
+  }
+ ]
+}

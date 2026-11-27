@@ -1,0 +1,1413 @@
+{
+  "budget_exhausted": false,
+  "counts": {
+    "avl_entries": 21471,
+    "cache_hits": 14996,
+    "confirmed_pages": 16379,
+    "fetch_failures": 1627,
+    "mapped_identities": 12541,
+    "partdetail_urls": 18008,
+    "requests": 1534,
+    "review_identities": 8928,
+    "unique_identities": 21469
+  },
+  "date": "2026-11-23",
+  "elapsed_seconds": 3843.201992,
+  "fetch_failed": [
+    {
+      "candidates": [
+        {
+          "c": "C68978",
+          "category": "basic",
+          "partdetail": "/partdetail/70091-BAV70/C68978/C68978",
+          "stock": 635123
+        }
+      ],
+      "mfr": "Jiangsu Changjing Electronics Technology",
+      "mpn": "BAV70",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C32677",
+          "category": "basic",
+          "partdetail": "/partdetail/ProTekDevices-PSM712_LFT7/C32677/C32677",
+          "stock": 149196
+        }
+      ],
+      "mfr": "ProTek",
+      "mpn": "PSM712-LF-T7",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "SGMICRO",
+      "mpn": "SGM2554AYN5G/TR",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C7502730",
+          "category": "preferred",
+          "partdetail": "/partdetail/hongjiacheng-1SS181/C7502730/C7502730",
+          "stock": 18368
+        }
+      ],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "1SS181",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C7502731",
+          "category": "preferred",
+          "partdetail": "/partdetail/hongjiacheng-1SS226/C7502731/C7502731",
+          "stock": 0
+        }
+      ],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "1SS226",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C7502725",
+          "category": "preferred",
+          "partdetail": "/partdetail/hongjiacheng-BAS21/C7502725/C7502725",
+          "stock": 150726
+        }
+      ],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "BAS21",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C7502726",
+          "category": "preferred",
+          "partdetail": "/partdetail/hongjiacheng-BAS21S/C7502726/C7502726",
+          "stock": 74684
+        }
+      ],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "BAS21S",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C7502685",
+          "category": "preferred",
+          "partdetail": "/partdetail/hongjiacheng-BAS40/C7502685/C7502685",
+          "stock": 95037
+        }
+      ],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "BAS40",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C7502688",
+          "category": "preferred",
+          "partdetail": "/partdetail/hongjiacheng-BAS4004/C7502688/C7502688",
+          "stock": 427972
+        }
+      ],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "BAS40-04",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C7502689",
+          "category": "preferred",
+          "partdetail": "/partdetail/hongjiacheng-BAS4005/C7502689/C7502689",
+          "stock": 28320
+        }
+      ],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "BAS40-05",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C7502686",
+          "category": "preferred",
+          "partdetail": "/partdetail/hongjiacheng-BAS70/C7502686/C7502686",
+          "stock": 352338
+        }
+      ],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "BAS70",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C7502687",
+          "category": "preferred",
+          "partdetail": "/partdetail/hongjiacheng-BAS7004/C7502687/C7502687",
+          "stock": 404927
+        }
+      ],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "BAS70-04",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C22466364",
+          "category": "preferred",
+          "partdetail": "/partdetail/hongjiacheng-BAS7006/C22466364/C22466364",
+          "stock": 18222
+        }
+      ],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "BAS70-06",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C22466368",
+          "category": "preferred",
+          "partdetail": "/partdetail/hongjiacheng-BAT54/C22466368/C22466368",
+          "stock": 47045
+        }
+      ],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "BAT54",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C7502690",
+          "category": "preferred",
+          "partdetail": "/partdetail/hongjiacheng-BAT54A/C7502690/C7502690",
+          "stock": 66597
+        }
+      ],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "BAT54A",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C22466350",
+          "category": "preferred",
+          "partdetail": "/partdetail/hongjiacheng-BAT54C/C22466350/C22466350",
+          "stock": 1124290
+        }
+      ],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "BAT54C",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C7420333",
+          "category": "preferred",
+          "partdetail": "/partdetail/hongjiacheng-BAT54S/C7420333/C7420333",
+          "stock": 755049
+        }
+      ],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "BAT54S",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C22466371",
+          "category": "preferred",
+          "partdetail": "/partdetail/hongjiacheng-BAT720/C22466371/C22466371",
+          "stock": 65266
+        }
+      ],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "BAT720",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C7420335",
+          "category": "preferred",
+          "partdetail": "/partdetail/hongjiacheng-BAV70/C7420335/C7420335",
+          "stock": 399962
+        }
+      ],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "BAV70",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C7420336",
+          "category": "preferred",
+          "partdetail": "/partdetail/hongjiacheng-BAV99/C7420336/C7420336",
+          "stock": 1609687
+        }
+      ],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "BAV99",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C7502729",
+          "category": "preferred",
+          "partdetail": "/partdetail/hongjiacheng-BAW56/C7502729/C7502729",
+          "stock": 88171
+        }
+      ],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "BAW56",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "BZT52B11",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "BZT52B16",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "BZT52B18",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "BZT52B20",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "BZT52B22",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "BZT52B24",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "BZT52B27",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "BZT52B2V4",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "BZT52B2V7",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "BZT52B30",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "BZT52B33",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "BZT52B36",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "BZT52B39",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "BZT52B3V0",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "BZT52B3V6",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "BZT52B3V9",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "BZT52B43",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "BZT52B47",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "BZT52B4V3",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "BZT52B4V7",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "BZT52B51",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "BZT52B6V2",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "BZT52B6V8",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "BZT52B7V5",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "BZT52B9V1",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "BZT52C2V0",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "BZT52C39",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "BZT52C51",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "BZT52C56",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "BZT52C62",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "BZT52C68",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C19077470",
+          "category": "preferred",
+          "partdetail": "/partdetail/hongjiacheng-BZX84C10/C19077470/C19077470",
+          "stock": 4039
+        }
+      ],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "BZX84C10",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C19077471",
+          "category": "preferred",
+          "partdetail": "/partdetail/hongjiacheng-BZX84C12/C19077471/C19077471",
+          "stock": 209040
+        }
+      ],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "BZX84C12",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C19077472",
+          "category": "preferred",
+          "partdetail": "/partdetail/hongjiacheng-BZX84C15/C19077472/C19077472",
+          "stock": 28266
+        }
+      ],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "BZX84C15",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C22379471",
+          "category": "preferred",
+          "partdetail": "/partdetail/hongjiacheng-BZX84C16/C22379471/C22379471",
+          "stock": 63390
+        }
+      ],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "BZX84C16",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C19077473",
+          "category": "preferred",
+          "partdetail": "/partdetail/hongjiacheng-BZX84C18/C19077473/C19077473",
+          "stock": 427179
+        }
+      ],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "BZX84C18",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C22379472",
+          "category": "preferred",
+          "partdetail": "/partdetail/hongjiacheng-BZX84C30/C22379472/C22379472",
+          "stock": 24211
+        }
+      ],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "BZX84C30",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C22379474",
+          "category": "preferred",
+          "partdetail": "/partdetail/hongjiacheng-BZX84C33/C22379474/C22379474",
+          "stock": 53637
+        }
+      ],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "BZX84C33",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C19077467",
+          "category": "preferred",
+          "partdetail": "/partdetail/hongjiacheng-BZX84C3V3/C19077467/C19077467",
+          "stock": 89195
+        }
+      ],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "BZX84C3V3",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C22395521",
+          "category": "preferred",
+          "partdetail": "/partdetail/hongjiacheng-BZX84C4V7/C22395521/C22395521",
+          "stock": 38513
+        }
+      ],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "BZX84C4V7",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C19077468",
+          "category": "preferred",
+          "partdetail": "/partdetail/hongjiacheng-BZX84C5V1/C19077468/C19077468",
+          "stock": 17926
+        }
+      ],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "BZX84C5V1",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C19077469",
+          "category": "preferred",
+          "partdetail": "/partdetail/hongjiacheng-BZX84C5V6/C19077469/C19077469",
+          "stock": 25954
+        }
+      ],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "BZX84C5V6",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C22379473",
+          "category": "preferred",
+          "partdetail": "/partdetail/hongjiacheng-BZX84C6V8/C22379473/C22379473",
+          "stock": 39696
+        }
+      ],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "BZX84C6V8",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C22379470",
+          "category": "preferred",
+          "partdetail": "/partdetail/hongjiacheng-BZX84C7V5/C22379470/C22379470",
+          "stock": 57649
+        }
+      ],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "BZX84C7V5",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C22395522",
+          "category": "preferred",
+          "partdetail": "/partdetail/hongjiacheng-BZX84C8V2/C22395522/C22395522",
+          "stock": 31283
+        }
+      ],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "BZX84C8V2",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MM1W110",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MM1W13",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MM1W16",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MM1W27",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MM1W33",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MM1W39",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MM1W43",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MM1W47",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MM1W4V3",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MM1W51",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MM1W56",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MM1W62",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MM1W68",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MM1Z10",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MM1Z11",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MM1Z11B",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MM1Z13",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MM1Z13B",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MM1Z15B",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MM1Z16B",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MM1Z20B",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MM1Z22",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MM1Z22B",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MM1Z24B",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MM1Z27B",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MM1Z2V0",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MM1Z2V2",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MM1Z2V2B",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MM1Z2V4",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MM1Z2V4B",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MM1Z30",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MM1Z33",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MM1Z33B",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MM1Z36",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MM1Z36B",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MM1Z39",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MM1Z39B",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MM1Z3V0B",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MM1Z3V6B",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MM1Z3V9",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MM1Z3V9B",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MM1Z43B",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MM1Z47",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MM1Z4V3",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MM1Z4V3B",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MM1Z4V7B",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MM1Z51",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MM1Z51B",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MM1Z56",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MM1Z56B",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MM1Z68",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MM1Z68B",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MM1Z6V8B",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MM1Z75",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MM1Z75B",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MM1Z7V5",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MM1Z8V2",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MM1Z8V2B",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MM1Z9V1",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MM1Z9V1B",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C7502723",
+          "category": "preferred",
+          "partdetail": "/partdetail/hongjiacheng-MMBD4148/C7502723/C7502723",
+          "stock": 51902
+        }
+      ],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MMBD4148",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C17179589",
+          "category": "preferred",
+          "partdetail": "/partdetail/hongjiacheng-MMBD4148CC/C17179589/C17179589",
+          "stock": 329606
+        }
+      ],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MMBD4148CC",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C17179590",
+          "category": "preferred",
+          "partdetail": "/partdetail/hongjiacheng-MMBD4148SE/C17179590/C17179590",
+          "stock": 101436
+        }
+      ],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MMBD4148SE",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C7420355",
+          "category": "preferred",
+          "partdetail": "/partdetail/hongjiacheng-MMBT4401/C7420355/C7420355",
+          "stock": 481491
+        }
+      ],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MMBT4401",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C20069147",
+          "category": "preferred",
+          "partdetail": "/partdetail/hongjiacheng-MMBTA56/C20069147/C20069147",
+          "stock": 79212
+        }
+      ],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MMBTA56",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C22395543",
+          "category": "preferred",
+          "partdetail": "/partdetail/hongjiacheng-MMBZ5226B/C22395543/C22395543",
+          "stock": 11152
+        }
+      ],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MMBZ5226B",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MMSZ4678",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MMSZ4679",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MMSZ4680",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MMSZ4681",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MMSZ4682",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MMSZ4683",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MMSZ4684",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MMSZ4686",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MMSZ4687",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MMSZ4689",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MMSZ4690",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MMSZ4693",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MMSZ4694",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MMSZ4695",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MMSZ4696",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MMSZ4697",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MMSZ4698",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MMSZ4700",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MMSZ4701",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MMSZ4702",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MMSZ4703",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MMSZ4704",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MMSZ4705",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MMSZ4706",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MMSZ4707",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MMSZ4708",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MMSZ4709",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MMSZ4711",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MMSZ4712",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MMSZ4713",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MMSZ4714",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MMSZ4715",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MMSZ4716",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MMSZ4717",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MMSZ5221B",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MMSZ5222B",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MMSZ5223B",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MMSZ5233B",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MMSZ5244B",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MMSZ5247B",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MMSZ5249B",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MMSZ5253B",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MMSZ5255B",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MMSZ5257B",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MMSZ5260B",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MMSZ5261B",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MMSZ5262B",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MMSZ5263B",
+      "reason": "fetch_failed"
+    },
+    {
+      "candidates": [],
+      "mfr": "Zhuhai Hongjiacheng Technology",
+      "mpn": "MMSZ5266B",
+      "reason": "fetch_failed"
+    }
+  ],
+  "match_rate": {
+    "denominator": 21469,
+    "method": "mapped_identities / unique_identities; unique key is exact (mfr, mpn) after selecting confirmed candidates",
+    "numerator": 12541,
+    "value": 0.5841445805580139
+  },
+  "max_requests": 1535,
+  "not_fetched": [],
+  "parser_status": "real_sample_2026-10-30",
+  "request_count": 1534,
+  "run_stopped": false,
+  "run_stopped_reason": null,
+  "schema_version": 1,
+  "sha256": {
+    "alias_proposals.json": "6fcefb1e12988c0017c208125261ee4158d9eaf6f84c7dc639d9a481c30d9bd7",
+    "confirmed.json": "1db29ddba833b5f6567a075d17a72f2ea8c8f9ecbf772541073adb271bde877c",
+    "lcsc_map.json": "9a9173a03605e1ae4adbf8eb00330fdef22d32a9b2949e1f938ece2570c5d312",
+    "requests.json": "0b675f9d5423b4e2a065819fd73a0fafb87e42a8c81524ac1170b504161e45ac",
+    "review.json": "b09772832cf9cb1b7709dc9c20e9fb768c2c32dbb909fb6c59e02650fe09fce7"
+  },
+  "snapshot_sha256": "1db29ddba833b5f6567a075d17a72f2ea8c8f9ecbf772541073adb271bde877c",
+  "sources": {
+    "aliases": "tools/sourcing_data/mfr_aliases.json",
+    "aliases_sha256": "b69b272ebac9402b45e64db470154066f978b4dcf25fd91dea0fa37d03d2af0e",
+    "candidates": "tools/sourcing_data/jlcparts/2026-10-27/basic_preferred.json",
+    "candidates_sha256": "c0a9b92b1bcf56cdf9b4585489b8cbde2e9dd7e2cd9a700e55783a4a69448adf",
+    "lib_dir": "lib",
+    "origin": "https://jlcpcb.com"
+  }
+}

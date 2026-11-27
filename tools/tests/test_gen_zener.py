@@ -44,6 +44,82 @@ class GenZenerTests(unittest.TestCase):
         self.assertIn('pub part D_MM1Z2V0B: Zener<2V, 500mW> {', text)
         self.assertIn("required Cathode: 1 [passive]", text)
 
+    def test_the_sod323_and_sod523_parts_sit_on_the_land_their_sheet_names(self):
+        d = json.loads(gz.DATA_SMALL.read_text(encoding="utf-8"))
+        text = gz.OUT_SMALL.read_text(encoding="utf-8")
+        self.assertEqual({s["key"]: (len(s["parts"]), s["package"]["footprint"], s["power_mw"]) for s in d["series"]},
+                         {"bzt52c_s": (38, "sod::SOD2613X110N", 200), "bzt52b_s": (31, "sod::SOD2613X110N", 200),
+                          "mm3z": (38, "sod::SOD2613X110N", 200), "mmsz_s": (35, "sod::SOD2613X110N", 200),
+                          "bzx584c": (31, "sod::SOD1608X70N", 150)})
+        self.assertEqual(text.count("pub part D_"), 173)
+        self.assertEqual(text.count("footprint: sod::SOD2613X110N"), 142)
+        self.assertEqual(text.count("footprint: sod::SOD1608X70N"), 31)
+        self.assertNotIn("pub device", text)  # the device is zener.cohdl's
+        self.assertEqual(text.count("supplier lcsc"), 35)  # boards 20 and 21, below
+        self.assertIn("pub part D_BZT52C5V6S: Zener<5.6V, 200mW> {", text)
+        self.assertIn("pub part D_BZX584C3V3: Zener<3.3V, 150mW> {", text)
+        self.assertIn("pub part D_MMSZ5231BS: Zener<5.1V, 200mW> {", text)
+        # The two transcription corrections keep what the sheet printed.
+        rows = {r["mpn"]: r for s in d["series"] for r in s["parts"]}
+        self.assertEqual(rows["BZT52B3V0S"]["printed_mpn"], "BZT52B3VOS")
+        self.assertEqual((rows["MM3Z56"]["tc_max_mv_per_c"], rows["MM3Z56"]["printed"]),
+                         ("63.8", {"tc_max_mv_per_c": "63..8"}))
+        # MM3Z orders ZZT before IZT; the comment reads the named columns.
+        self.assertIn("VZ 1.91-2.09V (nom 2.0V) at IZT 5mA; ZZT 100ohm; IR 150uA at 1.0V; marking WY", text)
+
+    def test_every_b1_sod323_and_sod523_zener_is_a_part(self):
+        catalog = json.loads((gz.ROOT / "tools/sourcing_data/jlc_catalog/2026-10-30/catalog.json").read_text(
+            encoding="utf-8"))
+        b1 = {r["mpn"]: r["package"] for r in catalog if r["mfr"] == "hongjiacheng"
+              and r["package"] in ("SOD-323", "SOD-523") and re.match(r"(BZT52|MM3Z|MMSZ|BZX)", r["mpn"])}
+        self.assertEqual(len(b1), 71)
+        d = json.loads(gz.DATA_SMALL.read_text(encoding="utf-8"))
+        land = {r["mpn"]: s["package"]["footprint"] for s in d["series"] for r in s["parts"]}
+        for mpn, package in b1.items():
+            with self.subTest(mpn=mpn):
+                self.assertEqual(land[mpn], {"SOD-323": "sod::SOD2613X110N", "SOD-523": "sod::SOD1608X70N"}[package])
+
+    def test_preview_board_20_places_every_b1_part_four_times_on_its_land(self):
+        sys.path.insert(0, str(gz.ROOT / "tools/frame_boards"))
+        import zener_small_boards
+        built = zener_small_boards.build("preview_board_20")
+        path = gz.ROOT / "tools/frame_boards/preview-board-20/manifest.json"
+        self.assertEqual(json.loads(path.read_text(encoding="utf-8")), built)
+        self.assertEqual(len(built["rows"]), 71)
+        self.assertEqual(built["dependencies"]["diode"],
+                         re.search(r'^version = "([^"]+)"', (gz.ROOT / "lib/diode/cohdl.toml").read_text(), re.M)[1])
+        for row in built["rows"]:
+            self.assertEqual(len(row["placements"]), 4)
+            self.assertNotIn("mapping", row)
+            self.assertEqual(row["footprint"], zener_small_boards.LANDS[row["jlc_package"]])
+
+    def test_preview_board_21_reverifies_board_20s_reversed_part_numbers_with_rotate_180(self):
+        sys.path.insert(0, str(gz.ROOT / "tools/frame_boards"))
+        import zener_small_boards
+        built = zener_small_boards.build("preview_board_21")
+        path = gz.ROOT / "tools/frame_boards/preview-board-21/manifest.json"
+        self.assertEqual(json.loads(path.read_text(encoding="utf-8")), built)
+        record = "tools/sourcing_data/jlc_previews/2026-11-24-board-20"
+        reversed_ = {p["pn"] for p in json.loads((gz.ROOT / record / "readings.json").read_text(encoding="utf-8"))["parts"]
+                     if p["reading"] == "reversed"}
+        self.assertEqual({row["pn"] for row in built["rows"]}, reversed_)
+        self.assertEqual(len(reversed_), 13)
+        for row in built["rows"]:
+            self.assertEqual(len(row["placements"]), 4)
+            self.assertEqual(row["footprint"], "sod::SOD1608X70N")
+            self.assertEqual(row["mapping"], {"dx_mm": 0, "dy_mm": 0, "rotate_deg": 180})
+            self.assertEqual(row["candidate"], {"rotate_deg": 180, "record": record + "/README.md"})
+
+    def test_an_mpn_in_both_data_files_is_refused(self):
+        small = json.loads(gz.DATA_SMALL.read_text(encoding="utf-8"))
+        small["series"][0]["parts"].append(dict(data()["series"][0]["parts"][0]))
+        real = gz.DATA_SMALL.read_text
+        with mock.patch.object(type(gz.DATA_SMALL), "read_text",
+                               lambda self, **kw: json.dumps(small) if self == gz.DATA_SMALL else real.__func__(self, **kw)):
+            with self.assertRaises(SystemExit) as raised:
+                gz.main(["--check"])
+        self.assertIn("both data files", str(raised.exception))
+
     def test_literals(self):
         self.assertEqual(gz.literal("5.60", "V"), "5.6V")
         self.assertEqual(gz.literal("10", "V"), "10V")
@@ -119,11 +195,56 @@ class GenZenerTests(unittest.TestCase):
         for pn in set(first) - set(expected):
             self.assertNotIn(f'"{pn}"', text)
 
+    def test_boards_20_and_21_bind_the_mapped_part_numbers_read_with_the_cathode_at_pad_1(self):
+        # Board 20 read the 71 SOD-323 and SOD-523 part numbers on four copies each with no
+        # mapping; board 21 read again, with rotate 180 applied, the 13 BZX584C board 20 read
+        # reversed. A part number is bound only where every copy showed the cathode at pad 1 AND
+        # a reviewed backfill gave it a map row: with no rotation from board 20, with rotate 180
+        # from board 21. The unmapped wait for their map rows.
+        record = "tools/sourcing_data/jlc_previews/2026-11-24-board-20"
+        again = "tools/sourcing_data/jlc_previews/2026-11-25-board-21"
+        text = gz.OUT_SMALL.read_text(encoding="utf-8")
+        found = re.findall(r'mpn: "(\w+)",[^}]*?supplier lcsc "(C\d+)"( rotate 180)? \}', text)
+        self.assertEqual(text.count("supplier lcsc"), len(found))
+        bound = {mpn: pn for mpn, pn, rotate in found if not rotate}
+        turned = {mpn: pn for mpn, pn, rotate in found if rotate}
+        parts = json.loads((gz.ROOT / record / "readings.json").read_text(encoding="utf-8"))["parts"]
+        self.assertEqual(len(parts), 71)
+        self.assertEqual(sorted(p["mpn"] for p in parts if p["reading"] == "reversed"),
+                         sorted("BZX584C" + v for v in "10 11 12 13 15 18 39 3V3 3V9 4V3 5V1 5V6 9V1".split()))
+        mapped = {r["pn"] for r in json.loads((gz.ROOT / "tools/sourcing_data/lcsc_map.json")
+                                              .read_text(encoding="utf-8"))["rows"]}
+        expected = {p["mpn"]: p["pn"] for p in parts if p["reading"] == "cathode at pad 1" and p["pn"] in mapped}
+        self.assertEqual(len(expected), 25)
+        self.assertEqual(bound, expected)
+        reread = json.loads((gz.ROOT / again / "readings.json").read_text(encoding="utf-8"))["parts"]
+        self.assertEqual({p["pn"] for p in reread}, {p["pn"] for p in parts if p["reading"] == "reversed"})
+        expected_turned = {p["mpn"]: p["pn"] for p in reread if p["reading"] == "cathode at pad 1" and p["pn"] in mapped}
+        self.assertEqual(len(expected_turned), 10)
+        self.assertEqual(turned, expected_turned)
+        sod = re.search(r'^version = "([^"]+)"', (gz.ROOT / "lib/sod/cohdl.toml").read_text(), re.M)[1]
+        manifest = json.loads((gz.ROOT / record / "package/manifest.json").read_text(encoding="utf-8"))
+        self.assertEqual(manifest["dependencies"]["sod"], sod)
+        frames = [r for r in json.loads((gz.ROOT / "tools/sourcing_data/jlc_frames.json")
+                                        .read_text(encoding="utf-8"))["rows"]
+                  if r["pn"] in set(expected.values()) | set(expected_turned.values())]
+        self.assertEqual(len(frames), 35)
+        land = {p["pn"]: p["land"].split("::")[1] for p in parts}
+        for row in frames:
+            rotate = 180 if row["pn"] in expected_turned.values() else 0
+            with self.subTest(pn=row["pn"]):
+                self.assertEqual((row["package"], row["package_version"], row["footprint"]), ("sod", sod, land[row["pn"]]))
+                self.assertEqual(row["mapping"], {"dx_mm": 0, "dy_mm": 0, "rotate_deg": rotate})
+                self.assertEqual(row["evidence"]["record"], (again if rotate else record) + "/README.md")
+                applied = "rotate 180 applied" if rotate else "no mapping"
+                self.assertIn(f"polarity read by eye with {applied}", row["evidence"]["note"])
+
     @unittest.skipUnless(os.environ.get("COHDL_REMEASURE_PREVIEWS"), "set COHDL_REMEASURE_PREVIEWS=1")
     def test_the_body_readings_reproduce(self):
         script = gz.ROOT / "tools/sourcing_data/jlc_previews/2026-11-21-board-8/body.py"
-        for board in (8, 9, 10):
-            record = gz.ROOT / f"tools/sourcing_data/jlc_previews/2026-11-21-board-{board}"
+        for board in ("2026-11-21-board-8", "2026-11-21-board-9", "2026-11-21-board-10", "2026-11-24-board-20",
+                      "2026-11-25-board-21"):
+            record = gz.ROOT / "tools/sourcing_data/jlc_previews" / board
             with self.subTest(board=board), tempfile.TemporaryDirectory() as directory:
                 out = Path(directory, "body.json")
                 subprocess.run([sys.executable, "-I", "-B", str(script), str(record), str(out)], check=True)
@@ -134,6 +255,8 @@ class GenZenerTests(unittest.TestCase):
     def test_the_output_is_in_canonical_form(self):
         with tempfile.TemporaryDirectory() as directory:
             Path(directory, "zener.cohdl").write_text(gz.render(data()), encoding="utf-8")
+            Path(directory, "zener_sod323_sod523.cohdl").write_text(
+                gz.render_small(json.loads(gz.DATA_SMALL.read_text(encoding="utf-8"))), encoding="utf-8")
             result = subprocess.run([str(COMPILER), "fmt", directory, "--check"],
                                     capture_output=True, text=True)
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)

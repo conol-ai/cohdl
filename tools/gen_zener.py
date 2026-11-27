@@ -1,15 +1,24 @@
 #!/usr/bin/env python3
-"""Generate the Hongjiacheng SOD-123 Zener diodes of ``lib/diode``.
+"""Generate the Hongjiacheng Zener diodes of ``lib/diode``.
 
-``python3 -I tools/gen_zener.py [--check]`` writes ``lib/diode/src/zener.cohdl``
-and its evidence record ``lib/diode/docs/hongjiacheng-zener.evidence.md``
-from ``tools/diode_data/hongjiacheng_zener.json``, a transcription of seven
-Hongjiacheng datasheets (BZT52C, BZT52B, MMSZ52xxB, MMSZ46xx, MM1Z..B, MM1Z and
-MM1W). With
-``--check`` it writes nothing and fails if the committed file differs.
+``python3 -I tools/gen_zener.py [--check]`` writes two part files and their
+evidence records:
 
-Every part is one row of a sheet's electrical-characteristics table, on the
-sheets' common SOD-123 land ``sod::SOD3716X135N`` (pad 1 the cathode). The
+- ``lib/diode/src/zener.cohdl`` and ``lib/diode/docs/hongjiacheng-zener.evidence.md``
+  from ``tools/diode_data/hongjiacheng_zener.json``, a transcription of seven
+  Hongjiacheng SOD-123 datasheets (BZT52C, BZT52B, MMSZ52xxB, MMSZ46xx, MM1Z..B,
+  MM1Z and MM1W), on their common land ``sod::SOD3716X135N``; this file also
+  declares the ``Zener`` device;
+- ``lib/diode/src/zener_sod323_sod523.cohdl`` and
+  ``lib/diode/docs/hongjiacheng-zener-sod323-sod523.evidence.md`` from
+  ``tools/diode_data/hongjiacheng_zener_sod323.json``, five sheets (BZT52C..S,
+  BZT52B..S, MM3Z and MMSZ52xxBS on ``sod::SOD2613X110N``, BZX584C on
+  ``sod::SOD1608X70N``), where each series names its land.
+
+With ``--check`` it writes nothing and fails if a committed file differs.
+
+Every part is one row of a sheet's electrical-characteristics table, pad 1 the
+cathode. The
 device states the nominal Zener voltage and the sheet's rated power; each
 part's comment carries the row as printed (VZ min/nom/max at IZT, ZZT where
 the sheet gives it, IR at VR, marking, page). A row the data file lists under a
@@ -39,6 +48,10 @@ DATA = ROOT / "tools" / "diode_data" / "hongjiacheng_zener.json"
 OUT = ROOT / "lib" / "diode" / "src" / "zener.cohdl"
 EVIDENCE = ROOT / "lib" / "diode" / "docs" / "hongjiacheng-zener.evidence.md"
 DOC = "docs/hongjiacheng-zener.evidence.md"
+DATA_SMALL = ROOT / "tools" / "diode_data" / "hongjiacheng_zener_sod323.json"
+OUT_SMALL = ROOT / "lib" / "diode" / "src" / "zener_sod323_sod523.cohdl"
+EVIDENCE_SMALL = ROOT / "lib" / "diode" / "docs" / "hongjiacheng-zener-sod323-sod523.evidence.md"
+DOC_SMALL = "docs/hongjiacheng-zener-sod323-sod523.evidence.md"
 
 # The MPN's own voltage code: BZT52C5V6 -> 5.6, BZT52C10 -> 10, MM1Z5V6B -> 5.6.
 ENCODED = {
@@ -49,6 +62,11 @@ ENCODED = {
     "mm1w": re.compile(r"MM1W(\d+)(?:V(\d))?"),
     "mmsz": None,  # JEDEC 1N52xx numbering: the voltage is not in the name.
     "mmsz46": None,  # JEDEC 1N46xx numbering, likewise.
+    "bzt52c_s": re.compile(r"BZT52C(\d+)(?:V(\d))?S"),
+    "bzt52b_s": re.compile(r"BZT52B(\d+)(?:V(\d))?S"),
+    "mm3z": re.compile(r"MM3Z(\d+)(?:V(\d))?"),
+    "mmsz_s": None,  # JEDEC 1N52xx numbering with the SOD-323 "S" suffix.
+    "bzx584c": re.compile(r"BZX584C(\d+)(?:V(\d))?"),
 }
 
 
@@ -133,29 +151,62 @@ def render(data: dict, bindings: Bindings | None = None) -> str:
         "",
         "impl Diode for Zener {}",
     ]
-    footprint = data["package"]["footprint"]
-    mfr = data["manufacturer"]
     for series in data["series"]:
-        key = series["key"]
-        seen: set[str] = set()
-        if not series["parts"]:
-            raise DataError(f"gen_zener.py: series {key} has no parts")
-        out += ["", f"// ---- {series['title']}, {series['revision']}: PD {power(series['power_mw'])} ----"]
-        for row in series["parts"]:
-            check_row(key, row, seen)
-            if row["mpn"] in {o["mpn"] for o in series.get("omitted", [])}:
-                raise DataError(f"gen_zener.py: {row['mpn']} is both a part and omitted")
-            args = f"{literal(row['vz_nom_v'], 'V')}, {power(series['power_mw'])}"
-            # Laid out as `cohdl fmt` does, with the supplier clause when the part number has one.
-            entry = avl_entry(bindings, MANIFEST, "primary", mfr, row["mpn"], footprint).rstrip("\n").split("\n")
-            out += [
-                "",
-                comment(row),
-                f'#[doc("{DOC}")]',
-                f"pub part D_{row['mpn']}: Zener<{args}> {{",
-                *entry,
-                "}",
-            ]
+        out += series_parts(series, data["manufacturer"], data["package"]["footprint"], DOC, bindings)
+    return "\n".join(out) + "\n"
+
+
+def series_parts(series: dict, mfr: str, footprint: str, doc: str, bindings: Bindings) -> list[str]:
+    """One series' parts, after its heading comment."""
+    key = series["key"]
+    seen: set[str] = set()
+    if not series["parts"]:
+        raise DataError(f"gen_zener.py: series {key} has no parts")
+    out = ["", f"// ---- {series['title']}, {series['revision']}: PD {power(series['power_mw'])} ----"]
+    for row in series["parts"]:
+        check_row(key, row, seen)
+        if row["mpn"] in {o["mpn"] for o in series.get("omitted", [])}:
+            raise DataError(f"gen_zener.py: {row['mpn']} is both a part and omitted")
+        args = f"{literal(row['vz_nom_v'], 'V')}, {power(series['power_mw'])}"
+        # Laid out as `cohdl fmt` does, with the supplier clause when the part number has one.
+        entry = avl_entry(bindings, MANIFEST, "primary", mfr, row["mpn"], footprint).rstrip("\n").split("\n")
+        out += [
+            "",
+            comment(row),
+            f'#[doc("{doc}")]',
+            f"pub part D_{row['mpn']}: Zener<{args}> {{",
+            *entry,
+            "}",
+        ]
+    return out
+
+
+LANDS = {"sod::SOD2613X110N": "SOD-323", "sod::SOD1608X70N": "SOD-523"}
+
+
+def render_small(data: dict, bindings: Bindings | None = None) -> str:
+    """The SOD-323 and SOD-523 parts: the `Zener` device of zener.cohdl, each series on the land it names."""
+    bindings = Bindings(ROOT) if bindings is None else bindings
+    out = [
+        "// Zhuhai Hongjiacheng SOD-323 and SOD-523 Zener diodes (library plan, round 3).",
+        "//",
+        "// GENERATED by tools/gen_zener.py from tools/diode_data/hongjiacheng_zener_sod323.json",
+        "// — do not hand-edit. Every part is one row of a manufacturer sheet's",
+        "// electrical-characteristics table; the sheets and their checksums are in",
+        f"// {DOC_SMALL}.",
+        "//",
+        "// The four SOD-323 sheets print the outline and suggested pad layout",
+        "// `sod::SOD2613X110N` was drawn from, the SOD-523 sheet the one of",
+        "// `sod::SOD1608X70N`. Pad 1 is the cathode (the band end, at -x). The device",
+        "// is `Zener<VZ, P>` of zener.cohdl; each part's comment keeps its row. A part",
+        "// carries a supplier binding only with its own preview reading, as in",
+        "// zener.cohdl.",
+    ]
+    for series in data["series"]:
+        footprint = series["package"]["footprint"]
+        if footprint not in LANDS:
+            raise DataError(f"gen_zener.py: series {series['key']} names an unknown land {footprint}")
+        out += series_parts(series, data["manufacturer"], footprint, DOC_SMALL, bindings)
     return "\n".join(out) + "\n"
 
 
@@ -212,16 +263,68 @@ EVIDENCE_TAIL = """\
 - A row a sheet prints twice with different values is not a part (below)."""
 
 
-def render_evidence(data: dict) -> str:
+EVIDENCE_SMALL_HEAD = """\
+# Hongjiacheng SOD-323 and SOD-523 Zener evidence record (parts)
+
+- Library coverage: the 173 `D_<MPN>` parts in `src/zener_sod323_sod523.cohdl`,
+  generated by `tools/gen_zener.py` from
+  `tools/diode_data/hongjiacheng_zener_sod323.json`, on the `Zener` device of
+  `src/zener.cohdl`.
+- Manufacturer: Zhuhai Hongjiacheng Technology Co., Ltd (`www.ichjc.com` in every
+  sheet's header). As for the SOD-123 sheets, no manufacturer-hosted copy was
+  located, so these are the manufacturer's PDFs as served by LCSC. The PDFs are
+  not redistributed.
+- Retrieved: 2026-11-24, one viewer page and one PDF per sheet through
+  `tools/sourcing/http.py` (2 s spacing, robots.txt honoured), 12 requests in all.
+
+"""
+
+EVIDENCE_SMALL_TAIL = """\
+## Facts used
+
+- **Polarity (page 1 of every sheet):** "Polarity: Cathode line denotes the cathode
+  end". The outline drawing puts the cathode band on the left in top view. The
+  device puts the cathode on pad 1, at -x on the land, the `sod` convention.
+- **Package (last page of every sheet):** the four SOD-323 sheets print the same
+  "Package Outline Dimensions (SOD-323)" and "Suggested Pad Layout" tables:
+  A 1.60-1.80, C 2.30-2.80, E 1.20-1.40 mm; X 0.65-0.75, Y 0.65-0.75,
+  Z 2.10-2.20 mm. `sod::SOD2613X110N` has 0.70 x 0.70 mm lands at 2.15 mm
+  centres, inside every range. The BZX584C sheet prints the SOD-523 tables:
+  C 1.50-1.70, E 0.70-0.90 mm; X 0.55-0.65, Y 0.65-0.75, Z 1.37-1.47 mm, and
+  `sod::SOD1608X70N` has 0.60 x 0.70 mm lands at 1.42 mm centres.
+- **Power (page 1, Maximum Ratings):** PD 200 mW for the four SOD-323 series,
+  150 mW for BZX584C. This is the `P` of `Zener<VZ, P>`.
+- **Electrical characteristics (pages 2-3):** every row of each table, as printed:
+  VZ min/nom/max at IZT, ZZT, ZZK at IZK, IR at VR and the marking code; the
+  BZT52, MM3Z and BZX584C tables also give the temperature coefficient and the
+  MM3Z table its test current. The MM3Z table orders its columns ZZT before IZT;
+  the data file records each table's column order. `VZ` of `Zener<VZ, P>` is the
+  nominal column, and the generator checks min < nom < max for every row and,
+  where the MPN encodes the voltage, that it equals the nominal.
+- **Transcription corrections:** the BZT52B..S text layer prints `BZT52B3VOS`
+  (a letter O); the row is BZT52B3V0S by its marking 2W2, its place between
+  2V7 and 3V3 and the series' naming, which is how the B1 snapshot lists it.
+  The MM3Z table prints `63..8` as MM3Z56's maximum temperature coefficient; it
+  is recorded as 63.8. Each row keeps what was printed.
+
+## Not covered
+
+- Tolerance is not a device parameter, as in the SOD-123 record.
+- The B5819WS (SOD-323) and 1N4148WT (SOD-523) records found the assembler's
+  models a half turn from these lands. No Zener here has been previewed yet;
+  a part carries a supplier binding only with its own reading."""
+
+
+def render_evidence(data: dict, head: str = EVIDENCE_HEAD, tail: str = EVIDENCE_TAIL) -> str:
     """The evidence record: the sheets, the facts used, and every MPN's sheet."""
-    out = [EVIDENCE_HEAD.rstrip("\n"), "",
+    out = [head.rstrip("\n"), "",
            "| Sheet | Revision, pages, PDF created | Listing used | PDF as served by LCSC | Bytes | SHA-256 |",
            "|---|---|---|---|---:|---|"]
     for s in data["series"]:
         out.append(f"| {s['title']} | {s['revision']}, {s['pages']} pages, {s['pdf_created']} | "
                    f"[LCSC {s['listing_part']}]({s['lcsc_listing']}) | <{s['pdf_url']}> | "
                    f"{s['bytes']:,} | `{s['sha256']}` |")
-    out += ["", EVIDENCE_TAIL]
+    out += ["", tail]
     omitted = [(s, o) for s in data["series"] for o in s.get("omitted", [])]
     if omitted:
         out += ["", "## Rows not made parts", ""]
@@ -241,7 +344,13 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--check", action="store_true")
     args = ap.parse_args(argv)
     data = json.loads(DATA.read_text(encoding="utf-8"))
-    outputs = {OUT: render(data), EVIDENCE: render_evidence(data)}
+    small = json.loads(DATA_SMALL.read_text(encoding="utf-8"))
+    mpns = [r["mpn"] for d in (data, small) for s in d["series"] for r in s["parts"]]
+    if len(mpns) != len(set(mpns)):
+        raise DataError("gen_zener.py: an MPN appears in both data files")
+    outputs = {OUT: render(data), EVIDENCE: render_evidence(data),
+               OUT_SMALL: render_small(small),
+               EVIDENCE_SMALL: render_evidence(small, EVIDENCE_SMALL_HEAD, EVIDENCE_SMALL_TAIL)}
     if args.check:
         stale = [p for p, text in outputs.items() if not p.exists() or p.read_text(encoding="utf-8") != text]
         for p in stale:

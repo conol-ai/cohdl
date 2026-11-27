@@ -54,7 +54,8 @@ REGENERATE = {"lcsc-batch-1": "lcsc_batch_1.py", "lcsc-batch-2-passive": "lcsc_b
               "preview-board-11": "preview_board_11.py", "preview-board-12": "preview_board_12.py",
               "preview-board-15": "preview_board_15.py", "preview-board-16": "preview_board_16.py",
               "preview-board-18": "preview_board_18.py",
-              "preview-board-19": "preview_board_19.py"}
+              "preview-board-19": "preview_board_19.py", "preview-board-20": "preview_board_20.py",
+              "preview-board-21": "preview_board_21.py"}
 
 # The layers the assembler fabricates from; courtyard, fab and user layers stay out.
 GERBER_LAYERS = ("F_Cu", "B_Cu", "F_Mask", "B_Mask", "F_Paste", "B_Paste",

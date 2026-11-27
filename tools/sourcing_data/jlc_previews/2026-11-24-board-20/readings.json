@@ -1,0 +1,863 @@
+{
+ "schema_version": 1,
+ "method": "read by eye from contact sheets of the lossless exports (../2026-11-21-board-8/contact_sheet.py, and the same crops at 3.6 and 2.5 mm squares): the model's cathode band and its '-' sign against our pad 1 (the land's band end, where our silkscreen bar is), on each of the four copies",
+ "readings": {
+  "cathode at pad 1": "band and '-' at our pad 1 on all four copies: mapping (0, 0, 0)",
+  "reversed": "'+' at our pad 1, band and '-' at our pad 2, on all four copies: candidate rotate 180, not a binding until a re-verify board confirms it",
+  "not drawn": "the assembler drew a placeholder, no model: nothing read"
+ },
+ "parts": [
+  {
+   "pn": "C22399886",
+   "mpn": "BZT52B10S",
+   "land": "sod::SOD2613X110N",
+   "designators": [
+    "D1",
+    "D2",
+    "D3",
+    "D4"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C22395572",
+   "mpn": "BZT52B12S",
+   "land": "sod::SOD2613X110N",
+   "designators": [
+    "D5",
+    "D6",
+    "D7",
+    "D8"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C19077434",
+   "mpn": "BZT52B5V1S",
+   "land": "sod::SOD2613X110N",
+   "designators": [
+    "D9",
+    "D10",
+    "D11",
+    "D12"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C19077435",
+   "mpn": "BZT52B5V6S",
+   "land": "sod::SOD2613X110N",
+   "designators": [
+    "D13",
+    "D14",
+    "D15",
+    "D16"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C22399884",
+   "mpn": "BZT52B8V2S",
+   "land": "sod::SOD2613X110N",
+   "designators": [
+    "D17",
+    "D18",
+    "D19",
+    "D20"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C22399885",
+   "mpn": "BZT52B9V1S",
+   "land": "sod::SOD2613X110N",
+   "designators": [
+    "D21",
+    "D22",
+    "D23",
+    "D24"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C19077446",
+   "mpn": "BZT52C10S",
+   "land": "sod::SOD2613X110N",
+   "designators": [
+    "D25",
+    "D26",
+    "D27",
+    "D28"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C22375287",
+   "mpn": "BZT52C11S",
+   "land": "sod::SOD2613X110N",
+   "designators": [
+    "D29",
+    "D30",
+    "D31",
+    "D32"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C19077447",
+   "mpn": "BZT52C12S",
+   "land": "sod::SOD2613X110N",
+   "designators": [
+    "D33",
+    "D34",
+    "D35",
+    "D36"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C22399889",
+   "mpn": "BZT52C13S",
+   "land": "sod::SOD2613X110N",
+   "designators": [
+    "D37",
+    "D38",
+    "D39",
+    "D40"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C19077448",
+   "mpn": "BZT52C15S",
+   "land": "sod::SOD2613X110N",
+   "designators": [
+    "D41",
+    "D42",
+    "D43",
+    "D44"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C19077449",
+   "mpn": "BZT52C16S",
+   "land": "sod::SOD2613X110N",
+   "designators": [
+    "D45",
+    "D46",
+    "D47",
+    "D48"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C19077450",
+   "mpn": "BZT52C18S",
+   "land": "sod::SOD2613X110N",
+   "designators": [
+    "D49",
+    "D50",
+    "D51",
+    "D52"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C19077451",
+   "mpn": "BZT52C20S",
+   "land": "sod::SOD2613X110N",
+   "designators": [
+    "D53",
+    "D54",
+    "D55",
+    "D56"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C22375288",
+   "mpn": "BZT52C22S",
+   "land": "sod::SOD2613X110N",
+   "designators": [
+    "D57",
+    "D58",
+    "D59",
+    "D60"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C22375289",
+   "mpn": "BZT52C24S",
+   "land": "sod::SOD2613X110N",
+   "designators": [
+    "D61",
+    "D62",
+    "D63",
+    "D64"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C22375300",
+   "mpn": "BZT52C27S",
+   "land": "sod::SOD2613X110N",
+   "designators": [
+    "D65",
+    "D66",
+    "D67",
+    "D68"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C22375290",
+   "mpn": "BZT52C2V4S",
+   "land": "sod::SOD2613X110N",
+   "designators": [
+    "D69",
+    "D70",
+    "D71",
+    "D72"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C22375298",
+   "mpn": "BZT52C2V7S",
+   "land": "sod::SOD2613X110N",
+   "designators": [
+    "D73",
+    "D74",
+    "D75",
+    "D76"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C22375291",
+   "mpn": "BZT52C30S",
+   "land": "sod::SOD2613X110N",
+   "designators": [
+    "D77",
+    "D78",
+    "D79",
+    "D80"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C22375292",
+   "mpn": "BZT52C33S",
+   "land": "sod::SOD2613X110N",
+   "designators": [
+    "D81",
+    "D82",
+    "D83",
+    "D84"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C22375293",
+   "mpn": "BZT52C36S",
+   "land": "sod::SOD2613X110N",
+   "designators": [
+    "D85",
+    "D86",
+    "D87",
+    "D88"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C19077436",
+   "mpn": "BZT52C3V0S",
+   "land": "sod::SOD2613X110N",
+   "designators": [
+    "D89",
+    "D90",
+    "D91",
+    "D92"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C19077437",
+   "mpn": "BZT52C3V3S",
+   "land": "sod::SOD2613X110N",
+   "designators": [
+    "D93",
+    "D94",
+    "D95",
+    "D96"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C19077438",
+   "mpn": "BZT52C3V6S",
+   "land": "sod::SOD2613X110N",
+   "designators": [
+    "D97",
+    "D98",
+    "D99",
+    "D100"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C22375299",
+   "mpn": "BZT52C3V9S",
+   "land": "sod::SOD2613X110N",
+   "designators": [
+    "D101",
+    "D102",
+    "D103",
+    "D104"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C22399888",
+   "mpn": "BZT52C4V3S",
+   "land": "sod::SOD2613X110N",
+   "designators": [
+    "D105",
+    "D106",
+    "D107",
+    "D108"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C19077439",
+   "mpn": "BZT52C4V7S",
+   "land": "sod::SOD2613X110N",
+   "designators": [
+    "D109",
+    "D110",
+    "D111",
+    "D112"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C19077440",
+   "mpn": "BZT52C5V1S",
+   "land": "sod::SOD2613X110N",
+   "designators": [
+    "D113",
+    "D114",
+    "D115",
+    "D116"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C19077441",
+   "mpn": "BZT52C5V6S",
+   "land": "sod::SOD2613X110N",
+   "designators": [
+    "D117",
+    "D118",
+    "D119",
+    "D120"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C19077442",
+   "mpn": "BZT52C6V2S",
+   "land": "sod::SOD2613X110N",
+   "designators": [
+    "D121",
+    "D122",
+    "D123",
+    "D124"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C19077443",
+   "mpn": "BZT52C6V8S",
+   "land": "sod::SOD2613X110N",
+   "designators": [
+    "D125",
+    "D126",
+    "D127",
+    "D128"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C19077444",
+   "mpn": "BZT52C7V5S",
+   "land": "sod::SOD2613X110N",
+   "designators": [
+    "D129",
+    "D130",
+    "D131",
+    "D132"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C22375294",
+   "mpn": "BZT52C8V2S",
+   "land": "sod::SOD2613X110N",
+   "designators": [
+    "D133",
+    "D134",
+    "D135",
+    "D136"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C19077445",
+   "mpn": "BZT52C9V1S",
+   "land": "sod::SOD2613X110N",
+   "designators": [
+    "D137",
+    "D138",
+    "D139",
+    "D140"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C22395577",
+   "mpn": "BZX584C10",
+   "land": "sod::SOD1608X70N",
+   "designators": [
+    "D141",
+    "D142",
+    "D143",
+    "D144"
+   ],
+   "reading": "reversed"
+  },
+  {
+   "pn": "C22395578",
+   "mpn": "BZX584C11",
+   "land": "sod::SOD1608X70N",
+   "designators": [
+    "D145",
+    "D146",
+    "D147",
+    "D148"
+   ],
+   "reading": "reversed"
+  },
+  {
+   "pn": "C22395579",
+   "mpn": "BZX584C12",
+   "land": "sod::SOD1608X70N",
+   "designators": [
+    "D149",
+    "D150",
+    "D151",
+    "D152"
+   ],
+   "reading": "reversed"
+  },
+  {
+   "pn": "C22395580",
+   "mpn": "BZX584C13",
+   "land": "sod::SOD1608X70N",
+   "designators": [
+    "D153",
+    "D154",
+    "D155",
+    "D156"
+   ],
+   "reading": "reversed"
+  },
+  {
+   "pn": "C19077466",
+   "mpn": "BZX584C15",
+   "land": "sod::SOD1608X70N",
+   "designators": [
+    "D157",
+    "D158",
+    "D159",
+    "D160"
+   ],
+   "reading": "reversed"
+  },
+  {
+   "pn": "C22395581",
+   "mpn": "BZX584C18",
+   "land": "sod::SOD1608X70N",
+   "designators": [
+    "D161",
+    "D162",
+    "D163",
+    "D164"
+   ],
+   "reading": "reversed"
+  },
+  {
+   "pn": "C22395573",
+   "mpn": "BZX584C2V4",
+   "land": "sod::SOD1608X70N",
+   "designators": [
+    "D165",
+    "D166",
+    "D167",
+    "D168"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C22395582",
+   "mpn": "BZX584C39",
+   "land": "sod::SOD1608X70N",
+   "designators": [
+    "D169",
+    "D170",
+    "D171",
+    "D172"
+   ],
+   "reading": "reversed"
+  },
+  {
+   "pn": "C19077462",
+   "mpn": "BZX584C3V3",
+   "land": "sod::SOD1608X70N",
+   "designators": [
+    "D173",
+    "D174",
+    "D175",
+    "D176"
+   ],
+   "reading": "reversed"
+  },
+  {
+   "pn": "C22395574",
+   "mpn": "BZX584C3V6",
+   "land": "sod::SOD1608X70N",
+   "designators": [
+    "D177",
+    "D178",
+    "D179",
+    "D180"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C22395575",
+   "mpn": "BZX584C3V9",
+   "land": "sod::SOD1608X70N",
+   "designators": [
+    "D181",
+    "D182",
+    "D183",
+    "D184"
+   ],
+   "reading": "reversed"
+  },
+  {
+   "pn": "C22395576",
+   "mpn": "BZX584C4V3",
+   "land": "sod::SOD1608X70N",
+   "designators": [
+    "D185",
+    "D186",
+    "D187",
+    "D188"
+   ],
+   "reading": "reversed"
+  },
+  {
+   "pn": "C19077463",
+   "mpn": "BZX584C5V1",
+   "land": "sod::SOD1608X70N",
+   "designators": [
+    "D189",
+    "D190",
+    "D191",
+    "D192"
+   ],
+   "reading": "reversed"
+  },
+  {
+   "pn": "C19077464",
+   "mpn": "BZX584C5V6",
+   "land": "sod::SOD1608X70N",
+   "designators": [
+    "D193",
+    "D194",
+    "D195",
+    "D196"
+   ],
+   "reading": "reversed"
+  },
+  {
+   "pn": "C19077465",
+   "mpn": "BZX584C9V1",
+   "land": "sod::SOD1608X70N",
+   "designators": [
+    "D197",
+    "D198",
+    "D199",
+    "D200"
+   ],
+   "reading": "reversed"
+  },
+  {
+   "pn": "C19077459",
+   "mpn": "MM3Z10",
+   "land": "sod::SOD2613X110N",
+   "designators": [
+    "D201",
+    "D202",
+    "D203",
+    "D204"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C19077460",
+   "mpn": "MM3Z12",
+   "land": "sod::SOD2613X110N",
+   "designators": [
+    "D205",
+    "D206",
+    "D207",
+    "D208"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C22399890",
+   "mpn": "MM3Z15",
+   "land": "sod::SOD2613X110N",
+   "designators": [
+    "D209",
+    "D210",
+    "D211",
+    "D212"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C19077461",
+   "mpn": "MM3Z18",
+   "land": "sod::SOD2613X110N",
+   "designators": [
+    "D213",
+    "D214",
+    "D215",
+    "D216"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C19077452",
+   "mpn": "MM3Z3V0",
+   "land": "sod::SOD2613X110N",
+   "designators": [
+    "D217",
+    "D218",
+    "D219",
+    "D220"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C19077453",
+   "mpn": "MM3Z3V3",
+   "land": "sod::SOD2613X110N",
+   "designators": [
+    "D221",
+    "D222",
+    "D223",
+    "D224"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C19077454",
+   "mpn": "MM3Z3V6",
+   "land": "sod::SOD2613X110N",
+   "designators": [
+    "D225",
+    "D226",
+    "D227",
+    "D228"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C22399891",
+   "mpn": "MM3Z4V7",
+   "land": "sod::SOD2613X110N",
+   "designators": [
+    "D229",
+    "D230",
+    "D231",
+    "D232"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C22395542",
+   "mpn": "MM3Z51",
+   "land": "sod::SOD2613X110N",
+   "designators": [
+    "D233",
+    "D234",
+    "D235",
+    "D236"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C22399892",
+   "mpn": "MM3Z56",
+   "land": "sod::SOD2613X110N",
+   "designators": [
+    "D237",
+    "D238",
+    "D239",
+    "D240"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C19077455",
+   "mpn": "MM3Z5V1",
+   "land": "sod::SOD2613X110N",
+   "designators": [
+    "D241",
+    "D242",
+    "D243",
+    "D244"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C19077456",
+   "mpn": "MM3Z5V6",
+   "land": "sod::SOD2613X110N",
+   "designators": [
+    "D245",
+    "D246",
+    "D247",
+    "D248"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C19077457",
+   "mpn": "MM3Z6V2",
+   "land": "sod::SOD2613X110N",
+   "designators": [
+    "D249",
+    "D250",
+    "D251",
+    "D252"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C19077458",
+   "mpn": "MM3Z6V8",
+   "land": "sod::SOD2613X110N",
+   "designators": [
+    "D253",
+    "D254",
+    "D255",
+    "D256"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C22399893",
+   "mpn": "MM3Z9V1",
+   "land": "sod::SOD2613X110N",
+   "designators": [
+    "D257",
+    "D258",
+    "D259",
+    "D260"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C22395562",
+   "mpn": "MMSZ5231BS",
+   "land": "sod::SOD2613X110N",
+   "designators": [
+    "D261",
+    "D262",
+    "D263",
+    "D264"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C22395563",
+   "mpn": "MMSZ5232BS",
+   "land": "sod::SOD2613X110N",
+   "designators": [
+    "D265",
+    "D266",
+    "D267",
+    "D268"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C22395564",
+   "mpn": "MMSZ5239BS",
+   "land": "sod::SOD2613X110N",
+   "designators": [
+    "D269",
+    "D270",
+    "D271",
+    "D272"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C22395565",
+   "mpn": "MMSZ5246BS",
+   "land": "sod::SOD2613X110N",
+   "designators": [
+    "D273",
+    "D274",
+    "D275",
+    "D276"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C22395566",
+   "mpn": "MMSZ5248BS",
+   "land": "sod::SOD2613X110N",
+   "designators": [
+    "D277",
+    "D278",
+    "D279",
+    "D280"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C22395567",
+   "mpn": "MMSZ5250BS",
+   "land": "sod::SOD2613X110N",
+   "designators": [
+    "D281",
+    "D282",
+    "D283",
+    "D284"
+   ],
+   "reading": "cathode at pad 1"
+  }
+ ]
+}

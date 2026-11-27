@@ -25,6 +25,8 @@ HONGJIACHENG = FULL.parent / "2026-11-11-hongjiacheng"
 ZENER = FULL.parent / "2026-11-21-hongjiacheng-zener"
 SOT23 = FULL.parent / "2026-11-23-sot23"
 SOT23_2 = FULL.parent / "2026-11-24-sot23-2"
+# diode 0.1.5: 35 of the 71 SOD-323/SOD-523 Zeners (36 stay in review, page_unparsed).
+ZENER2 = FULL.parent / "2026-11-24-zener2"
 EMPTY = {"schema_version": 1, "supplier": "lcsc", "rows": []}
 
 
@@ -112,6 +114,14 @@ class PromoteTests(unittest.TestCase):
         code, out, _ = self.promote("--aliases", str(pm.ALIASES), run=FULL.parent / "2026-11-26-merge-sot23")
         self.assertEqual(code, 0)
         self.assertIn("12869 rows, 12869 changed", out)
+        # The SOD-323/SOD-523 Zener run adds 35 snapshot Zeners and re-dates its rows.
+        code, out, _ = self.promote("--aliases", str(current), run=ZENER2)
+        self.assertEqual(code, 0)
+        self.assertIn("12904 rows, 12615 changed", out)
+        # Merging the updated SOT-23 branch: one offline run re-dates every row to a single snapshot.
+        code, out, _ = self.promote("--aliases", str(pm.ALIASES), run=FULL.parent / "2026-11-26-merge-zener2")
+        self.assertEqual(code, 0)
+        self.assertIn("12904 rows, 12904 changed", out)
         self.assertEqual(self.map.read_bytes(), (ROOT / "tools/sourcing_data/lcsc_map.json").read_bytes())
 
     def test_check_writes_nothing(self):

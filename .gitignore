@@ -21,7 +21,6 @@ examples/*/out/*.html
 examples/*/out/*.svg
 examples/*/out/*.kicad_pcb
 examples/*/out/*.kicad_pro
-examples/*/out/*.kicad_prl
 examples/*/out/*.lck
 examples/*/out/.history/
 /registry/node_modules
@@ -38,3 +37,6 @@ examples/*/out/.history/
 
 # Python bytecode from running tools/
 __pycache__/
+
+# KiCad's per-user project state (open layers, selection filter); never part of a design
+*.kicad_prl

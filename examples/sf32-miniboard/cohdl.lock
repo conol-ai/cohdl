@@ -52,13 +52,13 @@ hash = "sha256:09f5c34710bd70d8c866646c424f980fa09e6873d34ed538543a0c58d15f74bf"
 
 [[package]]
 name = "load-switch"
-version = "0.2.1"
-hash = "sha256:3b7879ab142f14e9b87c09e144e37e25dd54b9ed67d91d65d4ed823433f6e75f"
+version = "0.2.2"
+hash = "sha256:f9e6b19e9c9bdc12e936b56b124e5747badfe7c41c50d17178eebd33fb0579f9"
 
 [[package]]
 name = "misc"
-version = "0.1.2"
-hash = "sha256:56ab9ad64d72e9f503451a75ccc3ce5fae3a0d9e56ca2ee7478b0a8ff18c3162"
+version = "0.1.4"
+hash = "sha256:ed207e26f73f8c495f27fd5ac19e141a92b899ec73b05642d0247c66ff6409e9"
 
 [[package]]
 name = "osc"
@@ -84,6 +84,11 @@ hash = "sha256:5f24ff5d7235f2757e970e0dad57a562ba8cb268a804b00d393848d33239d58d"
 name = "soic"
 version = "0.3.0"
 hash = "sha256:faa12734be8c93a602b4a3d24a5e40f23d41ea6e030ae7fbe4008a8f5568c8db"
+
+[[package]]
+name = "son"
+version = "0.1.0"
+hash = "sha256:dabae12b095e5541b0d56e4e5f253dd67c01d31e951b7bec0a75588461583f9a"
 
 [[package]]
 name = "sot"

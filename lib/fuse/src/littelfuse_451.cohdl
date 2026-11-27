@@ -1,0 +1,149 @@
+// Littelfuse 451 series NANO2 very fast-acting surface-mount fuses.
+// Datasheet "NANO2 > Very Fast-Acting Fuse > 451/453 Series", revised
+// 09/10/15 (docs/littelfuse-451.evidence.md). Ratings table on p2;
+// dimensions, recommended pad layout and part numbering on p4.
+//
+// Family model: every 451 fuse is the same two-terminal body on the same
+// land. The members differ in the ampere rating, which is the function of
+// the part, so each rating is its own device with its own
+// `current_rating`; a fuse of one rating is never an alternate of
+// another. A part is one orderable code: series 0451, the amp code of p2,
+// M (1000 pieces), R (tape and reel), L (RoHS, halogen free; p4).
+// docs/README.md ("451 family") lists the members carried and left out.
+
+// A fuse is a non-polar two-terminal part with its own designator.
+pub trait Fuse: TwoTerminal {
+    designator_prefix: "F"
+}
+
+// 0.500A: 125V, interrupting 50A at 125VAC/VDC, nominal cold resistance
+// 0.4200 ohm, nominal melting I2t 0.0824 A2s (p2).
+#[doc("docs/littelfuse-451.evidence.md")]
+pub device Fuse_451_0A5 {
+    pins {
+        required A: 1 [passive]
+        required B: 2 [passive]
+    }
+    spec {
+        current_rating: 500mA
+        voltage_rating: 125V
+    }
+}
+
+impl TwoTerminal for Fuse_451_0A5 {}
+impl Fuse for Fuse_451_0A5 {}
+
+#[doc("docs/littelfuse-451.evidence.md")]
+pub part FUSE_451_0A5: Fuse_451_0A5 {
+    primary { mfr: "Littelfuse", mpn: "0451.500MRL", footprint: FP_LITTELFUSE_NANO2 }
+}
+
+// 1.00A: 125V, interrupting 50A at 125VAC/VDC, nominal cold resistance
+// 0.1530 ohm, nominal melting I2t 0.6029 A2s (p2).
+#[doc("docs/littelfuse-451.evidence.md")]
+pub device Fuse_451_1A {
+    pins {
+        required A: 1 [passive]
+        required B: 2 [passive]
+    }
+    spec {
+        current_rating: 1A
+        voltage_rating: 125V
+    }
+}
+
+impl TwoTerminal for Fuse_451_1A {}
+impl Fuse for Fuse_451_1A {}
+
+#[doc("docs/littelfuse-451.evidence.md")]
+pub part FUSE_451_1A: Fuse_451_1A {
+    primary { mfr: "Littelfuse", mpn: "0451001.MRL", footprint: FP_LITTELFUSE_NANO2 }
+}
+
+// 2.00A: 125V, interrupting 50A at 125VAC/VDC, nominal cold resistance
+// 0.0367 ohm, nominal melting I2t 0.530 A2s (p2).
+#[doc("docs/littelfuse-451.evidence.md")]
+pub device Fuse_451_2A {
+    pins {
+        required A: 1 [passive]
+        required B: 2 [passive]
+    }
+    spec {
+        current_rating: 2A
+        voltage_rating: 125V
+    }
+}
+
+impl TwoTerminal for Fuse_451_2A {}
+impl Fuse for Fuse_451_2A {}
+
+#[doc("docs/littelfuse-451.evidence.md")]
+pub part FUSE_451_2A: Fuse_451_2A {
+    primary { mfr: "Littelfuse", mpn: "0451002.MRL", footprint: FP_LITTELFUSE_NANO2 }
+}
+
+// 3.00A: 125V, interrupting 50A at 125VAC/VDC, nominal cold resistance
+// 0.0227 ohm, nominal melting I2t 1.650 A2s (p2).
+#[doc("docs/littelfuse-451.evidence.md")]
+pub device Fuse_451_3A {
+    pins {
+        required A: 1 [passive]
+        required B: 2 [passive]
+    }
+    spec {
+        current_rating: 3A
+        voltage_rating: 125V
+    }
+}
+
+impl TwoTerminal for Fuse_451_3A {}
+impl Fuse for Fuse_451_3A {}
+
+#[doc("docs/littelfuse-451.evidence.md")]
+pub part FUSE_451_3A: Fuse_451_3A {
+    primary { mfr: "Littelfuse", mpn: "0451003.MRL", footprint: FP_LITTELFUSE_NANO2 }
+}
+
+// 4.00A: 125V, interrupting 50A at 125VAC/VDC, nominal cold resistance
+// 0.0160 ohm, nominal melting I2t 3.152 A2s (p2).
+#[doc("docs/littelfuse-451.evidence.md")]
+pub device Fuse_451_4A {
+    pins {
+        required A: 1 [passive]
+        required B: 2 [passive]
+    }
+    spec {
+        current_rating: 4A
+        voltage_rating: 125V
+    }
+}
+
+impl TwoTerminal for Fuse_451_4A {}
+impl Fuse for Fuse_451_4A {}
+
+#[doc("docs/littelfuse-451.evidence.md")]
+pub part FUSE_451_4A: Fuse_451_4A {
+    primary { mfr: "Littelfuse", mpn: "0451004.MRL", footprint: FP_LITTELFUSE_NANO2 }
+}
+
+// Littelfuse "Recommended pad layout" (p4): two 1.96 x 3.15mm lands,
+// 2.95mm apart, 6.86mm overall. 2 x 1.96 + 2.95 is 6.87mm; the land keeps
+// the land size and the 6.86mm overall dimension, so the centres are at
+// +/-2.45mm and the gap is 2.94mm.
+pub pad P_LITTELFUSE_NANO2 {
+    shape: rect
+    size: (1.96mm, 3.15mm)
+    layer: top_copper
+    plating: smd
+}
+
+// The fuse is symmetric: pad 1 at -x and pad 2 at +x are interchangeable,
+// and there is no polarity or pin 1 mark. The body is 6.10 +/-0.20mm long
+// and 2.69 +/-0.25mm square (p4). The courtyard is 0.25mm beyond the
+// 6.86 x 3.15mm copper, which also contains the 6.30 x 2.94mm maximum body.
+pub footprint FP_LITTELFUSE_NANO2 {
+    pad 1: P_LITTELFUSE_NANO2 at (-2.45mm, 0mm)
+    pad 2: P_LITTELFUSE_NANO2 at (2.45mm, 0mm)
+    courtyard { shape: rect, at: (0mm, 0mm), size: (7.4mm, 3.7mm) }
+    silkscreen_ref { at: (0mm, -2.6mm) }
+}

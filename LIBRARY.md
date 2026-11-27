@@ -224,6 +224,66 @@ pub part PART_NAME: DEVICE_NAME {
 Cross-check pin tables in both directions: source-to-model and model-to-source.
 This caught the previously swapped WROOM `RXD0` and `TXD0` pins.
 
+### Two conventions a pin-table check will meet
+
+These are library conventions, not transcriptions. A verifier comparing a
+device with its datasheet should not report either as a defect.
+
+**Unnumbered thermal pads take the next number.** Many datasheets name the
+exposed pad ("Thermal Pad 1", "PowerPAD", "PAD") and give it an electrical
+function without printing a pin number. TPS25982's table lists `IN` as
+"1, 2, 3, 16, Pad 1" and `GND` as "4, 5, 14, Pad 2". A land binding needs
+an identifier, so such a pad is numbered after the last numbered pin: 7 on
+a six-pin part, 9 on an eight-pin part, 25 and 26 for TPS25982's two pads,
+in the datasheet's own order. The number is ours, not the datasheet's. The
+pad's function is the datasheet's: list the number with the pin it is
+internally joined to (`GND: 5, 7`), or as a pin of its own when the sheet
+gives it one (a `PAD` that may float). This is the tab rule of section 4
+applied to exposed pads.
+
+**`passive` ends and `output` begins at the driver DRC.** A role is not a
+transcription of the datasheet's "type" column. `docs/provisional-syntax.md`
+says: "Driver-type pins = `output` and `power_out`. Only the two driver DRC
+rules (D003/D004) consume roles." So `output` means one thing: this pin
+drives its net, and a second driver on that net is an error. A pin whose
+job is to carry a programming resistor or capacitor is `passive`, even
+when the datasheet types it "Analog Output". TPS25982 shows both on
+adjacent pins, each typed "Analog Output" by TI: `ILIM` takes a resistor
+to GND that sets the current limit, so it is `passive`; `IMON` sources a
+current proportional to the load current, so it is `output`.
+
+### Ratings a DRC reads
+
+**`voltage_rating` is the maximum recommended operating voltage, never the
+absolute maximum.** D001 fires when an instance's rating is lower than the
+voltage annotated on its net, so the field must carry the highest voltage at
+which the manufacturer still guarantees operation. The absolute-maximum
+table usually sits a few rows away with a slightly larger number, and taking
+that number silences the rule through the whole band where the part is
+already out of specification. TLV755P is the example that caught this: the
+recommended operating maximum of VIN is 5.5 V (section 5.3) and 6.0 V is the
+absolute maximum (section 5.1), so 6.0 V would have passed a 5.8 V rail.
+LP5912 is the same shape at a smaller margin, 6.5 V recommended against 7.0 V
+absolute. Record the margin in a comment at the `spec` block, so the next
+reader does not "correct" the value back to the bigger number.
+
+**A rating that varies across a family forces one device per rating.** Specs
+live on the device; a part carries a device, an MPN and a footprint, and no
+spec of its own. Two members that share a pin table but differ in a rating
+are therefore separate devices over one footprint, which is the same rule
+that separates members by enable polarity or threshold. The SMBJ TVS pair is
+the worked case: two devices, one polarity each, both at 30 V standoff, with
+the 30 V in the device and the maker in the parts.
+
+**Leaving `spec` out is a hole, not a neutral choice.** D001 has nothing to
+compare, so an unrated device never raises a voltage-exceed diagnostic. These
+devices in the demand batch carry no rating and are blind to D001 until one
+is written from their sheets: `TPS25982`, `TPS259827O`, `TPS26620`,
+`TPS26630`, `TPS26631`, `TPS26632`, `TPS22918`, `TPS2552`, `TPS2553`,
+`TPS2552_DRV`, `TPS2553_DRV`. Do not fill any of them by guessing a voltage
+that "looks like" the family's; take it from the recommended operating
+conditions table and cite the page.
+
 ## 4. Build footprints from checked geometry
 
 Never ship an empty or nominal placeholder for a referenced footprint. For

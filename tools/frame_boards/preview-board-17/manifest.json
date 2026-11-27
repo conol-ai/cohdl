@@ -1,7 +1,7 @@
 {
  "name": "preview_board_17",
  "dependencies": {
-  "diode": "0.1.5",
+  "diode": "0.1.6",
   "esd": "0.1.5",
   "sot": "0.1.2",
   "std": "0.3.0"

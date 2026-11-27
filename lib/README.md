@@ -25,28 +25,31 @@ footprints live in focused packages:
 | `soic` | `soic::SOIC8P127X790X216N` | audited SOIC and TSSOP package land patterns |
 | `sot` | `sot::SOT3P190X290X130N`, `sot::SOT3P150X450X250N`, `sot::SOT3P130X200X125N`, `sot::SOT4P230X651X351N` | reusable SOT-23/SOT-89/SOT-323/SOT-223 land patterns for new parts, on the assembler's frame (W4); the SOT-89 tab is pad 2, the SOT-223 tab is pad 4; `transistor::FP_JSCJ_SOT23` remains for existing users |
 | `sod` | `sod::SOD3716X135N`, `sod::SOD2613X110N`, `sod::SODFL3818X120N`, `sod::SOD1608X70N` | reusable SOD-123/SOD-323/SOD-123FL/SOD-523 land patterns for new parts (W4); `diode::FP_D_SOD_123` remains for existing users, and `diode::FP_D_SOD_123W` (Nexperia CFP3) is a different body |
+| `son` | `son::TI_DRV0006A` | SON / WSON lands shared by parts of more than one package; `qfn` keeps the SON lands it already owns |
 | `do214` | `do214::DIOM5026X241N`, `do214::DIOM5336X265N`, `do214::DIOM7959X261N`, `do214::FP_DO221AC_SMAF` | reusable DO-214 (SMA/SMB/SMC) and SMAF land patterns for new parts (W4) |
 | `connectors` | `connectors::headers::micro_fit_3::MOLEX_43045_0612` | general-purpose board connectors, keyed power/actuator harnesses, and headers |
 | `usb` | `usb::connectors::type_c::USB_C_HRO_TYPE_C_31_M_12` | USB connectors, including Type-C and Micro-B, and controllers |
 | `esd` | `esd::ESD_USBLC6`, `esd::ESD_H5VL10B`, `esd::TVS_SMBJ6V0CA` | ESD protection devices and bidirectional TVS diodes |
-| `diode` | `diode::D_1N4148W`, `diode::SCHOTTKY_SS34` | discrete diodes |
+| `diode` | `diode::D_1N4148W`, `diode::SCHOTTKY_SS34`, `diode::TVS_VISHAY_SMBJ30A`, `diode::TVS_VISHAY_SMBJ30CA` | discrete diodes and the SMBJ TVS family, unidirectional and bidirectional as separate devices |
 | `flash` | `flash::FLASH_W25Q32`, `flash::FLASH_W25Q128JVSIQ`, `flash::FLASH_W25Q128JVPIQ` | nonvolatile NOR flash memories |
-| `ldo` | `ldo::LDO_AP2112K_3V3`, `ldo::LDO_RT9193_15PB` | low-dropout regulators |
+| `ldo` | `ldo::LDO_AP2112K_3V3`, `ldo::LDO_RT9193_15PB`, `ldo::LDO_LP5912_3V3`, `ldo::LDO_TLV75533PDRVR` | low-dropout regulators, including the TI LP5912 and TLV755P families on `son::TI_DRV0006A` |
 | `led` | `led::LED_RED_0603` | discrete/addressable LEDs and their traits |
 | `mosfet` | `mosfet::FET_DMG1012T` | discrete MOSFETs |
+| `fuse` | `fuse::FUSE_451_1A` | board-mount fuses and the `Fuse` trait |
+| `transistor` | `transistor::BJT_JSCJ_S8050_J3Y`, `transistor::FET_BSS138` | discrete bipolar transistors and the onsemi BSS138 small-signal MOSFET (on `sot::SOT3P190X290X130N`) |
 | `osc` | `osc::XTAL_8M`, `osc::XTAL_40MHZ` | crystals and oscillators |
 | `mic` | `mic::MIC_ICS43434` | microphones and the `Microphone` trait |
 | `audio-amp` | `audio_amp::AMP_NS4168` | audio power amplifiers with verified land patterns |
-| `dcdc` | `dcdc::DCDC_JW5033S` | DC/DC step-down converters with verified land patterns |
+| `dcdc` | `dcdc::DCDC_JW5033S`, `dcdc::DCDC_LMR36520ADDAR` | DC/DC step-down converters with verified land patterns |
 | `logic` | `logic::BUFFER_SN74AHCT1G125` | logic gates and buffers with verified land patterns |
 | `antenna` | `antenna::ANT_2450AT18B100E` | RF antennas with verified terminal lands and layout guidance |
 | `misc` | `misc::TEST_POINT_ROUND_1MM`, `misc::MOUNTING_HOLE_M2_NPTH`, `misc::MOUNTING_HOLE_M2_PTH` | reusable PCB fabrication primitives with explicit electrical semantics |
 | `cellular` | `cellular::CELL_AIR780E`, `cellular::CELL_AIR780EG` | 4G/LTE cellular module devices with verified 109-pin LGA land patterns |
 | `esim` | `esim::ESIM_MFF2_TRUPHONE` | eUICC (eSIM) devices with datasheet-verified pin maps |
-| `load-switch` | `load_switch::LOADSW_SGM2554`, `load_switch::LOADSW_TPS22918DBVR`, `load_switch::LOADSW_MT9700N` | power-distribution load switches with verified land patterns |
+| `load-switch` | `load_switch::LOADSW_SGM2554`, `load_switch::LOADSW_TPS22918DBVR`, `load_switch::LOADSW_MT9700N`, `load_switch::LOADSW_TPS2553DBVR`, `load_switch::LOADSW_TPS2553DRVR` | power-distribution load switches with verified land patterns |
 | `@ti/dcdc` | `ti_dcdc::controllers::multiphase::CTRL_TPS59650` | TI DC/DC controllers and the TI-specific land patterns they use (`ti_dcdc::TI_RSL_S_PVQFN_N48`) |
 | `@ti/logic` | `ti_logic::LS_SN74LVC8T245PWR` | TI logic and dual-supply level translators |
-| `@ti/power-switch` | `ti_power_switch::EFUSE_TPS259823ONRGET` | TI protected power paths and eFuses |
+| `@ti/power-switch` | `ti_power_switch::EFUSE_TPS259823ONRGET`, `ti_power_switch::EFUSE_TPS26630RGER`, `ti_power_switch::EFUSE_TPS26620DRCR` | TI protected power paths and eFuses (TPS25982, TPS2663x and TPS2662x families) with their TI land patterns |
 | `@st/stm32` | `st_stm32::STM32F103C8Tx`, `st_stm32::MCU_STM32F103C8T6`, `st_stm32::MCU_STM32F072CBT6` | Generated ST-source-backed STM32 device catalog plus source-joined exact parts with attributed dependency-owned fabrication geometry |
 | `@espressif/esp32` | `espressif_esp32::ESP32_C3`, `espressif_esp32::ESP32_C6_WROOM_1_N8`, `espressif_esp32::chips::s3::ESP32_S3R8` | Pinned-source generated ESP32-lineage SoCs and modules, exact MPN parts, and vendor module land patterns |
 | `@contrib/imu` | `contrib_imu::IMU_BHI260AP`, `contrib_imu::IMU_LSM6DS3TR_C` | community-contributed IMU devices and audited public part bindings |

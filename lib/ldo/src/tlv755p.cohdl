@@ -1,0 +1,100 @@
+// Texas Instruments TLV755P: 500mA low-IQ fixed-output LDO. Datasheet
+// SBVS320D, November 2017, revised September 2024 (docs/ti-tlv755p.pdf).
+// Pin configuration and Table 4-1 on p3; absolute maximum ratings and
+// recommended operating conditions on p4;
+// DRV0006A drawing 4222173/D on pp48-50; orderable codes in the package
+// addendum.
+//
+// Family model: Table 4-1 gives each package its own pin numbers, so a
+// package is a pin table. These devices are the DRV (6-pin WSON) pin
+// table: OUT 1, NC 2 and 5, GND 3, EN 4, IN 6, thermal pad to GND. Within
+// it the members differ in the fixed output voltage, which changes what
+// the OUT pin is, so each voltage is its own device with its own
+// `output_voltage`, all on son::TI_DRV0006A. The DBV, DQN and DYD members
+// are other pin tables and are not here; docs/README.md ("TLV755P family")
+// lists them.
+//
+// The TLV755P is a separate family from the LP5912 (lp5912.cohdl): pin 3
+// is GND here and PG there, and pin 5 is NC here and GND there. The two
+// are never alternates of each other although they share a land.
+
+#[doc("docs/ti-tlv755p.pdf")]
+pub device TLV75533P_DRV {
+    pins {
+        required OUT: 1 [power_out] // regulated 3.3V output; 1uF or larger to ground (p3)
+        optional NC: 2, 5 [passive] // no internal connection (p3)
+        // The thermal pad (pad 7) is internally connected to GND and goes
+        // to a large-area ground plane (p3).
+        required GND: 3, 7 [power_in]
+        required EN: 4 [input] // drive above VHI to turn the regulator on (p3)
+        required IN: 6 [power_in] // 1uF or larger to ground (p3)
+    }
+    spec {
+        output_voltage: 3.3V
+        // The recommended operating maximum of VIN (1.45-5.5V, p4 and p1).
+        // 6.0V is the ABSOLUTE maximum (p4) and is deliberately not the
+        // value here: D001 compares this field with the net voltage.
+        voltage_rating: 5.5V
+    }
+}
+
+impl IC for TLV75533P_DRV {}
+
+#[doc("docs/ti-tlv755p.pdf")]
+pub device TLV75512P_DRV {
+    pins {
+        required OUT: 1 [power_out] // regulated 1.2V output; 1uF or larger to ground (p3)
+        optional NC: 2, 5 [passive] // no internal connection (p3)
+        // The thermal pad (pad 7) is internally connected to GND and goes
+        // to a large-area ground plane (p3).
+        required GND: 3, 7 [power_in]
+        required EN: 4 [input] // drive above VHI to turn the regulator on (p3)
+        required IN: 6 [power_in] // 1uF or larger to ground (p3)
+    }
+    spec {
+        output_voltage: 1.2V
+        // The recommended operating maximum of VIN (1.45-5.5V, p4 and p1).
+        // 6.0V is the ABSOLUTE maximum (p4) and is deliberately not the
+        // value here: D001 compares this field with the net voltage.
+        voltage_rating: 5.5V
+    }
+}
+
+impl IC for TLV75512P_DRV {}
+
+#[doc("docs/ti-tlv755p.pdf")]
+pub device TLV75525P_DRV {
+    pins {
+        required OUT: 1 [power_out] // regulated 2.5V output; 1uF or larger to ground (p3)
+        optional NC: 2, 5 [passive] // no internal connection (p3)
+        // The thermal pad (pad 7) is internally connected to GND and goes
+        // to a large-area ground plane (p3).
+        required GND: 3, 7 [power_in]
+        required EN: 4 [input] // drive above VHI to turn the regulator on (p3)
+        required IN: 6 [power_in] // 1uF or larger to ground (p3)
+    }
+    spec {
+        output_voltage: 2.5V
+        // The recommended operating maximum of VIN (1.45-5.5V, p4 and p1).
+        // 6.0V is the ABSOLUTE maximum (p4) and is deliberately not the
+        // value here: D001 compares this field with the net voltage.
+        voltage_rating: 5.5V
+    }
+}
+
+impl IC for TLV75525P_DRV {}
+
+#[doc("docs/ti-tlv755p.pdf")]
+pub part LDO_TLV75533PDRVR: TLV75533P_DRV {
+    primary { mfr: "Texas Instruments", mpn: "TLV75533PDRVR", footprint: son::TI_DRV0006A }
+}
+
+#[doc("docs/ti-tlv755p.pdf")]
+pub part LDO_TLV75512PDRVR: TLV75512P_DRV {
+    primary { mfr: "Texas Instruments", mpn: "TLV75512PDRVR", footprint: son::TI_DRV0006A }
+}
+
+#[doc("docs/ti-tlv755p.pdf")]
+pub part LDO_TLV75525PDRVR: TLV75525P_DRV {
+    primary { mfr: "Texas Instruments", mpn: "TLV75525PDRVR", footprint: son::TI_DRV0006A }
+}

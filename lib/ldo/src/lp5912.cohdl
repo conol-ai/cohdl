@@ -1,0 +1,91 @@
+// Texas Instruments LP5912: 500mA low-noise, low-IQ fixed-output LDO.
+// Datasheet SNVSA77D, December 2015, revised November 2016
+// (docs/ti-lp5912.pdf). Pin functions on p3; recommended operating
+// conditions on p4 (VIN 1.6-6.5V, IOUT 0-500mA); DRV0006A drawing
+// 4222173/D on pp35-37; orderable codes in the package addendum.
+//
+// Family model: every LP5912 in the DRV (6-pin WSON) package has the pin
+// table of p3. The members differ in the fixed output voltage set at the
+// factory (0.8V to 5.5V, section 5 on p3), which changes what the OUT pin
+// is, so each voltage is its own device with its own `output_voltage`, all
+// on son::TI_DRV0006A. A part is one orderable code of one voltage.
+// docs/README.md ("LP5912 family") lists the members carried and those
+// left out.
+
+#[doc("docs/ti-lp5912.pdf")]
+pub device LP5912_3V3 {
+    pins {
+        required OUT: 1 [power_out] // regulated 3.3V output
+        optional NC: 2 [passive] // no internal connection; open or ground (p3)
+        optional PG: 3 [output] // power-good, open drain; needs a pull-up (p3)
+        required EN: 4 [input] // high = on; internal 3M pull-down (p3)
+        required GND: 5 [power_in]
+        required IN: 6 [power_in] // 1.6-6.5V (p4)
+        // Exposed thermal pad: connect to ground or leave floating, and to
+        // no other potential (p3).
+        optional PAD: 7 [passive]
+    }
+    spec {
+        output_voltage: 3.3V
+        voltage_rating: 6.5V // recommended maximum input voltage (p4)
+    }
+}
+
+impl IC for LP5912_3V3 {}
+
+#[doc("docs/ti-lp5912.pdf")]
+pub device LP5912_1V8 {
+    pins {
+        required OUT: 1 [power_out] // regulated 1.8V output
+        optional NC: 2 [passive] // no internal connection; open or ground (p3)
+        optional PG: 3 [output] // power-good, open drain; needs a pull-up (p3)
+        required EN: 4 [input] // high = on; internal 3M pull-down (p3)
+        required GND: 5 [power_in]
+        required IN: 6 [power_in] // 1.6-6.5V (p4)
+        // Exposed thermal pad: connect to ground or leave floating, and to
+        // no other potential (p3).
+        optional PAD: 7 [passive]
+    }
+    spec {
+        output_voltage: 1.8V
+        voltage_rating: 6.5V // recommended maximum input voltage (p4)
+    }
+}
+
+impl IC for LP5912_1V8 {}
+
+#[doc("docs/ti-lp5912.pdf")]
+pub device LP5912_5V0 {
+    pins {
+        required OUT: 1 [power_out] // regulated 5.0V output
+        optional NC: 2 [passive] // no internal connection; open or ground (p3)
+        optional PG: 3 [output] // power-good, open drain; needs a pull-up (p3)
+        required EN: 4 [input] // high = on; internal 3M pull-down (p3)
+        required GND: 5 [power_in]
+        required IN: 6 [power_in] // 1.6-6.5V (p4)
+        // Exposed thermal pad: connect to ground or leave floating, and to
+        // no other potential (p3).
+        optional PAD: 7 [passive]
+    }
+    spec {
+        output_voltage: 5V
+        voltage_rating: 6.5V // recommended maximum input voltage (p4)
+    }
+}
+
+impl IC for LP5912_5V0 {}
+
+#[doc("docs/ti-lp5912.pdf")]
+pub part LDO_LP5912_3V3: LP5912_3V3 {
+    primary { mfr: "Texas Instruments", mpn: "LP5912-3.3DRVR", footprint: son::TI_DRV0006A }
+}
+
+#[doc("docs/ti-lp5912.pdf")]
+pub part LDO_LP5912_1V8: LP5912_1V8 {
+    primary { mfr: "Texas Instruments", mpn: "LP5912-1.8DRVR", footprint: son::TI_DRV0006A }
+}
+
+#[doc("docs/ti-lp5912.pdf")]
+pub part LDO_LP5912_5V0: LP5912_5V0 {
+    primary { mfr: "Texas Instruments", mpn: "LP5912-5.0DRVR", footprint: son::TI_DRV0006A }
+}

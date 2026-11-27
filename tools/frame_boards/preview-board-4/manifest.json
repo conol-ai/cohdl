@@ -4,7 +4,7 @@
   "std": "0.3.0",
   "passive": "0.2.12",
   "esd": "0.1.5",
-  "load-switch": "0.2.1",
+  "load-switch": "0.2.2",
   "@contrib/audio-amp": "0.2.1",
   "flash": "0.3.1",
   "soic": "0.3.0"

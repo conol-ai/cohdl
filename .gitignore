@@ -23,6 +23,17 @@ examples/*/out/*.kicad_pcb
 examples/*/out/*.kicad_pro
 examples/*/out/*.lck
 examples/*/out/.history/
+
+# KiCad session state. This is per-machine UI state (visible layers, last
+# dialog positions), written whenever pcbnew opens a board -- it is never a
+# source of truth for a board and must not reach a commit, wherever the
+# .kicad_pcb happens to sit.
+*.kicad_prl
+
+# Frame-board preview archives. The package next to them is what we review; the
+# zip is a convenience wrapper around it, so it is a build artifact, not an
+# input.
+tools/frame_boards/*/*.zip
 /registry/node_modules
 /registry/dist
 /site/node_modules

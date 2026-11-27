@@ -3,7 +3,7 @@
  "dependencies": {
   "sot": "0.1.2",
   "std": "0.3.0",
-  "transistor": "0.2.2"
+  "transistor": "0.2.3"
  },
  "rows": [
   {

@@ -1,0 +1,99 @@
+// Texas Instruments LMR36520: 4.2V to 65V, 2A synchronous step-down
+// converter, adjustable output, 400kHz. Datasheet SNVSBF0C, September 2019,
+// revised November 2025 (docs/ti-lmr36520.pdf). Device comparison on p3;
+// pin configuration and Table 5-1 on p4; recommended operating conditions
+// on p5; DDA0008B drawing 4214849/B on pp38-40.
+//
+// Family model: the sheet has one pin table (8-pin HSOIC, DDA) and two
+// orderable members, LMR36520ADDAR and LMR36520FADDAR (p3). They have the
+// same pins, current and frequency; the "F" member holds forced PWM at
+// light load where the plain member drops to PFM. No pin changes function,
+// so both are parts of one device. docs/README.md ("LMR36520 family") has
+// the member table.
+
+#[doc("docs/ti-lmr36520.pdf")]
+pub device LMR36520 {
+    pins {
+        required PGND: 1 [power_in] // power and analog ground (p4)
+        required VIN: 2 [power_in] // 4.2-65V; bypass directly to PGND (p4, p5)
+        required EN: 3 [input] // high = on; may tie to VIN; do not float (p4)
+        // Open-drain power-good flag; may be left open when not used (p4).
+        optional PG: 4 [output]
+        required FB: 5 [input] // feedback divider tap; do not float or ground (p4)
+        // Internal 5V LDO output: 1uF to PGND, no external loads (p4).
+        required VCC: 6 [power_out]
+        required BOOT: 7 [passive] // 100nF bootstrap capacitor to SW (p4)
+        required SW: 8 [power_out] // switch node, to the inductor (p4)
+        // Thermal pad: a direct thermal connection to a ground plane is
+        // required; it is not an electrical interconnect (p4).
+        required PAD: 9 [passive]
+    }
+    spec {
+        voltage_rating: 65V // recommended maximum input voltage (p5)
+    }
+}
+
+impl IC for LMR36520 {}
+
+// PFM at light load (p3: FPWM "No").
+#[doc("docs/ti-lmr36520.pdf")]
+pub part DCDC_LMR36520ADDAR: LMR36520 {
+    primary { mfr: "Texas Instruments", mpn: "LMR36520ADDAR", footprint: TI_DDA0008B }
+}
+
+// Forced PWM at light load (p3: FPWM "Yes").
+#[doc("docs/ti-lmr36520.pdf")]
+pub part DCDC_LMR36520FADDAR: LMR36520 {
+    primary { mfr: "Texas Instruments", mpn: "LMR36520FADDAR", footprint: TI_DDA0008B }
+}
+
+// TI DDA0008B, 8-pin PowerPAD SOIC (HSOIC), drawing 4214849/B (09/2025),
+// "Example Board Layout" (p39): 8X 1.55 x 0.6mm lands with R0.05mm
+// corners, 6X 1.27mm pitch, 5.4mm between row centres.
+pub pad P_TI_DDA0008B_LEAD {
+    shape: rect
+    size: (1.55mm, 0.6mm)
+    layer: top_copper
+    plating: smd
+    corner_radius: 0.05mm
+    mask_expansion: 0.07mm
+}
+
+// Thermal pad land. The drawing shows a solder-mask-defined pad: metal
+// 2.95 x 4.9mm (NOTE 9: "Size of metal pad may vary") under a 2.71 x 3.4mm
+// mask opening, which is the package pad's maximum size. This land is the
+// 2.71 x 3.4mm opening as copper, with no mask expansion, so the exposed
+// metal is exactly TI's; extend the copper under the mask in layout for
+// heat spreading. Its default paste is the 2.71 x 3.4mm aperture of the
+// stencil example (p40, 0.125mm stencil, 100% coverage).
+pub pad P_TI_DDA0008B_EP {
+    shape: rect
+    size: (2.71mm, 3.4mm)
+    layer: top_copper
+    plating: smd
+    mask_expansion: 0mm
+}
+
+// Coordinates: TI's top view as drawn, pins 1-4 down the left column and
+// 5-8 up the right. The drawing's +y is up the page and the board frame's
+// +y is down, so pin 1 at the upper left is (-2.7, -1.905) and numbering
+// stays counter-clockwise seen from the top. The drawing's optional
+// 0.2mm thermal vias (1.3mm grid) are not part of the land.
+pub footprint TI_DDA0008B {
+    pad 1: P_TI_DDA0008B_LEAD at (-2.7mm, -1.905mm)
+    pad 2: P_TI_DDA0008B_LEAD at (-2.7mm, -0.635mm)
+    pad 3: P_TI_DDA0008B_LEAD at (-2.7mm, 0.635mm)
+    pad 4: P_TI_DDA0008B_LEAD at (-2.7mm, 1.905mm)
+    pad 5: P_TI_DDA0008B_LEAD at (2.7mm, 1.905mm)
+    pad 6: P_TI_DDA0008B_LEAD at (2.7mm, 0.635mm)
+    pad 7: P_TI_DDA0008B_LEAD at (2.7mm, -0.635mm)
+    pad 8: P_TI_DDA0008B_LEAD at (2.7mm, -1.905mm)
+    pad 9: P_TI_DDA0008B_EP at (0mm, 0mm)
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    // Copper spans 6.95mm across the rows; the body is at most 5.0mm long
+    // (p38). 0.25mm beyond the copper in x and beyond the body in y.
+    courtyard { shape: rect, at: (0mm, 0mm), size: (7.5mm, 5.5mm) }
+    silkscreen_ref { at: (0mm, -3.4mm) }
+}

@@ -1,0 +1,1379 @@
+{
+ "name": "demand_batch_2",
+ "dependencies": {
+  "std": "0.3.0",
+  "son": "0.1.0",
+  "load-switch": "0.2.2",
+  "ldo": "0.1.4",
+  "dcdc": "0.1.2",
+  "@ti/power-switch": "0.1.1",
+  "fuse": "0.1.0"
+ },
+ "rows": [
+  {
+   "name": "Unread_LOADSW_TPS2553DRVR_C138719",
+   "footprint": "son::TI_DRV0006A",
+   "part": "load_switch::TPS2553_DRV",
+   "pn": "C138719",
+   "mfr": "Texas Instruments",
+   "mpn": "TPS2553DRVR",
+   "pins": [
+    "IN",
+    "GND",
+    "OUT",
+    "ILIM",
+    "EN"
+   ],
+   "width_mm": 14.0,
+   "height_mm": 14.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      10.0,
+      10.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      26.0,
+      10.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      10.0,
+      26.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      26.0,
+      26.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "mapping": {
+    "dx_mm": 0,
+    "dy_mm": 0,
+    "rotate_deg": 0
+   },
+   "note": "Unread candidate part number placed with no mapping; not a binding and not evidence. The library part LOADSW_TPS2553DRVR is unbound. Stock is the jlcparts snapshot of 2026-11-25; the part page was not read.",
+   "stock": 28273
+  },
+  {
+   "name": "Unread_LOADSW_TPS2553DRVR_1_C411878",
+   "footprint": "son::TI_DRV0006A",
+   "part": "load_switch::TPS2553_DRV",
+   "pn": "C411878",
+   "mfr": "Texas Instruments",
+   "mpn": "TPS2553DRVR-1",
+   "pins": [
+    "IN",
+    "GND",
+    "OUT",
+    "ILIM",
+    "EN"
+   ],
+   "width_mm": 14.0,
+   "height_mm": 14.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      45.0,
+      10.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      61.0,
+      10.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      45.0,
+      26.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      61.0,
+      26.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "mapping": {
+    "dx_mm": 0,
+    "dy_mm": 0,
+    "rotate_deg": 0
+   },
+   "note": "Unread candidate part number placed with no mapping; not a binding and not evidence. The library part LOADSW_TPS2553DRVR_1 is unbound. Stock is the jlcparts snapshot of 2026-11-25; the part page was not read.",
+   "stock": 1050
+  },
+  {
+   "name": "Unread_LOADSW_TPS2552DRVR_C473916",
+   "footprint": "son::TI_DRV0006A",
+   "part": "load_switch::TPS2552_DRV",
+   "pn": "C473916",
+   "mfr": "Texas Instruments",
+   "mpn": "TPS2552DRVR",
+   "pins": [
+    "IN",
+    "GND",
+    "OUT",
+    "ILIM",
+    "EN_N"
+   ],
+   "width_mm": 14.0,
+   "height_mm": 14.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      80.0,
+      10.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      96.0,
+      10.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      80.0,
+      26.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      96.0,
+      26.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "mapping": {
+    "dx_mm": 0,
+    "dy_mm": 0,
+    "rotate_deg": 0
+   },
+   "note": "Unread candidate part number placed with no mapping; not a binding and not evidence. The library part LOADSW_TPS2552DRVR is unbound. Stock is the jlcparts snapshot of 2026-11-25; the part page was not read.",
+   "stock": 1272
+  },
+  {
+   "name": "Unread_LDO_LP5912_3V3_C524780",
+   "footprint": "son::TI_DRV0006A",
+   "part": "ldo::LP5912_3V3",
+   "pn": "C524780",
+   "mfr": "Texas Instruments",
+   "mpn": "LP5912-3.3DRVR",
+   "pins": [
+    "IN",
+    "GND",
+    "OUT",
+    "EN"
+   ],
+   "width_mm": 14.0,
+   "height_mm": 14.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      115.0,
+      10.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      131.0,
+      10.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      115.0,
+      26.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      131.0,
+      26.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "mapping": {
+    "dx_mm": 0,
+    "dy_mm": 0,
+    "rotate_deg": 0
+   },
+   "note": "Unread candidate part number placed with no mapping; not a binding and not evidence. The library part LDO_LP5912_3V3 is unbound. Stock is the jlcparts snapshot of 2026-11-25; the part page was not read.",
+   "stock": 27200
+  },
+  {
+   "name": "Unread_LDO_LP5912_1V8_C2876234",
+   "footprint": "son::TI_DRV0006A",
+   "part": "ldo::LP5912_1V8",
+   "pn": "C2876234",
+   "mfr": "Texas Instruments",
+   "mpn": "LP5912-1.8DRVR",
+   "pins": [
+    "IN",
+    "GND",
+    "OUT",
+    "EN"
+   ],
+   "width_mm": 14.0,
+   "height_mm": 14.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      150.0,
+      10.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      166.0,
+      10.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      150.0,
+      26.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      166.0,
+      26.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "mapping": {
+    "dx_mm": 0,
+    "dy_mm": 0,
+    "rotate_deg": 0
+   },
+   "note": "Unread candidate part number placed with no mapping; not a binding and not evidence. The library part LDO_LP5912_1V8 is unbound. Stock is the jlcparts snapshot of 2026-11-25; the part page was not read.",
+   "stock": 5133
+  },
+  {
+   "name": "Unread_LDO_LP5912_5V0_C2761351",
+   "footprint": "son::TI_DRV0006A",
+   "part": "ldo::LP5912_5V0",
+   "pn": "C2761351",
+   "mfr": "Texas Instruments",
+   "mpn": "LP5912-5.0DRVR",
+   "pins": [
+    "IN",
+    "GND",
+    "OUT",
+    "EN"
+   ],
+   "width_mm": 14.0,
+   "height_mm": 14.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      185.0,
+      10.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      201.0,
+      10.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      185.0,
+      26.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      201.0,
+      26.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "mapping": {
+    "dx_mm": 0,
+    "dy_mm": 0,
+    "rotate_deg": 0
+   },
+   "note": "Unread candidate part number placed with no mapping; not a binding and not evidence. The library part LDO_LP5912_5V0 is unbound. Stock is the jlcparts snapshot of 2026-11-25; the part page was not read.",
+   "stock": 2638
+  },
+  {
+   "name": "Unread_LDO_TLV75533PDRVR_C2861750",
+   "footprint": "son::TI_DRV0006A",
+   "part": "ldo::TLV75533P_DRV",
+   "pn": "C2861750",
+   "mfr": "Texas Instruments",
+   "mpn": "TLV75533PDRVR",
+   "pins": [
+    "IN",
+    "GND",
+    "OUT",
+    "EN"
+   ],
+   "width_mm": 14.0,
+   "height_mm": 14.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      10.0,
+      45.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      26.0,
+      45.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      10.0,
+      61.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      26.0,
+      61.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "mapping": {
+    "dx_mm": 0,
+    "dy_mm": 0,
+    "rotate_deg": 0
+   },
+   "note": "Unread candidate part number placed with no mapping; not a binding and not evidence. The library part LDO_TLV75533PDRVR is unbound. Stock is the jlcparts snapshot of 2026-11-25; the part page was not read.",
+   "stock": 15654
+  },
+  {
+   "name": "Unread_LDO_TLV75512PDRVR_C2866903",
+   "footprint": "son::TI_DRV0006A",
+   "part": "ldo::TLV75512P_DRV",
+   "pn": "C2866903",
+   "mfr": "Texas Instruments",
+   "mpn": "TLV75512PDRVR",
+   "pins": [
+    "IN",
+    "GND",
+    "OUT",
+    "EN"
+   ],
+   "width_mm": 14.0,
+   "height_mm": 14.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      45.0,
+      45.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      61.0,
+      45.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      45.0,
+      61.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      61.0,
+      61.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "mapping": {
+    "dx_mm": 0,
+    "dy_mm": 0,
+    "rotate_deg": 0
+   },
+   "note": "Unread candidate part number placed with no mapping; not a binding and not evidence. The library part LDO_TLV75512PDRVR is unbound. Stock is the jlcparts snapshot of 2026-11-25; the part page was not read.",
+   "stock": 1528
+  },
+  {
+   "name": "Unread_LDO_TLV75525PDRVR_C544744",
+   "footprint": "son::TI_DRV0006A",
+   "part": "ldo::TLV75525P_DRV",
+   "pn": "C544744",
+   "mfr": "Texas Instruments",
+   "mpn": "TLV75525PDRVR",
+   "pins": [
+    "IN",
+    "GND",
+    "OUT",
+    "EN"
+   ],
+   "width_mm": 14.0,
+   "height_mm": 14.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      80.0,
+      45.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      96.0,
+      45.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      80.0,
+      61.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      96.0,
+      61.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "mapping": {
+    "dx_mm": 0,
+    "dy_mm": 0,
+    "rotate_deg": 0
+   },
+   "note": "Unread candidate part number placed with no mapping; not a binding and not evidence. The library part LDO_TLV75525PDRVR is unbound. Stock is the jlcparts snapshot of 2026-11-25; the part page was not read.",
+   "stock": 1202
+  },
+  {
+   "name": "Unread_DCDC_LMR36520ADDAR_C2879422",
+   "footprint": "dcdc::TI_DDA0008B",
+   "part": "dcdc::LMR36520",
+   "pn": "C2879422",
+   "mfr": "Texas Instruments",
+   "mpn": "LMR36520ADDAR",
+   "pins": [
+    "VIN",
+    "PGND",
+    "EN",
+    "FB",
+    "VCC",
+    "BOOT",
+    "SW",
+    "PAD"
+   ],
+   "width_mm": 14.0,
+   "height_mm": 14.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      115.0,
+      45.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      131.0,
+      45.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      115.0,
+      61.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      131.0,
+      61.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "mapping": {
+    "dx_mm": 0,
+    "dy_mm": 0,
+    "rotate_deg": 0
+   },
+   "note": "Unread candidate part number placed with no mapping; not a binding and not evidence. The library part DCDC_LMR36520ADDAR is unbound. Stock is the jlcparts snapshot of 2026-11-25; the part page was not read.",
+   "stock": 2519
+  },
+  {
+   "name": "Unread_DCDC_LMR36520FADDAR_C1858395",
+   "footprint": "dcdc::TI_DDA0008B",
+   "part": "dcdc::LMR36520",
+   "pn": "C1858395",
+   "mfr": "Texas Instruments",
+   "mpn": "LMR36520FADDAR",
+   "pins": [
+    "VIN",
+    "PGND",
+    "EN",
+    "FB",
+    "VCC",
+    "BOOT",
+    "SW",
+    "PAD"
+   ],
+   "width_mm": 14.0,
+   "height_mm": 14.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      150.0,
+      45.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      166.0,
+      45.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      150.0,
+      61.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      166.0,
+      61.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "mapping": {
+    "dx_mm": 0,
+    "dy_mm": 0,
+    "rotate_deg": 0
+   },
+   "note": "Unread candidate part number placed with no mapping; not a binding and not evidence. The library part DCDC_LMR36520FADDAR is unbound. Stock is the jlcparts snapshot of 2026-11-25; the part page was not read.",
+   "stock": 7970
+  },
+  {
+   "name": "Unread_EFUSE_TPS26630RGER_C1850276",
+   "footprint": "ti_power_switch::TI_RGE0024H",
+   "part": "ti_power_switch::TPS26630",
+   "pn": "C1850276",
+   "mfr": "Texas Instruments",
+   "mpn": "TPS26630RGER",
+   "pins": [
+    "IN",
+    "GND",
+    "IN_SYS",
+    "UVLO",
+    "OVP",
+    "ILIM",
+    "MODE",
+    "SHDN",
+    "PGTH",
+    "OUT"
+   ],
+   "width_mm": 14.0,
+   "height_mm": 14.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      185.0,
+      45.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      201.0,
+      45.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      185.0,
+      61.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      201.0,
+      61.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "mapping": {
+    "dx_mm": 0,
+    "dy_mm": 0,
+    "rotate_deg": 0
+   },
+   "note": "Unread candidate part number placed with no mapping; not a binding and not evidence. The library part EFUSE_TPS26630RGER is unbound. Stock is the jlcparts snapshot of 2026-11-25; the part page was not read.",
+   "stock": 48
+  },
+  {
+   "name": "Unread_EFUSE_TPS26631RGER_C1850273",
+   "footprint": "ti_power_switch::TI_RGE0024H",
+   "part": "ti_power_switch::TPS26631",
+   "pn": "C1850273",
+   "mfr": "Texas Instruments",
+   "mpn": "TPS26631RGER",
+   "pins": [
+    "IN",
+    "GND",
+    "IN_SYS",
+    "UVLO",
+    "OVP",
+    "ILIM",
+    "MODE",
+    "SHDN",
+    "PGTH",
+    "OUT"
+   ],
+   "width_mm": 14.0,
+   "height_mm": 14.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      10.0,
+      80.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      26.0,
+      80.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      10.0,
+      96.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      26.0,
+      96.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "mapping": {
+    "dx_mm": 0,
+    "dy_mm": 0,
+    "rotate_deg": 0
+   },
+   "note": "Unread candidate part number placed with no mapping; not a binding and not evidence. The library part EFUSE_TPS26631RGER is unbound. Stock is the jlcparts snapshot of 2026-11-25; the part page was not read.",
+   "stock": 639
+  },
+  {
+   "name": "Unread_EFUSE_TPS26632RGER_C1850278",
+   "footprint": "ti_power_switch::TI_RGE0024H",
+   "part": "ti_power_switch::TPS26632",
+   "pn": "C1850278",
+   "mfr": "Texas Instruments",
+   "mpn": "TPS26632RGER",
+   "pins": [
+    "IN",
+    "GND",
+    "IN_SYS",
+    "UVLO",
+    "PLIM",
+    "ILIM",
+    "MODE",
+    "SHDN",
+    "PGTH",
+    "OUT"
+   ],
+   "width_mm": 14.0,
+   "height_mm": 14.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      45.0,
+      80.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      61.0,
+      80.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      45.0,
+      96.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      61.0,
+      96.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "mapping": {
+    "dx_mm": 0,
+    "dy_mm": 0,
+    "rotate_deg": 0
+   },
+   "note": "Unread candidate part number placed with no mapping; not a binding and not evidence. The library part EFUSE_TPS26632RGER is unbound. Stock is the jlcparts snapshot of 2026-11-25; the part page was not read.",
+   "stock": 1626
+  },
+  {
+   "name": "Unread_EFUSE_TPS26620DRCR_C1848361",
+   "footprint": "ti_power_switch::TI_DRC0010J",
+   "part": "ti_power_switch::TPS26620",
+   "pn": "C1848361",
+   "mfr": "Texas Instruments",
+   "mpn": "TPS26620DRCR",
+   "pins": [
+    "IN",
+    "GND",
+    "UVLO",
+    "OVP",
+    "SHDN",
+    "RTN",
+    "ILIM",
+    "OUT"
+   ],
+   "width_mm": 14.0,
+   "height_mm": 14.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      80.0,
+      80.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      96.0,
+      80.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      80.0,
+      96.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      96.0,
+      96.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "mapping": {
+    "dx_mm": 0,
+    "dy_mm": 0,
+    "rotate_deg": 0
+   },
+   "note": "Unread candidate part number placed with no mapping; not a binding and not evidence. The library part EFUSE_TPS26620DRCR is unbound. Stock is the jlcparts snapshot of 2026-11-25; the part page was not read.",
+   "stock": 196
+  },
+  {
+   "name": "Unread_EFUSE_TPS26621DRCR_C1848341",
+   "footprint": "ti_power_switch::TI_DRC0010J",
+   "part": "ti_power_switch::TPS26620",
+   "pn": "C1848341",
+   "mfr": "Texas Instruments",
+   "mpn": "TPS26621DRCR",
+   "pins": [
+    "IN",
+    "GND",
+    "UVLO",
+    "OVP",
+    "SHDN",
+    "RTN",
+    "ILIM",
+    "OUT"
+   ],
+   "width_mm": 14.0,
+   "height_mm": 14.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      115.0,
+      80.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      131.0,
+      80.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      115.0,
+      96.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      131.0,
+      96.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "mapping": {
+    "dx_mm": 0,
+    "dy_mm": 0,
+    "rotate_deg": 0
+   },
+   "note": "Unread candidate part number placed with no mapping; not a binding and not evidence. The library part EFUSE_TPS26621DRCR is unbound. Stock is the jlcparts snapshot of 2026-11-25; the part page was not read.",
+   "stock": 7119
+  },
+  {
+   "name": "Unread_EFUSE_TPS259827ONRGET_C2155765",
+   "footprint": "ti_power_switch::TI_RGE0024M",
+   "part": "ti_power_switch::TPS259827O",
+   "pn": "C2155765",
+   "mfr": "Texas Instruments",
+   "mpn": "TPS259827ONRGET",
+   "pins": [
+    "IN",
+    "GND",
+    "EN_UVLO",
+    "ILIM",
+    "LDSTRT",
+    "OUT"
+   ],
+   "width_mm": 14.0,
+   "height_mm": 14.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      150.0,
+      80.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      166.0,
+      80.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      150.0,
+      96.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      166.0,
+      96.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "mapping": {
+    "dx_mm": 0,
+    "dy_mm": 0,
+    "rotate_deg": 0
+   },
+   "note": "Unread candidate part number placed with no mapping; not a binding and not evidence. The library part EFUSE_TPS259827ONRGET is unbound. Stock is the jlcparts snapshot of 2026-11-25; the part page was not read.",
+   "stock": 1715
+  },
+  {
+   "name": "Unread_EFUSE_TPS259827ONRGER_C2155761",
+   "footprint": "ti_power_switch::TI_RGE0024M",
+   "part": "ti_power_switch::TPS259827O",
+   "pn": "C2155761",
+   "mfr": "Texas Instruments",
+   "mpn": "TPS259827ONRGER",
+   "pins": [
+    "IN",
+    "GND",
+    "EN_UVLO",
+    "ILIM",
+    "LDSTRT",
+    "OUT"
+   ],
+   "width_mm": 14.0,
+   "height_mm": 14.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      185.0,
+      80.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      201.0,
+      80.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      185.0,
+      96.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      201.0,
+      96.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "mapping": {
+    "dx_mm": 0,
+    "dy_mm": 0,
+    "rotate_deg": 0
+   },
+   "note": "Unread candidate part number placed with no mapping; not a binding and not evidence. The library part EFUSE_TPS259827ONRGER is unbound. Stock is the jlcparts snapshot of 2026-11-25; the part page was not read.",
+   "stock": 2935
+  },
+  {
+   "name": "Unread_FUSE_451_0A5_C142836",
+   "footprint": "fuse::FP_LITTELFUSE_NANO2",
+   "part": "fuse::Fuse_451_0A5",
+   "pn": "C142836",
+   "mfr": "Littelfuse",
+   "mpn": "0451.500MRL",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 14.0,
+   "height_mm": 14.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      10.0,
+      115.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      26.0,
+      115.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      10.0,
+      131.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      26.0,
+      131.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "mapping": {
+    "dx_mm": 0,
+    "dy_mm": 0,
+    "rotate_deg": 0
+   },
+   "note": "Unread candidate part number placed with no mapping; not a binding and not evidence. The library part FUSE_451_0A5 is unbound. Stock is the jlcparts snapshot of 2026-11-25; the part page was not read.",
+   "stock": 15355
+  },
+  {
+   "name": "Unread_FUSE_451_1A_C3099",
+   "footprint": "fuse::FP_LITTELFUSE_NANO2",
+   "part": "fuse::Fuse_451_1A",
+   "pn": "C3099",
+   "mfr": "Littelfuse",
+   "mpn": "0451001.MRL",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 14.0,
+   "height_mm": 14.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      45.0,
+      115.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      61.0,
+      115.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      45.0,
+      131.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      61.0,
+      131.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "mapping": {
+    "dx_mm": 0,
+    "dy_mm": 0,
+    "rotate_deg": 0
+   },
+   "note": "Unread candidate part number placed with no mapping; not a binding and not evidence. The library part FUSE_451_1A is unbound. Stock is the jlcparts snapshot of 2026-11-25; the part page was not read.",
+   "stock": 8019
+  },
+  {
+   "name": "Unread_FUSE_451_2A_C99547",
+   "footprint": "fuse::FP_LITTELFUSE_NANO2",
+   "part": "fuse::Fuse_451_2A",
+   "pn": "C99547",
+   "mfr": "Littelfuse",
+   "mpn": "0451002.MRL",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 14.0,
+   "height_mm": 14.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      80.0,
+      115.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      96.0,
+      115.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      80.0,
+      131.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      96.0,
+      131.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "mapping": {
+    "dx_mm": 0,
+    "dy_mm": 0,
+    "rotate_deg": 0
+   },
+   "note": "Unread candidate part number placed with no mapping; not a binding and not evidence. The library part FUSE_451_2A is unbound. Stock is the jlcparts snapshot of 2026-11-25; the part page was not read.",
+   "stock": 23916
+  },
+  {
+   "name": "Unread_FUSE_451_3A_C13982",
+   "footprint": "fuse::FP_LITTELFUSE_NANO2",
+   "part": "fuse::Fuse_451_3A",
+   "pn": "C13982",
+   "mfr": "Littelfuse",
+   "mpn": "0451003.MRL",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 14.0,
+   "height_mm": 14.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      115.0,
+      115.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      131.0,
+      115.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      115.0,
+      131.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      131.0,
+      131.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "mapping": {
+    "dx_mm": 0,
+    "dy_mm": 0,
+    "rotate_deg": 0
+   },
+   "note": "Unread candidate part number placed with no mapping; not a binding and not evidence. The library part FUSE_451_3A is unbound. Stock is the jlcparts snapshot of 2026-11-25; the part page was not read.",
+   "stock": 38916
+  },
+  {
+   "name": "Unread_FUSE_451_4A_C27515",
+   "footprint": "fuse::FP_LITTELFUSE_NANO2",
+   "part": "fuse::Fuse_451_4A",
+   "pn": "C27515",
+   "mfr": "Littelfuse",
+   "mpn": "0451004.MRL",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 14.0,
+   "height_mm": 14.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      150.0,
+      115.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      166.0,
+      115.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      150.0,
+      131.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      166.0,
+      131.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "mapping": {
+    "dx_mm": 0,
+    "dy_mm": 0,
+    "rotate_deg": 0
+   },
+   "note": "Unread candidate part number placed with no mapping; not a binding and not evidence. The library part FUSE_451_4A is unbound. Stock is the jlcparts snapshot of 2026-11-25; the part page was not read.",
+   "stock": 20383
+  }
+ ]
+}

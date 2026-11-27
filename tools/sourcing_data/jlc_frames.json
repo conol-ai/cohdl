@@ -230,7 +230,7 @@
     {
       "id": "c2b1-sot23_s8050-c2146",
       "package": "transistor",
-      "package_version": "0.2.2",
+      "package_version": "0.2.3",
       "footprint": "FP_JSCJ_SOT23",
       "supplier": "lcsc",
       "pn": "C2146",
@@ -255,7 +255,7 @@
     {
       "id": "c2b1-sot23_2n7002-c8545",
       "package": "transistor",
-      "package_version": "0.2.2",
+      "package_version": "0.2.3",
       "footprint": "FP_JSCJ_SOT23",
       "supplier": "lcsc",
       "pn": "C8545",
@@ -280,7 +280,7 @@
     {
       "id": "c2b1-sot23_mmbt3904-c20526",
       "package": "transistor",
-      "package_version": "0.2.2",
+      "package_version": "0.2.3",
       "footprint": "FP_JSCJ_SOT23",
       "supplier": "lcsc",
       "pn": "C20526",
@@ -2119,7 +2119,7 @@
     {
       "id": "pb5-fptidbv0006a-c131941",
       "package": "load-switch",
-      "package_version": "0.2.1",
+      "package_version": "0.2.2",
       "footprint": "FP_TI_DBV0006A",
       "supplier": "lcsc",
       "pn": "C131941",

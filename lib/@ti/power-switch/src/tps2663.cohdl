@@ -1,0 +1,247 @@
+// Texas Instruments TPS2663x: 4.5V to 60V, 6A industrial eFuse with power
+// limiting and surge protection. Datasheet SLVSE94G, September 2018,
+// revised June 2024 (docs/tps2663.pdf). Device comparison on p2; pin
+// configuration and Table 5-1 on pp3-4; recommended operating conditions
+// on p5; RGE0024H drawing 4219016/A on pp52-54.
+//
+// Family model, RGE (24-pin VQFN) pin table only:
+//   TPS26630: pin 7 is OVP (adjustable overvoltage cutoff), 1x active
+//     current limiting.
+//   TPS26631: the same pins as TPS26630, with 2x pulse-current support.
+//     The overload behaviour the ILIM pin sets is different, so it is its
+//     own device.
+//   TPS26632: pin 7 is PLIM (output power limiting) and the overvoltage
+//     response is a fixed 35V clamp. A different pin function, so it is
+//     its own device.
+// All three are on TI_RGE0024H. This is a separate family from the
+// TPS2662x (tps2662.cohdl): a different datasheet, package and pin table.
+// docs/README.md ("TPS2663x family") lists members carried and left out.
+
+#[doc("docs/tps2663.pdf")]
+pub device TPS26630 {
+    pins {
+        required IN: 1, 2 [power_in] // drain of the internal FET (p3)
+        // Gate drive for an external blocking NFET; leave floating when no
+        // blocking FET is used (p3).
+        optional B_GATE: 3 [output]
+        // Drive for the blocking FET's fast pull-down switch; leave
+        // floating when no external FET is used (p3).
+        optional DRV: 4 [output]
+        // Supply of the device, 4.5-60V (p5); short to IN when no blocking
+        // FET is used (p3).
+        required IN_SYS: 5 [power_in]
+        required UVLO: 6 [input] // divider tap, or GND for the default threshold (p4)
+        // Overvoltage cutoff threshold: divider tap, or GND for the internal
+        // default (p4).
+        required OVP: 7 [input]
+        // The PowerPAD (pad 25) goes to the GND plane and must not be the
+        // only electrical connection to GND (p4).
+        required GND: 8, 25 [power_in]
+        optional dVdT: 9 [passive] // slew-rate capacitor to GND; may float (p4, p17)
+        required ILIM: 10 [passive] // current-limit resistor to GND, 3k-30k (p4, p5)
+        required MODE: 11 [input] // overload fault-response select (p4)
+        required SHDN: 12 [input] // low = shutdown; pull up to enable (p4)
+        optional IMON: 13 [output] // current monitor; leave floating if unused (p4)
+        optional FLT: 14 [output] // open-drain fault flag; float or GND if unused (p4)
+        required PGTH: 15 [input] // PGOOD comparator input (p4)
+        optional PGOOD: 16 [output] // active high; GND or float if unused (p4)
+        required OUT: 17, 18 [power_out]
+        optional NC: 19, 20, 21, 22, 23, 24 [passive] // no connect (p4)
+    }
+}
+
+impl IC for TPS26630 {}
+
+#[doc("docs/tps2663.pdf")]
+pub device TPS26631 {
+    pins {
+        required IN: 1, 2 [power_in] // drain of the internal FET (p3)
+        // Gate drive for an external blocking NFET; leave floating when no
+        // blocking FET is used (p3).
+        optional B_GATE: 3 [output]
+        // Drive for the blocking FET's fast pull-down switch; leave
+        // floating when no external FET is used (p3).
+        optional DRV: 4 [output]
+        // Supply of the device, 4.5-60V (p5); short to IN when no blocking
+        // FET is used (p3).
+        required IN_SYS: 5 [power_in]
+        required UVLO: 6 [input] // divider tap, or GND for the default threshold (p4)
+        // Overvoltage cutoff threshold: divider tap, or GND for the internal
+        // default (p4).
+        required OVP: 7 [input]
+        // The PowerPAD (pad 25) goes to the GND plane and must not be the
+        // only electrical connection to GND (p4).
+        required GND: 8, 25 [power_in]
+        optional dVdT: 9 [passive] // slew-rate capacitor to GND; may float (p4, p17)
+        required ILIM: 10 [passive] // current-limit resistor to GND, 3k-30k (p4, p5)
+        required MODE: 11 [input] // overload fault-response select (p4)
+        required SHDN: 12 [input] // low = shutdown; pull up to enable (p4)
+        optional IMON: 13 [output] // current monitor; leave floating if unused (p4)
+        optional FLT: 14 [output] // open-drain fault flag; float or GND if unused (p4)
+        required PGTH: 15 [input] // PGOOD comparator input (p4)
+        optional PGOOD: 16 [output] // active high; GND or float if unused (p4)
+        required OUT: 17, 18 [power_out]
+        optional NC: 19, 20, 21, 22, 23, 24 [passive] // no connect (p4)
+    }
+}
+
+impl IC for TPS26631 {}
+
+#[doc("docs/tps2663.pdf")]
+pub device TPS26632 {
+    pins {
+        required IN: 1, 2 [power_in] // drain of the internal FET (p3)
+        // Gate drive for an external blocking NFET; leave floating when no
+        // blocking FET is used (p3).
+        optional B_GATE: 3 [output]
+        // Drive for the blocking FET's fast pull-down switch; leave
+        // floating when no external FET is used (p3).
+        optional DRV: 4 [output]
+        // Supply of the device, 4.5-60V (p5); short to IN when no blocking
+        // FET is used (p3).
+        required IN_SYS: 5 [power_in]
+        required UVLO: 6 [input] // divider tap, or GND for the default threshold (p4)
+        // Output power limit: resistor to GND, 60.4k-150k, or GND when the
+        // feature is not used (p4, p5).
+        required PLIM: 7 [passive]
+        // The PowerPAD (pad 25) goes to the GND plane and must not be the
+        // only electrical connection to GND (p4).
+        required GND: 8, 25 [power_in]
+        optional dVdT: 9 [passive] // slew-rate capacitor to GND; may float (p4, p17)
+        required ILIM: 10 [passive] // current-limit resistor to GND, 3k-30k (p4, p5)
+        required MODE: 11 [input] // overload fault-response select (p4)
+        required SHDN: 12 [input] // low = shutdown; pull up to enable (p4)
+        optional IMON: 13 [output] // current monitor; leave floating if unused (p4)
+        optional FLT: 14 [output] // open-drain fault flag; float or GND if unused (p4)
+        required PGTH: 15 [input] // PGOOD comparator input (p4)
+        optional PGOOD: 16 [output] // active high; GND or float if unused (p4)
+        required OUT: 17, 18 [power_out]
+        optional NC: 19, 20, 21, 22, 23, 24 [passive] // no connect (p4)
+    }
+}
+
+impl IC for TPS26632 {}
+
+// Adjustable overvoltage cutoff, 1x active current limiting (p2).
+#[doc("docs/tps2663.pdf")]
+pub part EFUSE_TPS26630RGER: TPS26630 {
+    primary { mfr: "Texas Instruments", mpn: "TPS26630RGER", footprint: TI_RGE0024H }
+}
+
+// Adjustable overvoltage cutoff, 2x pulse-current support (p2).
+#[doc("docs/tps2663.pdf")]
+pub part EFUSE_TPS26631RGER: TPS26631 {
+    primary { mfr: "Texas Instruments", mpn: "TPS26631RGER", footprint: TI_RGE0024H }
+}
+
+// Fixed 35V overvoltage clamp, 1x limiting, adjustable power limit (p2).
+#[doc("docs/tps2663.pdf")]
+pub part EFUSE_TPS26632RGER: TPS26632 {
+    primary { mfr: "Texas Instruments", mpn: "TPS26632RGER", footprint: TI_RGE0024H }
+}
+
+// RGE0024H perimeter lands (p53): 24X 0.58 x 0.24mm with R0.05mm corners,
+// 20X 0.5mm pitch, 3.825mm between opposing row centres. TI prefers a
+// non-solder-mask-defined opening with at most 0.07mm expansion.
+pub pad P_TI_RGE0024H_LEAD_H {
+    shape: rect
+    size: (0.58mm, 0.24mm)
+    layer: top_copper
+    plating: smd
+    corner_radius: 0.05mm
+    mask_expansion: 0.07mm
+}
+
+pub pad P_TI_RGE0024H_LEAD_V {
+    shape: rect
+    size: (0.24mm, 0.58mm)
+    layer: top_copper
+    plating: smd
+    corner_radius: 0.05mm
+    mask_expansion: 0.07mm
+}
+
+// The 2.7mm square exposed-pad land suppresses its default paste; the four
+// helper lands placed with the same pad number are the stencil apertures
+// of p54 (0.125mm stencil, 78% printed coverage): 4X 1.188mm square, at
+// 0.694mm from each centre line.
+pub pad P_TI_RGE0024H_EP_COPPER {
+    shape: rect
+    size: (2.7mm, 2.7mm)
+    layer: top_copper
+    plating: smd
+    mask_expansion: 0.07mm
+    paste: none
+}
+
+pub pad P_TI_RGE0024H_EP_PASTE {
+    shape: rect
+    size: (1.188mm, 1.188mm)
+    layer: top_copper
+    plating: smd
+    corner_radius: 0.05mm
+}
+
+// p53 draws five 0.2mm vias in the exposed pad: one at the centre and one
+// 1.1mm from it along each axis, in the gaps between the paste apertures.
+// TI fixes the drill; the 0.4mm land is this library's choice, as for
+// TI_RGE0024M.
+pub pad P_TI_RGE0024H_THERMAL_VIA {
+    shape: circle
+    size: (0.4mm)
+    layer: through_all
+    plating: plated_through_hole
+    drill: 0.2mm
+}
+
+// RGE0024H: 24 pins at 0.50mm pitch, 4.0 x 4.0mm body, one exposed pad
+// (pad 25). TI's top view as drawn, pin 1 at the upper left, numbering
+// counter-clockwise; the drawing's +y is up and is negated here.
+pub footprint TI_RGE0024H {
+    pad 1: P_TI_RGE0024H_LEAD_H at (-1.9125mm, -1.25mm)
+    pad 2: P_TI_RGE0024H_LEAD_H at (-1.9125mm, -0.75mm)
+    pad 3: P_TI_RGE0024H_LEAD_H at (-1.9125mm, -0.25mm)
+    pad 4: P_TI_RGE0024H_LEAD_H at (-1.9125mm, 0.25mm)
+    pad 5: P_TI_RGE0024H_LEAD_H at (-1.9125mm, 0.75mm)
+    pad 6: P_TI_RGE0024H_LEAD_H at (-1.9125mm, 1.25mm)
+
+    pad 7: P_TI_RGE0024H_LEAD_V at (-1.25mm, 1.9125mm)
+    pad 8: P_TI_RGE0024H_LEAD_V at (-0.75mm, 1.9125mm)
+    pad 9: P_TI_RGE0024H_LEAD_V at (-0.25mm, 1.9125mm)
+    pad 10: P_TI_RGE0024H_LEAD_V at (0.25mm, 1.9125mm)
+    pad 11: P_TI_RGE0024H_LEAD_V at (0.75mm, 1.9125mm)
+    pad 12: P_TI_RGE0024H_LEAD_V at (1.25mm, 1.9125mm)
+
+    pad 13: P_TI_RGE0024H_LEAD_H at (1.9125mm, 1.25mm)
+    pad 14: P_TI_RGE0024H_LEAD_H at (1.9125mm, 0.75mm)
+    pad 15: P_TI_RGE0024H_LEAD_H at (1.9125mm, 0.25mm)
+    pad 16: P_TI_RGE0024H_LEAD_H at (1.9125mm, -0.25mm)
+    pad 17: P_TI_RGE0024H_LEAD_H at (1.9125mm, -0.75mm)
+    pad 18: P_TI_RGE0024H_LEAD_H at (1.9125mm, -1.25mm)
+
+    pad 19: P_TI_RGE0024H_LEAD_V at (1.25mm, -1.9125mm)
+    pad 20: P_TI_RGE0024H_LEAD_V at (0.75mm, -1.9125mm)
+    pad 21: P_TI_RGE0024H_LEAD_V at (0.25mm, -1.9125mm)
+    pad 22: P_TI_RGE0024H_LEAD_V at (-0.25mm, -1.9125mm)
+    pad 23: P_TI_RGE0024H_LEAD_V at (-0.75mm, -1.9125mm)
+    pad 24: P_TI_RGE0024H_LEAD_V at (-1.25mm, -1.9125mm)
+
+    pad 25: P_TI_RGE0024H_EP_COPPER at (0mm, 0mm)
+    pad 25: P_TI_RGE0024H_EP_PASTE at (-0.694mm, -0.694mm)
+    pad 25: P_TI_RGE0024H_EP_PASTE at (0.694mm, -0.694mm)
+    pad 25: P_TI_RGE0024H_EP_PASTE at (-0.694mm, 0.694mm)
+    pad 25: P_TI_RGE0024H_EP_PASTE at (0.694mm, 0.694mm)
+    pad 25: P_TI_RGE0024H_THERMAL_VIA at (0mm, 0mm)
+    pad 25: P_TI_RGE0024H_THERMAL_VIA at (-1.1mm, 0mm)
+    pad 25: P_TI_RGE0024H_THERMAL_VIA at (1.1mm, 0mm)
+    pad 25: P_TI_RGE0024H_THERMAL_VIA at (0mm, -1.1mm)
+    pad 25: P_TI_RGE0024H_THERMAL_VIA at (0mm, 1.1mm)
+
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    // TI gives no courtyard. The lands span 4.405mm; 0.25mm beyond them
+    // on every side, rounded up.
+    courtyard { shape: rect, at: (0mm, 0mm), size: (4.95mm, 4.95mm) }
+    silkscreen_ref { at: (0mm, -3mm) }
+}

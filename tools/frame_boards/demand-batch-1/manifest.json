@@ -1,0 +1,613 @@
+{
+ "name": "demand_batch_1",
+ "dependencies": {
+  "std": "0.3.0",
+  "load-switch": "0.2.2",
+  "diode": "0.1.6",
+  "do214": "0.1.2",
+  "transistor": "0.2.3",
+  "sot": "0.1.2"
+ },
+ "rows": [
+  {
+   "name": "Unread_LOADSW_TPS2553DBVR_C55266",
+   "footprint": "load_switch::FP_TI_DBV0006A",
+   "part": "load_switch::TPS2553",
+   "pn": "C55266",
+   "mfr": "Texas Instruments",
+   "mpn": "TPS2553DBVR",
+   "pins": [
+    "IN",
+    "GND",
+    "EN",
+    "ILIM",
+    "OUT"
+   ],
+   "width_mm": 14.0,
+   "height_mm": 14.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      10.0,
+      10.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      26.0,
+      10.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      10.0,
+      26.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      26.0,
+      26.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "mapping": {
+    "dx_mm": 0,
+    "dy_mm": 0,
+    "rotate_deg": 0
+   },
+   "note": "Unread part number placed with no mapping; not a binding and not evidence. The library part LOADSW_TPS2553DBVR is unbound.",
+   "jlc_package": "SOT-23-6",
+   "category": "extended",
+   "stock": 41809,
+   "page_fetched": "2026-11-25"
+  },
+  {
+   "name": "Unread_LOADSW_TPS2553DBVR_1_C111738",
+   "footprint": "load_switch::FP_TI_DBV0006A",
+   "part": "load_switch::TPS2553",
+   "pn": "C111738",
+   "mfr": "Texas Instruments",
+   "mpn": "TPS2553DBVR-1",
+   "pins": [
+    "IN",
+    "GND",
+    "EN",
+    "ILIM",
+    "OUT"
+   ],
+   "width_mm": 14.0,
+   "height_mm": 14.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      45.0,
+      10.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      61.0,
+      10.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      45.0,
+      26.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      61.0,
+      26.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "mapping": {
+    "dx_mm": 0,
+    "dy_mm": 0,
+    "rotate_deg": 0
+   },
+   "note": "Unread part number placed with no mapping; not a binding and not evidence. The library part LOADSW_TPS2553DBVR_1 is unbound.",
+   "jlc_package": "SOT-23-6",
+   "category": "extended",
+   "stock": 9519,
+   "page_fetched": "2026-11-25"
+  },
+  {
+   "name": "Unread_LOADSW_TPS2552DBVR_C46506",
+   "footprint": "load_switch::FP_TI_DBV0006A",
+   "part": "load_switch::TPS2552",
+   "pn": "C46506",
+   "mfr": "Texas Instruments",
+   "mpn": "TPS2552DBVR",
+   "pins": [
+    "IN",
+    "GND",
+    "EN_N",
+    "ILIM",
+    "OUT"
+   ],
+   "width_mm": 14.0,
+   "height_mm": 14.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      80.0,
+      10.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      96.0,
+      10.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      80.0,
+      26.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      96.0,
+      26.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "mapping": {
+    "dx_mm": 0,
+    "dy_mm": 0,
+    "rotate_deg": 0
+   },
+   "note": "Unread part number placed with no mapping; not a binding and not evidence. The library part LOADSW_TPS2552DBVR is unbound.",
+   "jlc_package": "SOT-23-6",
+   "category": "extended",
+   "stock": 9492,
+   "page_fetched": "2026-11-25"
+  },
+  {
+   "name": "Unread_TVS_VISHAY_SMBJ30A_C1973126",
+   "footprint": "do214::DIOM5336X265N",
+   "part": "diode::TVS_SMBJ_Uni",
+   "pn": "C1973126",
+   "mfr": "Vishay",
+   "mpn": "SMBJ30A-E3/52",
+   "pins": [
+    "Cathode",
+    "Anode"
+   ],
+   "width_mm": 14.0,
+   "height_mm": 14.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      115.0,
+      10.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      131.0,
+      10.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      115.0,
+      26.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      131.0,
+      26.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "mapping": {
+    "dx_mm": 0,
+    "dy_mm": 0,
+    "rotate_deg": 0
+   },
+   "note": "Unread part number placed with no mapping; not a binding and not evidence. The library part TVS_VISHAY_SMBJ30A is unbound.",
+   "jlc_package": "SMB(DO-214AA)",
+   "category": "extended",
+   "stock": 2289,
+   "page_fetched": "2026-11-25"
+  },
+  {
+   "name": "Unread_TVS_MDD_SMBJ30A_C113998",
+   "footprint": "do214::DIOM5336X265N",
+   "part": "diode::TVS_SMBJ_Uni",
+   "pn": "C113998",
+   "mfr": "Microdiode Semiconductor",
+   "mpn": "SMBJ30A",
+   "pins": [
+    "Cathode",
+    "Anode"
+   ],
+   "width_mm": 14.0,
+   "height_mm": 14.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      150.0,
+      10.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      166.0,
+      10.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      150.0,
+      26.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      166.0,
+      26.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "mapping": {
+    "dx_mm": 0,
+    "dy_mm": 0,
+    "rotate_deg": 0
+   },
+   "note": "Unread part number placed with no mapping; not a binding and not evidence. The library part TVS_MDD_SMBJ30A is unbound.",
+   "jlc_package": "DO-214AA(SMB)",
+   "category": "extended",
+   "stock": 136164,
+   "page_fetched": "2026-11-25"
+  },
+  {
+   "name": "Unread_TVS_HONGJIACHENG_SMBJ30A_C19077584",
+   "footprint": "do214::DIOM5336X265N",
+   "part": "diode::TVS_SMBJ_Uni",
+   "pn": "C19077584",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "SMBJ30A",
+   "pins": [
+    "Cathode",
+    "Anode"
+   ],
+   "width_mm": 14.0,
+   "height_mm": 14.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      10.0,
+      45.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      26.0,
+      45.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      10.0,
+      61.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      26.0,
+      61.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "mapping": {
+    "dx_mm": 0,
+    "dy_mm": 0,
+    "rotate_deg": 0
+   },
+   "note": "Unread part number placed with no mapping; not a binding and not evidence. The library part TVS_HONGJIACHENG_SMBJ30A is unbound.",
+   "jlc_package": "DO-214AA(SMB)",
+   "category": "extended",
+   "stock": 231959,
+   "page_fetched": "2026-11-25"
+  },
+  {
+   "name": "Unread_TVS_VISHAY_SMBJ30CA_C553967",
+   "footprint": "do214::DIOM5336X265N",
+   "part": "diode::TVS_SMBJ_Bi",
+   "pn": "C553967",
+   "mfr": "Vishay",
+   "mpn": "SMBJ30CA-E3/52",
+   "pins": [
+    "IO1",
+    "IO2"
+   ],
+   "width_mm": 14.0,
+   "height_mm": 14.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      45.0,
+      45.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      61.0,
+      45.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      45.0,
+      61.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      61.0,
+      61.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "mapping": {
+    "dx_mm": 0,
+    "dy_mm": 0,
+    "rotate_deg": 0
+   },
+   "note": "Unread part number placed with no mapping; not a binding and not evidence. The library part TVS_VISHAY_SMBJ30CA is unbound.",
+   "jlc_package": "SMB(DO-214AA)",
+   "category": "extended",
+   "stock": 4043,
+   "page_fetched": "2026-11-25"
+  },
+  {
+   "name": "Unread_TVS_MDD_SMBJ30CA_C113999",
+   "footprint": "do214::DIOM5336X265N",
+   "part": "diode::TVS_SMBJ_Bi",
+   "pn": "C113999",
+   "mfr": "Microdiode Semiconductor",
+   "mpn": "SMBJ30CA",
+   "pins": [
+    "IO1",
+    "IO2"
+   ],
+   "width_mm": 14.0,
+   "height_mm": 14.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      80.0,
+      45.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      96.0,
+      45.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      80.0,
+      61.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      96.0,
+      61.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "mapping": {
+    "dx_mm": 0,
+    "dy_mm": 0,
+    "rotate_deg": 0
+   },
+   "note": "Unread part number placed with no mapping; not a binding and not evidence. The library part TVS_MDD_SMBJ30CA is unbound.",
+   "jlc_package": "DO-214AA(SMB)",
+   "category": "extended",
+   "stock": 111763,
+   "page_fetched": "2026-11-25"
+  },
+  {
+   "name": "Unread_TVS_HONGJIACHENG_SMBJ30CA_C19077585",
+   "footprint": "do214::DIOM5336X265N",
+   "part": "diode::TVS_SMBJ_Bi",
+   "pn": "C19077585",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "SMBJ30CA",
+   "pins": [
+    "IO1",
+    "IO2"
+   ],
+   "width_mm": 14.0,
+   "height_mm": 14.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      115.0,
+      45.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      131.0,
+      45.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      115.0,
+      61.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      131.0,
+      61.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "mapping": {
+    "dx_mm": 0,
+    "dy_mm": 0,
+    "rotate_deg": 0
+   },
+   "note": "Unread part number placed with no mapping; not a binding and not evidence. The library part TVS_HONGJIACHENG_SMBJ30CA is unbound.",
+   "jlc_package": "DO-214AA(SMB)",
+   "category": "extended",
+   "stock": 215839,
+   "page_fetched": "2026-11-25"
+  },
+  {
+   "name": "Unread_FET_BSS138_C52895",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "transistor::BSS138",
+   "pn": "C52895",
+   "mfr": "onsemi",
+   "mpn": "BSS138",
+   "pins": [
+    "Gate",
+    "Source",
+    "Drain"
+   ],
+   "width_mm": 14.0,
+   "height_mm": 14.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      150.0,
+      45.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      166.0,
+      45.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      150.0,
+      61.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      166.0,
+      61.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "mapping": {
+    "dx_mm": 0,
+    "dy_mm": 0,
+    "rotate_deg": 0
+   },
+   "note": "Unread part number placed with no mapping; not a binding and not evidence. The library part FET_BSS138 is unbound.",
+   "jlc_package": "SOT-23",
+   "category": "extended",
+   "stock": 88700,
+   "page_fetched": "2026-11-25"
+  }
+ ]
+}

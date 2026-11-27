@@ -27,8 +27,8 @@ hash = "sha256:e04af120c2e56ad844b42f1a8f9f1a380b858dd19ebf68a9ef532137616c15e3"
 
 [[package]]
 name = "dcdc"
-version = "0.1.1"
-hash = "sha256:c864163043c780da1cf506017a9dc9ae1ae4dd666b267abc1a5135c8b6a590d5"
+version = "0.1.2"
+hash = "sha256:eb49e36fffb0a1c1036f2fcf0ef151d9b6ddc8e6b872ddc943830cf4d1d8c1ef"
 
 [[package]]
 name = "led"
@@ -37,8 +37,8 @@ hash = "sha256:4673cff4c6338b2fa07265a9e4a506a0260421e6305552787f98cf68a449d6c0"
 
 [[package]]
 name = "misc"
-version = "0.1.2"
-hash = "sha256:56ab9ad64d72e9f503451a75ccc3ce5fae3a0d9e56ca2ee7478b0a8ff18c3162"
+version = "0.1.4"
+hash = "sha256:ed207e26f73f8c495f27fd5ac19e141a92b899ec73b05642d0247c66ff6409e9"
 
 [[package]]
 name = "motor-driver"

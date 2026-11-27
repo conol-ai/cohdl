@@ -1,0 +1,139 @@
+// Texas Instruments TPS255x: 2.5-6.5V, up to 1.5A power-distribution
+// switches with a resistor-programmed current limit. Datasheet SLVS841G,
+// November 2008, revised October 2026 (docs/tps255x.pdf). Pin configuration
+// and Table 5-1 on p4; device comparison on p3; recommended operating
+// conditions on p5; DBV0006A drawing 4214840/G on pp36-37.
+//
+// Family model: one device per pin table. The DBV (SOT-23-6) members share
+// pin numbers, and they differ in the function of pin 3:
+//   TPS2553 and TPS2553-1: EN, logic high turns the switch on.
+//   TPS2552 and TPS2552-1: EN (overbar), logic low turns the switch on.
+// That is a different pin function, so TPS2552 is its own device with pin 3
+// named EN_N. The "-1" members latch off on overcurrent where the plain
+// members limit at constant current and auto-retry (p3, p14); the pin table
+// is the same, so a "-1" member is a second part on the same device.
+// docs/README.md ("TPS255x family") lists the members carried and the ones
+// left out.
+//
+// The DBV parts use this package's FP_TI_DBV0006A (tps22918.cohdl), which
+// is the same TI drawing 4214840/G printed in this datasheet.
+//
+// The DRV (6-pin WSON) members have their own pin numbers in Table 5-1 and
+// an exposed pad, so they are separate devices, TPS2553_DRV and
+// TPS2552_DRV, on son::TI_DRV0006A (drawing 4222173/D, pp43-45). They are
+// never placed on the SOT-23-6 land.
+
+#[doc("docs/tps255x.pdf")]
+pub device TPS2553 {
+    pins {
+        // 2.5-6.5V (p5); 0.1uF or greater ceramic to GND close to the IC (p4)
+        required IN: 1 [power_in]
+        required GND: 2 [power_in]
+        required EN: 3 [input] // logic high turns the switch on (p4)
+        // Active-low open-drain flag: overcurrent, overtemperature or
+        // reverse voltage (p4). Needs an external pull-up when used.
+        optional FAULT_N: 4 [output]
+        // Current-limit resistor to GND, 15k-232k recommended (p4, p5).
+        // TI's table types this pin "O"; it is modelled passive because it
+        // is a programming node and may also be tied to IN (p7).
+        required ILIM: 5 [passive]
+        required OUT: 6 [power_out]
+    }
+}
+
+impl IC for TPS2553 {}
+
+#[doc("docs/tps255x.pdf")]
+pub device TPS2552 {
+    pins {
+        // 2.5-6.5V (p5); 0.1uF or greater ceramic to GND close to the IC (p4)
+        required IN: 1 [power_in]
+        required GND: 2 [power_in]
+        required EN_N: 3 [input] // logic LOW turns the switch on (p4)
+        // Active-low open-drain flag: overcurrent, overtemperature or
+        // reverse voltage (p4). Needs an external pull-up when used.
+        optional FAULT_N: 4 [output]
+        // Current-limit resistor to GND, 15k-232k recommended (p4, p5).
+        // TI's table types this pin "O"; it is modelled passive because it
+        // is a programming node and may also be tied to IN (p7).
+        required ILIM: 5 [passive]
+        required OUT: 6 [power_out]
+    }
+}
+
+impl IC for TPS2552 {}
+
+// Active-high enable, constant-current limit with auto-retry (p3).
+#[doc("docs/tps255x.pdf")]
+pub part LOADSW_TPS2553DBVR: TPS2553 {
+    primary { mfr: "Texas Instruments", mpn: "TPS2553DBVR", footprint: FP_TI_DBV0006A }
+}
+
+// Active-high enable, latch-off on overcurrent (p3).
+#[doc("docs/tps255x.pdf")]
+pub part LOADSW_TPS2553DBVR_1: TPS2553 {
+    primary { mfr: "Texas Instruments", mpn: "TPS2553DBVR-1", footprint: FP_TI_DBV0006A }
+}
+
+// Active-low enable, constant-current limit with auto-retry (p3).
+#[doc("docs/tps255x.pdf")]
+pub part LOADSW_TPS2552DBVR: TPS2552 {
+    primary { mfr: "Texas Instruments", mpn: "TPS2552DBVR", footprint: FP_TI_DBV0006A }
+}
+
+// WSON pin numbers from Table 5-1 (p4): OUT 1, ILIM 2, FAULT 3, EN 4,
+// GND 5, IN 6. The PowerPAD is "internally connected to GND" and is to be
+// connected to the GND pin externally (p4); it is pad 7 of the land.
+#[doc("docs/tps255x.pdf")]
+pub device TPS2553_DRV {
+    pins {
+        required OUT: 1 [power_out]
+        // Current-limit resistor to GND, 15k-232k recommended (p4, p5).
+        // Typed "O" by TI; modelled passive as on the DBV device.
+        required ILIM: 2 [passive]
+        // Active-low open-drain flag (p4). Needs a pull-up when used.
+        optional FAULT_N: 3 [output]
+        required EN: 4 [input] // logic high turns the switch on (p4)
+        required GND: 5, 7 [power_in]
+        // 2.5-6.5V (p5); 0.1uF or greater ceramic to GND close to the IC (p4)
+        required IN: 6 [power_in]
+    }
+}
+
+impl IC for TPS2553_DRV {}
+
+#[doc("docs/tps255x.pdf")]
+pub device TPS2552_DRV {
+    pins {
+        required OUT: 1 [power_out]
+        // Current-limit resistor to GND, 15k-232k recommended (p4, p5).
+        // Typed "O" by TI; modelled passive as on the DBV device.
+        required ILIM: 2 [passive]
+        // Active-low open-drain flag (p4). Needs a pull-up when used.
+        optional FAULT_N: 3 [output]
+        required EN_N: 4 [input] // logic LOW turns the switch on (p4)
+        required GND: 5, 7 [power_in]
+        // 2.5-6.5V (p5); 0.1uF or greater ceramic to GND close to the IC (p4)
+        required IN: 6 [power_in]
+    }
+}
+
+impl IC for TPS2552_DRV {}
+
+// Active-high enable, constant-current limit with auto-retry (p3).
+#[doc("docs/tps255x.pdf")]
+pub part LOADSW_TPS2553DRVR: TPS2553_DRV {
+    primary { mfr: "Texas Instruments", mpn: "TPS2553DRVR", footprint: son::TI_DRV0006A }
+}
+
+// Active-high enable, latch-off on overcurrent (p3).
+#[doc("docs/tps255x.pdf")]
+pub part LOADSW_TPS2553DRVR_1: TPS2553_DRV {
+    primary { mfr: "Texas Instruments", mpn: "TPS2553DRVR-1", footprint: son::TI_DRV0006A }
+}
+
+// Active-low enable, constant-current limit with auto-retry (p3).
+#[doc("docs/tps255x.pdf")]
+pub part LOADSW_TPS2552DRVR: TPS2552_DRV {
+    primary { mfr: "Texas Instruments", mpn: "TPS2552DRVR", footprint: son::TI_DRV0006A }
+}

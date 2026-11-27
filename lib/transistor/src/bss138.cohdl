@@ -1,0 +1,40 @@
+// onsemi BSS138: 50V, 0.22A N-channel logic-level enhancement-mode MOSFET
+// in SOT-23-3 (case 318). Datasheet BSS138/D, Rev. 7, April 2024
+// (docs/onsemi-bss138.pdf). Pinout and ordering codes on p1; absolute
+// maximum ratings and electrical characteristics on p2; case 318 outline
+// and recommended mounting footprint on p6; pin styles on p7.
+//
+// Family model: one device per pin table. This sheet covers one silicon
+// family with one pin table, ordered as BSS138 or BSS138-G (p1). Other
+// makers' and other onsemi "BSS138" variants are on other sheets and join
+// this device only after their own pin table is read; see docs/README.md
+// ("BSS138 family").
+
+pub trait FieldEffectTransistor {
+    designator_prefix: "Q"
+}
+
+#[doc("docs/onsemi-bss138.pdf")]
+pub device BSS138 {
+    pins {
+        required Gate: 1 [input] // threshold 0.8-1.5V at 1mA (p2)
+        required Source: 2 [passive]
+        required Drain: 3 [passive]
+    }
+    spec {
+        drain_source_voltage: 50V
+        gate_source_voltage: 20V
+        drain_current: 220mA
+    }
+}
+
+impl FieldEffectTransistor for BSS138 {}
+
+// The land is sot::SOT3P190X290X130N: pad 1 (gate) lower right, pad 2
+// (source) upper right, pad 3 (drain) alone at -x, counter-clockwise 1-2-3
+// as on onsemi's top view (p1, p6). docs/README.md compares it with the
+// p6 footprint.
+#[doc("docs/onsemi-bss138.pdf")]
+pub part FET_BSS138: BSS138 {
+    primary { mfr: "onsemi", mpn: "BSS138", footprint: sot::SOT3P190X290X130N }
+}

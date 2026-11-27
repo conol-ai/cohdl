@@ -1,0 +1,137 @@
+// SMBJ series 600W transient voltage suppressors in SMB (DO-214AA), on the
+// shared do214::DIOM5336X265N land.
+//
+// Family model: the SMBJ series is one outline and one two-terminal pin
+// table per polarity, second-sourced by many makers under the same type
+// numbers. A device here is a polarity at one standoff voltage, never a
+// maker:
+//   TVS_SMBJ_Uni: unidirectional ("A" suffix). The body band marks the
+//     cathode. Cathode on pad 1, anode on pad 2 (the do214 convention).
+//   TVS_SMBJ_Bi: bidirectional ("CA" suffix). No band and no polarity;
+//     the two terminals are interchangeable and are named IO1 and IO2.
+// A "CA" part is never an alternate of an "A" part: a design that needs a
+// cathode cannot take a part without one, so the difference is two devices.
+// Both devices are the 30V members: each carries `voltage_rating: 30V`,
+// the standoff voltage VRWM, so D001 checks the rail a part protects.
+// Clamping voltage, leakage and maker are part-level: each part carries
+// one exact MPN, its own maker's datasheet and its own LCSC number.
+// docs/README.md ("SMBJ family") has the member table and the rule for
+// adding the next voltage.
+//
+// Ratings are for a 10/1000us pulse, 25C.
+
+// Unidirectional. None of the three sheets numbers the terminals; each
+// marks the cathode with the body band:
+//   Vishay 88392 p1: "for unidirectional types the band denotes cathode end".
+//   MDD Rev 2025A7 p1: "Cathode Band (for Uni-directional products only)".
+//   Hongjiacheng Rev 1.1 p2: "Cathode Band (For uni-directional products
+//   only)".
+#[doc("docs/vishay-smbj-88392.pdf")]
+#[doc("docs/mdd-smbj.evidence.md")]
+#[doc("docs/hongjiacheng-smbj.evidence.md")]
+pub device TVS_SMBJ_Uni {
+    pins {
+        required Cathode: 1 [passive]
+        required Anode: 2 [passive]
+    }
+    spec {
+        // The standoff voltage VRWM: the highest rail voltage the part is
+        // meant to sit across without conducting (30V on all three sheets:
+        // Vishay p2, MDD p2, Hongjiacheng p3). The clamp voltage VC (48.4V
+        // at 12.4A) is a transient rating and is deliberately not the
+        // value here.
+        voltage_rating: 30V
+    }
+}
+
+impl Polarized for TVS_SMBJ_Uni {
+    pins {
+        Anode: Anode
+        Cathode: Cathode
+    }
+}
+
+impl Diode for TVS_SMBJ_Uni {}
+
+// ---- 30V standoff, unidirectional ----
+// Vishay SMBJ30A (88392 p2, marking MK): VWM 30V, VBR 33.3-36.8V at 1.0mA,
+// VC 48.4V at IPPM 12.4A, ID 1.0uA at VWM; PPPM 600W (p1). "-E3/52" is the
+// RoHS commercial grade on a 7in reel of 750 (p1, p3).
+#[doc("docs/vishay-smbj-88392.pdf")]
+pub part TVS_VISHAY_SMBJ30A: TVS_SMBJ_Uni {
+    primary { mfr: "Vishay", mpn: "SMBJ30A-E3/52", footprint: do214::DIOM5336X265N }
+}
+
+// MDD SMBJ30A (Rev 2025A7 p2, marking MK): VRWM 30.0V, VBR 33.30-36.80V at
+// 1mA, VC 48.4V at IPP 12.4A, IR 1uA at VRWM; PPPM 600W minimum (p1).
+#[doc("docs/mdd-smbj.evidence.md")]
+pub part TVS_MDD_SMBJ30A: TVS_SMBJ_Uni {
+    primary { mfr: "Microdiode Semiconductor", mpn: "SMBJ30A", footprint: do214::DIOM5336X265N }
+}
+
+// Hongjiacheng SMBJ30A (Rev 1.1 p3, marking MK): VRWM 30.0V, VBR
+// 33.30-36.80V at 1mA, VC 48.4V at IPP 12.40A, IR 5uA at VRWM; PPPM 600W
+// (p1).
+#[doc("docs/hongjiacheng-smbj.evidence.md")]
+pub part TVS_HONGJIACHENG_SMBJ30A: TVS_SMBJ_Uni {
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "SMBJ30A",
+              footprint: do214::DIOM5336X265N }
+}
+
+// A bidirectional TVS has no anode and no cathode, so it cannot implement
+// std's Polarized or Diode. This marker carries the diode designator.
+pub trait TVS_Bidirectional {
+    designator_prefix: "D"
+}
+
+// Bidirectional. Each sheet says the body carries no polarity mark:
+//   Vishay 88392 p1: "no marking on bidirectional types"; "Electrical
+//   characteristics apply in both directions".
+//   MDD Rev 2025A7 p1 and Hongjiacheng Rev 1.1 p2: the cathode band is
+//   "for uni-directional products only".
+// IO1 and IO2 follow esd's two-terminal protector naming (SMBJ6V0CA).
+#[doc("docs/vishay-smbj-88392.pdf")]
+#[doc("docs/mdd-smbj.evidence.md")]
+#[doc("docs/hongjiacheng-smbj.evidence.md")]
+pub device TVS_SMBJ_Bi {
+    pins {
+        required IO1: 1 [bidirectional]
+        required IO2: 2 [bidirectional]
+    }
+    spec {
+        // The standoff voltage VRWM: the highest rail voltage the part is
+        // meant to sit across without conducting (30V on all three sheets:
+        // Vishay p2, MDD p2, Hongjiacheng p3). The clamp voltage VC (48.4V
+        // at 12.4A) is a transient rating and is deliberately not the
+        // value here.
+        voltage_rating: 30V
+    }
+}
+
+impl TVS_Bidirectional for TVS_SMBJ_Bi {}
+
+// ---- 30V standoff, bidirectional ----
+// Vishay SMBJ30CA (88392 p2, the SMBJ30A row, bidirectional marking CK;
+// the CA suffix is defined on p1): VWM 30V, VBR 33.3-36.8V at 1.0mA, VC
+// 48.4V at IPPM 12.4A, ID 1.0uA at VWM, in both directions; PPPM 600W (p1).
+// "-E3/52" is the RoHS commercial grade on a 7in reel of 750 (p1, p3).
+#[doc("docs/vishay-smbj-88392.pdf")]
+pub part TVS_VISHAY_SMBJ30CA: TVS_SMBJ_Bi {
+    primary { mfr: "Vishay", mpn: "SMBJ30CA-E3/52", footprint: do214::DIOM5336X265N }
+}
+
+// MDD SMBJ30CA (Rev 2025A7 p2, marking CK): VRWM 30.0V, VBR 33.30-36.80V
+// at 1mA, VC 48.4V at IPP 12.4A, IR 1uA at VRWM; PPPM 600W minimum (p1).
+#[doc("docs/mdd-smbj.evidence.md")]
+pub part TVS_MDD_SMBJ30CA: TVS_SMBJ_Bi {
+    primary { mfr: "Microdiode Semiconductor", mpn: "SMBJ30CA", footprint: do214::DIOM5336X265N }
+}
+
+// Hongjiacheng SMBJ30CA (Rev 1.1 p3, marking CK): VRWM 30.0V, VBR
+// 33.30-36.80V at 1mA, VC 48.4V at IPP 12.40A, IR 5uA at VRWM; PPPM 600W
+// (p1).
+#[doc("docs/hongjiacheng-smbj.evidence.md")]
+pub part TVS_HONGJIACHENG_SMBJ30CA: TVS_SMBJ_Bi {
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "SMBJ30CA",
+              footprint: do214::DIOM5336X265N }
+}

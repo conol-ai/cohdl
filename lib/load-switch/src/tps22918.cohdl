@@ -22,8 +22,15 @@ pub part LOADSW_TPS22918DBVR: TPS22918 {
               supplier lcsc "C131941" rotate 180 }
 }
 
-// TI DBV0006A example board layout: six 1.1x0.6mm lands, 0.95mm pitch,
-// with 2.6mm opposing row-centre spacing (package appendix).
+// TI DBV0006A example board layout, drawing 4214840/G: six 1.1x0.6mm lands,
+// 0.95mm pitch, with 2.6mm opposing row-centre spacing (package appendix;
+// the same drawing is on p37 of docs/tps255x.pdf). Shared by the TPS22918
+// and TPS255x parts of this package.
+//
+// Coordinates: TI's top view as drawn, pins 1-3 down the left column and
+// 4-6 up the right. The drawing's +y is up the page and the board frame's
+// +y is down, so pin 1 at the upper left is (-1.3, -0.95) and numbering
+// stays counter-clockwise seen from the top.
 pub pad P_TPS22918_DBV_LEAD {
     shape: rect
     size: (1.1mm, 0.6mm)
@@ -41,6 +48,9 @@ pub footprint FP_TI_DBV0006A {
     silkscreen {
         pin_1_marker near pad 1 shape dot
     }
+    // Courtyard as published since 0.1.x: 0.20mm beyond the 3.70mm copper
+    // in x, and 0.025mm short of the 3.05mm maximum body length in y (p36
+    // of docs/tps255x.pdf). Kept as is in 0.2.2; see docs/README.md.
     courtyard { shape: rect, at: (0mm, 0mm), size: (4.1mm, 3.0mm) }
     silkscreen_ref { at: (0mm, -2.2mm) }
 }

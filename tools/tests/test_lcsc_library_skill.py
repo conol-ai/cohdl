@@ -1,5 +1,6 @@
 """The lcsc-library skill names only files that exist, and its backfill wrapper fails closed."""
 
+import contextlib
 from contextlib import redirect_stdout
 import hashlib
 import io
@@ -15,6 +16,7 @@ TOOLS = Path(__file__).resolve().parents[1]
 ROOT = TOOLS.parent
 sys.path.insert(0, str(TOOLS))
 
+import datasheet_ship  # noqa: E402
 import lcsc_backfill_approved as approved  # noqa: E402
 from sourcing.http import PolicyError  # noqa: E402
 
@@ -70,7 +72,7 @@ class SkillTests(unittest.TestCase):
         self.assertEqual(tracked.stdout, "")
 
     def test_extracted_scripts_carry_no_local_paths(self):
-        for name in ("regen_locks.py", "examples_golden.sh", "lcsc_backfill_approved.py"):
+        for name in ("regen_locks.py", "examples_golden.sh", "lcsc_backfill_approved.py", "datasheet_ship.py"):
             self.assertNotIn("/Users/", (TOOLS / name).read_text(), name)
 
 
@@ -197,6 +199,84 @@ class CarriedTests(unittest.TestCase):
         # The case the rule exists for: without it a plain run leaves this row on an older snapshot.
         carried = approved.carried_identities(ROOT / "lib", ROOT / "tools/sourcing_data/lcsc_map.json")
         self.assertIn(("UNI-ROYAL", "0402WGF1803TCE"), carried)
+
+
+class DatasheetShipTests(unittest.TestCase):
+    """Rule B of docs/pdf-digest.md section 6.3, as tools/datasheet_ship.py applies it."""
+
+    def package(self, d, source_bytes):
+        pkg = Path(d) / "pkg"
+        (pkg / "src").mkdir(parents=True)
+        (pkg / "cohdl.toml").write_bytes(b"x" * 100)
+        (pkg / "src/a.cohdl").write_bytes(b"x" * (source_bytes - 100))
+        (pkg / ".cache").mkdir()
+        (pkg / ".cache/big").write_bytes(b"x" * 10_000_000)  # a dot directory is not packed
+        return pkg
+
+    def pdf(self, d, name, size, fill=b"a"):
+        path = Path(d) / name
+        path.write_bytes(b"%PDF-" + fill * (size - 5))
+        return path
+
+    def conditions(self, pkg, pdfs):
+        return sorted(datasheet_ship.judge(pkg, pdfs)["verdicts"].values())
+
+    def test_the_limits_are_the_design_documents(self):
+        text = (ROOT / "docs/pdf-digest.md").read_text()
+        self.assertIn(f"{datasheet_ship.MAX_PDF:,} B", text)
+        self.assertIn(f"{datasheet_ship.MAX_PACKAGE:,} B", text)
+        self.assertIn("> 20", text)
+        self.assertEqual(datasheet_ship.MAX_GROWTH, 20)
+
+    def test_a_pdf_ships_up_to_twenty_times_the_package_and_not_beyond(self):
+        with tempfile.TemporaryDirectory() as d:
+            pkg = self.package(d, 1000)
+            self.assertEqual(self.conditions(pkg, [self.pdf(d, "fits.pdf", 19_000)]), [0])
+            self.assertEqual(self.conditions(pkg, [self.pdf(d, "over.pdf", 19_001)]), [4])
+            # Judged as one set: two that each fit do not ship when together they do not.
+            pair = [self.pdf(d, "a.pdf", 10_000, b"a"), self.pdf(d, "b.pdf", 10_000, b"b")]
+            self.assertEqual(self.conditions(pkg, pair), [4, 4])
+            # The same content under two names counts once.
+            self.assertEqual(self.conditions(pkg, [pair[0], self.pdf(d, "copy.pdf", 10_000, b"a")]), [0])
+
+    def test_a_large_pdf_stays_out_alone_and_a_full_package_takes_none(self):
+        with tempfile.TemporaryDirectory() as d:
+            pkg = self.package(d, 2_000_000)
+            big = self.pdf(d, "big.pdf", datasheet_ship.MAX_PDF + 1)
+            small = self.pdf(d, "small.pdf", 1_000_000, b"s")
+            result = datasheet_ship.judge(pkg, [big, small])
+            self.assertEqual(sorted(result["verdicts"].values()), [0, 2])
+            self.assertEqual(result["added"], 1_000_000)  # the large one is not counted against the rest
+            full = self.package(Path(d) / "full", datasheet_ship.MAX_PACKAGE)
+            self.assertEqual(self.conditions(full, [self.pdf(d, "one.pdf", 1000, b"o")]), [3])
+
+    def test_a_candidate_already_in_the_package_is_not_counted_twice(self):
+        with tempfile.TemporaryDirectory() as d:
+            pkg = self.package(d, 1000)
+            (pkg / "docs").mkdir()
+            held = self.pdf(pkg / "docs", "held.pdf", 19_000)
+            result = datasheet_ship.judge(pkg, [held])
+            self.assertEqual((result["base"], result["added"], sorted(result["verdicts"].values())), (1000, 19_000, [0]))
+
+    def test_the_exit_status_says_whether_everything_ships_and_a_non_pdf_is_refused(self):
+        with tempfile.TemporaryDirectory() as d:
+            pkg = self.package(d, 1000)
+            with redirect_stdout(io.StringIO()) as out:
+                self.assertEqual(datasheet_ship.main([str(pkg), str(self.pdf(d, "fits.pdf", 5000))]), 0)
+                self.assertEqual(datasheet_ship.main([str(pkg), str(self.pdf(d, "over.pdf", 50_000))]), 3)
+            self.assertIn("ships: fits.pdf, 5,000 B", out.getvalue())
+            self.assertIn("stays out (condition 4): over.pdf", out.getvalue())
+            self.assertIn("condition 1", out.getvalue())
+            page = Path(d) / "page.pdf"
+            page.write_text("<html>not found</html>")
+            with self.assertRaises(SystemExit), redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+                datasheet_ship.main([str(pkg), str(page)])
+
+    def test_the_skill_ships_datasheets_by_this_rule(self):
+        text = SKILL.read_text()
+        self.assertIn("tools/datasheet_ship.py", text)
+        self.assertNotIn("PDFs are never committed", text)
+        self.assertIn("Raw supplier pages are never committed", text)
 
 
 if __name__ == "__main__":

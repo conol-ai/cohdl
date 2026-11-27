@@ -1,0 +1,456 @@
+{
+ "schema_version": 1,
+ "method": "measure_preview.py marks (attribution 2): each copy's own pin 1 mark, placed with the row's candidate mapping in the supplier CPL, within 20 degrees of pad 1's direction from the footprint origin (mark_ok); four copies per part number (top 0 and 37 degrees, bottom 0 and 37 degrees)",
+ "parts": [
+  {
+   "pn": "C7502685",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BAS40",
+   "part": "diode::Schottky_SOT23<40V, 200mA>",
+   "designators": [
+    "D21",
+    "D22",
+    "D23",
+    "D24"
+   ],
+   "mapping": {
+    "dx_mm": 0,
+    "dy_mm": 0,
+    "rotate_deg": 90
+   },
+   "candidate_record": "tools/sourcing_data/jlc_previews/2026-11-23-board-17/README.md",
+   "deltas_ccw_from_top": [
+    10.6,
+    11.5,
+    -11.1,
+    -10.8
+   ],
+   "reading": "pin 1 at pad 1 with the candidate"
+  },
+  {
+   "pn": "C7502686",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BAS70",
+   "part": "diode::Schottky_SOT23<70V, 70mA>",
+   "designators": [
+    "D29",
+    "D30",
+    "D31",
+    "D32"
+   ],
+   "mapping": {
+    "dx_mm": 0,
+    "dy_mm": 0,
+    "rotate_deg": 90
+   },
+   "candidate_record": "tools/sourcing_data/jlc_previews/2026-11-23-board-17/README.md",
+   "deltas_ccw_from_top": [
+    10.4,
+    11.3,
+    -11.0,
+    -10.7
+   ],
+   "reading": "pin 1 at pad 1 with the candidate"
+  },
+  {
+   "pn": "C7502687",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BAS70-04",
+   "part": "diode::SchottkyPairSeries_SOT23<70V, 70mA>",
+   "designators": [
+    "D25",
+    "D26",
+    "D27",
+    "D28"
+   ],
+   "mapping": {
+    "dx_mm": 0,
+    "dy_mm": 0,
+    "rotate_deg": 90
+   },
+   "candidate_record": "tools/sourcing_data/jlc_previews/2026-11-23-board-17/README.md",
+   "deltas_ccw_from_top": [
+    10.7,
+    11.4,
+    -10.9,
+    -10.2
+   ],
+   "reading": "pin 1 at pad 1 with the candidate"
+  },
+  {
+   "pn": "C7502688",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BAS40-04",
+   "part": "diode::SchottkyPairSeries_SOT23<40V, 200mA>",
+   "designators": [
+    "D13",
+    "D14",
+    "D15",
+    "D16"
+   ],
+   "mapping": {
+    "dx_mm": 0,
+    "dy_mm": 0,
+    "rotate_deg": 90
+   },
+   "candidate_record": "tools/sourcing_data/jlc_previews/2026-11-23-board-17/README.md",
+   "deltas_ccw_from_top": [
+    10.8,
+    11.7,
+    -10.6,
+    -10.0
+   ],
+   "reading": "pin 1 at pad 1 with the candidate"
+  },
+  {
+   "pn": "C7502689",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BAS40-05",
+   "part": "diode::SchottkyPairCommonCathode_SOT23<40V, 200mA>",
+   "designators": [
+    "D17",
+    "D18",
+    "D19",
+    "D20"
+   ],
+   "mapping": {
+    "dx_mm": 0,
+    "dy_mm": 0,
+    "rotate_deg": 90
+   },
+   "candidate_record": "tools/sourcing_data/jlc_previews/2026-11-23-board-17/README.md",
+   "deltas_ccw_from_top": [
+    11.0,
+    11.2,
+    -10.5,
+    -9.7
+   ],
+   "reading": "pin 1 at pad 1 with the candidate"
+  },
+  {
+   "pn": "C7502690",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BAT54A",
+   "part": "diode::SchottkyPairCommonAnode_SOT23<30V, 200mA>",
+   "designators": [
+    "D33",
+    "D34",
+    "D35",
+    "D36"
+   ],
+   "mapping": {
+    "dx_mm": 0,
+    "dy_mm": 0,
+    "rotate_deg": 90
+   },
+   "candidate_record": "tools/sourcing_data/jlc_previews/2026-11-23-board-17/README.md",
+   "deltas_ccw_from_top": [
+    11.1,
+    11.1,
+    -10.3,
+    -9.5
+   ],
+   "reading": "pin 1 at pad 1 with the candidate"
+  },
+  {
+   "pn": "C7502723",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "MMBD4148",
+   "part": "diode::Diode_SOT23<75V, 150mA>",
+   "designators": [
+    "D69",
+    "D70",
+    "D71",
+    "D72"
+   ],
+   "mapping": {
+    "dx_mm": 0,
+    "dy_mm": 0,
+    "rotate_deg": 90
+   },
+   "candidate_record": "tools/sourcing_data/jlc_previews/2026-11-23-board-17/README.md",
+   "deltas_ccw_from_top": [
+    11.3,
+    11.5,
+    -10.3,
+    -9.3
+   ],
+   "reading": "pin 1 at pad 1 with the candidate"
+  },
+  {
+   "pn": "C7502725",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BAS21",
+   "part": "diode::Diode_SOT23<250V, 200mA>",
+   "designators": [
+    "D9",
+    "D10",
+    "D11",
+    "D12"
+   ],
+   "mapping": {
+    "dx_mm": 0,
+    "dy_mm": 0,
+    "rotate_deg": 90
+   },
+   "candidate_record": "tools/sourcing_data/jlc_previews/2026-11-23-board-17/README.md",
+   "deltas_ccw_from_top": [
+    11.3,
+    11.4,
+    -10.1,
+    -9.1
+   ],
+   "reading": "pin 1 at pad 1 with the candidate"
+  },
+  {
+   "pn": "C7502726",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BAS21S",
+   "part": "diode::DiodePairSeries_SOT23<250V, 200mA>",
+   "designators": [
+    "D5",
+    "D6",
+    "D7",
+    "D8"
+   ],
+   "mapping": {
+    "dx_mm": 0,
+    "dy_mm": 0,
+    "rotate_deg": 90
+   },
+   "candidate_record": "tools/sourcing_data/jlc_previews/2026-11-23-board-17/README.md",
+   "deltas_ccw_from_top": [
+    9.9,
+    10.7,
+    -10.4,
+    -10.5
+   ],
+   "reading": "pin 1 at pad 1 with the candidate"
+  },
+  {
+   "pn": "C7502729",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BAW56",
+   "part": "diode::DiodePairCommonAnode_SOT23<70V, 200mA>",
+   "designators": [
+    "D37",
+    "D38",
+    "D39",
+    "D40"
+   ],
+   "mapping": {
+    "dx_mm": 0,
+    "dy_mm": 0,
+    "rotate_deg": 90
+   },
+   "candidate_record": "tools/sourcing_data/jlc_previews/2026-11-23-board-17/README.md",
+   "deltas_ccw_from_top": [
+    9.8,
+    10.8,
+    -10.4,
+    -10.2
+   ],
+   "reading": "pin 1 at pad 1 with the candidate"
+  },
+  {
+   "pn": "C7502730",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "1SS181",
+   "part": "diode::DiodePairCommonAnode_SOT23<80V, 100mA>",
+   "designators": [
+    "D1",
+    "D2",
+    "D3",
+    "D4"
+   ],
+   "mapping": {
+    "dx_mm": 0,
+    "dy_mm": 0,
+    "rotate_deg": 90
+   },
+   "candidate_record": "tools/sourcing_data/jlc_previews/2026-11-23-board-17/README.md",
+   "deltas_ccw_from_top": [
+    10.2,
+    10.6,
+    -10.2,
+    -9.9
+   ],
+   "reading": "pin 1 at pad 1 with the candidate"
+  },
+  {
+   "pn": "C19077467",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BZX84C3V3",
+   "part": "diode::Zener_SOT23<3.3V, 300mW>",
+   "designators": [
+    "D57",
+    "D58",
+    "D59",
+    "D60"
+   ],
+   "mapping": {
+    "dx_mm": 0,
+    "dy_mm": 0,
+    "rotate_deg": 180
+   },
+   "candidate_record": "tools/sourcing_data/jlc_previews/2026-11-23-board-17/README.md",
+   "deltas_ccw_from_top": [
+    17.4,
+    17.5,
+    -17.1,
+    -16.8
+   ],
+   "reading": "pin 1 at pad 1 with the candidate"
+  },
+  {
+   "pn": "C19077468",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BZX84C5V1",
+   "part": "diode::Zener_SOT23<5.1V, 300mW>",
+   "designators": [
+    "D61",
+    "D62",
+    "D63",
+    "D64"
+   ],
+   "mapping": {
+    "dx_mm": 0,
+    "dy_mm": 0,
+    "rotate_deg": 180
+   },
+   "candidate_record": "tools/sourcing_data/jlc_previews/2026-11-23-board-17/README.md",
+   "deltas_ccw_from_top": [
+    17.4,
+    17.5,
+    -17.0,
+    -16.8
+   ],
+   "reading": "pin 1 at pad 1 with the candidate"
+  },
+  {
+   "pn": "C19077469",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BZX84C5V6",
+   "part": "diode::Zener_SOT23<5.6V, 300mW>",
+   "designators": [
+    "D65",
+    "D66",
+    "D67",
+    "D68"
+   ],
+   "mapping": {
+    "dx_mm": 0,
+    "dy_mm": 0,
+    "rotate_deg": 180
+   },
+   "candidate_record": "tools/sourcing_data/jlc_previews/2026-11-23-board-17/README.md",
+   "deltas_ccw_from_top": [
+    17.5,
+    17.5,
+    -16.7,
+    -16.3
+   ],
+   "reading": "pin 1 at pad 1 with the candidate"
+  },
+  {
+   "pn": "C19077470",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BZX84C10",
+   "part": "diode::Zener_SOT23<10V, 300mW>",
+   "designators": [
+    "D41",
+    "D42",
+    "D43",
+    "D44"
+   ],
+   "mapping": {
+    "dx_mm": 0,
+    "dy_mm": 0,
+    "rotate_deg": 180
+   },
+   "candidate_record": "tools/sourcing_data/jlc_previews/2026-11-23-board-17/README.md",
+   "deltas_ccw_from_top": [
+    17.7,
+    17.3,
+    -16.9,
+    -16.1
+   ],
+   "reading": "pin 1 at pad 1 with the candidate"
+  },
+  {
+   "pn": "C19077471",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BZX84C12",
+   "part": "diode::Zener_SOT23<12V, 300mW>",
+   "designators": [
+    "D45",
+    "D46",
+    "D47",
+    "D48"
+   ],
+   "mapping": {
+    "dx_mm": 0,
+    "dy_mm": 0,
+    "rotate_deg": 180
+   },
+   "candidate_record": "tools/sourcing_data/jlc_previews/2026-11-23-board-17/README.md",
+   "deltas_ccw_from_top": [
+    17.7,
+    17.5,
+    -16.5,
+    -16.0
+   ],
+   "reading": "pin 1 at pad 1 with the candidate"
+  },
+  {
+   "pn": "C19077472",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BZX84C15",
+   "part": "diode::Zener_SOT23<15V, 300mW>",
+   "designators": [
+    "D49",
+    "D50",
+    "D51",
+    "D52"
+   ],
+   "mapping": {
+    "dx_mm": 0,
+    "dy_mm": 0,
+    "rotate_deg": 180
+   },
+   "candidate_record": "tools/sourcing_data/jlc_previews/2026-11-23-board-17/README.md",
+   "deltas_ccw_from_top": [
+    16.4,
+    17.0,
+    -16.8,
+    -17.3
+   ],
+   "reading": "pin 1 at pad 1 with the candidate"
+  },
+  {
+   "pn": "C19077473",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BZX84C18",
+   "part": "diode::Zener_SOT23<18V, 300mW>",
+   "designators": [
+    "D53",
+    "D54",
+    "D55",
+    "D56"
+   ],
+   "mapping": {
+    "dx_mm": 0,
+    "dy_mm": 0,
+    "rotate_deg": 180
+   },
+   "candidate_record": "tools/sourcing_data/jlc_previews/2026-11-23-board-17/README.md",
+   "deltas_ccw_from_top": [
+    16.3,
+    17.0,
+    -16.6,
+    -16.9
+   ],
+   "reading": "pin 1 at pad 1 with the candidate"
+  }
+ ]
+}

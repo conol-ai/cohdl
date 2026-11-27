@@ -1,0 +1,1262 @@
+{
+ "schema_version": 1,
+ "note": "Transcription of the manufacturer datasheets of the SOT-23 switching diodes, Schottky diodes and Zener diodes in the B1 snapshot (jlc_catalog/2026-10-30). Each PDF was fetched on 2026-11-23 through the LCSC datasheet link the snapshot page gives and read from its rendered pin diagram; a Zener's row is its family sheet's electrical-characteristics row. The PDFs are not committed, their SHA-256 is. BAS16 (C7502724) is not here: its sheet's diode symbol has no pin numbers. MMBZ5226B's ZZT column is its ZZT@IZT.",
+ "parts": [
+  {
+   "c": "C22466364",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BAS70-06",
+   "kind": "schottky",
+   "config": "common_anode",
+   "diodes": [
+    [
+     "3",
+     "1"
+    ],
+    [
+     "3",
+     "2"
+    ]
+   ],
+   "nc": [],
+   "ratings": {
+    "vr_v": 70,
+    "if_ma": 70,
+    "vf_v": 1.0,
+    "vf_at_ma": 15
+   },
+   "marking": "76",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/cdb419da2e03f728de780897c0eae419.pdf?productCode=C22466364",
+    "sha256": "b0ddaf27de856d3dd8160ef091933c0534ae204fc745c17bd22214ce78ebd7e4",
+    "bytes": 222796,
+    "fetched": "2026-11-23T06:32:45Z",
+    "pinout": "p1 Function Diagram (internal configuration with pin numbers 1/2/3), BAS70-06 panel"
+   }
+  },
+  {
+   "c": "C7502690",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BAT54A",
+   "kind": "schottky",
+   "config": "common_anode",
+   "diodes": [
+    [
+     "3",
+     "1"
+    ],
+    [
+     "3",
+     "2"
+    ]
+   ],
+   "nc": [],
+   "ratings": {
+    "vr_v": 30,
+    "if_ma": 200,
+    "vf_v": 1.0,
+    "vf_at_ma": 100
+   },
+   "marking": "KL2",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/34ea9f8d4a2e2e40eea56b51198e5fd8.pdf?productCode=C7502690",
+    "sha256": "8c5fbf8f378ffcf628e234e1ba617c1708a65c5b1e8e796cb26e071058b9d143",
+    "bytes": 226254,
+    "fetched": "2026-11-23T06:32:51Z",
+    "pinout": "p1 Function Diagram (internal configuration with pin numbers 1/2/3), BAT54A panel"
+   }
+  },
+  {
+   "c": "C37704",
+   "mfr": "Nexperia",
+   "mpn": "BAT54C,215",
+   "kind": "schottky",
+   "config": "common_cathode",
+   "diodes": [
+    [
+     "1",
+     "3"
+    ],
+    [
+     "2",
+     "3"
+    ]
+   ],
+   "nc": [],
+   "ratings": {
+    "vr_v": 30,
+    "if_ma": 200,
+    "vf_v": 0.8,
+    "vf_at_ma": 100
+   },
+   "marking": "%W1",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/753e903e66757b8dda706efd5e61ce1e.pdf?productCode=C37704",
+    "sha256": "38d4cf5982dcaaa3dadba4eac506917de6798ef565062ef2abbecbb6023071ce",
+    "bytes": 206352,
+    "fetched": "2026-11-23T06:32:55Z",
+    "pinout": "p1 Table 2 Pinning information (pin table + graphic symbol 006aac984); p2 Table 4 Marking codes"
+   },
+   "notes": "% = manufacturing site code placeholder."
+  },
+  {
+   "c": "C7502689",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BAS40-05",
+   "kind": "schottky",
+   "config": "common_cathode",
+   "diodes": [
+    [
+     "1",
+     "3"
+    ],
+    [
+     "2",
+     "3"
+    ]
+   ],
+   "nc": [],
+   "ratings": {
+    "vr_v": 40,
+    "if_ma": 200,
+    "vf_v": 1.0,
+    "vf_at_ma": 30
+   },
+   "marking": "45",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/3e6d5e9a73879aadf38e5fa216507af2.pdf?productCode=C7502689",
+    "sha256": "23ca89808cda7984d132b46926946f64f237774b7f7be8f74b47ed86276136ee",
+    "bytes": 223063,
+    "fetched": "2026-11-23T06:32:40Z",
+    "pinout": "p1 Function Diagram (internal configuration with pin numbers 1/2/3), BAS40-05 panel"
+   }
+  },
+  {
+   "c": "C22466350",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BAT54C",
+   "kind": "schottky",
+   "config": "common_cathode",
+   "diodes": [
+    [
+     "1",
+     "3"
+    ],
+    [
+     "2",
+     "3"
+    ]
+   ],
+   "nc": [],
+   "ratings": {
+    "vr_v": 30,
+    "if_ma": 200,
+    "vf_v": 1.0,
+    "vf_at_ma": 100
+   },
+   "marking": "KL3",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/34ea9f8d4a2e2e40eea56b51198e5fd8.pdf?productCode=C22466350",
+    "sha256": "8c5fbf8f378ffcf628e234e1ba617c1708a65c5b1e8e796cb26e071058b9d143",
+    "bytes": 226254,
+    "fetched": "2026-11-23T06:32:52Z",
+    "pinout": "p1 Function Diagram (internal configuration with pin numbers 1/2/3), BAT54C panel"
+   }
+  },
+  {
+   "c": "C7502688",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BAS40-04",
+   "kind": "schottky",
+   "config": "series",
+   "diodes": [
+    [
+     "1",
+     "3"
+    ],
+    [
+     "3",
+     "2"
+    ]
+   ],
+   "nc": [],
+   "ratings": {
+    "vr_v": 40,
+    "if_ma": 200,
+    "vf_v": 1.0,
+    "vf_at_ma": 30
+   },
+   "marking": "44",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/3e6d5e9a73879aadf38e5fa216507af2.pdf?productCode=C7502688",
+    "sha256": "23ca89808cda7984d132b46926946f64f237774b7f7be8f74b47ed86276136ee",
+    "bytes": 223063,
+    "fetched": "2026-11-23T06:32:37Z",
+    "pinout": "p1 Function Diagram (internal configuration with pin numbers 1/2/3), BAS40-04 panel"
+   }
+  },
+  {
+   "c": "C7502687",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BAS70-04",
+   "kind": "schottky",
+   "config": "series",
+   "diodes": [
+    [
+     "1",
+     "3"
+    ],
+    [
+     "3",
+     "2"
+    ]
+   ],
+   "nc": [],
+   "ratings": {
+    "vr_v": 70,
+    "if_ma": 70,
+    "vf_v": 1.0,
+    "vf_at_ma": 15
+   },
+   "marking": "74",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/cdb419da2e03f728de780897c0eae419.pdf?productCode=C7502687",
+    "sha256": "b0ddaf27de856d3dd8160ef091933c0534ae204fc745c17bd22214ce78ebd7e4",
+    "bytes": 222796,
+    "fetched": "2026-11-23T06:32:44Z",
+    "pinout": "p1 Function Diagram (internal configuration with pin numbers 1/2/3), BAS70-04 panel"
+   }
+  },
+  {
+   "c": "C7420333",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BAT54S",
+   "kind": "schottky",
+   "config": "series",
+   "diodes": [
+    [
+     "1",
+     "3"
+    ],
+    [
+     "3",
+     "2"
+    ]
+   ],
+   "nc": [],
+   "ratings": {
+    "vr_v": 30,
+    "if_ma": 200,
+    "vf_v": 1.0,
+    "vf_at_ma": 100
+   },
+   "marking": "KL4",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/34ea9f8d4a2e2e40eea56b51198e5fd8.pdf?productCode=C7420333",
+    "sha256": "8c5fbf8f378ffcf628e234e1ba617c1708a65c5b1e8e796cb26e071058b9d143",
+    "bytes": 226254,
+    "fetched": "2026-11-23T06:32:57Z",
+    "pinout": "p1 Function Diagram (internal configuration with pin numbers 1/2/3), BAT54S panel"
+   }
+  },
+  {
+   "c": "C7502685",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BAS40",
+   "kind": "schottky",
+   "config": "single",
+   "diodes": [
+    [
+     "1",
+     "3"
+    ]
+   ],
+   "nc": [
+    "2"
+   ],
+   "ratings": {
+    "vr_v": 40,
+    "if_ma": 200,
+    "vf_v": 1.0,
+    "vf_at_ma": 30
+   },
+   "marking": "43",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/3e6d5e9a73879aadf38e5fa216507af2.pdf?productCode=C7502685",
+    "sha256": "23ca89808cda7984d132b46926946f64f237774b7f7be8f74b47ed86276136ee",
+    "bytes": 223063,
+    "fetched": "2026-11-23T06:32:35Z",
+    "pinout": "p1 Function Diagram (internal configuration with pin numbers 1/2/3), BAS40 panel"
+   }
+  },
+  {
+   "c": "C7502686",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BAS70",
+   "kind": "schottky",
+   "config": "single",
+   "diodes": [
+    [
+     "1",
+     "3"
+    ]
+   ],
+   "nc": [
+    "2"
+   ],
+   "ratings": {
+    "vr_v": 70,
+    "if_ma": 70,
+    "vf_v": 1.0,
+    "vf_at_ma": 15
+   },
+   "marking": "73",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/cdb419da2e03f728de780897c0eae419.pdf?productCode=C7502686",
+    "sha256": "b0ddaf27de856d3dd8160ef091933c0534ae204fc745c17bd22214ce78ebd7e4",
+    "bytes": 222796,
+    "fetched": "2026-11-23T06:32:42Z",
+    "pinout": "p1 Function Diagram (internal configuration with pin numbers 1/2/3), BAS70 panel"
+   }
+  },
+  {
+   "c": "C22466368",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BAT54",
+   "kind": "schottky",
+   "config": "single",
+   "diodes": [
+    [
+     "1",
+     "3"
+    ]
+   ],
+   "nc": [
+    "2"
+   ],
+   "ratings": {
+    "vr_v": 30,
+    "if_ma": 200,
+    "vf_v": 1.0,
+    "vf_at_ma": 100
+   },
+   "marking": "KL1",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/34ea9f8d4a2e2e40eea56b51198e5fd8.pdf?productCode=C22466368",
+    "sha256": "8c5fbf8f378ffcf628e234e1ba617c1708a65c5b1e8e796cb26e071058b9d143",
+    "bytes": 226254,
+    "fetched": "2026-11-23T06:32:48Z",
+    "pinout": "p1 Function Diagram (internal configuration with pin numbers 1/2/3), BAT54 panel"
+   }
+  },
+  {
+   "c": "C22466371",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BAT720",
+   "kind": "schottky",
+   "config": "single",
+   "diodes": [
+    [
+     "1",
+     "3"
+    ]
+   ],
+   "nc": [
+    "2"
+   ],
+   "ratings": {
+    "vr_v": 40,
+    "if_ma": 500,
+    "vf_v": 0.55,
+    "vf_at_ma": 500
+   },
+   "marking": "L61",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/2fa2ec17f814a03469a59a817bee2c1b.pdf?productCode=C22466371",
+    "sha256": "c312a9f58eda6323ff1ea4053327df59b9d4cdc19111b686e59f9914101ee736",
+    "bytes": 216187,
+    "fetched": "2026-11-23T06:33:01Z",
+    "pinout": "p1 Function Diagram (internal configuration with pin numbers 1/2/3)"
+   }
+  },
+  {
+   "c": "C7502730",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "1SS181",
+   "kind": "switching",
+   "config": "common_anode",
+   "diodes": [
+    [
+     "3",
+     "1"
+    ],
+    [
+     "3",
+     "2"
+    ]
+   ],
+   "nc": [],
+   "ratings": {
+    "vr_v": 80,
+    "if_ma": 100,
+    "vf_v": 1.2,
+    "vf_at_ma": 100
+   },
+   "marking": "A3",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/dac56525c3d1131be0bf14db9573e868.pdf?productCode=C7502730",
+    "sha256": "510ded7cd6ad8e0dc2d4307588106c740c3d607dd6279f8256f6911eee50a1f0",
+    "bytes": 222706,
+    "fetched": "2026-11-23T06:31:59Z",
+    "pinout": "p1 Function Diagram (internal configuration with pin numbers 1/2/3)"
+   },
+   "notes": "Common anode at pin 3 per diagram (both diodes cathode toward pins 1/2)."
+  },
+  {
+   "c": "C7502729",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BAW56",
+   "kind": "switching",
+   "config": "common_anode",
+   "diodes": [
+    [
+     "3",
+     "1"
+    ],
+    [
+     "3",
+     "2"
+    ]
+   ],
+   "nc": [],
+   "ratings": {
+    "vr_v": 70,
+    "if_ma": 200,
+    "vf_v": 1.0,
+    "vf_at_ma": 50
+   },
+   "marking": "A1",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/e727cf2ca6f9dcee45daf62a82eb58de.pdf?productCode=C7502729",
+    "sha256": "dd9e0c7e48eb57de3562154a09de064485d72c474c0c2a233d7b0b0051d8b33d",
+    "bytes": 230495,
+    "fetched": "2026-11-23T06:33:12Z",
+    "pinout": "p1 Function Diagram (internal configuration with pin numbers 1/2/3), BAW56 panel"
+   }
+  },
+  {
+   "c": "C68978",
+   "mfr": "Jiangsu Changjing Electronics Technology",
+   "mpn": "BAV70",
+   "kind": "switching",
+   "config": "common_cathode",
+   "diodes": [
+    [
+     "1",
+     "3"
+    ],
+    [
+     "2",
+     "3"
+    ]
+   ],
+   "nc": [],
+   "ratings": {
+    "vr_v": 70,
+    "if_ma": 200,
+    "vf_v": 1.0,
+    "vf_at_ma": 50
+   },
+   "marking": "A4",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/6e2e0793b76aba6348e571f5e0d12d7d.pdf?productCode=C68978",
+    "sha256": "2688a2ac8f7576e7ffa8b58c76f9ff025cd61a80053774b2a07b9cbee540b07d",
+    "bytes": 968736,
+    "fetched": "2026-11-23T06:33:04Z",
+    "pinout": "p1 BAW56/BAV70/BAV99 configuration table, BAV70 column (pins 1,2,3 labelled)"
+   }
+  },
+  {
+   "c": "C7420335",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BAV70",
+   "kind": "switching",
+   "config": "common_cathode",
+   "diodes": [
+    [
+     "1",
+     "3"
+    ],
+    [
+     "2",
+     "3"
+    ]
+   ],
+   "nc": [],
+   "ratings": {
+    "vr_v": 70,
+    "if_ma": 200,
+    "vf_v": 1.0,
+    "vf_at_ma": 50
+   },
+   "marking": "A4",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/e727cf2ca6f9dcee45daf62a82eb58de.pdf?productCode=C7420335",
+    "sha256": "dd9e0c7e48eb57de3562154a09de064485d72c474c0c2a233d7b0b0051d8b33d",
+    "bytes": 230495,
+    "fetched": "2026-11-23T06:33:05Z",
+    "pinout": "p1 Function Diagram (internal configuration with pin numbers 1/2/3), BAV70 panel"
+   }
+  },
+  {
+   "c": "C17179589",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "MMBD4148CC",
+   "kind": "switching",
+   "config": "common_cathode",
+   "diodes": [
+    [
+     "1",
+     "3"
+    ],
+    [
+     "2",
+     "3"
+    ]
+   ],
+   "nc": [],
+   "ratings": {
+    "vr_v": 75,
+    "if_ma": 200,
+    "vf_v": 1.0,
+    "vf_at_ma": 10
+   },
+   "marking": null,
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/82438fce387991eb0541057672339063.pdf?productCode=C17179589",
+    "sha256": "966ee3d7e3cdce1e6bac0bf3c026375d8ab286fe0f952241eba96c280b1991ac",
+    "bytes": 221952,
+    "fetched": "2026-11-23T06:35:44Z",
+    "pinout": "p1 Function Diagram (internal configuration with pin numbers 1/2/3), MMBD4148CC panel"
+   },
+   "notes": "No marking code shown. Datasheet title has typo 'MMBD41418A THRU MMBD4148SE'."
+  },
+  {
+   "c": "C2500",
+   "mfr": "Nexperia",
+   "mpn": "BAV99,215",
+   "kind": "switching",
+   "config": "series",
+   "diodes": [
+    [
+     "1",
+     "3"
+    ],
+    [
+     "3",
+     "2"
+    ]
+   ],
+   "nc": [],
+   "ratings": {
+    "vr_v": 100,
+    "if_ma": 215,
+    "vf_v": 1.0,
+    "vf_at_ma": 50
+   },
+   "marking": "A7%",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/8b7720fc960f8626e375ebd15030b1eb.pdf?productCode=C2500",
+    "sha256": "826c982f4f2bbefcc047abea7ed2be517c09cf46bf61c10c25e4b7c378369b2f",
+    "bytes": 203011,
+    "fetched": "2026-11-23T06:33:09Z",
+    "pinout": "p2 Table 2 Pinning information (pin table + graphic symbol 006aaa763); p2 Table 4 Marking codes"
+   },
+   "notes": "% = manufacturing site code placeholder."
+  },
+  {
+   "c": "C7502731",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "1SS226",
+   "kind": "switching",
+   "config": "series",
+   "diodes": [
+    [
+     "1",
+     "3"
+    ],
+    [
+     "3",
+     "2"
+    ]
+   ],
+   "nc": [],
+   "ratings": {
+    "vr_v": 80,
+    "if_ma": 100,
+    "vf_v": 1.0,
+    "vf_at_ma": 100
+   },
+   "marking": "C3",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/a75e784da670e5a889f5d1ef6294667c.pdf?productCode=C7502731",
+    "sha256": "f45345cde27d54e5828bf7b7ef853f8e02cb837d29d956b0854d86498e18f511",
+    "bytes": 220943,
+    "fetched": "2026-11-23T06:32:01Z",
+    "pinout": "p1 Function Diagram (internal configuration with pin numbers 1/2/3)"
+   }
+  },
+  {
+   "c": "C7502726",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BAS21S",
+   "kind": "switching",
+   "config": "series",
+   "diodes": [
+    [
+     "1",
+     "3"
+    ],
+    [
+     "3",
+     "2"
+    ]
+   ],
+   "nc": [],
+   "ratings": {
+    "vr_v": 250,
+    "if_ma": 200,
+    "vf_v": 1.0,
+    "vf_at_ma": 100
+   },
+   "marking": "JS4",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/0fbbd8d1253ef4d4fca3e4bf77ef3400.pdf?productCode=C7502726",
+    "sha256": "7307f871b63acfa5103212e8eb2c20de954f0b7649741f9f9a30292ea144f89a",
+    "bytes": 225325,
+    "fetched": "2026-11-23T06:32:33Z",
+    "pinout": "p1 Function Diagram (internal configuration with pin numbers 1/2/3), BAS21S panel"
+   }
+  },
+  {
+   "c": "C7420336",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BAV99",
+   "kind": "switching",
+   "config": "series",
+   "diodes": [
+    [
+     "1",
+     "3"
+    ],
+    [
+     "3",
+     "2"
+    ]
+   ],
+   "nc": [],
+   "ratings": {
+    "vr_v": 70,
+    "if_ma": 200,
+    "vf_v": 1.0,
+    "vf_at_ma": 50
+   },
+   "marking": "A7",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/e727cf2ca6f9dcee45daf62a82eb58de.pdf?productCode=C7420336",
+    "sha256": "dd9e0c7e48eb57de3562154a09de064485d72c474c0c2a233d7b0b0051d8b33d",
+    "bytes": 230495,
+    "fetched": "2026-11-23T06:33:07Z",
+    "pinout": "p1 Function Diagram (internal configuration with pin numbers 1/2/3), BAV99 panel"
+   }
+  },
+  {
+   "c": "C17179590",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "MMBD4148SE",
+   "kind": "switching",
+   "config": "series",
+   "diodes": [
+    [
+     "1",
+     "3"
+    ],
+    [
+     "3",
+     "2"
+    ]
+   ],
+   "nc": [],
+   "ratings": {
+    "vr_v": 75,
+    "if_ma": 200,
+    "vf_v": 1.0,
+    "vf_at_ma": 10
+   },
+   "marking": null,
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/82438fce387991eb0541057672339063.pdf?productCode=C17179590",
+    "sha256": "966ee3d7e3cdce1e6bac0bf3c026375d8ab286fe0f952241eba96c280b1991ac",
+    "bytes": 221952,
+    "fetched": "2026-11-23T06:35:47Z",
+    "pinout": "p1 Function Diagram (internal configuration with pin numbers 1/2/3), MMBD4148SE panel"
+   },
+   "notes": "No marking code shown. Datasheet title has typo 'MMBD41418A THRU MMBD4148SE'."
+  },
+  {
+   "c": "C7502725",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BAS21",
+   "kind": "switching",
+   "config": "single",
+   "diodes": [
+    [
+     "1",
+     "3"
+    ]
+   ],
+   "nc": [
+    "2"
+   ],
+   "ratings": {
+    "vr_v": 250,
+    "if_ma": 200,
+    "vf_v": 1.0,
+    "vf_at_ma": 100
+   },
+   "marking": "JS",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/0fbbd8d1253ef4d4fca3e4bf77ef3400.pdf?productCode=C7502725",
+    "sha256": "7307f871b63acfa5103212e8eb2c20de954f0b7649741f9f9a30292ea144f89a",
+    "bytes": 225325,
+    "fetched": "2026-11-23T06:32:31Z",
+    "pinout": "p1 Function Diagram (internal configuration with pin numbers 1/2/3), BAS21 panel"
+   }
+  },
+  {
+   "c": "C7502723",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "MMBD4148",
+   "kind": "switching",
+   "config": "single",
+   "diodes": [
+    [
+     "1",
+     "3"
+    ]
+   ],
+   "nc": [
+    "2"
+   ],
+   "ratings": {
+    "vr_v": 75,
+    "if_ma": 150,
+    "vf_v": 1.0,
+    "vf_at_ma": 100
+   },
+   "marking": "KA2",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/37d5d2a9d528474b6e54b918a812453f.pdf?productCode=C7502723",
+    "sha256": "1cd59e50afde722eb1ba61498d37321604765c9271d687dfb0aeec1d2a61e40d",
+    "bytes": 225993,
+    "fetched": "2026-11-23T06:35:42Z",
+    "pinout": "p1 Function Diagram (internal configuration with pin numbers 1/2/3)"
+   }
+  },
+  {
+   "c": "C19077470",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BZX84C10",
+   "kind": "zener",
+   "config": "single",
+   "diodes": [
+    [
+     "1",
+     "3"
+    ]
+   ],
+   "nc": [
+    "2"
+   ],
+   "ratings": {
+    "vz_min_v": "9.4",
+    "vz_nom_v": "10",
+    "vz_max_v": "10.6",
+    "izt_ma": "5",
+    "zzt_ohm": "20",
+    "pd_mw": 300
+   },
+   "marking": "Z9",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/f099154a6640c0e8db3f25979c3cb868.pdf?productCode=C19077470",
+    "sha256": "a65683624fb8339f543bc425912e7a72a24a98329b1abe997248f4bab1b3f28f",
+    "bytes": 211257,
+    "fetched": "2026-11-23T06:33:43Z",
+    "pinout": "p1 'Function Diagram' (SOT-23 internal diagram, diode between pin1 and pin3); p2 'Electrical Characteristics' row BZX84C10; row BZX84C10 of the family sheet's electrical characteristics, page 2"
+   },
+   "notes": "Family sheet BZX84C2V4 thru BZX84C75 (Hongjiacheng); PD 300 mW"
+  },
+  {
+   "c": "C19077471",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BZX84C12",
+   "kind": "zener",
+   "config": "single",
+   "diodes": [
+    [
+     "1",
+     "3"
+    ]
+   ],
+   "nc": [
+    "2"
+   ],
+   "ratings": {
+    "vz_min_v": "11.4",
+    "vz_nom_v": "12",
+    "vz_max_v": "12.7",
+    "izt_ma": "5",
+    "zzt_ohm": "25",
+    "pd_mw": 300
+   },
+   "marking": "Y2",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/f099154a6640c0e8db3f25979c3cb868.pdf?productCode=C19077470",
+    "sha256": "a65683624fb8339f543bc425912e7a72a24a98329b1abe997248f4bab1b3f28f",
+    "bytes": 211257,
+    "fetched": "2026-11-23T06:33:43Z",
+    "pinout": "p1 'Function Diagram' (SOT-23 internal diagram, diode between pin1 and pin3); p2 'Electrical Characteristics' row BZX84C10; row BZX84C12 of the family sheet's electrical characteristics, page 2"
+   },
+   "notes": "Family sheet BZX84C2V4 thru BZX84C75 (Hongjiacheng); PD 300 mW"
+  },
+  {
+   "c": "C19077472",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BZX84C15",
+   "kind": "zener",
+   "config": "single",
+   "diodes": [
+    [
+     "1",
+     "3"
+    ]
+   ],
+   "nc": [
+    "2"
+   ],
+   "ratings": {
+    "vz_min_v": "13.8",
+    "vz_nom_v": "15",
+    "vz_max_v": "15.6",
+    "izt_ma": "5",
+    "zzt_ohm": "30",
+    "pd_mw": 300
+   },
+   "marking": "Y4",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/f099154a6640c0e8db3f25979c3cb868.pdf?productCode=C19077470",
+    "sha256": "a65683624fb8339f543bc425912e7a72a24a98329b1abe997248f4bab1b3f28f",
+    "bytes": 211257,
+    "fetched": "2026-11-23T06:33:43Z",
+    "pinout": "p1 'Function Diagram' (SOT-23 internal diagram, diode between pin1 and pin3); p2 'Electrical Characteristics' row BZX84C10; row BZX84C15 of the family sheet's electrical characteristics, page 2"
+   },
+   "notes": "Family sheet BZX84C2V4 thru BZX84C75 (Hongjiacheng); PD 300 mW"
+  },
+  {
+   "c": "C22379471",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BZX84C16",
+   "kind": "zener",
+   "config": "single",
+   "diodes": [
+    [
+     "1",
+     "3"
+    ]
+   ],
+   "nc": [
+    "2"
+   ],
+   "ratings": {
+    "vz_min_v": "15.3",
+    "vz_nom_v": "16",
+    "vz_max_v": "17.1",
+    "izt_ma": "5",
+    "zzt_ohm": "40",
+    "pd_mw": 300
+   },
+   "marking": "Y5",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/f099154a6640c0e8db3f25979c3cb868.pdf?productCode=C19077470",
+    "sha256": "a65683624fb8339f543bc425912e7a72a24a98329b1abe997248f4bab1b3f28f",
+    "bytes": 211257,
+    "fetched": "2026-11-23T06:33:43Z",
+    "pinout": "p1 'Function Diagram' (SOT-23 internal diagram, diode between pin1 and pin3); p2 'Electrical Characteristics' row BZX84C10; row BZX84C16 of the family sheet's electrical characteristics, page 2"
+   },
+   "notes": "Family sheet BZX84C2V4 thru BZX84C75 (Hongjiacheng); PD 300 mW"
+  },
+  {
+   "c": "C19077473",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BZX84C18",
+   "kind": "zener",
+   "config": "single",
+   "diodes": [
+    [
+     "1",
+     "3"
+    ]
+   ],
+   "nc": [
+    "2"
+   ],
+   "ratings": {
+    "vz_min_v": "16.8",
+    "vz_nom_v": "18",
+    "vz_max_v": "19.1",
+    "izt_ma": "5",
+    "zzt_ohm": "45",
+    "pd_mw": 300
+   },
+   "marking": "Y6",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/f099154a6640c0e8db3f25979c3cb868.pdf?productCode=C19077470",
+    "sha256": "a65683624fb8339f543bc425912e7a72a24a98329b1abe997248f4bab1b3f28f",
+    "bytes": 211257,
+    "fetched": "2026-11-23T06:33:43Z",
+    "pinout": "p1 'Function Diagram' (SOT-23 internal diagram, diode between pin1 and pin3); p2 'Electrical Characteristics' row BZX84C10; row BZX84C18 of the family sheet's electrical characteristics, page 2"
+   },
+   "notes": "Family sheet BZX84C2V4 thru BZX84C75 (Hongjiacheng); PD 300 mW"
+  },
+  {
+   "c": "C22379472",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BZX84C30",
+   "kind": "zener",
+   "config": "single",
+   "diodes": [
+    [
+     "1",
+     "3"
+    ]
+   ],
+   "nc": [
+    "2"
+   ],
+   "ratings": {
+    "vz_min_v": "28",
+    "vz_nom_v": "30",
+    "vz_max_v": "32",
+    "izt_ma": "2",
+    "zzt_ohm": "80",
+    "pd_mw": 300
+   },
+   "marking": "Y11",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/f099154a6640c0e8db3f25979c3cb868.pdf?productCode=C19077470",
+    "sha256": "a65683624fb8339f543bc425912e7a72a24a98329b1abe997248f4bab1b3f28f",
+    "bytes": 211257,
+    "fetched": "2026-11-23T06:33:43Z",
+    "pinout": "p1 'Function Diagram' (SOT-23 internal diagram, diode between pin1 and pin3); p2 'Electrical Characteristics' row BZX84C10; row BZX84C30 of the family sheet's electrical characteristics, page 2"
+   },
+   "notes": "Family sheet BZX84C2V4 thru BZX84C75 (Hongjiacheng); PD 300 mW"
+  },
+  {
+   "c": "C22379474",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BZX84C33",
+   "kind": "zener",
+   "config": "single",
+   "diodes": [
+    [
+     "1",
+     "3"
+    ]
+   ],
+   "nc": [
+    "2"
+   ],
+   "ratings": {
+    "vz_min_v": "31",
+    "vz_nom_v": "33",
+    "vz_max_v": "35",
+    "izt_ma": "2",
+    "zzt_ohm": "80",
+    "pd_mw": 300
+   },
+   "marking": "Y12",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/f099154a6640c0e8db3f25979c3cb868.pdf?productCode=C19077470",
+    "sha256": "a65683624fb8339f543bc425912e7a72a24a98329b1abe997248f4bab1b3f28f",
+    "bytes": 211257,
+    "fetched": "2026-11-23T06:33:43Z",
+    "pinout": "p1 'Function Diagram' (SOT-23 internal diagram, diode between pin1 and pin3); p2 'Electrical Characteristics' row BZX84C10; row BZX84C33 of the family sheet's electrical characteristics, page 2"
+   },
+   "notes": "Family sheet BZX84C2V4 thru BZX84C75 (Hongjiacheng); PD 300 mW"
+  },
+  {
+   "c": "C19077467",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BZX84C3V3",
+   "kind": "zener",
+   "config": "single",
+   "diodes": [
+    [
+     "1",
+     "3"
+    ]
+   ],
+   "nc": [
+    "2"
+   ],
+   "ratings": {
+    "vz_min_v": "3.1",
+    "vz_nom_v": "3.3",
+    "vz_max_v": "3.5",
+    "izt_ma": "5",
+    "zzt_ohm": "95",
+    "pd_mw": 300
+   },
+   "marking": "Z14",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/f099154a6640c0e8db3f25979c3cb868.pdf?productCode=C19077470",
+    "sha256": "a65683624fb8339f543bc425912e7a72a24a98329b1abe997248f4bab1b3f28f",
+    "bytes": 211257,
+    "fetched": "2026-11-23T06:33:43Z",
+    "pinout": "p1 'Function Diagram' (SOT-23 internal diagram, diode between pin1 and pin3); p2 'Electrical Characteristics' row BZX84C10; row BZX84C3V3 of the family sheet's electrical characteristics, page 2"
+   },
+   "notes": "Family sheet BZX84C2V4 thru BZX84C75 (Hongjiacheng); PD 300 mW"
+  },
+  {
+   "c": "C22395521",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BZX84C4V7",
+   "kind": "zener",
+   "config": "single",
+   "diodes": [
+    [
+     "1",
+     "3"
+    ]
+   ],
+   "nc": [
+    "2"
+   ],
+   "ratings": {
+    "vz_min_v": "4.4",
+    "vz_nom_v": "4.7",
+    "vz_max_v": "5.0",
+    "izt_ma": "5",
+    "zzt_ohm": "80",
+    "pd_mw": 300
+   },
+   "marking": "Z1",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/f099154a6640c0e8db3f25979c3cb868.pdf?productCode=C19077470",
+    "sha256": "a65683624fb8339f543bc425912e7a72a24a98329b1abe997248f4bab1b3f28f",
+    "bytes": 211257,
+    "fetched": "2026-11-23T06:33:43Z",
+    "pinout": "p1 'Function Diagram' (SOT-23 internal diagram, diode between pin1 and pin3); p2 'Electrical Characteristics' row BZX84C10; row BZX84C4V7 of the family sheet's electrical characteristics, page 2"
+   },
+   "notes": "Family sheet BZX84C2V4 thru BZX84C75 (Hongjiacheng); PD 300 mW"
+  },
+  {
+   "c": "C19077468",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BZX84C5V1",
+   "kind": "zener",
+   "config": "single",
+   "diodes": [
+    [
+     "1",
+     "3"
+    ]
+   ],
+   "nc": [
+    "2"
+   ],
+   "ratings": {
+    "vz_min_v": "4.8",
+    "vz_nom_v": "5.1",
+    "vz_max_v": "5.4",
+    "izt_ma": "5",
+    "zzt_ohm": "60",
+    "pd_mw": 300
+   },
+   "marking": "Z2",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/f099154a6640c0e8db3f25979c3cb868.pdf?productCode=C19077470",
+    "sha256": "a65683624fb8339f543bc425912e7a72a24a98329b1abe997248f4bab1b3f28f",
+    "bytes": 211257,
+    "fetched": "2026-11-23T06:33:43Z",
+    "pinout": "p1 'Function Diagram' (SOT-23 internal diagram, diode between pin1 and pin3); p2 'Electrical Characteristics' row BZX84C10; row BZX84C5V1 of the family sheet's electrical characteristics, page 2"
+   },
+   "notes": "Family sheet BZX84C2V4 thru BZX84C75 (Hongjiacheng); PD 300 mW"
+  },
+  {
+   "c": "C19077469",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BZX84C5V6",
+   "kind": "zener",
+   "config": "single",
+   "diodes": [
+    [
+     "1",
+     "3"
+    ]
+   ],
+   "nc": [
+    "2"
+   ],
+   "ratings": {
+    "vz_min_v": "5.2",
+    "vz_nom_v": "5.6",
+    "vz_max_v": "6.0",
+    "izt_ma": "5",
+    "zzt_ohm": "40",
+    "pd_mw": 300
+   },
+   "marking": "Z3",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/f099154a6640c0e8db3f25979c3cb868.pdf?productCode=C19077470",
+    "sha256": "a65683624fb8339f543bc425912e7a72a24a98329b1abe997248f4bab1b3f28f",
+    "bytes": 211257,
+    "fetched": "2026-11-23T06:33:43Z",
+    "pinout": "p1 'Function Diagram' (SOT-23 internal diagram, diode between pin1 and pin3); p2 'Electrical Characteristics' row BZX84C10; row BZX84C5V6 of the family sheet's electrical characteristics, page 2"
+   },
+   "notes": "Family sheet BZX84C2V4 thru BZX84C75 (Hongjiacheng); PD 300 mW"
+  },
+  {
+   "c": "C22379473",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BZX84C6V8",
+   "kind": "zener",
+   "config": "single",
+   "diodes": [
+    [
+     "1",
+     "3"
+    ]
+   ],
+   "nc": [
+    "2"
+   ],
+   "ratings": {
+    "vz_min_v": "6.4",
+    "vz_nom_v": "6.8",
+    "vz_max_v": "7.2",
+    "izt_ma": "5",
+    "zzt_ohm": "15",
+    "pd_mw": 300
+   },
+   "marking": "Z5",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/f099154a6640c0e8db3f25979c3cb868.pdf?productCode=C19077470",
+    "sha256": "a65683624fb8339f543bc425912e7a72a24a98329b1abe997248f4bab1b3f28f",
+    "bytes": 211257,
+    "fetched": "2026-11-23T06:33:43Z",
+    "pinout": "p1 'Function Diagram' (SOT-23 internal diagram, diode between pin1 and pin3); p2 'Electrical Characteristics' row BZX84C10; row BZX84C6V8 of the family sheet's electrical characteristics, page 2"
+   },
+   "notes": "Family sheet BZX84C2V4 thru BZX84C75 (Hongjiacheng); PD 300 mW"
+  },
+  {
+   "c": "C22379470",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BZX84C7V5",
+   "kind": "zener",
+   "config": "single",
+   "diodes": [
+    [
+     "1",
+     "3"
+    ]
+   ],
+   "nc": [
+    "2"
+   ],
+   "ratings": {
+    "vz_min_v": "7.0",
+    "vz_nom_v": "7.5",
+    "vz_max_v": "7.9",
+    "izt_ma": "5",
+    "zzt_ohm": "15",
+    "pd_mw": 300
+   },
+   "marking": "Z6",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/f099154a6640c0e8db3f25979c3cb868.pdf?productCode=C19077470",
+    "sha256": "a65683624fb8339f543bc425912e7a72a24a98329b1abe997248f4bab1b3f28f",
+    "bytes": 211257,
+    "fetched": "2026-11-23T06:33:43Z",
+    "pinout": "p1 'Function Diagram' (SOT-23 internal diagram, diode between pin1 and pin3); p2 'Electrical Characteristics' row BZX84C10; row BZX84C7V5 of the family sheet's electrical characteristics, page 2"
+   },
+   "notes": "Family sheet BZX84C2V4 thru BZX84C75 (Hongjiacheng); PD 300 mW"
+  },
+  {
+   "c": "C22395522",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BZX84C8V2",
+   "kind": "zener",
+   "config": "single",
+   "diodes": [
+    [
+     "1",
+     "3"
+    ]
+   ],
+   "nc": [
+    "2"
+   ],
+   "ratings": {
+    "vz_min_v": "7.7",
+    "vz_nom_v": "8.2",
+    "vz_max_v": "8.7",
+    "izt_ma": "5",
+    "zzt_ohm": "15",
+    "pd_mw": 300
+   },
+   "marking": "Z7",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/f099154a6640c0e8db3f25979c3cb868.pdf?productCode=C19077470",
+    "sha256": "a65683624fb8339f543bc425912e7a72a24a98329b1abe997248f4bab1b3f28f",
+    "bytes": 211257,
+    "fetched": "2026-11-23T06:33:43Z",
+    "pinout": "p1 'Function Diagram' (SOT-23 internal diagram, diode between pin1 and pin3); p2 'Electrical Characteristics' row BZX84C10; row BZX84C8V2 of the family sheet's electrical characteristics, page 2"
+   },
+   "notes": "Family sheet BZX84C2V4 thru BZX84C75 (Hongjiacheng); PD 300 mW"
+  },
+  {
+   "c": "C22395543",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "MMBZ5226B",
+   "kind": "zener",
+   "config": "single",
+   "diodes": [
+    [
+     "1",
+     "3"
+    ]
+   ],
+   "nc": [
+    "2"
+   ],
+   "ratings": {
+    "vz_min_v": "3.14",
+    "vz_nom_v": "3.3",
+    "vz_max_v": "3.47",
+    "izt_ma": "20",
+    "zzt_ohm": "28",
+    "pd_mw": 300
+   },
+   "marking": "KG1",
+   "datasheet": {
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/98166673f74005a3112794aa1c0a6584.pdf?productCode=C22395543",
+    "sha256": "70f2a42e67f954cbb867d8c40b052f7729449890fc8313249be52a26a7aaede1",
+    "bytes": 372619,
+    "fetched": "2026-11-23T06:36:50Z",
+    "pinout": "p1 'Function Diagram' (SOT-23 outline + schematic 1 -> zener -> 3, 2 open); p2 'Electrical Characteristics' row MMBZ5226B; row MMBZ5226B of the family sheet's electrical characteristics, page 2"
+   },
+   "notes": "Family sheet MMBZ5221B thru MMBZ5259B (Hongjiacheng); PD 300 mW"
+  }
+ ]
+}

@@ -17,8 +17,8 @@ hash = "sha256:3526c39b3a6f4c96225411a4178d72b41e74d9759073a5fc26aacb09c9601724"
 
 [[package]]
 name = "diode"
-version = "0.1.4"
-hash = "sha256:024c56ae451ce275e040158afebf98f93bed03e6bccb48705ff1ff91b425dc1d"
+version = "0.1.6"
+hash = "sha256:594962b95bf6028bd7518d5234f7830152546efc6bef0ae08bf8504575b1831c"
 
 [[package]]
 name = "do214"
@@ -27,8 +27,8 @@ hash = "sha256:e7a19e158e33cf2ce93f4bff59181de9cf723ac6a3938cee4f320e3fc5c24a1a"
 
 [[package]]
 name = "esd"
-version = "0.1.4"
-hash = "sha256:57ef42b05ef98451598a38680d6f952b9f89231dc03e20a87dc679651d19f938"
+version = "0.1.5"
+hash = "sha256:ca2c43e03dc5472d7b683a177b115dfa7d0d52251d28bf0e81966a7766f01f4e"
 
 [[package]]
 name = "flash"
@@ -42,8 +42,8 @@ hash = "sha256:4673cff4c6338b2fa07265a9e4a506a0260421e6305552787f98cf68a449d6c0"
 
 [[package]]
 name = "mosfet"
-version = "0.1.0"
-hash = "sha256:e80116ea1519f36bd39364e713017fc09e14e378de817a9ac0cd69edd9a474ba"
+version = "0.1.1"
+hash = "sha256:f853c8abcc38c582f87dbbdc6d857080c98e09a09f0f08afb99d9c61e4e3239e"
 
 [[package]]
 name = "osc"
@@ -69,6 +69,11 @@ hash = "sha256:5f24ff5d7235f2757e970e0dad57a562ba8cb268a804b00d393848d33239d58d"
 name = "soic"
 version = "0.3.0"
 hash = "sha256:faa12734be8c93a602b4a3d24a5e40f23d41ea6e030ae7fbe4008a8f5568c8db"
+
+[[package]]
+name = "sot"
+version = "0.1.2"
+hash = "sha256:5d3022291a544c263ea7cb338313c43668e38478150ca64db5ebe4c65f01f964"
 
 [[package]]
 name = "std"

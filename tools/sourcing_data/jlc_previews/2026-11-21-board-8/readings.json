@@ -1,0 +1,715 @@
+{
+ "schema_version": 1,
+ "method": "read by eye from contact_sheet.py sheets of the lossless exports: the model's cathode band and its '-' sign against our pad 1 (the land's band end, where our silkscreen bar is), on each of the four copies",
+ "readings": {
+  "cathode at pad 1": "band and '-' at our pad 1 on all four copies: mapping (0, 0, 0)",
+  "reversed": "band and '-' at our pad 2 on all four copies: candidate rotate 180, not a binding until a re-verify board confirms it",
+  "not drawn": "the assembler drew a placeholder, no model: nothing read"
+ },
+ "parts": [
+  {
+   "pn": "C19077392",
+   "mpn": "BZT52B3V3",
+   "designators": [
+    "D17",
+    "D18",
+    "D19",
+    "D20"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C19077393",
+   "mpn": "BZT52B5V1",
+   "designators": [
+    "D21",
+    "D22",
+    "D23",
+    "D24"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C19077394",
+   "mpn": "BZT52C2V7",
+   "designators": [
+    "D81",
+    "D82",
+    "D83",
+    "D84"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C19077395",
+   "mpn": "BZT52C3V0",
+   "designators": [
+    "D97",
+    "D98",
+    "D99",
+    "D100"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C19077396",
+   "mpn": "BZT52C3V3",
+   "designators": [
+    "D101",
+    "D102",
+    "D103",
+    "D104"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C19077398",
+   "mpn": "BZT52C3V9",
+   "designators": [
+    "D105",
+    "D106",
+    "D107",
+    "D108"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C19077399",
+   "mpn": "BZT52C4V3",
+   "designators": [
+    "D117",
+    "D118",
+    "D119",
+    "D120"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C19077400",
+   "mpn": "BZT52C4V7",
+   "designators": [
+    "D121",
+    "D122",
+    "D123",
+    "D124"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C19077401",
+   "mpn": "BZT52C5V1",
+   "designators": [
+    "D125",
+    "D126",
+    "D127",
+    "D128"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C19077402",
+   "mpn": "BZT52C5V6",
+   "designators": [
+    "D129",
+    "D130",
+    "D131",
+    "D132"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C19077403",
+   "mpn": "BZT52C6V2",
+   "designators": [
+    "D133",
+    "D134",
+    "D135",
+    "D136"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C19077404",
+   "mpn": "BZT52C6V8",
+   "designators": [
+    "D137",
+    "D138",
+    "D139",
+    "D140"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C19077405",
+   "mpn": "BZT52C7V5",
+   "designators": [
+    "D145",
+    "D146",
+    "D147",
+    "D148"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C19077406",
+   "mpn": "BZT52C8V2",
+   "designators": [
+    "D149",
+    "D150",
+    "D151",
+    "D152"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C19077407",
+   "mpn": "BZT52C9V1",
+   "designators": [
+    "D153",
+    "D154",
+    "D155",
+    "D156"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C19077408",
+   "mpn": "BZT52C10",
+   "designators": [
+    "D33",
+    "D34",
+    "D35",
+    "D36"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C19077409",
+   "mpn": "BZT52C11",
+   "designators": [
+    "D37",
+    "D38",
+    "D39",
+    "D40"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C19077410",
+   "mpn": "BZT52C12",
+   "designators": [
+    "D41",
+    "D42",
+    "D43",
+    "D44"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C19077411",
+   "mpn": "BZT52C13",
+   "designators": [
+    "D45",
+    "D46",
+    "D47",
+    "D48"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C19077412",
+   "mpn": "BZT52C15",
+   "designators": [
+    "D49",
+    "D50",
+    "D51",
+    "D52"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C19077413",
+   "mpn": "BZT52C16",
+   "designators": [
+    "D53",
+    "D54",
+    "D55",
+    "D56"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C19077414",
+   "mpn": "BZT52C18",
+   "designators": [
+    "D57",
+    "D58",
+    "D59",
+    "D60"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C19077415",
+   "mpn": "BZT52C20",
+   "designators": [
+    "D61",
+    "D62",
+    "D63",
+    "D64"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C19077416",
+   "mpn": "BZT52C24",
+   "designators": [
+    "D69",
+    "D70",
+    "D71",
+    "D72"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C19077417",
+   "mpn": "BZT52C27",
+   "designators": [
+    "D73",
+    "D74",
+    "D75",
+    "D76"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C19077418",
+   "mpn": "BZT52C30",
+   "designators": [
+    "D85",
+    "D86",
+    "D87",
+    "D88"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C19077419",
+   "mpn": "BZT52C33",
+   "designators": [
+    "D89",
+    "D90",
+    "D91",
+    "D92"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C19077420",
+   "mpn": "BZT52C36",
+   "designators": [
+    "D93",
+    "D94",
+    "D95",
+    "D96"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C22375295",
+   "mpn": "BZT52C22",
+   "designators": [
+    "D65",
+    "D66",
+    "D67",
+    "D68"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C22375296",
+   "mpn": "BZT52C2V4",
+   "designators": [
+    "D77",
+    "D78",
+    "D79",
+    "D80"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C22375297",
+   "mpn": "BZT52C75",
+   "designators": [
+    "D141",
+    "D142",
+    "D143",
+    "D144"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C22395523",
+   "mpn": "MM1W3V3",
+   "designators": [
+    "D201",
+    "D202",
+    "D203",
+    "D204"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C22395524",
+   "mpn": "MM1W3V6",
+   "designators": [
+    "D205",
+    "D206",
+    "D207",
+    "D208"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C22395525",
+   "mpn": "MM1W3V9",
+   "designators": [
+    "D209",
+    "D210",
+    "D211",
+    "D212"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C22395526",
+   "mpn": "MM1W5V1",
+   "designators": [
+    "D217",
+    "D218",
+    "D219",
+    "D220"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C22395527",
+   "mpn": "MM1W10",
+   "designators": [
+    "D161",
+    "D162",
+    "D163",
+    "D164"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C22395528",
+   "mpn": "MM1W11",
+   "designators": [
+    "D165",
+    "D166",
+    "D167",
+    "D168"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C22395529",
+   "mpn": "MM1W18",
+   "designators": [
+    "D177",
+    "D178",
+    "D179",
+    "D180"
+   ],
+   "reading": "reversed"
+  },
+  {
+   "pn": "C22395530",
+   "mpn": "MM1W22",
+   "designators": [
+    "D185",
+    "D186",
+    "D187",
+    "D188"
+   ],
+   "reading": "reversed"
+  },
+  {
+   "pn": "C22395531",
+   "mpn": "MM1W24",
+   "designators": [
+    "D189",
+    "D190",
+    "D191",
+    "D192"
+   ],
+   "reading": "reversed"
+  },
+  {
+   "pn": "C22395532",
+   "mpn": "MM1W30",
+   "designators": [
+    "D193",
+    "D194",
+    "D195",
+    "D196"
+   ],
+   "reading": "reversed"
+  },
+  {
+   "pn": "C22395533",
+   "mpn": "MM1W82",
+   "designators": [
+    "D241",
+    "D242",
+    "D243",
+    "D244"
+   ],
+   "reading": "reversed"
+  },
+  {
+   "pn": "C22395541",
+   "mpn": "MM1W75",
+   "designators": [
+    "D233",
+    "D234",
+    "D235",
+    "D236"
+   ],
+   "reading": "reversed"
+  },
+  {
+   "pn": "C22395568",
+   "mpn": "BZT52B10",
+   "designators": [
+    "D1",
+    "D2",
+    "D3",
+    "D4"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C22395569",
+   "mpn": "BZT52B12",
+   "designators": [
+    "D5",
+    "D6",
+    "D7",
+    "D8"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C22395570",
+   "mpn": "BZT52B15",
+   "designators": [
+    "D13",
+    "D14",
+    "D15",
+    "D16"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C22395571",
+   "mpn": "BZT52C43",
+   "designators": [
+    "D109",
+    "D110",
+    "D111",
+    "D112"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C22399881",
+   "mpn": "BZT52B5V6",
+   "designators": [
+    "D25",
+    "D26",
+    "D27",
+    "D28"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C22399882",
+   "mpn": "BZT52B8V2",
+   "designators": [
+    "D29",
+    "D30",
+    "D31",
+    "D32"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C22399883",
+   "mpn": "BZT52B13",
+   "designators": [
+    "D9",
+    "D10",
+    "D11",
+    "D12"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C22399887",
+   "mpn": "BZT52C47",
+   "designators": [
+    "D113",
+    "D114",
+    "D115",
+    "D116"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C22435086",
+   "mpn": "MM1W5V6",
+   "designators": [
+    "D221",
+    "D222",
+    "D223",
+    "D224"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C22435087",
+   "mpn": "MM1W6V8",
+   "designators": [
+    "D229",
+    "D230",
+    "D231",
+    "D232"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C22435088",
+   "mpn": "MM1W91",
+   "designators": [
+    "D249",
+    "D250",
+    "D251",
+    "D252"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C22435089",
+   "mpn": "MM1W36",
+   "designators": [
+    "D197",
+    "D198",
+    "D199",
+    "D200"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C22435090",
+   "mpn": "MM1W100",
+   "designators": [
+    "D157",
+    "D158",
+    "D159",
+    "D160"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C22435091",
+   "mpn": "MM1W6V2",
+   "designators": [
+    "D225",
+    "D226",
+    "D227",
+    "D228"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C22435092",
+   "mpn": "MM1W12",
+   "designators": [
+    "D169",
+    "D170",
+    "D171",
+    "D172"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C22435093",
+   "mpn": "MM1W20",
+   "designators": [
+    "D181",
+    "D182",
+    "D183",
+    "D184"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C22435094",
+   "mpn": "MM1W9V1",
+   "designators": [
+    "D253",
+    "D254",
+    "D255",
+    "D256"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C22435095",
+   "mpn": "MM1W15",
+   "designators": [
+    "D173",
+    "D174",
+    "D175",
+    "D176"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C22435096",
+   "mpn": "MM1W4V7",
+   "designators": [
+    "D213",
+    "D214",
+    "D215",
+    "D216"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C22435097",
+   "mpn": "MM1W7V5",
+   "designators": [
+    "D237",
+    "D238",
+    "D239",
+    "D240"
+   ],
+   "reading": "cathode at pad 1"
+  },
+  {
+   "pn": "C22435098",
+   "mpn": "MM1W8V2",
+   "designators": [
+    "D245",
+    "D246",
+    "D247",
+    "D248"
+   ],
+   "reading": "cathode at pad 1"
+  }
+ ]
+}

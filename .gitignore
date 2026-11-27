@@ -48,3 +48,6 @@ tools/frame_boards/*/*.zip
 
 # Python bytecode from running tools/
 __pycache__/
+
+# KiCad's per-user project state (open layers, selection filter); never part of a design
+*.kicad_prl

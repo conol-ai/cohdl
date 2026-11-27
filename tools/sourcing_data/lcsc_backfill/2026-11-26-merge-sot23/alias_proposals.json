@@ -1,0 +1,17 @@
+{
+  "note": "Proposals only; an alias takes effect after review in mfr_aliases.json.",
+  "rows": [
+    {
+      "examples": [
+        {
+          "c": "C2917717",
+          "mpn": "2450AT18B100E"
+        }
+      ],
+      "identities": 1,
+      "official": "Johanson Technology",
+      "supplier": "Johanson Dielectrics"
+    }
+  ],
+  "schema_version": 1
+}

@@ -1,0 +1,3844 @@
+{
+ "name": "preview_board_20",
+ "dependencies": {
+  "std": "0.3.0",
+  "sod": "0.1.3",
+  "diode": "0.1.6"
+ },
+ "rows": [
+  {
+   "name": "Zener_BZT52B5V1S_C19077434",
+   "footprint": "sod::SOD2613X110N",
+   "part": "diode::Zener<5.1V, 200mW>",
+   "pn": "C19077434",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BZT52B5V1S",
+   "pins": [
+    "Cathode",
+    "Anode"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      10.0,
+      10.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      20.0,
+      10.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      10.0,
+      20.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      20.0,
+      20.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOD-323",
+   "category": "preferred",
+   "stock": 6655,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Zener_BZT52B5V6S_C19077435",
+   "footprint": "sod::SOD2613X110N",
+   "part": "diode::Zener<5.6V, 200mW>",
+   "pn": "C19077435",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BZT52B5V6S",
+   "pins": [
+    "Cathode",
+    "Anode"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      30.0,
+      10.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      40.0,
+      10.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      30.0,
+      20.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      40.0,
+      20.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOD-323",
+   "category": "preferred",
+   "stock": 12161,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Zener_BZT52C3V0S_C19077436",
+   "footprint": "sod::SOD2613X110N",
+   "part": "diode::Zener<3V, 200mW>",
+   "pn": "C19077436",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BZT52C3V0S",
+   "pins": [
+    "Cathode",
+    "Anode"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      50.0,
+      10.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      60.0,
+      10.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      50.0,
+      20.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      60.0,
+      20.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOD-323",
+   "category": "preferred",
+   "stock": 77814,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Zener_BZT52C3V3S_C19077437",
+   "footprint": "sod::SOD2613X110N",
+   "part": "diode::Zener<3.3V, 200mW>",
+   "pn": "C19077437",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BZT52C3V3S",
+   "pins": [
+    "Cathode",
+    "Anode"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      70.0,
+      10.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      80.0,
+      10.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      70.0,
+      20.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      80.0,
+      20.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOD-323",
+   "category": "preferred",
+   "stock": 437175,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Zener_BZT52C3V6S_C19077438",
+   "footprint": "sod::SOD2613X110N",
+   "part": "diode::Zener<3.6V, 200mW>",
+   "pn": "C19077438",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BZT52C3V6S",
+   "pins": [
+    "Cathode",
+    "Anode"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      90.0,
+      10.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      100.0,
+      10.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      90.0,
+      20.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      100.0,
+      20.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOD-323",
+   "category": "preferred",
+   "stock": 407551,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Zener_BZT52C4V7S_C19077439",
+   "footprint": "sod::SOD2613X110N",
+   "part": "diode::Zener<4.7V, 200mW>",
+   "pn": "C19077439",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BZT52C4V7S",
+   "pins": [
+    "Cathode",
+    "Anode"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      110.0,
+      10.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      120.0,
+      10.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      110.0,
+      20.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      120.0,
+      20.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOD-323",
+   "category": "preferred",
+   "stock": 287425,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Zener_BZT52C5V1S_C19077440",
+   "footprint": "sod::SOD2613X110N",
+   "part": "diode::Zener<5.1V, 200mW>",
+   "pn": "C19077440",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BZT52C5V1S",
+   "pins": [
+    "Cathode",
+    "Anode"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      130.0,
+      10.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      140.0,
+      10.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      130.0,
+      20.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      140.0,
+      20.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOD-323",
+   "category": "preferred",
+   "stock": 610284,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Zener_BZT52C5V6S_C19077441",
+   "footprint": "sod::SOD2613X110N",
+   "part": "diode::Zener<5.6V, 200mW>",
+   "pn": "C19077441",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BZT52C5V6S",
+   "pins": [
+    "Cathode",
+    "Anode"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      150.0,
+      10.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      160.0,
+      10.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      150.0,
+      20.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      160.0,
+      20.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOD-323",
+   "category": "preferred",
+   "stock": 388847,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Zener_BZT52C6V2S_C19077442",
+   "footprint": "sod::SOD2613X110N",
+   "part": "diode::Zener<6.2V, 200mW>",
+   "pn": "C19077442",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BZT52C6V2S",
+   "pins": [
+    "Cathode",
+    "Anode"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      10.0,
+      30.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      20.0,
+      30.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      10.0,
+      40.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      20.0,
+      40.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOD-323",
+   "category": "preferred",
+   "stock": 54502,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Zener_BZT52C6V8S_C19077443",
+   "footprint": "sod::SOD2613X110N",
+   "part": "diode::Zener<6.8V, 200mW>",
+   "pn": "C19077443",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BZT52C6V8S",
+   "pins": [
+    "Cathode",
+    "Anode"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      30.0,
+      30.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      40.0,
+      30.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      30.0,
+      40.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      40.0,
+      40.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOD-323",
+   "category": "preferred",
+   "stock": 762905,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Zener_BZT52C7V5S_C19077444",
+   "footprint": "sod::SOD2613X110N",
+   "part": "diode::Zener<7.5V, 200mW>",
+   "pn": "C19077444",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BZT52C7V5S",
+   "pins": [
+    "Cathode",
+    "Anode"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      50.0,
+      30.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      60.0,
+      30.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      50.0,
+      40.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      60.0,
+      40.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOD-323",
+   "category": "preferred",
+   "stock": 1989,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Zener_BZT52C9V1S_C19077445",
+   "footprint": "sod::SOD2613X110N",
+   "part": "diode::Zener<9.1V, 200mW>",
+   "pn": "C19077445",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BZT52C9V1S",
+   "pins": [
+    "Cathode",
+    "Anode"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      70.0,
+      30.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      80.0,
+      30.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      70.0,
+      40.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      80.0,
+      40.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOD-323",
+   "category": "preferred",
+   "stock": 924427,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Zener_BZT52C10S_C19077446",
+   "footprint": "sod::SOD2613X110N",
+   "part": "diode::Zener<10V, 200mW>",
+   "pn": "C19077446",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BZT52C10S",
+   "pins": [
+    "Cathode",
+    "Anode"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      90.0,
+      30.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      100.0,
+      30.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      90.0,
+      40.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      100.0,
+      40.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOD-323",
+   "category": "preferred",
+   "stock": 293243,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Zener_BZT52C12S_C19077447",
+   "footprint": "sod::SOD2613X110N",
+   "part": "diode::Zener<12V, 200mW>",
+   "pn": "C19077447",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BZT52C12S",
+   "pins": [
+    "Cathode",
+    "Anode"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      110.0,
+      30.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      120.0,
+      30.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      110.0,
+      40.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      120.0,
+      40.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOD-323",
+   "category": "preferred",
+   "stock": 1020558,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Zener_BZT52C15S_C19077448",
+   "footprint": "sod::SOD2613X110N",
+   "part": "diode::Zener<15V, 200mW>",
+   "pn": "C19077448",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BZT52C15S",
+   "pins": [
+    "Cathode",
+    "Anode"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      130.0,
+      30.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      140.0,
+      30.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      130.0,
+      40.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      140.0,
+      40.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOD-323",
+   "category": "preferred",
+   "stock": 338951,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Zener_BZT52C16S_C19077449",
+   "footprint": "sod::SOD2613X110N",
+   "part": "diode::Zener<16V, 200mW>",
+   "pn": "C19077449",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BZT52C16S",
+   "pins": [
+    "Cathode",
+    "Anode"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      150.0,
+      30.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      160.0,
+      30.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      150.0,
+      40.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      160.0,
+      40.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOD-323",
+   "category": "preferred",
+   "stock": 63237,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Zener_BZT52C18S_C19077450",
+   "footprint": "sod::SOD2613X110N",
+   "part": "diode::Zener<18V, 200mW>",
+   "pn": "C19077450",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BZT52C18S",
+   "pins": [
+    "Cathode",
+    "Anode"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      10.0,
+      50.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      20.0,
+      50.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      10.0,
+      60.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      20.0,
+      60.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOD-323",
+   "category": "preferred",
+   "stock": 267100,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Zener_BZT52C20S_C19077451",
+   "footprint": "sod::SOD2613X110N",
+   "part": "diode::Zener<20V, 200mW>",
+   "pn": "C19077451",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BZT52C20S",
+   "pins": [
+    "Cathode",
+    "Anode"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      30.0,
+      50.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      40.0,
+      50.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      30.0,
+      60.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      40.0,
+      60.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOD-323",
+   "category": "preferred",
+   "stock": 25479,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Zener_BZT52C11S_C22375287",
+   "footprint": "sod::SOD2613X110N",
+   "part": "diode::Zener<11V, 200mW>",
+   "pn": "C22375287",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BZT52C11S",
+   "pins": [
+    "Cathode",
+    "Anode"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      50.0,
+      50.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      60.0,
+      50.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      50.0,
+      60.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      60.0,
+      60.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOD-323",
+   "category": "preferred",
+   "stock": 176725,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Zener_BZT52C22S_C22375288",
+   "footprint": "sod::SOD2613X110N",
+   "part": "diode::Zener<22V, 200mW>",
+   "pn": "C22375288",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BZT52C22S",
+   "pins": [
+    "Cathode",
+    "Anode"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      70.0,
+      50.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      80.0,
+      50.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      70.0,
+      60.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      80.0,
+      60.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOD-323",
+   "category": "preferred",
+   "stock": 29347,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Zener_BZT52C24S_C22375289",
+   "footprint": "sod::SOD2613X110N",
+   "part": "diode::Zener<24V, 200mW>",
+   "pn": "C22375289",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BZT52C24S",
+   "pins": [
+    "Cathode",
+    "Anode"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      90.0,
+      50.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      100.0,
+      50.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      90.0,
+      60.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      100.0,
+      60.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOD-323",
+   "category": "preferred",
+   "stock": 24201,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Zener_BZT52C2V4S_C22375290",
+   "footprint": "sod::SOD2613X110N",
+   "part": "diode::Zener<2.4V, 200mW>",
+   "pn": "C22375290",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BZT52C2V4S",
+   "pins": [
+    "Cathode",
+    "Anode"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      110.0,
+      50.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      120.0,
+      50.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      110.0,
+      60.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      120.0,
+      60.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOD-323",
+   "category": "preferred",
+   "stock": 6014,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Zener_BZT52C30S_C22375291",
+   "footprint": "sod::SOD2613X110N",
+   "part": "diode::Zener<30V, 200mW>",
+   "pn": "C22375291",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BZT52C30S",
+   "pins": [
+    "Cathode",
+    "Anode"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      130.0,
+      50.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      140.0,
+      50.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      130.0,
+      60.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      140.0,
+      60.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOD-323",
+   "category": "preferred",
+   "stock": 824533,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Zener_BZT52C33S_C22375292",
+   "footprint": "sod::SOD2613X110N",
+   "part": "diode::Zener<33V, 200mW>",
+   "pn": "C22375292",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BZT52C33S",
+   "pins": [
+    "Cathode",
+    "Anode"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      150.0,
+      50.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      160.0,
+      50.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      150.0,
+      60.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      160.0,
+      60.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOD-323",
+   "category": "preferred",
+   "stock": 20952,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Zener_BZT52C36S_C22375293",
+   "footprint": "sod::SOD2613X110N",
+   "part": "diode::Zener<36V, 200mW>",
+   "pn": "C22375293",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BZT52C36S",
+   "pins": [
+    "Cathode",
+    "Anode"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      10.0,
+      70.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      20.0,
+      70.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      10.0,
+      80.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      20.0,
+      80.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOD-323",
+   "category": "preferred",
+   "stock": 786428,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Zener_BZT52C8V2S_C22375294",
+   "footprint": "sod::SOD2613X110N",
+   "part": "diode::Zener<8.2V, 200mW>",
+   "pn": "C22375294",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BZT52C8V2S",
+   "pins": [
+    "Cathode",
+    "Anode"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      30.0,
+      70.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      40.0,
+      70.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      30.0,
+      80.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      40.0,
+      80.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOD-323",
+   "category": "preferred",
+   "stock": 397987,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Zener_BZT52C2V7S_C22375298",
+   "footprint": "sod::SOD2613X110N",
+   "part": "diode::Zener<2.7V, 200mW>",
+   "pn": "C22375298",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BZT52C2V7S",
+   "pins": [
+    "Cathode",
+    "Anode"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      50.0,
+      70.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      60.0,
+      70.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      50.0,
+      80.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      60.0,
+      80.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOD-323",
+   "category": "preferred",
+   "stock": 430238,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Zener_BZT52C3V9S_C22375299",
+   "footprint": "sod::SOD2613X110N",
+   "part": "diode::Zener<3.9V, 200mW>",
+   "pn": "C22375299",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BZT52C3V9S",
+   "pins": [
+    "Cathode",
+    "Anode"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      70.0,
+      70.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      80.0,
+      70.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      70.0,
+      80.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      80.0,
+      80.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOD-323",
+   "category": "preferred",
+   "stock": 394381,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Zener_BZT52C27S_C22375300",
+   "footprint": "sod::SOD2613X110N",
+   "part": "diode::Zener<27V, 200mW>",
+   "pn": "C22375300",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BZT52C27S",
+   "pins": [
+    "Cathode",
+    "Anode"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      90.0,
+      70.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      100.0,
+      70.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      90.0,
+      80.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      100.0,
+      80.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOD-323",
+   "category": "preferred",
+   "stock": 4063,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Zener_BZT52B12S_C22395572",
+   "footprint": "sod::SOD2613X110N",
+   "part": "diode::Zener<12V, 200mW>",
+   "pn": "C22395572",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BZT52B12S",
+   "pins": [
+    "Cathode",
+    "Anode"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      110.0,
+      70.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      120.0,
+      70.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      110.0,
+      80.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      120.0,
+      80.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOD-323",
+   "category": "preferred",
+   "stock": 16117,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Zener_BZT52B8V2S_C22399884",
+   "footprint": "sod::SOD2613X110N",
+   "part": "diode::Zener<8.2V, 200mW>",
+   "pn": "C22399884",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BZT52B8V2S",
+   "pins": [
+    "Cathode",
+    "Anode"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      130.0,
+      70.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      140.0,
+      70.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      130.0,
+      80.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      140.0,
+      80.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOD-323",
+   "category": "preferred",
+   "stock": 3625,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Zener_BZT52B9V1S_C22399885",
+   "footprint": "sod::SOD2613X110N",
+   "part": "diode::Zener<9.1V, 200mW>",
+   "pn": "C22399885",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BZT52B9V1S",
+   "pins": [
+    "Cathode",
+    "Anode"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      150.0,
+      70.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      160.0,
+      70.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      150.0,
+      80.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      160.0,
+      80.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOD-323",
+   "category": "preferred",
+   "stock": 9308,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Zener_BZT52B10S_C22399886",
+   "footprint": "sod::SOD2613X110N",
+   "part": "diode::Zener<10V, 200mW>",
+   "pn": "C22399886",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BZT52B10S",
+   "pins": [
+    "Cathode",
+    "Anode"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      10.0,
+      90.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      20.0,
+      90.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      10.0,
+      100.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      20.0,
+      100.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOD-323",
+   "category": "preferred",
+   "stock": 19054,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Zener_BZT52C4V3S_C22399888",
+   "footprint": "sod::SOD2613X110N",
+   "part": "diode::Zener<4.3V, 200mW>",
+   "pn": "C22399888",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BZT52C4V3S",
+   "pins": [
+    "Cathode",
+    "Anode"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      30.0,
+      90.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      40.0,
+      90.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      30.0,
+      100.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      40.0,
+      100.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOD-323",
+   "category": "preferred",
+   "stock": 848554,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Zener_BZT52C13S_C22399889",
+   "footprint": "sod::SOD2613X110N",
+   "part": "diode::Zener<13V, 200mW>",
+   "pn": "C22399889",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BZT52C13S",
+   "pins": [
+    "Cathode",
+    "Anode"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      50.0,
+      90.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      60.0,
+      90.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      50.0,
+      100.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      60.0,
+      100.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOD-323",
+   "category": "preferred",
+   "stock": 73,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Zener_MM3Z10_C19077459",
+   "footprint": "sod::SOD2613X110N",
+   "part": "diode::Zener<10V, 200mW>",
+   "pn": "C19077459",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "MM3Z10",
+   "pins": [
+    "Cathode",
+    "Anode"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      70.0,
+      90.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      80.0,
+      90.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      70.0,
+      100.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      80.0,
+      100.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOD-323",
+   "category": "preferred",
+   "stock": 27631,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Zener_MM3Z12_C19077460",
+   "footprint": "sod::SOD2613X110N",
+   "part": "diode::Zener<12V, 200mW>",
+   "pn": "C19077460",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "MM3Z12",
+   "pins": [
+    "Cathode",
+    "Anode"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      90.0,
+      90.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      100.0,
+      90.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      90.0,
+      100.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      100.0,
+      100.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOD-323",
+   "category": "preferred",
+   "stock": 17385,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Zener_MM3Z18_C19077461",
+   "footprint": "sod::SOD2613X110N",
+   "part": "diode::Zener<18V, 200mW>",
+   "pn": "C19077461",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "MM3Z18",
+   "pins": [
+    "Cathode",
+    "Anode"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      110.0,
+      90.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      120.0,
+      90.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      110.0,
+      100.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      120.0,
+      100.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOD-323",
+   "category": "preferred",
+   "stock": 3398,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Zener_MM3Z15_C22399890",
+   "footprint": "sod::SOD2613X110N",
+   "part": "diode::Zener<15V, 200mW>",
+   "pn": "C22399890",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "MM3Z15",
+   "pins": [
+    "Cathode",
+    "Anode"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      130.0,
+      90.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      140.0,
+      90.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      130.0,
+      100.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      140.0,
+      100.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOD-323",
+   "category": "preferred",
+   "stock": 71825,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Zener_MM3Z3V0_C19077452",
+   "footprint": "sod::SOD2613X110N",
+   "part": "diode::Zener<3V, 200mW>",
+   "pn": "C19077452",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "MM3Z3V0",
+   "pins": [
+    "Cathode",
+    "Anode"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      150.0,
+      90.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      160.0,
+      90.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      150.0,
+      100.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      160.0,
+      100.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOD-323",
+   "category": "preferred",
+   "stock": 1453,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Zener_MM3Z3V3_C19077453",
+   "footprint": "sod::SOD2613X110N",
+   "part": "diode::Zener<3.3V, 200mW>",
+   "pn": "C19077453",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "MM3Z3V3",
+   "pins": [
+    "Cathode",
+    "Anode"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      10.0,
+      110.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      20.0,
+      110.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      10.0,
+      120.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      20.0,
+      120.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOD-323",
+   "category": "preferred",
+   "stock": 9167,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Zener_MM3Z3V6_C19077454",
+   "footprint": "sod::SOD2613X110N",
+   "part": "diode::Zener<3.6V, 200mW>",
+   "pn": "C19077454",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "MM3Z3V6",
+   "pins": [
+    "Cathode",
+    "Anode"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      30.0,
+      110.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      40.0,
+      110.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      30.0,
+      120.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      40.0,
+      120.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOD-323",
+   "category": "preferred",
+   "stock": 4973,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Zener_MM3Z4V7_C22399891",
+   "footprint": "sod::SOD2613X110N",
+   "part": "diode::Zener<4.7V, 200mW>",
+   "pn": "C22399891",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "MM3Z4V7",
+   "pins": [
+    "Cathode",
+    "Anode"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      50.0,
+      110.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      60.0,
+      110.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      50.0,
+      120.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      60.0,
+      120.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOD-323",
+   "category": "preferred",
+   "stock": 306,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Zener_MM3Z5V1_C19077455",
+   "footprint": "sod::SOD2613X110N",
+   "part": "diode::Zener<5.1V, 200mW>",
+   "pn": "C19077455",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "MM3Z5V1",
+   "pins": [
+    "Cathode",
+    "Anode"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      70.0,
+      110.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      80.0,
+      110.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      70.0,
+      120.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      80.0,
+      120.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOD-323",
+   "category": "preferred",
+   "stock": 388179,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Zener_MM3Z5V6_C19077456",
+   "footprint": "sod::SOD2613X110N",
+   "part": "diode::Zener<5.6V, 200mW>",
+   "pn": "C19077456",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "MM3Z5V6",
+   "pins": [
+    "Cathode",
+    "Anode"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      90.0,
+      110.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      100.0,
+      110.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      90.0,
+      120.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      100.0,
+      120.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOD-323",
+   "category": "preferred",
+   "stock": 20807,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Zener_MM3Z51_C22395542",
+   "footprint": "sod::SOD2613X110N",
+   "part": "diode::Zener<51V, 200mW>",
+   "pn": "C22395542",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "MM3Z51",
+   "pins": [
+    "Cathode",
+    "Anode"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      110.0,
+      110.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      120.0,
+      110.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      110.0,
+      120.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      120.0,
+      120.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOD-323",
+   "category": "preferred",
+   "stock": 7405,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Zener_MM3Z56_C22399892",
+   "footprint": "sod::SOD2613X110N",
+   "part": "diode::Zener<56V, 200mW>",
+   "pn": "C22399892",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "MM3Z56",
+   "pins": [
+    "Cathode",
+    "Anode"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      130.0,
+      110.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      140.0,
+      110.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      130.0,
+      120.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      140.0,
+      120.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOD-323",
+   "category": "preferred",
+   "stock": 28614,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Zener_MM3Z6V2_C19077457",
+   "footprint": "sod::SOD2613X110N",
+   "part": "diode::Zener<6.2V, 200mW>",
+   "pn": "C19077457",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "MM3Z6V2",
+   "pins": [
+    "Cathode",
+    "Anode"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      150.0,
+      110.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      160.0,
+      110.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      150.0,
+      120.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      160.0,
+      120.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOD-323",
+   "category": "preferred",
+   "stock": 11530,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Zener_MM3Z6V8_C19077458",
+   "footprint": "sod::SOD2613X110N",
+   "part": "diode::Zener<6.8V, 200mW>",
+   "pn": "C19077458",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "MM3Z6V8",
+   "pins": [
+    "Cathode",
+    "Anode"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      10.0,
+      130.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      20.0,
+      130.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      10.0,
+      140.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      20.0,
+      140.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOD-323",
+   "category": "preferred",
+   "stock": 15270,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Zener_MM3Z9V1_C22399893",
+   "footprint": "sod::SOD2613X110N",
+   "part": "diode::Zener<9.1V, 200mW>",
+   "pn": "C22399893",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "MM3Z9V1",
+   "pins": [
+    "Cathode",
+    "Anode"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      30.0,
+      130.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      40.0,
+      130.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      30.0,
+      140.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      40.0,
+      140.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOD-323",
+   "category": "preferred",
+   "stock": 968,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Zener_MMSZ5231BS_C22395562",
+   "footprint": "sod::SOD2613X110N",
+   "part": "diode::Zener<5.1V, 200mW>",
+   "pn": "C22395562",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "MMSZ5231BS",
+   "pins": [
+    "Cathode",
+    "Anode"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      50.0,
+      130.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      60.0,
+      130.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      50.0,
+      140.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      60.0,
+      140.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOD-323",
+   "category": "preferred",
+   "stock": 3094,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Zener_MMSZ5232BS_C22395563",
+   "footprint": "sod::SOD2613X110N",
+   "part": "diode::Zener<5.6V, 200mW>",
+   "pn": "C22395563",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "MMSZ5232BS",
+   "pins": [
+    "Cathode",
+    "Anode"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      70.0,
+      130.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      80.0,
+      130.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      70.0,
+      140.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      80.0,
+      140.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOD-323",
+   "category": "preferred",
+   "stock": 2982,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Zener_MMSZ5239BS_C22395564",
+   "footprint": "sod::SOD2613X110N",
+   "part": "diode::Zener<9.1V, 200mW>",
+   "pn": "C22395564",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "MMSZ5239BS",
+   "pins": [
+    "Cathode",
+    "Anode"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      90.0,
+      130.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      100.0,
+      130.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      90.0,
+      140.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      100.0,
+      140.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOD-323",
+   "category": "preferred",
+   "stock": 2643,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Zener_MMSZ5246BS_C22395565",
+   "footprint": "sod::SOD2613X110N",
+   "part": "diode::Zener<16V, 200mW>",
+   "pn": "C22395565",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "MMSZ5246BS",
+   "pins": [
+    "Cathode",
+    "Anode"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      110.0,
+      130.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      120.0,
+      130.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      110.0,
+      140.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      120.0,
+      140.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOD-323",
+   "category": "preferred",
+   "stock": 298286,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Zener_MMSZ5248BS_C22395566",
+   "footprint": "sod::SOD2613X110N",
+   "part": "diode::Zener<18V, 200mW>",
+   "pn": "C22395566",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "MMSZ5248BS",
+   "pins": [
+    "Cathode",
+    "Anode"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      130.0,
+      130.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      140.0,
+      130.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      130.0,
+      140.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      140.0,
+      140.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOD-323",
+   "category": "preferred",
+   "stock": 128132,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Zener_MMSZ5250BS_C22395567",
+   "footprint": "sod::SOD2613X110N",
+   "part": "diode::Zener<20V, 200mW>",
+   "pn": "C22395567",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "MMSZ5250BS",
+   "pins": [
+    "Cathode",
+    "Anode"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      150.0,
+      130.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      160.0,
+      130.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      150.0,
+      140.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      160.0,
+      140.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOD-323",
+   "category": "preferred",
+   "stock": 13514,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Zener_BZX584C3V3_C19077462",
+   "footprint": "sod::SOD1608X70N",
+   "part": "diode::Zener<3.3V, 150mW>",
+   "pn": "C19077462",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BZX584C3V3",
+   "pins": [
+    "Cathode",
+    "Anode"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      10.0,
+      150.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      20.0,
+      150.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      10.0,
+      160.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      20.0,
+      160.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOD-523",
+   "category": "preferred",
+   "stock": 66934,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Zener_BZX584C5V1_C19077463",
+   "footprint": "sod::SOD1608X70N",
+   "part": "diode::Zener<5.1V, 150mW>",
+   "pn": "C19077463",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BZX584C5V1",
+   "pins": [
+    "Cathode",
+    "Anode"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      30.0,
+      150.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      40.0,
+      150.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      30.0,
+      160.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      40.0,
+      160.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOD-523",
+   "category": "preferred",
+   "stock": 533754,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Zener_BZX584C5V6_C19077464",
+   "footprint": "sod::SOD1608X70N",
+   "part": "diode::Zener<5.6V, 150mW>",
+   "pn": "C19077464",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BZX584C5V6",
+   "pins": [
+    "Cathode",
+    "Anode"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      50.0,
+      150.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      60.0,
+      150.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      50.0,
+      160.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      60.0,
+      160.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOD-523",
+   "category": "preferred",
+   "stock": 143042,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Zener_BZX584C9V1_C19077465",
+   "footprint": "sod::SOD1608X70N",
+   "part": "diode::Zener<9.1V, 150mW>",
+   "pn": "C19077465",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BZX584C9V1",
+   "pins": [
+    "Cathode",
+    "Anode"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      70.0,
+      150.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      80.0,
+      150.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      70.0,
+      160.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      80.0,
+      160.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOD-523",
+   "category": "preferred",
+   "stock": 8667,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Zener_BZX584C15_C19077466",
+   "footprint": "sod::SOD1608X70N",
+   "part": "diode::Zener<15V, 150mW>",
+   "pn": "C19077466",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BZX584C15",
+   "pins": [
+    "Cathode",
+    "Anode"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      90.0,
+      150.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      100.0,
+      150.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      90.0,
+      160.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      100.0,
+      160.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOD-523",
+   "category": "preferred",
+   "stock": 267064,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Zener_BZX584C2V4_C22395573",
+   "footprint": "sod::SOD1608X70N",
+   "part": "diode::Zener<2.4V, 150mW>",
+   "pn": "C22395573",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BZX584C2V4",
+   "pins": [
+    "Cathode",
+    "Anode"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      110.0,
+      150.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      120.0,
+      150.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      110.0,
+      160.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      120.0,
+      160.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOD-523",
+   "category": "preferred",
+   "stock": 118875,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Zener_BZX584C3V6_C22395574",
+   "footprint": "sod::SOD1608X70N",
+   "part": "diode::Zener<3.6V, 150mW>",
+   "pn": "C22395574",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BZX584C3V6",
+   "pins": [
+    "Cathode",
+    "Anode"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      130.0,
+      150.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      140.0,
+      150.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      130.0,
+      160.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      140.0,
+      160.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOD-523",
+   "category": "preferred",
+   "stock": 62396,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Zener_BZX584C3V9_C22395575",
+   "footprint": "sod::SOD1608X70N",
+   "part": "diode::Zener<3.9V, 150mW>",
+   "pn": "C22395575",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BZX584C3V9",
+   "pins": [
+    "Cathode",
+    "Anode"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      150.0,
+      150.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      160.0,
+      150.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      150.0,
+      160.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      160.0,
+      160.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOD-523",
+   "category": "preferred",
+   "stock": 11291,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Zener_BZX584C4V3_C22395576",
+   "footprint": "sod::SOD1608X70N",
+   "part": "diode::Zener<4.3V, 150mW>",
+   "pn": "C22395576",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BZX584C4V3",
+   "pins": [
+    "Cathode",
+    "Anode"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      10.0,
+      170.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      20.0,
+      170.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      10.0,
+      180.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      20.0,
+      180.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOD-523",
+   "category": "preferred",
+   "stock": 192,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Zener_BZX584C10_C22395577",
+   "footprint": "sod::SOD1608X70N",
+   "part": "diode::Zener<10V, 150mW>",
+   "pn": "C22395577",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BZX584C10",
+   "pins": [
+    "Cathode",
+    "Anode"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      30.0,
+      170.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      40.0,
+      170.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      30.0,
+      180.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      40.0,
+      180.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOD-523",
+   "category": "preferred",
+   "stock": 65989,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Zener_BZX584C11_C22395578",
+   "footprint": "sod::SOD1608X70N",
+   "part": "diode::Zener<11V, 150mW>",
+   "pn": "C22395578",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BZX584C11",
+   "pins": [
+    "Cathode",
+    "Anode"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      50.0,
+      170.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      60.0,
+      170.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      50.0,
+      180.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      60.0,
+      180.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOD-523",
+   "category": "preferred",
+   "stock": 13041,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Zener_BZX584C12_C22395579",
+   "footprint": "sod::SOD1608X70N",
+   "part": "diode::Zener<12V, 150mW>",
+   "pn": "C22395579",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BZX584C12",
+   "pins": [
+    "Cathode",
+    "Anode"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      70.0,
+      170.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      80.0,
+      170.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      70.0,
+      180.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      80.0,
+      180.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOD-523",
+   "category": "preferred",
+   "stock": 9898,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Zener_BZX584C13_C22395580",
+   "footprint": "sod::SOD1608X70N",
+   "part": "diode::Zener<13V, 150mW>",
+   "pn": "C22395580",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BZX584C13",
+   "pins": [
+    "Cathode",
+    "Anode"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      90.0,
+      170.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      100.0,
+      170.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      90.0,
+      180.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      100.0,
+      180.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOD-523",
+   "category": "preferred",
+   "stock": 2572,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Zener_BZX584C18_C22395581",
+   "footprint": "sod::SOD1608X70N",
+   "part": "diode::Zener<18V, 150mW>",
+   "pn": "C22395581",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BZX584C18",
+   "pins": [
+    "Cathode",
+    "Anode"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      110.0,
+      170.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      120.0,
+      170.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      110.0,
+      180.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      120.0,
+      180.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOD-523",
+   "category": "preferred",
+   "stock": 106428,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "Zener_BZX584C39_C22395582",
+   "footprint": "sod::SOD1608X70N",
+   "part": "diode::Zener<39V, 150mW>",
+   "pn": "C22395582",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BZX584C39",
+   "pins": [
+    "Cathode",
+    "Anode"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      130.0,
+      170.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      140.0,
+      170.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      130.0,
+      180.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      140.0,
+      180.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOD-523",
+   "category": "preferred",
+   "stock": 8506,
+   "page_fetched": "2026-10-30"
+  }
+ ]
+}

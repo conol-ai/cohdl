@@ -1,0 +1,2795 @@
+{
+ "name": "preview_board_17",
+ "dependencies": {
+  "diode": "0.1.6",
+  "esd": "0.1.5",
+  "sot": "0.1.2",
+  "std": "0.3.0"
+ },
+ "rows": [
+  {
+   "name": "D_HJC_BAT54C_C22466350",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "diode::SchottkyPairCommonCathode_SOT23<30V, 200mA>",
+   "pn": "C22466350",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BAT54C",
+   "pins": [
+    "A1",
+    "A2",
+    "K"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      10.0,
+      10.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      20.0,
+      10.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      10.0,
+      20.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      20.0,
+      20.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 1124290,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "D_HJC_BAS70_06_C22466364",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "diode::SchottkyPairCommonAnode_SOT23<70V, 70mA>",
+   "pn": "C22466364",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BAS70-06",
+   "pins": [
+    "K1",
+    "K2",
+    "A"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      30.0,
+      10.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      40.0,
+      10.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      30.0,
+      20.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      40.0,
+      20.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 18222,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "D_HJC_BAT54_C22466368",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "diode::Schottky_SOT23<30V, 200mA>",
+   "pn": "C22466368",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BAT54",
+   "pins": [
+    "Anode",
+    "Cathode"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      50.0,
+      10.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      60.0,
+      10.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      50.0,
+      20.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      60.0,
+      20.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 47045,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "D_HJC_BAT720_C22466371",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "diode::Schottky_SOT23<40V, 500mA>",
+   "pn": "C22466371",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BAT720",
+   "pins": [
+    "Anode",
+    "Cathode"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      70.0,
+      10.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      80.0,
+      10.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      70.0,
+      20.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      80.0,
+      20.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 65266,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "D_NEXPERIA_BAT54C_215_C37704",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "diode::SchottkyPairCommonCathode_SOT23<30V, 200mA>",
+   "pn": "C37704",
+   "mfr": "Nexperia",
+   "mpn": "BAT54C,215",
+   "pins": [
+    "A1",
+    "A2",
+    "K"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      90.0,
+      10.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      100.0,
+      10.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      90.0,
+      20.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      100.0,
+      20.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'Nexperia', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 561771,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "D_HJC_BAT54S_C7420333",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "diode::SchottkyPairSeries_SOT23<30V, 200mA>",
+   "pn": "C7420333",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BAT54S",
+   "pins": [
+    "A1",
+    "K2",
+    "K1A2"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      110.0,
+      10.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      120.0,
+      10.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      110.0,
+      20.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      120.0,
+      20.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 755049,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "D_HJC_BAS40_C7502685",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "diode::Schottky_SOT23<40V, 200mA>",
+   "pn": "C7502685",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BAS40",
+   "pins": [
+    "Anode",
+    "Cathode"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      130.0,
+      10.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      140.0,
+      10.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      130.0,
+      20.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      140.0,
+      20.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 95037,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "D_HJC_BAS70_C7502686",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "diode::Schottky_SOT23<70V, 70mA>",
+   "pn": "C7502686",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BAS70",
+   "pins": [
+    "Anode",
+    "Cathode"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      150.0,
+      10.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      160.0,
+      10.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      150.0,
+      20.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      160.0,
+      20.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 352338,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "D_HJC_BAS70_04_C7502687",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "diode::SchottkyPairSeries_SOT23<70V, 70mA>",
+   "pn": "C7502687",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BAS70-04",
+   "pins": [
+    "A1",
+    "K2",
+    "K1A2"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      10.0,
+      30.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      20.0,
+      30.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      10.0,
+      40.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      20.0,
+      40.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 404927,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "D_HJC_BAS40_04_C7502688",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "diode::SchottkyPairSeries_SOT23<40V, 200mA>",
+   "pn": "C7502688",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BAS40-04",
+   "pins": [
+    "A1",
+    "K2",
+    "K1A2"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      30.0,
+      30.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      40.0,
+      30.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      30.0,
+      40.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      40.0,
+      40.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 427972,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "D_HJC_BAS40_05_C7502689",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "diode::SchottkyPairCommonCathode_SOT23<40V, 200mA>",
+   "pn": "C7502689",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BAS40-05",
+   "pins": [
+    "A1",
+    "A2",
+    "K"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      50.0,
+      30.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      60.0,
+      30.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      50.0,
+      40.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      60.0,
+      40.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 28320,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "D_HJC_BAT54A_C7502690",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "diode::SchottkyPairCommonAnode_SOT23<30V, 200mA>",
+   "pn": "C7502690",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BAT54A",
+   "pins": [
+    "K1",
+    "K2",
+    "A"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      70.0,
+      30.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      80.0,
+      30.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      70.0,
+      40.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      80.0,
+      40.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 66597,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "D_HJC_MMBD4148CC_C17179589",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "diode::DiodePairCommonCathode_SOT23<75V, 200mA>",
+   "pn": "C17179589",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "MMBD4148CC",
+   "pins": [
+    "A1",
+    "A2",
+    "K"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      90.0,
+      30.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      100.0,
+      30.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      90.0,
+      40.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      100.0,
+      40.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 329606,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "D_HJC_MMBD4148SE_C17179590",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "diode::DiodePairSeries_SOT23<75V, 200mA>",
+   "pn": "C17179590",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "MMBD4148SE",
+   "pins": [
+    "A1",
+    "K2",
+    "K1A2"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      110.0,
+      30.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      120.0,
+      30.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      110.0,
+      40.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      120.0,
+      40.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 101436,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "D_NEXPERIA_BAV99_215_C2500",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "diode::DiodePairSeries_SOT23<100V, 215mA>",
+   "pn": "C2500",
+   "mfr": "Nexperia",
+   "mpn": "BAV99,215",
+   "pins": [
+    "A1",
+    "K2",
+    "K1A2"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      130.0,
+      30.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      140.0,
+      30.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      130.0,
+      40.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      140.0,
+      40.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'Nexperia', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "basic",
+   "stock": 362866,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "D_JSCJ_BAV70_C68978",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "diode::DiodePairCommonCathode_SOT23<70V, 200mA>",
+   "pn": "C68978",
+   "mfr": "Jiangsu Changjing Electronics Technology",
+   "mpn": "BAV70",
+   "pins": [
+    "A1",
+    "A2",
+    "K"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      150.0,
+      30.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      160.0,
+      30.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      150.0,
+      40.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      160.0,
+      40.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'Jiangsu Changjing Electronics Technology Co., Ltd.', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "basic",
+   "stock": 635123,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "D_HJC_BAV70_C7420335",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "diode::DiodePairCommonCathode_SOT23<70V, 200mA>",
+   "pn": "C7420335",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BAV70",
+   "pins": [
+    "A1",
+    "A2",
+    "K"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      10.0,
+      50.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      20.0,
+      50.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      10.0,
+      60.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      20.0,
+      60.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 399962,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "D_HJC_BAV99_C7420336",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "diode::DiodePairSeries_SOT23<70V, 200mA>",
+   "pn": "C7420336",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BAV99",
+   "pins": [
+    "A1",
+    "K2",
+    "K1A2"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      30.0,
+      50.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      40.0,
+      50.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      30.0,
+      60.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      40.0,
+      60.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 1609687,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "D_HJC_MMBD4148_C7502723",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "diode::Diode_SOT23<75V, 150mA>",
+   "pn": "C7502723",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "MMBD4148",
+   "pins": [
+    "Anode",
+    "Cathode"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      50.0,
+      50.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      60.0,
+      50.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      50.0,
+      60.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      60.0,
+      60.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 51902,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "D_HJC_BAS21_C7502725",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "diode::Diode_SOT23<250V, 200mA>",
+   "pn": "C7502725",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BAS21",
+   "pins": [
+    "Anode",
+    "Cathode"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      70.0,
+      50.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      80.0,
+      50.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      70.0,
+      60.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      80.0,
+      60.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 150726,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "D_HJC_BAS21S_C7502726",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "diode::DiodePairSeries_SOT23<250V, 200mA>",
+   "pn": "C7502726",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BAS21S",
+   "pins": [
+    "A1",
+    "K2",
+    "K1A2"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      90.0,
+      50.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      100.0,
+      50.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      90.0,
+      60.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      100.0,
+      60.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 74684,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "D_HJC_BAW56_C7502729",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "diode::DiodePairCommonAnode_SOT23<70V, 200mA>",
+   "pn": "C7502729",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BAW56",
+   "pins": [
+    "K1",
+    "K2",
+    "A"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      110.0,
+      50.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      120.0,
+      50.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      110.0,
+      60.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      120.0,
+      60.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 88171,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "D_HJC_1SS181_C7502730",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "diode::DiodePairCommonAnode_SOT23<80V, 100mA>",
+   "pn": "C7502730",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "1SS181",
+   "pins": [
+    "K1",
+    "K2",
+    "A"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      130.0,
+      50.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      140.0,
+      50.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      130.0,
+      60.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      140.0,
+      60.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 18368,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "ESD_HJC_H5VHT2U_C20615823",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "esd::TVS2Uni_SOT23<5V>",
+   "pn": "C20615823",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "H5VHT2U",
+   "pins": [
+    "IO1",
+    "IO2",
+    "GND"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      150.0,
+      50.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      160.0,
+      50.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      150.0,
+      60.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      160.0,
+      60.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 20790,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "ESD_HJC_H5VUT2U_C20615824",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "esd::TVS2Steering_SOT23<5V>",
+   "pn": "C20615824",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "H5VUT2U",
+   "pins": [
+    "IO1",
+    "IO2",
+    "GND"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      10.0,
+      70.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      20.0,
+      70.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      10.0,
+      80.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      20.0,
+      80.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 129013,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "ESD_HJC_H8VNT2B_C20615825",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "esd::TVS2Bi_SOT23<8V>",
+   "pn": "C20615825",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "H8VNT2B",
+   "pins": [
+    "IO1",
+    "IO2",
+    "GND"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      30.0,
+      70.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      40.0,
+      70.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      30.0,
+      80.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      40.0,
+      80.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 44570,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "ESD_HJC_H12VNT2U_C20615826",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "esd::TVS2Uni_SOT23<12V>",
+   "pn": "C20615826",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "H12VNT2U",
+   "pins": [
+    "IO1",
+    "IO2",
+    "GND"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      50.0,
+      70.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      60.0,
+      70.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      50.0,
+      80.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      60.0,
+      80.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 9171,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "ESD_HJC_H24VNT2B_C20615827",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "esd::TVS2Bi_SOT23<24V>",
+   "pn": "C20615827",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "H24VNT2B",
+   "pins": [
+    "IO1",
+    "IO2",
+    "GND"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      70.0,
+      70.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      80.0,
+      70.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      70.0,
+      80.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      80.0,
+      80.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 164447,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "ESD_HJC_H36VLT2B_C20615828",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "esd::TVS2Bi_SOT23<36V>",
+   "pn": "C20615828",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "H36VLT2B",
+   "pins": [
+    "IO1",
+    "IO2",
+    "GND"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      90.0,
+      70.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      100.0,
+      70.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      90.0,
+      80.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      100.0,
+      80.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 3768,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "ESD_HJC_H3V3HT2B_C20617923",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "esd::TVS2Bi_SOT23<3.3V>",
+   "pn": "C20617923",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "H3V3HT2B",
+   "pins": [
+    "IO1",
+    "IO2",
+    "GND"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      110.0,
+      70.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      120.0,
+      70.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      110.0,
+      80.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      120.0,
+      80.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 15633,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "ESD_HJC_H3V3HT2U_C20617924",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "esd::TVS2Uni_SOT23<3.3V>",
+   "pn": "C20617924",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "H3V3HT2U",
+   "pins": [
+    "IO1",
+    "IO2",
+    "GND"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      130.0,
+      70.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      140.0,
+      70.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      130.0,
+      80.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      140.0,
+      80.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 13112,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "ESD_HJC_H5VNT2B_C20617925",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "esd::TVS2Bi_SOT23<5V>",
+   "pn": "C20617925",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "H5VNT2B",
+   "pins": [
+    "IO1",
+    "IO2",
+    "GND"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      150.0,
+      70.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      160.0,
+      70.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      150.0,
+      80.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      160.0,
+      80.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 75066,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "ESD_HJC_H5VHT2B_C20617926",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "esd::TVS2Bi_SOT23<5V>",
+   "pn": "C20617926",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "H5VHT2B",
+   "pins": [
+    "IO1",
+    "IO2",
+    "GND"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      10.0,
+      90.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      20.0,
+      90.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      10.0,
+      100.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      20.0,
+      100.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 32131,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "ESD_HJC_H12VNT2B_C20617927",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "esd::TVS2Bi_SOT23<12V>",
+   "pn": "C20617927",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "H12VNT2B",
+   "pins": [
+    "IO1",
+    "IO2",
+    "GND"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      30.0,
+      90.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      40.0,
+      90.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      30.0,
+      100.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      40.0,
+      100.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 5286,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "ESD_HJC_H15VNT2B_C20617928",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "esd::TVS2Bi_SOT23<15V>",
+   "pn": "C20617928",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "H15VNT2B",
+   "pins": [
+    "IO1",
+    "IO2",
+    "GND"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      50.0,
+      90.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      60.0,
+      90.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      50.0,
+      100.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      60.0,
+      100.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 53029,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "ESD_PROTEK_PSM712_LF_T7_C32677",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "esd::TVS2Asym_SOT23<12V, 7V>",
+   "pn": "C32677",
+   "mfr": "ProTek",
+   "mpn": "PSM712-LF-T7",
+   "pins": [
+    "IO1",
+    "IO2",
+    "GND"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      70.0,
+      90.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      80.0,
+      90.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      70.0,
+      100.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      80.0,
+      100.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'ProTek Devices', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "basic",
+   "stock": 149196,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "D_HJC_BZX84C3V3_C19077467",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "diode::Zener_SOT23<3.3V, 300mW>",
+   "pn": "C19077467",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BZX84C3V3",
+   "pins": [
+    "Anode",
+    "Cathode"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      90.0,
+      90.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      100.0,
+      90.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      90.0,
+      100.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      100.0,
+      100.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 89195,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "D_HJC_BZX84C5V1_C19077468",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "diode::Zener_SOT23<5.1V, 300mW>",
+   "pn": "C19077468",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BZX84C5V1",
+   "pins": [
+    "Anode",
+    "Cathode"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      110.0,
+      90.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      120.0,
+      90.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      110.0,
+      100.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      120.0,
+      100.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 17926,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "D_HJC_BZX84C5V6_C19077469",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "diode::Zener_SOT23<5.6V, 300mW>",
+   "pn": "C19077469",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BZX84C5V6",
+   "pins": [
+    "Anode",
+    "Cathode"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      130.0,
+      90.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      140.0,
+      90.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      130.0,
+      100.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      140.0,
+      100.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 25954,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "D_HJC_BZX84C10_C19077470",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "diode::Zener_SOT23<10V, 300mW>",
+   "pn": "C19077470",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BZX84C10",
+   "pins": [
+    "Anode",
+    "Cathode"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      150.0,
+      90.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      160.0,
+      90.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      150.0,
+      100.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      160.0,
+      100.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 4039,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "D_HJC_BZX84C12_C19077471",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "diode::Zener_SOT23<12V, 300mW>",
+   "pn": "C19077471",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BZX84C12",
+   "pins": [
+    "Anode",
+    "Cathode"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      10.0,
+      110.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      20.0,
+      110.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      10.0,
+      120.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      20.0,
+      120.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 209040,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "D_HJC_BZX84C15_C19077472",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "diode::Zener_SOT23<15V, 300mW>",
+   "pn": "C19077472",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BZX84C15",
+   "pins": [
+    "Anode",
+    "Cathode"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      30.0,
+      110.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      40.0,
+      110.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      30.0,
+      120.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      40.0,
+      120.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 28266,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "D_HJC_BZX84C18_C19077473",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "diode::Zener_SOT23<18V, 300mW>",
+   "pn": "C19077473",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BZX84C18",
+   "pins": [
+    "Anode",
+    "Cathode"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      50.0,
+      110.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      60.0,
+      110.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      50.0,
+      120.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      60.0,
+      120.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 427179,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "D_HJC_BZX84C7V5_C22379470",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "diode::Zener_SOT23<7.5V, 300mW>",
+   "pn": "C22379470",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BZX84C7V5",
+   "pins": [
+    "Anode",
+    "Cathode"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      70.0,
+      110.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      80.0,
+      110.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      70.0,
+      120.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      80.0,
+      120.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 57649,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "D_HJC_BZX84C16_C22379471",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "diode::Zener_SOT23<16V, 300mW>",
+   "pn": "C22379471",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BZX84C16",
+   "pins": [
+    "Anode",
+    "Cathode"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      90.0,
+      110.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      100.0,
+      110.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      90.0,
+      120.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      100.0,
+      120.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 63390,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "D_HJC_BZX84C30_C22379472",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "diode::Zener_SOT23<30V, 300mW>",
+   "pn": "C22379472",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BZX84C30",
+   "pins": [
+    "Anode",
+    "Cathode"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      110.0,
+      110.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      120.0,
+      110.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      110.0,
+      120.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      120.0,
+      120.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 24211,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "D_HJC_BZX84C6V8_C22379473",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "diode::Zener_SOT23<6.8V, 300mW>",
+   "pn": "C22379473",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BZX84C6V8",
+   "pins": [
+    "Anode",
+    "Cathode"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      130.0,
+      110.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      140.0,
+      110.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      130.0,
+      120.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      140.0,
+      120.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 39696,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "D_HJC_BZX84C33_C22379474",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "diode::Zener_SOT23<33V, 300mW>",
+   "pn": "C22379474",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BZX84C33",
+   "pins": [
+    "Anode",
+    "Cathode"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      150.0,
+      110.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      160.0,
+      110.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      150.0,
+      120.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      160.0,
+      120.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 53637,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "D_HJC_BZX84C4V7_C22395521",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "diode::Zener_SOT23<4.7V, 300mW>",
+   "pn": "C22395521",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BZX84C4V7",
+   "pins": [
+    "Anode",
+    "Cathode"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      10.0,
+      130.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      20.0,
+      130.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      10.0,
+      140.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      20.0,
+      140.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 38513,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "D_HJC_BZX84C8V2_C22395522",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "diode::Zener_SOT23<8.2V, 300mW>",
+   "pn": "C22395522",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BZX84C8V2",
+   "pins": [
+    "Anode",
+    "Cathode"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      30.0,
+      130.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      40.0,
+      130.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      30.0,
+      140.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      40.0,
+      140.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 31283,
+   "page_fetched": "2026-10-30"
+  },
+  {
+   "name": "D_HJC_MMBZ5226B_C22395543",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "diode::Zener_SOT23<3.3V, 300mW>",
+   "pn": "C22395543",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "MMBZ5226B",
+   "pins": [
+    "Anode",
+    "Cathode"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      50.0,
+      130.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      60.0,
+      130.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      50.0,
+      140.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      60.0,
+      140.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "First reading of a polarized part, no mapping; not a binding. Identity from the B1 snapshot page (manufacturer 'hongjiacheng', a reviewed alias)",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 11152,
+   "page_fetched": "2026-10-30"
+  }
+ ]
+}

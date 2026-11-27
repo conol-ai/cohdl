@@ -1,0 +1,861 @@
+{
+ "schema_version": 1,
+ "method": "measure_preview.py marks (attribution 2): each copy's own pin 1 mark, placed with no mapping, within 20 degrees of pad 1's direction from the footprint origin (mark_ok); four copies per part number (top 0 and 37 degrees, bottom 0 and 37 degrees)",
+ "parts": [
+  {
+   "pn": "C2145",
+   "mfr": "Jiangsu Changjing Electronics Technology",
+   "mpn": "MMBT5551(RANGE:200-300)",
+   "part": "transistor::NPN_SOT23<160V, 600mA, 300mW>",
+   "designators": [
+    "Q153",
+    "Q154",
+    "Q155",
+    "Q156"
+   ],
+   "deltas_ccw_from_top": [
+    6.9,
+    7.7,
+    -6.9,
+    -6.6
+   ],
+   "reading": "pin 1 at pad 1"
+  },
+  {
+   "pn": "C2149",
+   "mfr": "Jiangsu Changjing Electronics Technology",
+   "mpn": "S9015(RANGE:300-400)",
+   "part": "transistor::PNP_SOT23<45V, 100mA, 200mW>",
+   "designators": [
+    "Q169",
+    "Q170",
+    "Q171",
+    "Q172"
+   ],
+   "deltas_ccw_from_top": [
+    6.5,
+    7.2,
+    -6.8,
+    -6.1
+   ],
+   "reading": "pin 1 at pad 1"
+  },
+  {
+   "pn": "C2150",
+   "mfr": "Jiangsu Changjing Electronics Technology",
+   "mpn": "SS8050(RANGE:200-350)",
+   "part": "transistor::NPN_SOT23<25V, 1500mA, 300mW>",
+   "designators": [
+    "Q173",
+    "Q174",
+    "Q175",
+    "Q176"
+   ],
+   "deltas_ccw_from_top": [
+    7.1,
+    7.9,
+    -7.0,
+    -5.9
+   ],
+   "reading": "pin 1 at pad 1"
+  },
+  {
+   "pn": "C6749",
+   "mfr": "Jiangsu Changjing Electronics Technology",
+   "mpn": "S9013 J3(RANGE:200-350)",
+   "part": "transistor::NPN_SOT23<25V, 500mA, 300mW>",
+   "designators": [
+    "Q165",
+    "Q166",
+    "Q167",
+    "Q168"
+   ],
+   "deltas_ccw_from_top": [
+    6.3,
+    7.7,
+    -7.0,
+    -6.5
+   ],
+   "reading": "pin 1 at pad 1"
+  },
+  {
+   "pn": "C8326",
+   "mfr": "Jiangsu Changjing Electronics Technology",
+   "mpn": "MMBT5401(RANGE:200-300)",
+   "part": "transistor::PNP_SOT23<150V, 600mA, 300mW>",
+   "designators": [
+    "Q149",
+    "Q150",
+    "Q151",
+    "Q152"
+   ],
+   "deltas_ccw_from_top": [
+    6.6,
+    7.2,
+    -6.6,
+    -6.6
+   ],
+   "reading": "pin 1 at pad 1"
+  },
+  {
+   "pn": "C8512",
+   "mfr": "Jiangsu Changjing Electronics Technology",
+   "mpn": "MMBT2222A 1P",
+   "part": "transistor::NPN_SOT23<40V, 600mA, 300mW>",
+   "designators": [
+    "Q141",
+    "Q142",
+    "Q143",
+    "Q144"
+   ],
+   "deltas_ccw_from_top": [
+    6.4,
+    7.4,
+    -7.3,
+    -6.4
+   ],
+   "reading": "pin 1 at pad 1"
+  },
+  {
+   "pn": "C8542",
+   "mfr": "Jiangsu Changjing Electronics Technology",
+   "mpn": "SS8550 Y2(RANGE:200-350)",
+   "part": "transistor::PNP_SOT23<25V, 1500mA, 300mW>",
+   "designators": [
+    "Q177",
+    "Q178",
+    "Q179",
+    "Q180"
+   ],
+   "deltas_ccw_from_top": [
+    6.5,
+    7.1,
+    -6.6,
+    -6.2
+   ],
+   "reading": "pin 1 at pad 1"
+  },
+  {
+   "pn": "C8543",
+   "mfr": "Jiangsu Changjing Electronics Technology",
+   "mpn": "S9012 2T1(RANGE:200-350)",
+   "part": "transistor::PNP_SOT23<25V, 500mA, 300mW>",
+   "designators": [
+    "Q161",
+    "Q162",
+    "Q163",
+    "Q164"
+   ],
+   "deltas_ccw_from_top": [
+    6.6,
+    7.4,
+    -6.3,
+    -5.9
+   ],
+   "reading": "pin 1 at pad 1"
+  },
+  {
+   "pn": "C20526",
+   "mfr": "Jiangsu Changjing Electronics Technology",
+   "mpn": "MMBT3904(RANGE:100-300)",
+   "part": "transistor::NPN_SOT23<40V, 200mA, 200mW>",
+   "designators": [
+    "Q145",
+    "Q146",
+    "Q147",
+    "Q148"
+   ],
+   "deltas_ccw_from_top": [
+    7.0,
+    7.7,
+    -7.0,
+    -6.1
+   ],
+   "reading": "pin 1 at pad 1"
+  },
+  {
+   "pn": "C105432",
+   "mfr": "Jiangsu Changjing Electronics Technology",
+   "mpn": "S8550(RANGE:120-200)",
+   "part": "transistor::PNP_SOT23<25V, 500mA, 300mW>",
+   "designators": [
+    "Q157",
+    "Q158",
+    "Q159",
+    "Q160"
+   ],
+   "deltas_ccw_from_top": [
+    14.2,
+    15.0,
+    -14.6,
+    -13.4
+   ],
+   "reading": "pin 1 at pad 1"
+  },
+  {
+   "pn": "C7420323",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "2SA812",
+   "part": "transistor::PNP_SOT23<50V, 100mA, 200mW>",
+   "designators": [
+    "Q1",
+    "Q2",
+    "Q3",
+    "Q4"
+   ],
+   "deltas_ccw_from_top": [
+    7.0,
+    7.9,
+    -6.6,
+    -6.5
+   ],
+   "reading": "pin 1 at pad 1"
+  },
+  {
+   "pn": "C7420324",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "2SC1623",
+   "part": "transistor::NPN_SOT23<50V, 100mA, 200mW>",
+   "designators": [
+    "Q5",
+    "Q6",
+    "Q7",
+    "Q8"
+   ],
+   "deltas_ccw_from_top": [
+    6.6,
+    7.5,
+    -7.1,
+    -6.4
+   ],
+   "reading": "pin 1 at pad 1"
+  },
+  {
+   "pn": "C7420337",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BC847C",
+   "part": "transistor::NPN_SOT23<45V, 100mA, 200mW>",
+   "designators": [
+    "Q41",
+    "Q42",
+    "Q43",
+    "Q44"
+   ],
+   "deltas_ccw_from_top": [
+    6.6,
+    7.4,
+    -7.2,
+    -6.1
+   ],
+   "reading": "pin 1 at pad 1"
+  },
+  {
+   "pn": "C7420351",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "MMBT2222A",
+   "part": "transistor::NPN_SOT23<40V, 600mA, 300mW>",
+   "designators": [
+    "Q57",
+    "Q58",
+    "Q59",
+    "Q60"
+   ],
+   "deltas_ccw_from_top": [
+    6.9,
+    7.8,
+    -6.6,
+    -6.0
+   ],
+   "reading": "pin 1 at pad 1"
+  },
+  {
+   "pn": "C7420352",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "MMBT2907A",
+   "part": "transistor::PNP_SOT23<60V, 600mA, 250mW>",
+   "designators": [
+    "Q61",
+    "Q62",
+    "Q63",
+    "Q64"
+   ],
+   "deltas_ccw_from_top": [
+    6.9,
+    7.5,
+    -6.7,
+    -5.9
+   ],
+   "reading": "pin 1 at pad 1"
+  },
+  {
+   "pn": "C7420353",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "MMBT3904",
+   "part": "transistor::NPN_SOT23<40V, 200mA, 200mW>",
+   "designators": [
+    "Q65",
+    "Q66",
+    "Q67",
+    "Q68"
+   ],
+   "deltas_ccw_from_top": [
+    6.8,
+    7.4,
+    -6.6,
+    -6.2
+   ],
+   "reading": "pin 1 at pad 1"
+  },
+  {
+   "pn": "C7420354",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "MMBT3906",
+   "part": "transistor::PNP_SOT23<40V, 200mA, 200mW>",
+   "designators": [
+    "Q69",
+    "Q70",
+    "Q71",
+    "Q72"
+   ],
+   "deltas_ccw_from_top": [
+    7.0,
+    7.8,
+    -7.0,
+    -5.9
+   ],
+   "reading": "pin 1 at pad 1"
+  },
+  {
+   "pn": "C7420355",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "MMBT4401",
+   "part": "transistor::NPN_SOT23<40V, 600mA, 300mW>",
+   "designators": [
+    "Q73",
+    "Q74",
+    "Q75",
+    "Q76"
+   ],
+   "deltas_ccw_from_top": [
+    7.1,
+    7.5,
+    -6.7,
+    -5.7
+   ],
+   "reading": "pin 1 at pad 1"
+  },
+  {
+   "pn": "C7420356",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "MMBT5401",
+   "part": "transistor::PNP_SOT23<150V, 600mA, 300mW>",
+   "designators": [
+    "Q81",
+    "Q82",
+    "Q83",
+    "Q84"
+   ],
+   "deltas_ccw_from_top": [
+    6.0,
+    7.2,
+    -6.7,
+    -6.3
+   ],
+   "reading": "pin 1 at pad 1"
+  },
+  {
+   "pn": "C7420357",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "MMBT5551",
+   "part": "transistor::NPN_SOT23<160V, 600mA, 300mW>",
+   "designators": [
+    "Q85",
+    "Q86",
+    "Q87",
+    "Q88"
+   ],
+   "deltas_ccw_from_top": [
+    7.3,
+    7.6,
+    -6.5,
+    -5.8
+   ],
+   "reading": "pin 1 at pad 1"
+  },
+  {
+   "pn": "C7420370",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "SS8050",
+   "part": "transistor::NPN_SOT23<25V, 1500mA, 300mW>",
+   "designators": [
+    "Q133",
+    "Q134",
+    "Q135",
+    "Q136"
+   ],
+   "deltas_ccw_from_top": [
+    6.1,
+    7.4,
+    -7.1,
+    -6.6
+   ],
+   "reading": "pin 1 at pad 1"
+  },
+  {
+   "pn": "C7420371",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "SS8550",
+   "part": "transistor::PNP_SOT23<25V, 1500mA, 300mW>",
+   "designators": [
+    "Q137",
+    "Q138",
+    "Q139",
+    "Q140"
+   ],
+   "deltas_ccw_from_top": [
+    6.1,
+    7.5,
+    -6.6,
+    -6.4
+   ],
+   "reading": "pin 1 at pad 1"
+  },
+  {
+   "pn": "C20069125",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "S8050",
+   "part": "transistor::NPN_SOT23<25V, 500mA, 300mW>",
+   "designators": [
+    "Q109",
+    "Q110",
+    "Q111",
+    "Q112"
+   ],
+   "deltas_ccw_from_top": [
+    1.7,
+    3.6,
+    -3.2,
+    -2.4
+   ],
+   "reading": "pin 1 at pad 1"
+  },
+  {
+   "pn": "C20069126",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "S8550",
+   "part": "transistor::PNP_SOT23<25V, 500mA, 300mW>",
+   "designators": [
+    "Q113",
+    "Q114",
+    "Q115",
+    "Q116"
+   ],
+   "deltas_ccw_from_top": [
+    6.7,
+    7.4,
+    -7.4,
+    -6.5
+   ],
+   "reading": "pin 1 at pad 1"
+  },
+  {
+   "pn": "C20069127",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "S9013",
+   "part": "transistor::NPN_SOT23<25V, 500mA, 300mW>",
+   "designators": [
+    "Q121",
+    "Q122",
+    "Q123",
+    "Q124"
+   ],
+   "deltas_ccw_from_top": [
+    10.6,
+    11.8,
+    -11.3,
+    -10.4
+   ],
+   "reading": "pin 1 at pad 1"
+  },
+  {
+   "pn": "C20069129",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "S9012",
+   "part": "transistor::PNP_SOT23<25V, 500mA, 300mW>",
+   "designators": [
+    "Q117",
+    "Q118",
+    "Q119",
+    "Q120"
+   ],
+   "deltas_ccw_from_top": [
+    6.8,
+    7.4,
+    -7.1,
+    -6.1
+   ],
+   "reading": "pin 1 at pad 1"
+  },
+  {
+   "pn": "C20069130",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "S9014",
+   "part": "transistor::NPN_SOT23<45V, 100mA, 200mW>",
+   "designators": [
+    "Q125",
+    "Q126",
+    "Q127",
+    "Q128"
+   ],
+   "deltas_ccw_from_top": [
+    6.9,
+    8.0,
+    -7.3,
+    -6.1
+   ],
+   "reading": "pin 1 at pad 1"
+  },
+  {
+   "pn": "C20069131",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "S9015",
+   "part": "transistor::PNP_SOT23<45V, 100mA, 200mW>",
+   "designators": [
+    "Q129",
+    "Q130",
+    "Q131",
+    "Q132"
+   ],
+   "deltas_ccw_from_top": [
+    11.0,
+    11.5,
+    -10.4,
+    -10.3
+   ],
+   "reading": "pin 1 at pad 1"
+  },
+  {
+   "pn": "C20069132",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BC817-16",
+   "part": "transistor::NPN_SOT23<45V, 500mA, 300mW>",
+   "designators": [
+    "Q21",
+    "Q22",
+    "Q23",
+    "Q24"
+   ],
+   "deltas_ccw_from_top": [
+    6.9,
+    7.8,
+    -7.1,
+    -6.4
+   ],
+   "reading": "pin 1 at pad 1"
+  },
+  {
+   "pn": "C20069134",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BC846B",
+   "part": "transistor::NPN_SOT23<65V, 100mA, 200mW>",
+   "designators": [
+    "Q33",
+    "Q34",
+    "Q35",
+    "Q36"
+   ],
+   "deltas_ccw_from_top": [
+    7.1,
+    7.8,
+    -7.5,
+    -6.2
+   ],
+   "reading": "pin 1 at pad 1"
+  },
+  {
+   "pn": "C20069135",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BC847B",
+   "part": "transistor::NPN_SOT23<45V, 100mA, 200mW>",
+   "designators": [
+    "Q37",
+    "Q38",
+    "Q39",
+    "Q40"
+   ],
+   "deltas_ccw_from_top": [
+    7.2,
+    7.9,
+    -7.5,
+    -5.9
+   ],
+   "reading": "pin 1 at pad 1"
+  },
+  {
+   "pn": "C20069136",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BC856B",
+   "part": "transistor::PNP_SOT23<65V, 100mA, 200mW>",
+   "designators": [
+    "Q45",
+    "Q46",
+    "Q47",
+    "Q48"
+   ],
+   "deltas_ccw_from_top": [
+    -13.0,
+    -11.9,
+    13.3,
+    13.4
+   ],
+   "reading": "pin 1 at pad 1"
+  },
+  {
+   "pn": "C20069137",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BC857C",
+   "part": "transistor::PNP_SOT23<45V, 100mA, 200mW>",
+   "designators": [
+    "Q49",
+    "Q50",
+    "Q51",
+    "Q52"
+   ],
+   "deltas_ccw_from_top": [
+    7.1,
+    7.5,
+    -7.1,
+    -5.6
+   ],
+   "reading": "pin 1 at pad 1"
+  },
+  {
+   "pn": "C20069138",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "MMBTA42",
+   "part": "transistor::NPN_SOT23<300V, 500mA, 350mW>",
+   "designators": [
+    "Q93",
+    "Q94",
+    "Q95",
+    "Q96"
+   ],
+   "deltas_ccw_from_top": [
+    7.3,
+    7.8,
+    -7.2,
+    -6.1
+   ],
+   "reading": "pin 1 at pad 1"
+  },
+  {
+   "pn": "C20069139",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "MMBTA06",
+   "part": "transistor::NPN_SOT23<80V, 500mA, 300mW>",
+   "designators": [
+    "Q89",
+    "Q90",
+    "Q91",
+    "Q92"
+   ],
+   "deltas_ccw_from_top": [
+    1.8,
+    1.7,
+    -0.7,
+    0.4
+   ],
+   "reading": "pin 1 at pad 1"
+  },
+  {
+   "pn": "C20069140",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "MMBT4403",
+   "part": "transistor::PNP_SOT23<40V, 600mA, 300mW>",
+   "designators": [
+    "Q77",
+    "Q78",
+    "Q79",
+    "Q80"
+   ],
+   "deltas_ccw_from_top": [
+    10.0,
+    11.3,
+    -10.9,
+    -10.3
+   ],
+   "reading": "pin 1 at pad 1"
+  },
+  {
+   "pn": "C20069141",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "MMBTA44",
+   "part": "transistor::NPN_SOT23<400V, 200mA, 350mW>",
+   "designators": [
+    "Q97",
+    "Q98",
+    "Q99",
+    "Q100"
+   ],
+   "deltas_ccw_from_top": [
+    6.0,
+    7.9,
+    -7.3,
+    -6.5
+   ],
+   "reading": "pin 1 at pad 1"
+  },
+  {
+   "pn": "C20069142",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BC807-40",
+   "part": "transistor::PNP_SOT23<45V, 500mA, 300mW>",
+   "designators": [
+    "Q17",
+    "Q18",
+    "Q19",
+    "Q20"
+   ],
+   "deltas_ccw_from_top": [
+    10.0,
+    11.4,
+    -10.8,
+    -10.1
+   ],
+   "reading": "pin 1 at pad 1"
+  },
+  {
+   "pn": "C20069143",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "2SC1815",
+   "part": "transistor::NPN_SOT23<50V, 150mA, 200mW>",
+   "designators": [
+    "Q9",
+    "Q10",
+    "Q11",
+    "Q12"
+   ],
+   "deltas_ccw_from_top": [
+    6.2,
+    7.4,
+    -7.3,
+    -6.6
+   ],
+   "reading": "pin 1 at pad 1"
+  },
+  {
+   "pn": "C20069146",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "MMBTA92",
+   "part": "transistor::PNP_SOT23<300V, 500mA, 350mW>",
+   "designators": [
+    "Q105",
+    "Q106",
+    "Q107",
+    "Q108"
+   ],
+   "deltas_ccw_from_top": [
+    6.6,
+    7.6,
+    -6.9,
+    -6.4
+   ],
+   "reading": "pin 1 at pad 1"
+  },
+  {
+   "pn": "C20069147",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "MMBTA56",
+   "part": "transistor::PNP_SOT23<80V, 500mA, 225mW>",
+   "designators": [
+    "Q101",
+    "Q102",
+    "Q103",
+    "Q104"
+   ],
+   "deltas_ccw_from_top": [
+    -81.5,
+    -80.9,
+    80.5,
+    80.5
+   ],
+   "reading": "manual review: mark away from pad 1"
+  },
+  {
+   "pn": "C20069154",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BC817-25",
+   "part": "transistor::NPN_SOT23<45V, 500mA, 300mW>",
+   "designators": [
+    "Q25",
+    "Q26",
+    "Q27",
+    "Q28"
+   ],
+   "deltas_ccw_from_top": [
+    10.6,
+    11.6,
+    -10.6,
+    -10.1
+   ],
+   "reading": "pin 1 at pad 1"
+  },
+  {
+   "pn": "C20069155",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "BC817-40",
+   "part": "transistor::NPN_SOT23<45V, 500mA, 300mW>",
+   "designators": [
+    "Q29",
+    "Q30",
+    "Q31",
+    "Q32"
+   ],
+   "deltas_ccw_from_top": [
+    2.3,
+    3.4,
+    -2.8,
+    -1.8
+   ],
+   "reading": "pin 1 at pad 1"
+  },
+  {
+   "pn": "C28646266",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "2SC3356",
+   "part": "transistor::NPN_SOT23<12V, 100mA, 200mW>",
+   "designators": [
+    "Q13",
+    "Q14",
+    "Q15",
+    "Q16"
+   ],
+   "deltas_ccw_from_top": [
+    7.2,
+    7.3,
+    -7.1,
+    -5.7
+   ],
+   "reading": "pin 1 at pad 1"
+  },
+  {
+   "pn": "C28646275",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "FMMT493",
+   "part": "transistor::NPN_SOT23<100V, 1A, 250mW>",
+   "designators": [
+    "Q53",
+    "Q54",
+    "Q55",
+    "Q56"
+   ],
+   "deltas_ccw_from_top": [
+    6.0,
+    7.4,
+    -7.1,
+    -6.5
+   ],
+   "reading": "pin 1 at pad 1"
+  }
+ ]
+}

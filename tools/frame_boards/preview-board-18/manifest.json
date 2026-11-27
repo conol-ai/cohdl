@@ -1,0 +1,203 @@
+{
+ "name": "preview_board_18",
+ "dependencies": {
+  "mosfet": "0.1.1",
+  "sot": "0.1.2",
+  "std": "0.3.0",
+  "transistor": "0.2.3"
+ },
+ "rows": [
+  {
+   "name": "Q_HJC_HL2302_C28646268",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "mosfet::NMOS_SOT23<20V, 3A>",
+   "pn": "C28646268",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "HL2302",
+   "pins": [
+    "Gate",
+    "Source",
+    "Drain"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      10.0,
+      10.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      20.0,
+      10.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      10.0,
+      20.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      20.0,
+      20.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "Candidate supplier rotation 90 for re-verification; not a binding. Model drawn centred but a quarter turn against the land on all four copies in the candidate's record",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 61925,
+   "page_fetched": "2026-10-30",
+   "mapping": {
+    "dx_mm": 0,
+    "dy_mm": 0,
+    "rotate_deg": 90
+   },
+   "candidate": {
+    "rotate_deg": 90,
+    "record": "tools/sourcing_data/jlc_previews/2026-11-23-board-16/README.md"
+   }
+  },
+  {
+   "name": "Q_HJC_HL3407A_C28646269",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "mosfet::PMOS_SOT23<30V, 4.1A>",
+   "pn": "C28646269",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "HL3407A",
+   "pins": [
+    "Gate",
+    "Source",
+    "Drain"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      30.0,
+      10.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      40.0,
+      10.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      30.0,
+      20.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      40.0,
+      20.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "Candidate supplier rotation 90 for re-verification; not a binding. Model drawn centred but a quarter turn against the land on all four copies in the candidate's record",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 68130,
+   "page_fetched": "2026-10-30",
+   "mapping": {
+    "dx_mm": 0,
+    "dy_mm": 0,
+    "rotate_deg": 90
+   },
+   "candidate": {
+    "rotate_deg": 90,
+    "record": "tools/sourcing_data/jlc_previews/2026-11-23-board-16/README.md"
+   }
+  },
+  {
+   "name": "Q_HJC_MMBTA56_C20069147",
+   "footprint": "sot::SOT3P190X290X130N",
+   "part": "transistor::PNP_SOT23<80V, 500mA, 225mW>",
+   "pn": "C20069147",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "MMBTA56",
+   "pins": [
+    "B",
+    "E",
+    "C"
+   ],
+   "width_mm": 8.0,
+   "height_mm": 8.0,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      50.0,
+      10.0
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      60.0,
+      10.0
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      50.0,
+      20.0
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      60.0,
+      20.0
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "Candidate supplier rotation 90 for re-verification; not a binding. Model drawn centred but a quarter turn against the land on all four copies in the candidate's record",
+   "jlc_package": "SOT-23",
+   "category": "preferred",
+   "stock": 79212,
+   "page_fetched": "2026-10-30",
+   "mapping": {
+    "dx_mm": 0,
+    "dy_mm": 0,
+    "rotate_deg": 90
+   },
+   "candidate": {
+    "rotate_deg": 90,
+    "record": "tools/sourcing_data/jlc_previews/2026-11-23-board-15/README.md"
+   }
+  }
+ ]
+}

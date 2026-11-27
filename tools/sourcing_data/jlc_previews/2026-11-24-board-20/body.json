@@ -1,0 +1,2554 @@
+{
+ "D1": {
+  "centre_offset_mm": 0.045,
+  "kicad_angle": 0.0,
+  "long_axis_vs_land_deg_mod180": 2.8,
+  "rect_edges_vs_land_deg_mod90": 0.0,
+  "rect_mm": [
+   1.73,
+   1.17
+  ],
+  "side": "top"
+ },
+ "D10": {
+  "centre_offset_mm": 0.078,
+  "kicad_angle": 37.0,
+  "long_axis_vs_land_deg_mod180": 0.4,
+  "rect_edges_vs_land_deg_mod90": 3.3,
+  "rect_mm": [
+   2.61,
+   1.17
+  ],
+  "side": "top"
+ },
+ "D100": {
+  "centre_offset_mm": 0.038,
+  "kicad_angle": -143.0,
+  "long_axis_vs_land_deg_mod180": 0.4,
+  "rect_edges_vs_land_deg_mod90": 0.6,
+  "rect_mm": [
+   2.66,
+   1.16
+  ],
+  "side": "bottom"
+ },
+ "D101": {
+  "centre_offset_mm": 0.046,
+  "kicad_angle": 0.0,
+  "long_axis_vs_land_deg_mod180": -1.2,
+  "rect_edges_vs_land_deg_mod90": 0.0,
+  "rect_mm": [
+   3.0,
+   1.13
+  ],
+  "side": "top"
+ },
+ "D102": {
+  "centre_offset_mm": 0.074,
+  "kicad_angle": 37.0,
+  "long_axis_vs_land_deg_mod180": -1.5,
+  "rect_edges_vs_land_deg_mod90": -0.6,
+  "rect_mm": [
+   2.58,
+   1.17
+  ],
+  "side": "top"
+ },
+ "D103": {
+  "centre_offset_mm": 0.057,
+  "kicad_angle": 180.0,
+  "long_axis_vs_land_deg_mod180": 0.6,
+  "rect_edges_vs_land_deg_mod90": 0.0,
+  "rect_mm": [
+   1.92,
+   1.13
+  ],
+  "side": "bottom"
+ },
+ "D104": {
+  "centre_offset_mm": 0.035,
+  "kicad_angle": -143.0,
+  "long_axis_vs_land_deg_mod180": -0.2,
+  "rect_edges_vs_land_deg_mod90": 0.5,
+  "rect_mm": [
+   2.58,
+   1.16
+  ],
+  "side": "bottom"
+ },
+ "D105": {
+  "centre_offset_mm": 0.064,
+  "kicad_angle": 0.0,
+  "long_axis_vs_land_deg_mod180": -0.5,
+  "rect_edges_vs_land_deg_mod90": 0.0,
+  "rect_mm": [
+   2.53,
+   1.17
+  ],
+  "side": "top"
+ },
+ "D106": {
+  "centre_offset_mm": 0.072,
+  "kicad_angle": 37.0,
+  "long_axis_vs_land_deg_mod180": 1.7,
+  "rect_edges_vs_land_deg_mod90": 0.1,
+  "rect_mm": [
+   2.21,
+   1.21
+  ],
+  "side": "top"
+ },
+ "D107": {
+  "centre_offset_mm": 0.075,
+  "kicad_angle": 180.0,
+  "long_axis_vs_land_deg_mod180": -0.3,
+  "rect_edges_vs_land_deg_mod90": 0.0,
+  "rect_mm": [
+   2.25,
+   1.13
+  ],
+  "side": "bottom"
+ },
+ "D108": {
+  "centre_offset_mm": 0.056,
+  "kicad_angle": -143.0,
+  "long_axis_vs_land_deg_mod180": -0.9,
+  "rect_edges_vs_land_deg_mod90": 0.6,
+  "rect_mm": [
+   1.88,
+   1.23
+  ],
+  "side": "bottom"
+ },
+ "D109": {
+  "centre_offset_mm": 0.08,
+  "kicad_angle": 0.0,
+  "long_axis_vs_land_deg_mod180": 0.7,
+  "rect_edges_vs_land_deg_mod90": 0.0,
+  "rect_mm": [
+   2.49,
+   1.13
+  ],
+  "side": "top"
+ },
+ "D11": {
+  "centre_offset_mm": 0.067,
+  "kicad_angle": 180.0,
+  "long_axis_vs_land_deg_mod180": -0.5,
+  "rect_edges_vs_land_deg_mod90": 0.0,
+  "rect_mm": [
+   2.67,
+   1.13
+  ],
+  "side": "bottom"
+ },
+ "D110": {
+  "centre_offset_mm": 0.082,
+  "kicad_angle": 37.0,
+  "long_axis_vs_land_deg_mod180": 0.8,
+  "rect_edges_vs_land_deg_mod90": 0.1,
+  "rect_mm": [
+   2.41,
+   1.16
+  ],
+  "side": "top"
+ },
+ "D111": {
+  "centre_offset_mm": 0.062,
+  "kicad_angle": 180.0,
+  "long_axis_vs_land_deg_mod180": -0.0,
+  "rect_edges_vs_land_deg_mod90": 0.0,
+  "rect_mm": [
+   2.58,
+   1.13
+  ],
+  "side": "bottom"
+ },
+ "D112": {
+  "centre_offset_mm": 0.034,
+  "kicad_angle": -143.0,
+  "long_axis_vs_land_deg_mod180": -0.9,
+  "rect_edges_vs_land_deg_mod90": -0.9,
+  "rect_mm": [
+   2.57,
+   1.16
+  ],
+  "side": "bottom"
+ },
+ "D113": {
+  "centre_offset_mm": 0.079,
+  "kicad_angle": 0.0,
+  "long_axis_vs_land_deg_mod180": 1.4,
+  "rect_edges_vs_land_deg_mod90": 0.0,
+  "rect_mm": [
+   2.49,
+   1.13
+  ],
+  "side": "top"
+ },
+ "D114": {
+  "centre_offset_mm": 0.077,
+  "kicad_angle": 37.0,
+  "long_axis_vs_land_deg_mod180": 1.2,
+  "rect_edges_vs_land_deg_mod90": 0.5,
+  "rect_mm": [
+   2.58,
+   1.16
+  ],
+  "side": "top"
+ },
+ "D115": {
+  "centre_offset_mm": 0.052,
+  "kicad_angle": 180.0,
+  "long_axis_vs_land_deg_mod180": -0.7,
+  "rect_edges_vs_land_deg_mod90": 0.0,
+  "rect_mm": [
+   2.63,
+   1.13
+  ],
+  "side": "bottom"
+ },
+ "D116": {
+  "centre_offset_mm": 0.029,
+  "kicad_angle": -143.0,
+  "long_axis_vs_land_deg_mod180": -0.3,
+  "rect_edges_vs_land_deg_mod90": 0.1,
+  "rect_mm": [
+   2.04,
+   1.16
+  ],
+  "side": "bottom"
+ },
+ "D117": {
+  "centre_offset_mm": 0.082,
+  "kicad_angle": 0.0,
+  "long_axis_vs_land_deg_mod180": 0.3,
+  "rect_edges_vs_land_deg_mod90": 0.0,
+  "rect_mm": [
+   1.92,
+   1.13
+  ],
+  "side": "top"
+ },
+ "D118": {
+  "centre_offset_mm": 0.08,
+  "kicad_angle": 37.0,
+  "long_axis_vs_land_deg_mod180": 1.0,
+  "rect_edges_vs_land_deg_mod90": 0.6,
+  "rect_mm": [
+   2.41,
+   1.15
+  ],
+  "side": "top"
+ },
+ "D119": {
+  "centre_offset_mm": 0.068,
+  "kicad_angle": 180.0,
+  "long_axis_vs_land_deg_mod180": 0.1,
+  "rect_edges_vs_land_deg_mod90": 0.0,
+  "rect_mm": [
+   2.53,
+   1.13
+  ],
+  "side": "bottom"
+ },
+ "D12": {
+  "centre_offset_mm": 0.041,
+  "kicad_angle": -143.0,
+  "long_axis_vs_land_deg_mod180": -1.4,
+  "rect_edges_vs_land_deg_mod90": 0.1,
+  "rect_mm": [
+   2.71,
+   1.16
+  ],
+  "side": "bottom"
+ },
+ "D120": {
+  "centre_offset_mm": 0.033,
+  "kicad_angle": -143.0,
+  "long_axis_vs_land_deg_mod180": -0.6,
+  "rect_edges_vs_land_deg_mod90": -0.3,
+  "rect_mm": [
+   2.59,
+   1.17
+  ],
+  "side": "bottom"
+ },
+ "D121": {
+  "centre_offset_mm": 0.047,
+  "kicad_angle": 0.0,
+  "long_axis_vs_land_deg_mod180": 0.5,
+  "rect_edges_vs_land_deg_mod90": 0.0,
+  "rect_mm": [
+   2.53,
+   1.13
+  ],
+  "side": "top"
+ },
+ "D122": {
+  "centre_offset_mm": 0.077,
+  "kicad_angle": 37.0,
+  "long_axis_vs_land_deg_mod180": 1.2,
+  "rect_edges_vs_land_deg_mod90": 0.6,
+  "rect_mm": [
+   2.88,
+   1.15
+  ],
+  "side": "top"
+ },
+ "D123": {
+  "centre_offset_mm": 0.089,
+  "kicad_angle": 180.0,
+  "long_axis_vs_land_deg_mod180": 0.5,
+  "rect_edges_vs_land_deg_mod90": 0.0,
+  "rect_mm": [
+   2.02,
+   1.13
+  ],
+  "side": "bottom"
+ },
+ "D124": {
+  "centre_offset_mm": 0.043,
+  "kicad_angle": -143.0,
+  "long_axis_vs_land_deg_mod180": -1.0,
+  "rect_edges_vs_land_deg_mod90": -0.3,
+  "rect_mm": [
+   2.51,
+   1.16
+  ],
+  "side": "bottom"
+ },
+ "D125": {
+  "centre_offset_mm": 0.052,
+  "kicad_angle": 0.0,
+  "long_axis_vs_land_deg_mod180": -0.1,
+  "rect_edges_vs_land_deg_mod90": 0.0,
+  "rect_mm": [
+   2.58,
+   1.13
+  ],
+  "side": "top"
+ },
+ "D126": {
+  "centre_offset_mm": 0.078,
+  "kicad_angle": 37.0,
+  "long_axis_vs_land_deg_mod180": 0.5,
+  "rect_edges_vs_land_deg_mod90": 0.1,
+  "rect_mm": [
+   2.31,
+   1.16
+  ],
+  "side": "top"
+ },
+ "D127": {
+  "centre_offset_mm": 0.076,
+  "kicad_angle": 180.0,
+  "long_axis_vs_land_deg_mod180": 0.2,
+  "rect_edges_vs_land_deg_mod90": 0.0,
+  "rect_mm": [
+   2.63,
+   1.13
+  ],
+  "side": "bottom"
+ },
+ "D128": {
+  "centre_offset_mm": 0.052,
+  "kicad_angle": -143.0,
+  "long_axis_vs_land_deg_mod180": -0.8,
+  "rect_edges_vs_land_deg_mod90": -0.6,
+  "rect_mm": [
+   2.67,
+   1.16
+  ],
+  "side": "bottom"
+ },
+ "D129": {
+  "centre_offset_mm": 0.045,
+  "kicad_angle": 0.0,
+  "long_axis_vs_land_deg_mod180": -0.4,
+  "rect_edges_vs_land_deg_mod90": 2.2,
+  "rect_mm": [
+   2.61,
+   1.17
+  ],
+  "side": "top"
+ },
+ "D13": {
+  "centre_offset_mm": 0.079,
+  "kicad_angle": 0.0,
+  "long_axis_vs_land_deg_mod180": 0.6,
+  "rect_edges_vs_land_deg_mod90": 0.0,
+  "rect_mm": [
+   2.34,
+   1.13
+  ],
+  "side": "top"
+ },
+ "D130": {
+  "centre_offset_mm": 0.076,
+  "kicad_angle": 37.0,
+  "long_axis_vs_land_deg_mod180": 0.2,
+  "rect_edges_vs_land_deg_mod90": 1.0,
+  "rect_mm": [
+   2.61,
+   1.17
+  ],
+  "side": "top"
+ },
+ "D131": {
+  "centre_offset_mm": 0.078,
+  "kicad_angle": 180.0,
+  "long_axis_vs_land_deg_mod180": -0.4,
+  "rect_edges_vs_land_deg_mod90": 0.0,
+  "rect_mm": [
+   2.77,
+   1.13
+  ],
+  "side": "bottom"
+ },
+ "D132": {
+  "centre_offset_mm": 0.038,
+  "kicad_angle": -143.0,
+  "long_axis_vs_land_deg_mod180": 1.1,
+  "rect_edges_vs_land_deg_mod90": -0.3,
+  "rect_mm": [
+   2.45,
+   1.17
+  ],
+  "side": "bottom"
+ },
+ "D133": {
+  "centre_offset_mm": 0.1,
+  "kicad_angle": 0.0,
+  "long_axis_vs_land_deg_mod180": 1.5,
+  "rect_edges_vs_land_deg_mod90": 0.0,
+  "rect_mm": [
+   2.3,
+   1.13
+  ],
+  "side": "top"
+ },
+ "D134": {
+  "centre_offset_mm": 0.128,
+  "kicad_angle": 37.0,
+  "long_axis_vs_land_deg_mod180": 2.7,
+  "rect_edges_vs_land_deg_mod90": 1.1,
+  "rect_mm": [
+   2.64,
+   1.16
+  ],
+  "side": "top"
+ },
+ "D135": {
+  "centre_offset_mm": 0.098,
+  "kicad_angle": 180.0,
+  "long_axis_vs_land_deg_mod180": -0.8,
+  "rect_edges_vs_land_deg_mod90": 0.0,
+  "rect_mm": [
+   2.67,
+   1.13
+  ],
+  "side": "bottom"
+ },
+ "D136": {
+  "centre_offset_mm": 0.089,
+  "kicad_angle": -143.0,
+  "long_axis_vs_land_deg_mod180": -1.4,
+  "rect_edges_vs_land_deg_mod90": 0.6,
+  "rect_mm": [
+   2.68,
+   1.16
+  ],
+  "side": "bottom"
+ },
+ "D137": {
+  "centre_offset_mm": 0.048,
+  "kicad_angle": 0.0,
+  "long_axis_vs_land_deg_mod180": -0.0,
+  "rect_edges_vs_land_deg_mod90": 0.0,
+  "rect_mm": [
+   2.53,
+   1.13
+  ],
+  "side": "top"
+ },
+ "D138": {
+  "centre_offset_mm": 0.075,
+  "kicad_angle": 37.0,
+  "long_axis_vs_land_deg_mod180": 1.6,
+  "rect_edges_vs_land_deg_mod90": -0.3,
+  "rect_mm": [
+   2.71,
+   1.16
+  ],
+  "side": "top"
+ },
+ "D139": {
+  "centre_offset_mm": 0.086,
+  "kicad_angle": 180.0,
+  "long_axis_vs_land_deg_mod180": -0.1,
+  "rect_edges_vs_land_deg_mod90": 0.0,
+  "rect_mm": [
+   1.97,
+   1.13
+  ],
+  "side": "bottom"
+ },
+ "D14": {
+  "centre_offset_mm": 0.084,
+  "kicad_angle": 37.0,
+  "long_axis_vs_land_deg_mod180": 0.7,
+  "rect_edges_vs_land_deg_mod90": 0.6,
+  "rect_mm": [
+   2.48,
+   1.14
+  ],
+  "side": "top"
+ },
+ "D140": {
+  "centre_offset_mm": 0.034,
+  "kicad_angle": -143.0,
+  "long_axis_vs_land_deg_mod180": -0.5,
+  "rect_edges_vs_land_deg_mod90": 0.1,
+  "rect_mm": [
+   2.59,
+   1.16
+  ],
+  "side": "bottom"
+ },
+ "D15": {
+  "centre_offset_mm": 0.07,
+  "kicad_angle": 180.0,
+  "long_axis_vs_land_deg_mod180": 0.6,
+  "rect_edges_vs_land_deg_mod90": 0.0,
+  "rect_mm": [
+   2.63,
+   1.13
+  ],
+  "side": "bottom"
+ },
+ "D16": {
+  "centre_offset_mm": 0.047,
+  "kicad_angle": -143.0,
+  "long_axis_vs_land_deg_mod180": -1.5,
+  "rect_edges_vs_land_deg_mod90": 0.1,
+  "rect_mm": [
+   2.17,
+   1.16
+  ],
+  "side": "bottom"
+ },
+ "D165": {
+  "centre_offset_mm": 0.014,
+  "kicad_angle": 0.0,
+  "long_axis_vs_land_deg_mod180": -1.1,
+  "rect_edges_vs_land_deg_mod90": 0.0,
+  "rect_mm": [
+   2.34,
+   0.7
+  ],
+  "side": "top"
+ },
+ "D166": {
+  "centre_offset_mm": 0.035,
+  "kicad_angle": 37.0,
+  "long_axis_vs_land_deg_mod180": 0.8,
+  "rect_edges_vs_land_deg_mod90": 0.1,
+  "rect_mm": [
+   2.3,
+   0.72
+  ],
+  "side": "top"
+ },
+ "D167": {
+  "centre_offset_mm": 0.032,
+  "kicad_angle": 180.0,
+  "long_axis_vs_land_deg_mod180": 2.6,
+  "rect_edges_vs_land_deg_mod90": 3.3,
+  "rect_mm": [
+   2.34,
+   0.74
+  ],
+  "side": "bottom"
+ },
+ "D168": {
+  "centre_offset_mm": 0.012,
+  "kicad_angle": -143.0,
+  "long_axis_vs_land_deg_mod180": -1.0,
+  "rect_edges_vs_land_deg_mod90": 0.1,
+  "rect_mm": [
+   2.3,
+   0.71
+  ],
+  "side": "bottom"
+ },
+ "D17": {
+  "centre_offset_mm": 0.064,
+  "kicad_angle": 0.0,
+  "long_axis_vs_land_deg_mod180": 1.1,
+  "rect_edges_vs_land_deg_mod90": 0.0,
+  "rect_mm": [
+   1.73,
+   1.13
+  ],
+  "side": "top"
+ },
+ "D177": {
+  "centre_offset_mm": 0.013,
+  "kicad_angle": 0.0,
+  "long_axis_vs_land_deg_mod180": -0.1,
+  "rect_edges_vs_land_deg_mod90": 0.0,
+  "rect_mm": [
+   1.78,
+   0.7
+  ],
+  "side": "top"
+ },
+ "D178": {
+  "centre_offset_mm": 0.029,
+  "kicad_angle": 37.0,
+  "long_axis_vs_land_deg_mod180": -1.8,
+  "rect_edges_vs_land_deg_mod90": -1.6,
+  "rect_mm": [
+   1.54,
+   0.74
+  ],
+  "side": "top"
+ },
+ "D179": {
+  "centre_offset_mm": 0.045,
+  "kicad_angle": 180.0,
+  "long_axis_vs_land_deg_mod180": -2.0,
+  "rect_edges_vs_land_deg_mod90": -3.2,
+  "rect_mm": [
+   1.78,
+   0.73
+  ],
+  "side": "bottom"
+ },
+ "D18": {
+  "centre_offset_mm": 0.075,
+  "kicad_angle": 37.0,
+  "long_axis_vs_land_deg_mod180": -0.3,
+  "rect_edges_vs_land_deg_mod90": 0.5,
+  "rect_mm": [
+   2.21,
+   1.21
+  ],
+  "side": "top"
+ },
+ "D180": {
+  "centre_offset_mm": 0.021,
+  "kicad_angle": -143.0,
+  "long_axis_vs_land_deg_mod180": -1.3,
+  "rect_edges_vs_land_deg_mod90": 1.0,
+  "rect_mm": [
+   1.64,
+   0.73
+  ],
+  "side": "bottom"
+ },
+ "D19": {
+  "centre_offset_mm": 0.069,
+  "kicad_angle": 180.0,
+  "long_axis_vs_land_deg_mod180": 1.3,
+  "rect_edges_vs_land_deg_mod90": 0.0,
+  "rect_mm": [
+   1.92,
+   1.17
+  ],
+  "side": "bottom"
+ },
+ "D2": {
+  "centre_offset_mm": 0.076,
+  "kicad_angle": 37.0,
+  "long_axis_vs_land_deg_mod180": 4.3,
+  "rect_edges_vs_land_deg_mod90": 1.1,
+  "rect_mm": [
+   2.05,
+   1.22
+  ],
+  "side": "top"
+ },
+ "D20": {
+  "centre_offset_mm": 0.045,
+  "kicad_angle": -143.0,
+  "long_axis_vs_land_deg_mod180": -1.2,
+  "rect_edges_vs_land_deg_mod90": 0.1,
+  "rect_mm": [
+   1.93,
+   1.22
+  ],
+  "side": "bottom"
+ },
+ "D201": {
+  "centre_offset_mm": 0.049,
+  "kicad_angle": 0.0,
+  "long_axis_vs_land_deg_mod180": 0.8,
+  "rect_edges_vs_land_deg_mod90": 0.0,
+  "rect_mm": [
+   2.53,
+   1.08
+  ],
+  "side": "top"
+ },
+ "D202": {
+  "centre_offset_mm": 0.06,
+  "kicad_angle": 37.0,
+  "long_axis_vs_land_deg_mod180": 0.2,
+  "rect_edges_vs_land_deg_mod90": -0.3,
+  "rect_mm": [
+   2.75,
+   1.18
+  ],
+  "side": "top"
+ },
+ "D203": {
+  "centre_offset_mm": 0.061,
+  "kicad_angle": 180.0,
+  "long_axis_vs_land_deg_mod180": 0.2,
+  "rect_edges_vs_land_deg_mod90": 0.0,
+  "rect_mm": [
+   2.63,
+   1.13
+  ],
+  "side": "bottom"
+ },
+ "D204": {
+  "centre_offset_mm": 0.029,
+  "kicad_angle": -143.0,
+  "long_axis_vs_land_deg_mod180": -0.3,
+  "rect_edges_vs_land_deg_mod90": 2.0,
+  "rect_mm": [
+   2.57,
+   1.17
+  ],
+  "side": "bottom"
+ },
+ "D205": {
+  "centre_offset_mm": 0.054,
+  "kicad_angle": 0.0,
+  "long_axis_vs_land_deg_mod180": -0.1,
+  "rect_edges_vs_land_deg_mod90": 0.0,
+  "rect_mm": [
+   2.53,
+   1.08
+  ],
+  "side": "top"
+ },
+ "D206": {
+  "centre_offset_mm": 0.066,
+  "kicad_angle": 37.0,
+  "long_axis_vs_land_deg_mod180": -0.4,
+  "rect_edges_vs_land_deg_mod90": 0.6,
+  "rect_mm": [
+   2.48,
+   1.15
+  ],
+  "side": "top"
+ },
+ "D207": {
+  "centre_offset_mm": 0.068,
+  "kicad_angle": 180.0,
+  "long_axis_vs_land_deg_mod180": 0.3,
+  "rect_edges_vs_land_deg_mod90": 0.0,
+  "rect_mm": [
+   2.67,
+   1.13
+  ],
+  "side": "bottom"
+ },
+ "D208": {
+  "centre_offset_mm": 0.037,
+  "kicad_angle": -143.0,
+  "long_axis_vs_land_deg_mod180": -0.6,
+  "rect_edges_vs_land_deg_mod90": 0.8,
+  "rect_mm": [
+   2.0,
+   1.16
+  ],
+  "side": "bottom"
+ },
+ "D209": {
+  "centre_offset_mm": 0.108,
+  "kicad_angle": 0.0,
+  "long_axis_vs_land_deg_mod180": 1.6,
+  "rect_edges_vs_land_deg_mod90": 0.0,
+  "rect_mm": [
+   2.63,
+   1.08
+  ],
+  "side": "top"
+ },
+ "D21": {
+  "centre_offset_mm": 0.07,
+  "kicad_angle": 0.0,
+  "long_axis_vs_land_deg_mod180": 1.2,
+  "rect_edges_vs_land_deg_mod90": 0.0,
+  "rect_mm": [
+   1.73,
+   1.13
+  ],
+  "side": "top"
+ },
+ "D210": {
+  "centre_offset_mm": 0.107,
+  "kicad_angle": 37.0,
+  "long_axis_vs_land_deg_mod180": 1.4,
+  "rect_edges_vs_land_deg_mod90": 0.9,
+  "rect_mm": [
+   2.84,
+   1.17
+  ],
+  "side": "top"
+ },
+ "D211": {
+  "centre_offset_mm": 0.078,
+  "kicad_angle": 180.0,
+  "long_axis_vs_land_deg_mod180": -0.9,
+  "rect_edges_vs_land_deg_mod90": 0.0,
+  "rect_mm": [
+   2.77,
+   1.13
+  ],
+  "side": "bottom"
+ },
+ "D212": {
+  "centre_offset_mm": 0.097,
+  "kicad_angle": -143.0,
+  "long_axis_vs_land_deg_mod180": -0.1,
+  "rect_edges_vs_land_deg_mod90": 0.1,
+  "rect_mm": [
+   2.55,
+   1.14
+  ],
+  "side": "bottom"
+ },
+ "D213": {
+  "centre_offset_mm": 0.061,
+  "kicad_angle": 0.0,
+  "long_axis_vs_land_deg_mod180": -1.0,
+  "rect_edges_vs_land_deg_mod90": -1.9,
+  "rect_mm": [
+   2.55,
+   1.13
+  ],
+  "side": "top"
+ },
+ "D214": {
+  "centre_offset_mm": 0.06,
+  "kicad_angle": 37.0,
+  "long_axis_vs_land_deg_mod180": -0.2,
+  "rect_edges_vs_land_deg_mod90": -0.3,
+  "rect_mm": [
+   2.54,
+   1.15
+  ],
+  "side": "top"
+ },
+ "D215": {
+  "centre_offset_mm": 0.056,
+  "kicad_angle": 180.0,
+  "long_axis_vs_land_deg_mod180": 1.2,
+  "rect_edges_vs_land_deg_mod90": 0.0,
+  "rect_mm": [
+   2.58,
+   1.13
+  ],
+  "side": "bottom"
+ },
+ "D216": {
+  "centre_offset_mm": 0.033,
+  "kicad_angle": -143.0,
+  "long_axis_vs_land_deg_mod180": 1.4,
+  "rect_edges_vs_land_deg_mod90": 0.6,
+  "rect_mm": [
+   2.45,
+   1.16
+  ],
+  "side": "bottom"
+ },
+ "D217": {
+  "centre_offset_mm": 0.058,
+  "kicad_angle": 0.0,
+  "long_axis_vs_land_deg_mod180": -0.6,
+  "rect_edges_vs_land_deg_mod90": 0.0,
+  "rect_mm": [
+   2.53,
+   1.08
+  ],
+  "side": "top"
+ },
+ "D218": {
+  "centre_offset_mm": 0.057,
+  "kicad_angle": 37.0,
+  "long_axis_vs_land_deg_mod180": 0.6,
+  "rect_edges_vs_land_deg_mod90": -1.1,
+  "rect_mm": [
+   2.31,
+   1.16
+  ],
+  "side": "top"
+ },
+ "D219": {
+  "centre_offset_mm": 0.062,
+  "kicad_angle": 180.0,
+  "long_axis_vs_land_deg_mod180": 0.2,
+  "rect_edges_vs_land_deg_mod90": 0.0,
+  "rect_mm": [
+   2.72,
+   1.13
+  ],
+  "side": "bottom"
+ },
+ "D22": {
+  "centre_offset_mm": 0.09,
+  "kicad_angle": 37.0,
+  "long_axis_vs_land_deg_mod180": -0.3,
+  "rect_edges_vs_land_deg_mod90": 0.6,
+  "rect_mm": [
+   1.98,
+   1.22
+  ],
+  "side": "top"
+ },
+ "D220": {
+  "centre_offset_mm": 0.029,
+  "kicad_angle": -143.0,
+  "long_axis_vs_land_deg_mod180": 1.2,
+  "rect_edges_vs_land_deg_mod90": -0.9,
+  "rect_mm": [
+   2.03,
+   1.17
+  ],
+  "side": "bottom"
+ },
+ "D221": {
+  "centre_offset_mm": 0.038,
+  "kicad_angle": 0.0,
+  "long_axis_vs_land_deg_mod180": -0.5,
+  "rect_edges_vs_land_deg_mod90": 1.8,
+  "rect_mm": [
+   2.75,
+   1.12
+  ],
+  "side": "top"
+ },
+ "D222": {
+  "centre_offset_mm": 0.059,
+  "kicad_angle": 37.0,
+  "long_axis_vs_land_deg_mod180": 0.2,
+  "rect_edges_vs_land_deg_mod90": 0.7,
+  "rect_mm": [
+   2.71,
+   1.16
+  ],
+  "side": "top"
+ },
+ "D223": {
+  "centre_offset_mm": 0.069,
+  "kicad_angle": 180.0,
+  "long_axis_vs_land_deg_mod180": 0.6,
+  "rect_edges_vs_land_deg_mod90": 0.0,
+  "rect_mm": [
+   2.63,
+   1.08
+  ],
+  "side": "bottom"
+ },
+ "D224": {
+  "centre_offset_mm": 0.048,
+  "kicad_angle": -143.0,
+  "long_axis_vs_land_deg_mod180": -1.0,
+  "rect_edges_vs_land_deg_mod90": -1.2,
+  "rect_mm": [
+   2.57,
+   1.17
+  ],
+  "side": "bottom"
+ },
+ "D225": {
+  "centre_offset_mm": 0.034,
+  "kicad_angle": 0.0,
+  "long_axis_vs_land_deg_mod180": -0.4,
+  "rect_edges_vs_land_deg_mod90": 0.0,
+  "rect_mm": [
+   2.63,
+   1.08
+  ],
+  "side": "top"
+ },
+ "D226": {
+  "centre_offset_mm": 0.056,
+  "kicad_angle": 37.0,
+  "long_axis_vs_land_deg_mod180": 0.5,
+  "rect_edges_vs_land_deg_mod90": 1.1,
+  "rect_mm": [
+   2.48,
+   1.16
+  ],
+  "side": "top"
+ },
+ "D227": {
+  "centre_offset_mm": 0.062,
+  "kicad_angle": 180.0,
+  "long_axis_vs_land_deg_mod180": 0.1,
+  "rect_edges_vs_land_deg_mod90": 0.0,
+  "rect_mm": [
+   2.63,
+   1.08
+  ],
+  "side": "bottom"
+ },
+ "D228": {
+  "centre_offset_mm": 0.034,
+  "kicad_angle": -143.0,
+  "long_axis_vs_land_deg_mod180": -0.2,
+  "rect_edges_vs_land_deg_mod90": -0.4,
+  "rect_mm": [
+   2.7,
+   1.16
+  ],
+  "side": "bottom"
+ },
+ "D229": {
+  "centre_offset_mm": 0.068,
+  "kicad_angle": 0.0,
+  "long_axis_vs_land_deg_mod180": 1.8,
+  "rect_edges_vs_land_deg_mod90": 2.0,
+  "rect_mm": [
+   2.57,
+   1.13
+  ],
+  "side": "top"
+ },
+ "D23": {
+  "centre_offset_mm": 0.09,
+  "kicad_angle": 180.0,
+  "long_axis_vs_land_deg_mod180": -1.4,
+  "rect_edges_vs_land_deg_mod90": 0.0,
+  "rect_mm": [
+   1.88,
+   1.22
+  ],
+  "side": "bottom"
+ },
+ "D230": {
+  "centre_offset_mm": 0.121,
+  "kicad_angle": 37.0,
+  "long_axis_vs_land_deg_mod180": 0.7,
+  "rect_edges_vs_land_deg_mod90": -0.6,
+  "rect_mm": [
+   2.58,
+   1.16
+  ],
+  "side": "top"
+ },
+ "D231": {
+  "centre_offset_mm": 0.146,
+  "kicad_angle": 180.0,
+  "long_axis_vs_land_deg_mod180": -0.5,
+  "rect_edges_vs_land_deg_mod90": 0.0,
+  "rect_mm": [
+   2.77,
+   1.08
+  ],
+  "side": "bottom"
+ },
+ "D232": {
+  "centre_offset_mm": 0.108,
+  "kicad_angle": -143.0,
+  "long_axis_vs_land_deg_mod180": 0.9,
+  "rect_edges_vs_land_deg_mod90": -0.9,
+  "rect_mm": [
+   2.8,
+   1.16
+  ],
+  "side": "bottom"
+ },
+ "D233": {
+  "centre_offset_mm": 0.042,
+  "kicad_angle": 0.0,
+  "long_axis_vs_land_deg_mod180": 0.1,
+  "rect_edges_vs_land_deg_mod90": 0.0,
+  "rect_mm": [
+   2.49,
+   1.08
+  ],
+  "side": "top"
+ },
+ "D234": {
+  "centre_offset_mm": 0.063,
+  "kicad_angle": 37.0,
+  "long_axis_vs_land_deg_mod180": 0.9,
+  "rect_edges_vs_land_deg_mod90": 1.4,
+  "rect_mm": [
+   2.77,
+   1.16
+  ],
+  "side": "top"
+ },
+ "D235": {
+  "centre_offset_mm": 0.068,
+  "kicad_angle": 180.0,
+  "long_axis_vs_land_deg_mod180": -0.4,
+  "rect_edges_vs_land_deg_mod90": 0.0,
+  "rect_mm": [
+   3.0,
+   1.08
+  ],
+  "side": "bottom"
+ },
+ "D236": {
+  "centre_offset_mm": 0.057,
+  "kicad_angle": -143.0,
+  "long_axis_vs_land_deg_mod180": -2.1,
+  "rect_edges_vs_land_deg_mod90": -1.7,
+  "rect_mm": [
+   2.56,
+   1.17
+  ],
+  "side": "bottom"
+ },
+ "D237": {
+  "centre_offset_mm": 0.112,
+  "kicad_angle": 0.0,
+  "long_axis_vs_land_deg_mod180": -0.2,
+  "rect_edges_vs_land_deg_mod90": 2.2,
+  "rect_mm": [
+   2.76,
+   1.12
+  ],
+  "side": "top"
+ },
+ "D238": {
+  "centre_offset_mm": 0.12,
+  "kicad_angle": 37.0,
+  "long_axis_vs_land_deg_mod180": -0.6,
+  "rect_edges_vs_land_deg_mod90": 0.1,
+  "rect_mm": [
+   2.87,
+   1.16
+  ],
+  "side": "top"
+ },
+ "D239": {
+  "centre_offset_mm": 0.087,
+  "kicad_angle": 180.0,
+  "long_axis_vs_land_deg_mod180": 0.5,
+  "rect_edges_vs_land_deg_mod90": 0.0,
+  "rect_mm": [
+   2.81,
+   1.08
+  ],
+  "side": "bottom"
+ },
+ "D24": {
+  "centre_offset_mm": 0.038,
+  "kicad_angle": -143.0,
+  "long_axis_vs_land_deg_mod180": -2.7,
+  "rect_edges_vs_land_deg_mod90": 0.9,
+  "rect_mm": [
+   1.96,
+   1.21
+  ],
+  "side": "bottom"
+ },
+ "D240": {
+  "centre_offset_mm": 0.08,
+  "kicad_angle": -143.0,
+  "long_axis_vs_land_deg_mod180": 0.1,
+  "rect_edges_vs_land_deg_mod90": 0.1,
+  "rect_mm": [
+   2.54,
+   1.16
+  ],
+  "side": "bottom"
+ },
+ "D241": {
+  "centre_offset_mm": 0.042,
+  "kicad_angle": 0.0,
+  "long_axis_vs_land_deg_mod180": -1.3,
+  "rect_edges_vs_land_deg_mod90": 0.0,
+  "rect_mm": [
+   2.3,
+   1.08
+  ],
+  "side": "top"
+ },
+ "D242": {
+  "centre_offset_mm": 0.064,
+  "kicad_angle": 37.0,
+  "long_axis_vs_land_deg_mod180": 0.3,
+  "rect_edges_vs_land_deg_mod90": 0.6,
+  "rect_mm": [
+   2.79,
+   1.16
+  ],
+  "side": "top"
+ },
+ "D243": {
+  "centre_offset_mm": 0.065,
+  "kicad_angle": 180.0,
+  "long_axis_vs_land_deg_mod180": 0.1,
+  "rect_edges_vs_land_deg_mod90": 0.0,
+  "rect_mm": [
+   2.77,
+   1.08
+  ],
+  "side": "bottom"
+ },
+ "D244": {
+  "centre_offset_mm": 0.04,
+  "kicad_angle": -143.0,
+  "long_axis_vs_land_deg_mod180": -0.0,
+  "rect_edges_vs_land_deg_mod90": 0.1,
+  "rect_mm": [
+   2.57,
+   1.16
+  ],
+  "side": "bottom"
+ },
+ "D245": {
+  "centre_offset_mm": 0.041,
+  "kicad_angle": 0.0,
+  "long_axis_vs_land_deg_mod180": 0.4,
+  "rect_edges_vs_land_deg_mod90": 0.0,
+  "rect_mm": [
+   2.58,
+   1.08
+  ],
+  "side": "top"
+ },
+ "D246": {
+  "centre_offset_mm": 0.062,
+  "kicad_angle": 37.0,
+  "long_axis_vs_land_deg_mod180": 1.2,
+  "rect_edges_vs_land_deg_mod90": 0.1,
+  "rect_mm": [
+   2.48,
+   1.15
+  ],
+  "side": "top"
+ },
+ "D247": {
+  "centre_offset_mm": 0.06,
+  "kicad_angle": 180.0,
+  "long_axis_vs_land_deg_mod180": 1.8,
+  "rect_edges_vs_land_deg_mod90": 0.0,
+  "rect_mm": [
+   2.81,
+   1.08
+  ],
+  "side": "bottom"
+ },
+ "D248": {
+  "centre_offset_mm": 0.026,
+  "kicad_angle": -143.0,
+  "long_axis_vs_land_deg_mod180": -0.2,
+  "rect_edges_vs_land_deg_mod90": -0.3,
+  "rect_mm": [
+   2.67,
+   1.16
+  ],
+  "side": "bottom"
+ },
+ "D249": {
+  "centre_offset_mm": 0.045,
+  "kicad_angle": 0.0,
+  "long_axis_vs_land_deg_mod180": -0.2,
+  "rect_edges_vs_land_deg_mod90": 0.0,
+  "rect_mm": [
+   2.58,
+   1.08
+  ],
+  "side": "top"
+ },
+ "D25": {
+  "centre_offset_mm": 0.056,
+  "kicad_angle": 0.0,
+  "long_axis_vs_land_deg_mod180": -0.4,
+  "rect_edges_vs_land_deg_mod90": 0.0,
+  "rect_mm": [
+   2.49,
+   1.13
+  ],
+  "side": "top"
+ },
+ "D250": {
+  "centre_offset_mm": 0.065,
+  "kicad_angle": 37.0,
+  "long_axis_vs_land_deg_mod180": 1.1,
+  "rect_edges_vs_land_deg_mod90": 0.1,
+  "rect_mm": [
+   2.64,
+   1.15
+  ],
+  "side": "top"
+ },
+ "D251": {
+  "centre_offset_mm": 0.053,
+  "kicad_angle": 180.0,
+  "long_axis_vs_land_deg_mod180": 2.1,
+  "rect_edges_vs_land_deg_mod90": 0.0,
+  "rect_mm": [
+   2.81,
+   1.08
+  ],
+  "side": "bottom"
+ },
+ "D252": {
+  "centre_offset_mm": 0.023,
+  "kicad_angle": -143.0,
+  "long_axis_vs_land_deg_mod180": 0.1,
+  "rect_edges_vs_land_deg_mod90": -1.3,
+  "rect_mm": [
+   2.71,
+   1.16
+  ],
+  "side": "bottom"
+ },
+ "D253": {
+  "centre_offset_mm": 0.023,
+  "kicad_angle": 0.0,
+  "long_axis_vs_land_deg_mod180": 1.6,
+  "rect_edges_vs_land_deg_mod90": 0.0,
+  "rect_mm": [
+   1.69,
+   1.13
+  ],
+  "side": "top"
+ },
+ "D254": {
+  "centre_offset_mm": 0.05,
+  "kicad_angle": 37.0,
+  "long_axis_vs_land_deg_mod180": 0.5,
+  "rect_edges_vs_land_deg_mod90": 0.8,
+  "rect_mm": [
+   2.61,
+   1.15
+  ],
+  "side": "top"
+ },
+ "D255": {
+  "centre_offset_mm": 0.063,
+  "kicad_angle": 180.0,
+  "long_axis_vs_land_deg_mod180": -0.4,
+  "rect_edges_vs_land_deg_mod90": 0.0,
+  "rect_mm": [
+   2.81,
+   1.08
+  ],
+  "side": "bottom"
+ },
+ "D256": {
+  "centre_offset_mm": 0.042,
+  "kicad_angle": -143.0,
+  "long_axis_vs_land_deg_mod180": -0.5,
+  "rect_edges_vs_land_deg_mod90": 0.1,
+  "rect_mm": [
+   2.72,
+   1.16
+  ],
+  "side": "bottom"
+ },
+ "D257": {
+  "centre_offset_mm": 0.087,
+  "kicad_angle": 0.0,
+  "long_axis_vs_land_deg_mod180": 0.9,
+  "rect_edges_vs_land_deg_mod90": 0.0,
+  "rect_mm": [
+   2.3,
+   1.13
+  ],
+  "side": "top"
+ },
+ "D258": {
+  "centre_offset_mm": 0.107,
+  "kicad_angle": 37.0,
+  "long_axis_vs_land_deg_mod180": 2.6,
+  "rect_edges_vs_land_deg_mod90": 0.1,
+  "rect_mm": [
+   2.64,
+   1.16
+  ],
+  "side": "top"
+ },
+ "D259": {
+  "centre_offset_mm": 0.092,
+  "kicad_angle": 180.0,
+  "long_axis_vs_land_deg_mod180": -0.8,
+  "rect_edges_vs_land_deg_mod90": 0.0,
+  "rect_mm": [
+   2.72,
+   1.08
+  ],
+  "side": "bottom"
+ },
+ "D26": {
+  "centre_offset_mm": 0.079,
+  "kicad_angle": 37.0,
+  "long_axis_vs_land_deg_mod180": -0.5,
+  "rect_edges_vs_land_deg_mod90": 0.1,
+  "rect_mm": [
+   2.54,
+   1.16
+  ],
+  "side": "top"
+ },
+ "D260": {
+  "centre_offset_mm": 0.092,
+  "kicad_angle": -143.0,
+  "long_axis_vs_land_deg_mod180": -1.0,
+  "rect_edges_vs_land_deg_mod90": 0.1,
+  "rect_mm": [
+   2.64,
+   1.17
+  ],
+  "side": "bottom"
+ },
+ "D261": {
+  "centre_offset_mm": 0.078,
+  "kicad_angle": 0.0,
+  "long_axis_vs_land_deg_mod180": -1.3,
+  "rect_edges_vs_land_deg_mod90": 0.0,
+  "rect_mm": [
+   1.64,
+   1.13
+  ],
+  "side": "top"
+ },
+ "D262": {
+  "centre_offset_mm": 0.06,
+  "kicad_angle": 37.0,
+  "long_axis_vs_land_deg_mod180": 1.8,
+  "rect_edges_vs_land_deg_mod90": 0.1,
+  "rect_mm": [
+   2.18,
+   1.18
+  ],
+  "side": "top"
+ },
+ "D263": {
+  "centre_offset_mm": 0.018,
+  "kicad_angle": 180.0,
+  "long_axis_vs_land_deg_mod180": 2.2,
+  "rect_edges_vs_land_deg_mod90": 0.0,
+  "rect_mm": [
+   1.59,
+   1.22
+  ],
+  "side": "bottom"
+ },
+ "D264": {
+  "centre_offset_mm": 0.046,
+  "kicad_angle": -143.0,
+  "long_axis_vs_land_deg_mod180": 0.3,
+  "rect_edges_vs_land_deg_mod90": 0.1,
+  "rect_mm": [
+   1.65,
+   1.19
+  ],
+  "side": "bottom"
+ },
+ "D265": {
+  "centre_offset_mm": 0.077,
+  "kicad_angle": 0.0,
+  "long_axis_vs_land_deg_mod180": 2.8,
+  "rect_edges_vs_land_deg_mod90": 0.0,
+  "rect_mm": [
+   1.64,
+   1.13
+  ],
+  "side": "top"
+ },
+ "D266": {
+  "centre_offset_mm": 0.06,
+  "kicad_angle": 37.0,
+  "long_axis_vs_land_deg_mod180": -0.3,
+  "rect_edges_vs_land_deg_mod90": 0.1,
+  "rect_mm": [
+   2.24,
+   1.2
+  ],
+  "side": "top"
+ },
+ "D267": {
+  "centre_offset_mm": 0.033,
+  "kicad_angle": 180.0,
+  "long_axis_vs_land_deg_mod180": 6.7,
+  "rect_edges_vs_land_deg_mod90": 1.8,
+  "rect_mm": [
+   1.67,
+   1.22
+  ],
+  "side": "bottom"
+ },
+ "D268": {
+  "centre_offset_mm": 0.051,
+  "kicad_angle": -143.0,
+  "long_axis_vs_land_deg_mod180": -5.3,
+  "rect_edges_vs_land_deg_mod90": 0.7,
+  "rect_mm": [
+   1.64,
+   1.19
+  ],
+  "side": "bottom"
+ },
+ "D269": {
+  "centre_offset_mm": 0.072,
+  "kicad_angle": 0.0,
+  "long_axis_vs_land_deg_mod180": 0.2,
+  "rect_edges_vs_land_deg_mod90": 0.0,
+  "rect_mm": [
+   2.25,
+   1.13
+  ],
+  "side": "top"
+ },
+ "D27": {
+  "centre_offset_mm": 0.082,
+  "kicad_angle": 180.0,
+  "long_axis_vs_land_deg_mod180": 0.4,
+  "rect_edges_vs_land_deg_mod90": 0.0,
+  "rect_mm": [
+   2.53,
+   1.13
+  ],
+  "side": "bottom"
+ },
+ "D270": {
+  "centre_offset_mm": 0.053,
+  "kicad_angle": 37.0,
+  "long_axis_vs_land_deg_mod180": -2.2,
+  "rect_edges_vs_land_deg_mod90": 0.6,
+  "rect_mm": [
+   1.93,
+   1.2
+  ],
+  "side": "top"
+ },
+ "D271": {
+  "centre_offset_mm": 0.019,
+  "kicad_angle": 180.0,
+  "long_axis_vs_land_deg_mod180": 4.6,
+  "rect_edges_vs_land_deg_mod90": 0.0,
+  "rect_mm": [
+   1.59,
+   1.22
+  ],
+  "side": "bottom"
+ },
+ "D272": {
+  "centre_offset_mm": 0.058,
+  "kicad_angle": -143.0,
+  "long_axis_vs_land_deg_mod180": -3.8,
+  "rect_edges_vs_land_deg_mod90": -0.3,
+  "rect_mm": [
+   1.66,
+   1.2
+  ],
+  "side": "bottom"
+ },
+ "D273": {
+  "centre_offset_mm": 0.068,
+  "kicad_angle": 0.0,
+  "long_axis_vs_land_deg_mod180": -1.9,
+  "rect_edges_vs_land_deg_mod90": 0.0,
+  "rect_mm": [
+   1.64,
+   1.13
+  ],
+  "side": "top"
+ },
+ "D274": {
+  "centre_offset_mm": 0.051,
+  "kicad_angle": 37.0,
+  "long_axis_vs_land_deg_mod180": -2.6,
+  "rect_edges_vs_land_deg_mod90": -1.1,
+  "rect_mm": [
+   2.41,
+   1.21
+  ],
+  "side": "top"
+ },
+ "D275": {
+  "centre_offset_mm": 0.04,
+  "kicad_angle": 180.0,
+  "long_axis_vs_land_deg_mod180": 5.8,
+  "rect_edges_vs_land_deg_mod90": -2.1,
+  "rect_mm": [
+   1.53,
+   1.23
+  ],
+  "side": "bottom"
+ },
+ "D276": {
+  "centre_offset_mm": 0.055,
+  "kicad_angle": -143.0,
+  "long_axis_vs_land_deg_mod180": 1.8,
+  "rect_edges_vs_land_deg_mod90": 1.4,
+  "rect_mm": [
+   1.67,
+   1.2
+  ],
+  "side": "bottom"
+ },
+ "D277": {
+  "centre_offset_mm": 0.077,
+  "kicad_angle": 0.0,
+  "long_axis_vs_land_deg_mod180": 5.1,
+  "rect_edges_vs_land_deg_mod90": 0.0,
+  "rect_mm": [
+   2.3,
+   1.13
+  ],
+  "side": "top"
+ },
+ "D278": {
+  "centre_offset_mm": 0.048,
+  "kicad_angle": 37.0,
+  "long_axis_vs_land_deg_mod180": -3.2,
+  "rect_edges_vs_land_deg_mod90": -0.6,
+  "rect_mm": [
+   2.34,
+   1.2
+  ],
+  "side": "top"
+ },
+ "D279": {
+  "centre_offset_mm": 0.041,
+  "kicad_angle": 180.0,
+  "long_axis_vs_land_deg_mod180": 1.9,
+  "rect_edges_vs_land_deg_mod90": 2.0,
+  "rect_mm": [
+   1.67,
+   1.23
+  ],
+  "side": "bottom"
+ },
+ "D28": {
+  "centre_offset_mm": 0.036,
+  "kicad_angle": -143.0,
+  "long_axis_vs_land_deg_mod180": 0.0,
+  "rect_edges_vs_land_deg_mod90": 1.8,
+  "rect_mm": [
+   2.43,
+   1.17
+  ],
+  "side": "bottom"
+ },
+ "D280": {
+  "centre_offset_mm": 0.054,
+  "kicad_angle": -143.0,
+  "long_axis_vs_land_deg_mod180": -0.3,
+  "rect_edges_vs_land_deg_mod90": 0.5,
+  "rect_mm": [
+   1.64,
+   1.2
+  ],
+  "side": "bottom"
+ },
+ "D281": {
+  "centre_offset_mm": 0.058,
+  "kicad_angle": 0.0,
+  "long_axis_vs_land_deg_mod180": 0.5,
+  "rect_edges_vs_land_deg_mod90": 0.0,
+  "rect_mm": [
+   1.64,
+   1.13
+  ],
+  "side": "top"
+ },
+ "D282": {
+  "centre_offset_mm": 0.044,
+  "kicad_angle": 37.0,
+  "long_axis_vs_land_deg_mod180": 1.1,
+  "rect_edges_vs_land_deg_mod90": -0.4,
+  "rect_mm": [
+   2.01,
+   1.2
+  ],
+  "side": "top"
+ },
+ "D283": {
+  "centre_offset_mm": 0.008,
+  "kicad_angle": 180.0,
+  "long_axis_vs_land_deg_mod180": 3.2,
+  "rect_edges_vs_land_deg_mod90": 0.0,
+  "rect_mm": [
+   1.64,
+   1.17
+  ],
+  "side": "bottom"
+ },
+ "D284": {
+  "centre_offset_mm": 0.051,
+  "kicad_angle": -143.0,
+  "long_axis_vs_land_deg_mod180": -0.6,
+  "rect_edges_vs_land_deg_mod90": -1.7,
+  "rect_mm": [
+   1.66,
+   1.19
+  ],
+  "side": "bottom"
+ },
+ "D29": {
+  "centre_offset_mm": 0.028,
+  "kicad_angle": 0.0,
+  "long_axis_vs_land_deg_mod180": 0.1,
+  "rect_edges_vs_land_deg_mod90": 0.0,
+  "rect_mm": [
+   2.39,
+   1.13
+  ],
+  "side": "top"
+ },
+ "D3": {
+  "centre_offset_mm": 0.124,
+  "kicad_angle": 180.0,
+  "long_axis_vs_land_deg_mod180": -0.6,
+  "rect_edges_vs_land_deg_mod90": 0.0,
+  "rect_mm": [
+   2.2,
+   1.13
+  ],
+  "side": "bottom"
+ },
+ "D30": {
+  "centre_offset_mm": 0.073,
+  "kicad_angle": 37.0,
+  "long_axis_vs_land_deg_mod180": 0.4,
+  "rect_edges_vs_land_deg_mod90": 0.1,
+  "rect_mm": [
+   2.24,
+   1.14
+  ],
+  "side": "top"
+ },
+ "D31": {
+  "centre_offset_mm": 0.079,
+  "kicad_angle": 180.0,
+  "long_axis_vs_land_deg_mod180": -0.9,
+  "rect_edges_vs_land_deg_mod90": 0.0,
+  "rect_mm": [
+   2.53,
+   1.08
+  ],
+  "side": "bottom"
+ },
+ "D32": {
+  "centre_offset_mm": 0.034,
+  "kicad_angle": -143.0,
+  "long_axis_vs_land_deg_mod180": -0.4,
+  "rect_edges_vs_land_deg_mod90": -0.6,
+  "rect_mm": [
+   2.64,
+   1.15
+  ],
+  "side": "bottom"
+ },
+ "D33": {
+  "centre_offset_mm": 0.051,
+  "kicad_angle": 0.0,
+  "long_axis_vs_land_deg_mod180": -0.0,
+  "rect_edges_vs_land_deg_mod90": 2.4,
+  "rect_mm": [
+   2.57,
+   1.18
+  ],
+  "side": "top"
+ },
+ "D34": {
+  "centre_offset_mm": 0.077,
+  "kicad_angle": 37.0,
+  "long_axis_vs_land_deg_mod180": -0.3,
+  "rect_edges_vs_land_deg_mod90": -0.3,
+  "rect_mm": [
+   2.48,
+   1.16
+  ],
+  "side": "top"
+ },
+ "D35": {
+  "centre_offset_mm": 0.076,
+  "kicad_angle": 180.0,
+  "long_axis_vs_land_deg_mod180": 0.7,
+  "rect_edges_vs_land_deg_mod90": 0.0,
+  "rect_mm": [
+   2.53,
+   1.13
+  ],
+  "side": "bottom"
+ },
+ "D36": {
+  "centre_offset_mm": 0.036,
+  "kicad_angle": -143.0,
+  "long_axis_vs_land_deg_mod180": 2.1,
+  "rect_edges_vs_land_deg_mod90": 0.1,
+  "rect_mm": [
+   2.56,
+   1.17
+  ],
+  "side": "bottom"
+ },
+ "D37": {
+  "centre_offset_mm": 0.055,
+  "kicad_angle": 0.0,
+  "long_axis_vs_land_deg_mod180": 2.0,
+  "rect_edges_vs_land_deg_mod90": 1.6,
+  "rect_mm": [
+   1.92,
+   1.22
+  ],
+  "side": "top"
+ },
+ "D38": {
+  "centre_offset_mm": 0.078,
+  "kicad_angle": 37.0,
+  "long_axis_vs_land_deg_mod180": 0.0,
+  "rect_edges_vs_land_deg_mod90": -0.9,
+  "rect_mm": [
+   2.07,
+   1.2
+  ],
+  "side": "top"
+ },
+ "D39": {
+  "centre_offset_mm": 0.07,
+  "kicad_angle": 180.0,
+  "long_axis_vs_land_deg_mod180": -1.7,
+  "rect_edges_vs_land_deg_mod90": -1.5,
+  "rect_mm": [
+   2.24,
+   1.21
+  ],
+  "side": "bottom"
+ },
+ "D4": {
+  "centre_offset_mm": 0.072,
+  "kicad_angle": -143.0,
+  "long_axis_vs_land_deg_mod180": -3.9,
+  "rect_edges_vs_land_deg_mod90": -1.2,
+  "rect_mm": [
+   1.93,
+   1.22
+  ],
+  "side": "bottom"
+ },
+ "D40": {
+  "centre_offset_mm": 0.056,
+  "kicad_angle": -143.0,
+  "long_axis_vs_land_deg_mod180": 0.9,
+  "rect_edges_vs_land_deg_mod90": 0.1,
+  "rect_mm": [
+   1.92,
+   1.21
+  ],
+  "side": "bottom"
+ },
+ "D41": {
+  "centre_offset_mm": 0.059,
+  "kicad_angle": 0.0,
+  "long_axis_vs_land_deg_mod180": -0.5,
+  "rect_edges_vs_land_deg_mod90": 0.0,
+  "rect_mm": [
+   2.53,
+   1.13
+  ],
+  "side": "top"
+ },
+ "D42": {
+  "centre_offset_mm": 0.072,
+  "kicad_angle": 37.0,
+  "long_axis_vs_land_deg_mod180": 0.3,
+  "rect_edges_vs_land_deg_mod90": -0.4,
+  "rect_mm": [
+   2.61,
+   1.16
+  ],
+  "side": "top"
+ },
+ "D43": {
+  "centre_offset_mm": 0.074,
+  "kicad_angle": 180.0,
+  "long_axis_vs_land_deg_mod180": -0.3,
+  "rect_edges_vs_land_deg_mod90": 0.0,
+  "rect_mm": [
+   2.02,
+   1.13
+  ],
+  "side": "bottom"
+ },
+ "D44": {
+  "centre_offset_mm": 0.032,
+  "kicad_angle": -143.0,
+  "long_axis_vs_land_deg_mod180": 1.1,
+  "rect_edges_vs_land_deg_mod90": 1.0,
+  "rect_mm": [
+   2.55,
+   1.15
+  ],
+  "side": "bottom"
+ },
+ "D45": {
+  "centre_offset_mm": 0.062,
+  "kicad_angle": 0.0,
+  "long_axis_vs_land_deg_mod180": 0.3,
+  "rect_edges_vs_land_deg_mod90": -0.1,
+  "rect_mm": [
+   1.69,
+   1.13
+  ],
+  "side": "top"
+ },
+ "D46": {
+  "centre_offset_mm": 0.082,
+  "kicad_angle": 37.0,
+  "long_axis_vs_land_deg_mod180": 0.4,
+  "rect_edges_vs_land_deg_mod90": -1.3,
+  "rect_mm": [
+   2.64,
+   1.16
+  ],
+  "side": "top"
+ },
+ "D47": {
+  "centre_offset_mm": 0.08,
+  "kicad_angle": 180.0,
+  "long_axis_vs_land_deg_mod180": 0.4,
+  "rect_edges_vs_land_deg_mod90": 0.0,
+  "rect_mm": [
+   2.53,
+   1.13
+  ],
+  "side": "bottom"
+ },
+ "D48": {
+  "centre_offset_mm": 0.028,
+  "kicad_angle": -143.0,
+  "long_axis_vs_land_deg_mod180": -0.5,
+  "rect_edges_vs_land_deg_mod90": -0.9,
+  "rect_mm": [
+   2.44,
+   1.17
+  ],
+  "side": "bottom"
+ },
+ "D49": {
+  "centre_offset_mm": 0.032,
+  "kicad_angle": 0.0,
+  "long_axis_vs_land_deg_mod180": -0.4,
+  "rect_edges_vs_land_deg_mod90": 1.8,
+  "rect_mm": [
+   2.52,
+   1.17
+  ],
+  "side": "top"
+ },
+ "D5": {
+  "centre_offset_mm": 0.059,
+  "kicad_angle": 0.0,
+  "long_axis_vs_land_deg_mod180": -0.4,
+  "rect_edges_vs_land_deg_mod90": -2.1,
+  "rect_mm": [
+   1.95,
+   1.18
+  ],
+  "side": "top"
+ },
+ "D50": {
+  "centre_offset_mm": 0.072,
+  "kicad_angle": 37.0,
+  "long_axis_vs_land_deg_mod180": 1.2,
+  "rect_edges_vs_land_deg_mod90": 0.5,
+  "rect_mm": [
+   2.66,
+   1.16
+  ],
+  "side": "top"
+ },
+ "D51": {
+  "centre_offset_mm": 0.08,
+  "kicad_angle": 180.0,
+  "long_axis_vs_land_deg_mod180": 0.6,
+  "rect_edges_vs_land_deg_mod90": 0.0,
+  "rect_mm": [
+   2.63,
+   1.08
+  ],
+  "side": "bottom"
+ },
+ "D52": {
+  "centre_offset_mm": 0.05,
+  "kicad_angle": -143.0,
+  "long_axis_vs_land_deg_mod180": -1.6,
+  "rect_edges_vs_land_deg_mod90": -0.9,
+  "rect_mm": [
+   2.87,
+   1.17
+  ],
+  "side": "bottom"
+ },
+ "D53": {
+  "centre_offset_mm": 0.037,
+  "kicad_angle": 0.0,
+  "long_axis_vs_land_deg_mod180": -0.2,
+  "rect_edges_vs_land_deg_mod90": 0.0,
+  "rect_mm": [
+   2.53,
+   1.13
+  ],
+  "side": "top"
+ },
+ "D54": {
+  "centre_offset_mm": 0.073,
+  "kicad_angle": 37.0,
+  "long_axis_vs_land_deg_mod180": -0.7,
+  "rect_edges_vs_land_deg_mod90": 1.4,
+  "rect_mm": [
+   2.46,
+   1.17
+  ],
+  "side": "top"
+ },
+ "D55": {
+  "centre_offset_mm": 0.071,
+  "kicad_angle": 180.0,
+  "long_axis_vs_land_deg_mod180": 0.4,
+  "rect_edges_vs_land_deg_mod90": 0.0,
+  "rect_mm": [
+   2.63,
+   1.08
+  ],
+  "side": "bottom"
+ },
+ "D56": {
+  "centre_offset_mm": 0.038,
+  "kicad_angle": -143.0,
+  "long_axis_vs_land_deg_mod180": 0.5,
+  "rect_edges_vs_land_deg_mod90": -0.9,
+  "rect_mm": [
+   2.69,
+   1.16
+  ],
+  "side": "bottom"
+ },
+ "D57": {
+  "centre_offset_mm": 0.034,
+  "kicad_angle": 0.0,
+  "long_axis_vs_land_deg_mod180": -0.0,
+  "rect_edges_vs_land_deg_mod90": 0.0,
+  "rect_mm": [
+   2.63,
+   1.13
+  ],
+  "side": "top"
+ },
+ "D58": {
+  "centre_offset_mm": 0.071,
+  "kicad_angle": 37.0,
+  "long_axis_vs_land_deg_mod180": 1.0,
+  "rect_edges_vs_land_deg_mod90": 0.1,
+  "rect_mm": [
+   2.84,
+   1.15
+  ],
+  "side": "top"
+ },
+ "D59": {
+  "centre_offset_mm": 0.078,
+  "kicad_angle": 180.0,
+  "long_axis_vs_land_deg_mod180": 0.1,
+  "rect_edges_vs_land_deg_mod90": 0.0,
+  "rect_mm": [
+   2.77,
+   1.08
+  ],
+  "side": "bottom"
+ },
+ "D6": {
+  "centre_offset_mm": 0.08,
+  "kicad_angle": 37.0,
+  "long_axis_vs_land_deg_mod180": 2.1,
+  "rect_edges_vs_land_deg_mod90": -0.6,
+  "rect_mm": [
+   2.1,
+   1.21
+  ],
+  "side": "top"
+ },
+ "D60": {
+  "centre_offset_mm": 0.043,
+  "kicad_angle": -143.0,
+  "long_axis_vs_land_deg_mod180": 0.3,
+  "rect_edges_vs_land_deg_mod90": 1.4,
+  "rect_mm": [
+   2.03,
+   1.17
+  ],
+  "side": "bottom"
+ },
+ "D61": {
+  "centre_offset_mm": 0.037,
+  "kicad_angle": 0.0,
+  "long_axis_vs_land_deg_mod180": -0.5,
+  "rect_edges_vs_land_deg_mod90": 0.0,
+  "rect_mm": [
+   2.3,
+   1.13
+  ],
+  "side": "top"
+ },
+ "D62": {
+  "centre_offset_mm": 0.08,
+  "kicad_angle": 37.0,
+  "long_axis_vs_land_deg_mod180": 0.4,
+  "rect_edges_vs_land_deg_mod90": 0.1,
+  "rect_mm": [
+   2.34,
+   1.15
+  ],
+  "side": "top"
+ },
+ "D63": {
+  "centre_offset_mm": 0.076,
+  "kicad_angle": 180.0,
+  "long_axis_vs_land_deg_mod180": 1.8,
+  "rect_edges_vs_land_deg_mod90": 0.0,
+  "rect_mm": [
+   2.77,
+   1.08
+  ],
+  "side": "bottom"
+ },
+ "D64": {
+  "centre_offset_mm": 0.027,
+  "kicad_angle": -143.0,
+  "long_axis_vs_land_deg_mod180": -0.4,
+  "rect_edges_vs_land_deg_mod90": -0.4,
+  "rect_mm": [
+   2.69,
+   1.15
+  ],
+  "side": "bottom"
+ },
+ "D65": {
+  "centre_offset_mm": 0.06,
+  "kicad_angle": 0.0,
+  "long_axis_vs_land_deg_mod180": 1.7,
+  "rect_edges_vs_land_deg_mod90": 0.0,
+  "rect_mm": [
+   2.95,
+   1.13
+  ],
+  "side": "top"
+ },
+ "D66": {
+  "centre_offset_mm": 0.064,
+  "kicad_angle": 37.0,
+  "long_axis_vs_land_deg_mod180": 0.1,
+  "rect_edges_vs_land_deg_mod90": -0.3,
+  "rect_mm": [
+   2.94,
+   1.17
+  ],
+  "side": "top"
+ },
+ "D67": {
+  "centre_offset_mm": 0.084,
+  "kicad_angle": 180.0,
+  "long_axis_vs_land_deg_mod180": -0.0,
+  "rect_edges_vs_land_deg_mod90": 0.0,
+  "rect_mm": [
+   2.91,
+   1.13
+  ],
+  "side": "bottom"
+ },
+ "D68": {
+  "centre_offset_mm": 0.048,
+  "kicad_angle": -143.0,
+  "long_axis_vs_land_deg_mod180": 0.3,
+  "rect_edges_vs_land_deg_mod90": 0.1,
+  "rect_mm": [
+   2.75,
+   1.16
+  ],
+  "side": "bottom"
+ },
+ "D69": {
+  "centre_offset_mm": 0.039,
+  "kicad_angle": 0.0,
+  "long_axis_vs_land_deg_mod180": 0.3,
+  "rect_edges_vs_land_deg_mod90": 0.0,
+  "rect_mm": [
+   2.39,
+   1.13
+  ],
+  "side": "top"
+ },
+ "D7": {
+  "centre_offset_mm": 0.06,
+  "kicad_angle": 180.0,
+  "long_axis_vs_land_deg_mod180": -1.1,
+  "rect_edges_vs_land_deg_mod90": 0.0,
+  "rect_mm": [
+   1.73,
+   1.17
+  ],
+  "side": "bottom"
+ },
+ "D70": {
+  "centre_offset_mm": 0.07,
+  "kicad_angle": 37.0,
+  "long_axis_vs_land_deg_mod180": -0.3,
+  "rect_edges_vs_land_deg_mod90": 0.4,
+  "rect_mm": [
+   2.34,
+   1.15
+  ],
+  "side": "top"
+ },
+ "D71": {
+  "centre_offset_mm": 0.073,
+  "kicad_angle": 180.0,
+  "long_axis_vs_land_deg_mod180": -1.5,
+  "rect_edges_vs_land_deg_mod90": 0.0,
+  "rect_mm": [
+   2.81,
+   1.08
+  ],
+  "side": "bottom"
+ },
+ "D72": {
+  "centre_offset_mm": 0.029,
+  "kicad_angle": -143.0,
+  "long_axis_vs_land_deg_mod180": 0.5,
+  "rect_edges_vs_land_deg_mod90": 0.5,
+  "rect_mm": [
+   2.57,
+   1.15
+  ],
+  "side": "bottom"
+ },
+ "D73": {
+  "centre_offset_mm": 0.089,
+  "kicad_angle": 0.0,
+  "long_axis_vs_land_deg_mod180": -1.6,
+  "rect_edges_vs_land_deg_mod90": 0.0,
+  "rect_mm": [
+   1.64,
+   1.13
+  ],
+  "side": "top"
+ },
+ "D74": {
+  "centre_offset_mm": 0.063,
+  "kicad_angle": 37.0,
+  "long_axis_vs_land_deg_mod180": 0.9,
+  "rect_edges_vs_land_deg_mod90": 0.5,
+  "rect_mm": [
+   2.34,
+   1.2
+  ],
+  "side": "top"
+ },
+ "D75": {
+  "centre_offset_mm": 0.017,
+  "kicad_angle": 180.0,
+  "long_axis_vs_land_deg_mod180": 1.3,
+  "rect_edges_vs_land_deg_mod90": 1.9,
+  "rect_mm": [
+   1.83,
+   1.17
+  ],
+  "side": "bottom"
+ },
+ "D76": {
+  "centre_offset_mm": 0.06,
+  "kicad_angle": -143.0,
+  "long_axis_vs_land_deg_mod180": 2.0,
+  "rect_edges_vs_land_deg_mod90": 0.1,
+  "rect_mm": [
+   1.65,
+   1.18
+  ],
+  "side": "bottom"
+ },
+ "D77": {
+  "centre_offset_mm": 0.057,
+  "kicad_angle": 0.0,
+  "long_axis_vs_land_deg_mod180": -0.3,
+  "rect_edges_vs_land_deg_mod90": 1.8,
+  "rect_mm": [
+   2.71,
+   1.17
+  ],
+  "side": "top"
+ },
+ "D78": {
+  "centre_offset_mm": 0.088,
+  "kicad_angle": 37.0,
+  "long_axis_vs_land_deg_mod180": -0.1,
+  "rect_edges_vs_land_deg_mod90": -0.6,
+  "rect_mm": [
+   2.77,
+   1.15
+  ],
+  "side": "top"
+ },
+ "D79": {
+  "centre_offset_mm": 0.062,
+  "kicad_angle": 180.0,
+  "long_axis_vs_land_deg_mod180": 0.8,
+  "rect_edges_vs_land_deg_mod90": 0.0,
+  "rect_mm": [
+   1.83,
+   1.08
+  ],
+  "side": "bottom"
+ },
+ "D8": {
+  "centre_offset_mm": 0.041,
+  "kicad_angle": -143.0,
+  "long_axis_vs_land_deg_mod180": -0.9,
+  "rect_edges_vs_land_deg_mod90": 0.1,
+  "rect_mm": [
+   1.77,
+   1.2
+  ],
+  "side": "bottom"
+ },
+ "D80": {
+  "centre_offset_mm": 0.037,
+  "kicad_angle": -143.0,
+  "long_axis_vs_land_deg_mod180": 1.0,
+  "rect_edges_vs_land_deg_mod90": -0.6,
+  "rect_mm": [
+   2.58,
+   1.18
+  ],
+  "side": "bottom"
+ },
+ "D81": {
+  "centre_offset_mm": 0.042,
+  "kicad_angle": 0.0,
+  "long_axis_vs_land_deg_mod180": -0.6,
+  "rect_edges_vs_land_deg_mod90": 0.0,
+  "rect_mm": [
+   1.83,
+   1.13
+  ],
+  "side": "top"
+ },
+ "D82": {
+  "centre_offset_mm": 0.06,
+  "kicad_angle": 37.0,
+  "long_axis_vs_land_deg_mod180": -0.9,
+  "rect_edges_vs_land_deg_mod90": -0.9,
+  "rect_mm": [
+   2.39,
+   1.14
+  ],
+  "side": "top"
+ },
+ "D83": {
+  "centre_offset_mm": 0.068,
+  "kicad_angle": 180.0,
+  "long_axis_vs_land_deg_mod180": -1.2,
+  "rect_edges_vs_land_deg_mod90": 0.0,
+  "rect_mm": [
+   2.25,
+   1.08
+  ],
+  "side": "bottom"
+ },
+ "D84": {
+  "centre_offset_mm": 0.023,
+  "kicad_angle": -143.0,
+  "long_axis_vs_land_deg_mod180": -0.6,
+  "rect_edges_vs_land_deg_mod90": -0.4,
+  "rect_mm": [
+   2.67,
+   1.15
+  ],
+  "side": "bottom"
+ },
+ "D85": {
+  "centre_offset_mm": 0.042,
+  "kicad_angle": 0.0,
+  "long_axis_vs_land_deg_mod180": 1.1,
+  "rect_edges_vs_land_deg_mod90": 0.0,
+  "rect_mm": [
+   1.69,
+   1.17
+  ],
+  "side": "top"
+ },
+ "D86": {
+  "centre_offset_mm": 0.078,
+  "kicad_angle": 37.0,
+  "long_axis_vs_land_deg_mod180": 0.2,
+  "rect_edges_vs_land_deg_mod90": -0.6,
+  "rect_mm": [
+   2.27,
+   1.22
+  ],
+  "side": "top"
+ },
+ "D87": {
+  "centre_offset_mm": 0.132,
+  "kicad_angle": 180.0,
+  "long_axis_vs_land_deg_mod180": 1.5,
+  "rect_edges_vs_land_deg_mod90": 0.0,
+  "rect_mm": [
+   1.92,
+   1.17
+  ],
+  "side": "bottom"
+ },
+ "D88": {
+  "centre_offset_mm": 0.072,
+  "kicad_angle": -143.0,
+  "long_axis_vs_land_deg_mod180": -0.6,
+  "rect_edges_vs_land_deg_mod90": 0.5,
+  "rect_mm": [
+   1.93,
+   1.19
+  ],
+  "side": "bottom"
+ },
+ "D89": {
+  "centre_offset_mm": 0.075,
+  "kicad_angle": 0.0,
+  "long_axis_vs_land_deg_mod180": 0.7,
+  "rect_edges_vs_land_deg_mod90": 0.0,
+  "rect_mm": [
+   2.53,
+   1.13
+  ],
+  "side": "top"
+ },
+ "D9": {
+  "centre_offset_mm": 0.076,
+  "kicad_angle": 0.0,
+  "long_axis_vs_land_deg_mod180": 0.6,
+  "rect_edges_vs_land_deg_mod90": 0.0,
+  "rect_mm": [
+   2.39,
+   1.13
+  ],
+  "side": "top"
+ },
+ "D90": {
+  "centre_offset_mm": 0.087,
+  "kicad_angle": 37.0,
+  "long_axis_vs_land_deg_mod180": -0.5,
+  "rect_edges_vs_land_deg_mod90": -1.4,
+  "rect_mm": [
+   2.24,
+   1.16
+  ],
+  "side": "top"
+ },
+ "D91": {
+  "centre_offset_mm": 0.074,
+  "kicad_angle": 180.0,
+  "long_axis_vs_land_deg_mod180": 0.9,
+  "rect_edges_vs_land_deg_mod90": 0.0,
+  "rect_mm": [
+   2.67,
+   1.13
+  ],
+  "side": "bottom"
+ },
+ "D92": {
+  "centre_offset_mm": 0.037,
+  "kicad_angle": -143.0,
+  "long_axis_vs_land_deg_mod180": 1.3,
+  "rect_edges_vs_land_deg_mod90": 0.1,
+  "rect_mm": [
+   2.61,
+   1.17
+  ],
+  "side": "bottom"
+ },
+ "D93": {
+  "centre_offset_mm": 0.075,
+  "kicad_angle": 0.0,
+  "long_axis_vs_land_deg_mod180": 0.7,
+  "rect_edges_vs_land_deg_mod90": 0.0,
+  "rect_mm": [
+   2.39,
+   1.13
+  ],
+  "side": "top"
+ },
+ "D94": {
+  "centre_offset_mm": 0.076,
+  "kicad_angle": 37.0,
+  "long_axis_vs_land_deg_mod180": 0.5,
+  "rect_edges_vs_land_deg_mod90": 0.1,
+  "rect_mm": [
+   2.79,
+   1.15
+  ],
+  "side": "top"
+ },
+ "D95": {
+  "centre_offset_mm": 0.065,
+  "kicad_angle": 180.0,
+  "long_axis_vs_land_deg_mod180": -0.5,
+  "rect_edges_vs_land_deg_mod90": 0.0,
+  "rect_mm": [
+   2.49,
+   1.13
+  ],
+  "side": "bottom"
+ },
+ "D96": {
+  "centre_offset_mm": 0.045,
+  "kicad_angle": -143.0,
+  "long_axis_vs_land_deg_mod180": 0.2,
+  "rect_edges_vs_land_deg_mod90": 0.6,
+  "rect_mm": [
+   2.64,
+   1.16
+  ],
+  "side": "bottom"
+ },
+ "D97": {
+  "centre_offset_mm": 0.078,
+  "kicad_angle": 0.0,
+  "long_axis_vs_land_deg_mod180": 1.6,
+  "rect_edges_vs_land_deg_mod90": 0.0,
+  "rect_mm": [
+   2.53,
+   1.13
+  ],
+  "side": "top"
+ },
+ "D98": {
+  "centre_offset_mm": 0.083,
+  "kicad_angle": 37.0,
+  "long_axis_vs_land_deg_mod180": 0.2,
+  "rect_edges_vs_land_deg_mod90": 0.1,
+  "rect_mm": [
+   2.61,
+   1.15
+  ],
+  "side": "top"
+ },
+ "D99": {
+  "centre_offset_mm": 0.069,
+  "kicad_angle": 180.0,
+  "long_axis_vs_land_deg_mod180": -0.2,
+  "rect_edges_vs_land_deg_mod90": 0.0,
+  "rect_mm": [
+   2.58,
+   1.13
+  ],
+  "side": "bottom"
+ }
+}

@@ -1,0 +1,74 @@
+{
+ "Q1": {
+  "side": "top",
+  "status": "mark",
+  "detail": "pin 1 mark 10.0 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.42 mm from pad 1",
+  "attribution": 2
+ },
+ "Q2": {
+  "side": "top",
+  "status": "mark",
+  "detail": "pin 1 mark 10.5 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.44 mm from pad 1",
+  "attribution": 2
+ },
+ "Q3": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": "pin 1 mark 350.1 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.43 mm from pad 1",
+  "attribution": 2
+ },
+ "Q4": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": "pin 1 mark 350.2 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.43 mm from pad 1",
+  "attribution": 2
+ },
+ "Q5": {
+  "side": "top",
+  "status": "mark",
+  "detail": "pin 1 mark 10.3 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.44 mm from pad 1",
+  "attribution": 2
+ },
+ "Q6": {
+  "side": "top",
+  "status": "mark",
+  "detail": "pin 1 mark 10.5 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.45 mm from pad 1",
+  "attribution": 2
+ },
+ "Q7": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": "pin 1 mark 350.0 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.43 mm from pad 1",
+  "attribution": 2
+ },
+ "Q8": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": "pin 1 mark 350.4 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.43 mm from pad 1",
+  "attribution": 2
+ },
+ "Q9": {
+  "side": "top",
+  "status": "mark",
+  "detail": "pin 1 mark 10.5 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.45 mm from pad 1",
+  "attribution": 2
+ },
+ "Q10": {
+  "side": "top",
+  "status": "mark",
+  "detail": "pin 1 mark 10.5 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.45 mm from pad 1",
+  "attribution": 2
+ },
+ "Q11": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": "pin 1 mark 350.1 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.42 mm from pad 1",
+  "attribution": 2
+ },
+ "Q12": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": "pin 1 mark 350.5 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.42 mm from pad 1",
+  "attribution": 2
+ }
+}

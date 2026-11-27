@@ -71,6 +71,13 @@ def main():
         random.seed(0)
         res = sorted(random.sample(res, min(SAMPLE, len(res))))
     targets = sorted(set(caps + res))
+    # `--match=CC1210` narrows the probe to one size, so a change to one
+    # size's part-number rule can be re-checked without re-probing the space.
+    for arg in sys.argv[1:]:
+        if arg.startswith("--match="):
+            prefix = arg.split("=", 1)[1]
+            targets = [t for t in targets if t.startswith(prefix)]
+            print(f"restricted to part numbers starting {prefix}")
     print(f"probing {len(targets)} part numbers ({len(caps)} capacitors, {len(res)} resistors)")
 
     verdicts = {}

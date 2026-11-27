@@ -1,9 +1,10 @@
 [package]
 name = "mosfet"
-version = "0.1.0"
+version = "0.1.1"
 license = "MIT"
 description = "Discrete MOSFETs with verified land patterns."
 repository = "https://github.com/conol-ai/cohdl"
 
 [dependencies]
+sot = "0.1.2"
 std = "0.3.0"

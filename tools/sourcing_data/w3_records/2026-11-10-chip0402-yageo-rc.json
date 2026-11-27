@@ -24,8 +24,8 @@
  },
  "built_by": "tools/w3_record.py",
  "stock_source": {
-  "path": "tools/sourcing_data/lcsc_backfill/2026-11-26-merge-main/confirmed.json",
-  "sha256": "4829cece0d8d2db477067584071938ace3ab2e83dc6f348cf791156a9a77b3e4"
+  "path": "tools/sourcing_data/lcsc_backfill/2026-11-26-merge-sot23/confirmed.json",
+  "sha256": "59bf978d507423a2ce410443d39cba4ab9e54464b68002c898ad8ea3eeb5c622"
  },
  "groups": [
   {

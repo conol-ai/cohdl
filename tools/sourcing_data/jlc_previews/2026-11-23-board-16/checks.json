@@ -1,0 +1,698 @@
+{
+ "Q1": {
+  "side": "top",
+  "status": "mark",
+  "detail": "pin 1 mark 10.9 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.42 mm from pad 1",
+  "attribution": 2
+ },
+ "Q2": {
+  "side": "top",
+  "status": "mark",
+  "detail": "pin 1 mark 12.2 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.47 mm from pad 1",
+  "attribution": 2
+ },
+ "Q3": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": "pin 1 mark 348.4 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.45 mm from pad 1",
+  "attribution": 2
+ },
+ "Q4": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": "pin 1 mark 349.5 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.41 mm from pad 1",
+  "attribution": 2
+ },
+ "Q5": {
+  "side": "top",
+  "status": "mark",
+  "detail": "pin 1 mark 7.1 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.44 mm from pad 1",
+  "attribution": 2
+ },
+ "Q6": {
+  "side": "top",
+  "status": "mark",
+  "detail": "pin 1 mark 7.7 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.47 mm from pad 1",
+  "attribution": 2
+ },
+ "Q7": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": "pin 1 mark 352.6 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.47 mm from pad 1",
+  "attribution": 2
+ },
+ "Q8": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": "pin 1 mark 353.1 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.45 mm from pad 1",
+  "attribution": 2
+ },
+ "Q9": {
+  "side": "top",
+  "status": "mark",
+  "detail": "pin 1 mark 10.8 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.40 mm from pad 1",
+  "attribution": 2
+ },
+ "Q10": {
+  "side": "top",
+  "status": "mark",
+  "detail": "pin 1 mark 12.1 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.45 mm from pad 1",
+  "attribution": 2
+ },
+ "Q11": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": "pin 1 mark 348.3 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.46 mm from pad 1",
+  "attribution": 2
+ },
+ "Q12": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": "pin 1 mark 348.8 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.43 mm from pad 1",
+  "attribution": 2
+ },
+ "Q13": {
+  "side": "top",
+  "status": "mark",
+  "detail": "pin 1 mark 6.9 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.44 mm from pad 1",
+  "attribution": 2
+ },
+ "Q14": {
+  "side": "top",
+  "status": "mark",
+  "detail": "pin 1 mark 7.6 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.48 mm from pad 1",
+  "attribution": 2
+ },
+ "Q15": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": "pin 1 mark 352.7 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.47 mm from pad 1",
+  "attribution": 2
+ },
+ "Q16": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": "pin 1 mark 353.5 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.45 mm from pad 1",
+  "attribution": 2
+ },
+ "Q17": {
+  "side": "top",
+  "status": "mark",
+  "detail": "pin 1 mark 7.1 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.45 mm from pad 1",
+  "attribution": 2
+ },
+ "Q18": {
+  "side": "top",
+  "status": "mark",
+  "detail": "pin 1 mark 7.7 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.48 mm from pad 1",
+  "attribution": 2
+ },
+ "Q19": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": "pin 1 mark 352.9 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.46 mm from pad 1",
+  "attribution": 2
+ },
+ "Q20": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": "pin 1 mark 353.6 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.44 mm from pad 1",
+  "attribution": 2
+ },
+ "Q21": {
+  "side": "top",
+  "status": "mark",
+  "detail": "pin 1 mark 6.1 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.44 mm from pad 1",
+  "attribution": 2
+ },
+ "Q22": {
+  "side": "top",
+  "status": "mark",
+  "detail": "pin 1 mark 6.9 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.46 mm from pad 1",
+  "attribution": 2
+ },
+ "Q23": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": "pin 1 mark 353.6 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.48 mm from pad 1",
+  "attribution": 2
+ },
+ "Q24": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": "pin 1 mark 353.2 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.48 mm from pad 1",
+  "attribution": 2
+ },
+ "Q25": {
+  "side": "top",
+  "status": "mark",
+  "detail": "pin 1 mark 16.2 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.72 mm from pad 1",
+  "attribution": 2
+ },
+ "Q26": {
+  "side": "top",
+  "status": "mark",
+  "detail": "pin 1 mark 16.8 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.76 mm from pad 1",
+  "attribution": 2
+ },
+ "Q27": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": "pin 1 mark 343.5 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.76 mm from pad 1",
+  "attribution": 2
+ },
+ "Q28": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": "pin 1 mark 344.0 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.73 mm from pad 1",
+  "attribution": 2
+ },
+ "Q29": {
+  "side": "top",
+  "status": "mark",
+  "detail": "pin 1 mark 7.1 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.45 mm from pad 1",
+  "attribution": 2
+ },
+ "Q30": {
+  "side": "top",
+  "status": "mark",
+  "detail": "pin 1 mark 7.5 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.49 mm from pad 1",
+  "attribution": 2
+ },
+ "Q31": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": "pin 1 mark 353.2 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.44 mm from pad 1",
+  "attribution": 2
+ },
+ "Q32": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": "pin 1 mark 353.8 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.43 mm from pad 1",
+  "attribution": 2
+ },
+ "Q33": {
+  "side": "top",
+  "status": "mark",
+  "detail": "pin 1 mark 6.5 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.45 mm from pad 1",
+  "attribution": 2
+ },
+ "Q34": {
+  "side": "top",
+  "status": "mark",
+  "detail": "pin 1 mark 6.8 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.46 mm from pad 1",
+  "attribution": 2
+ },
+ "Q35": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": "pin 1 mark 353.4 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.48 mm from pad 1",
+  "attribution": 2
+ },
+ "Q36": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": "pin 1 mark 353.7 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.46 mm from pad 1",
+  "attribution": 2
+ },
+ "Q37": {
+  "side": "top",
+  "status": "manual review",
+  "detail": "drawn; pin 1 mark 279.4 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 2.00 mm from pad 1",
+  "attribution": 2
+ },
+ "Q38": {
+  "side": "top",
+  "status": "manual review",
+  "detail": "drawn; pin 1 mark 280.8 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 1.96 mm from pad 1",
+  "attribution": 2
+ },
+ "Q39": {
+  "side": "bottom",
+  "status": "manual review",
+  "detail": "drawn; pin 1 mark 81.1 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 2.02 mm from pad 1",
+  "attribution": 2
+ },
+ "Q40": {
+  "side": "bottom",
+  "status": "manual review",
+  "detail": "drawn; pin 1 mark 81.4 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 2.05 mm from pad 1",
+  "attribution": 2
+ },
+ "Q41": {
+  "side": "top",
+  "status": "mark",
+  "detail": "pin 1 mark 6.5 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.46 mm from pad 1",
+  "attribution": 2
+ },
+ "Q42": {
+  "side": "top",
+  "status": "mark",
+  "detail": "pin 1 mark 6.7 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.47 mm from pad 1",
+  "attribution": 2
+ },
+ "Q43": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": "pin 1 mark 353.4 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.47 mm from pad 1",
+  "attribution": 2
+ },
+ "Q44": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": "pin 1 mark 353.9 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.46 mm from pad 1",
+  "attribution": 2
+ },
+ "Q45": {
+  "side": "top",
+  "status": "mark",
+  "detail": "pin 1 mark 7.4 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.47 mm from pad 1",
+  "attribution": 2
+ },
+ "Q46": {
+  "side": "top",
+  "status": "mark",
+  "detail": "pin 1 mark 7.3 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.49 mm from pad 1",
+  "attribution": 2
+ },
+ "Q47": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": "pin 1 mark 353.2 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.44 mm from pad 1",
+  "attribution": 2
+ },
+ "Q48": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": "pin 1 mark 354.2 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.43 mm from pad 1",
+  "attribution": 2
+ },
+ "Q49": {
+  "side": "top",
+  "status": "mark",
+  "detail": "pin 1 mark 6.7 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.45 mm from pad 1",
+  "attribution": 2
+ },
+ "Q50": {
+  "side": "top",
+  "status": "mark",
+  "detail": "pin 1 mark 7.3 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.47 mm from pad 1",
+  "attribution": 2
+ },
+ "Q51": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": "pin 1 mark 353.2 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.46 mm from pad 1",
+  "attribution": 2
+ },
+ "Q52": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": "pin 1 mark 353.7 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.46 mm from pad 1",
+  "attribution": 2
+ },
+ "Q53": {
+  "side": "top",
+  "status": "mark",
+  "detail": "pin 1 mark 7.7 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.45 mm from pad 1",
+  "attribution": 2
+ },
+ "Q54": {
+  "side": "top",
+  "status": "mark",
+  "detail": "pin 1 mark 8.2 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.49 mm from pad 1",
+  "attribution": 2
+ },
+ "Q55": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": "pin 1 mark 353.0 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.45 mm from pad 1",
+  "attribution": 2
+ },
+ "Q56": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": "pin 1 mark 353.7 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.43 mm from pad 1",
+  "attribution": 2
+ },
+ "Q57": {
+  "side": "top",
+  "status": "mark",
+  "detail": "pin 1 mark 13.5 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.62 mm from pad 1",
+  "attribution": 2
+ },
+ "Q58": {
+  "side": "top",
+  "status": "mark",
+  "detail": "pin 1 mark 14.2 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.63 mm from pad 1",
+  "attribution": 2
+ },
+ "Q59": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": "pin 1 mark 346.0 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.66 mm from pad 1",
+  "attribution": 2
+ },
+ "Q60": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": "pin 1 mark 346.1 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.66 mm from pad 1",
+  "attribution": 2
+ },
+ "Q61": {
+  "side": "top",
+  "status": "mark",
+  "detail": "pin 1 mark 2.9 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.13 mm from pad 1",
+  "attribution": 2
+ },
+ "Q62": {
+  "side": "top",
+  "status": "mark",
+  "detail": "pin 1 mark 3.3 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.16 mm from pad 1",
+  "attribution": 2
+ },
+ "Q63": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": "pin 1 mark 357.7 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.12 mm from pad 1",
+  "attribution": 2
+ },
+ "Q64": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": "pin 1 mark 358.7 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.12 mm from pad 1",
+  "attribution": 2
+ },
+ "Q65": {
+  "side": "top",
+  "status": "mark",
+  "detail": "pin 1 mark 7.6 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.48 mm from pad 1",
+  "attribution": 2
+ },
+ "Q66": {
+  "side": "top",
+  "status": "mark",
+  "detail": "pin 1 mark 7.7 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.50 mm from pad 1",
+  "attribution": 2
+ },
+ "Q67": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": "pin 1 mark 353.2 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.43 mm from pad 1",
+  "attribution": 2
+ },
+ "Q68": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": "pin 1 mark 354.2 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.43 mm from pad 1",
+  "attribution": 2
+ },
+ "Q69": {
+  "side": "top",
+  "status": "mark",
+  "detail": "pin 1 mark 4.4 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.16 mm from pad 1",
+  "attribution": 2
+ },
+ "Q70": {
+  "side": "top",
+  "status": "mark",
+  "detail": "pin 1 mark 4.3 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.19 mm from pad 1",
+  "attribution": 2
+ },
+ "Q71": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": "pin 1 mark 357.1 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.11 mm from pad 1",
+  "attribution": 2
+ },
+ "Q72": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": "pin 1 mark 359.2 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.08 mm from pad 1",
+  "attribution": 2
+ },
+ "Q73": {
+  "side": "top",
+  "status": "mark",
+  "detail": "pin 1 mark 7.6 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.48 mm from pad 1",
+  "attribution": 2
+ },
+ "Q74": {
+  "side": "top",
+  "status": "mark",
+  "detail": "pin 1 mark 7.6 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.51 mm from pad 1",
+  "attribution": 2
+ },
+ "Q75": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": "pin 1 mark 353.7 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.43 mm from pad 1",
+  "attribution": 2
+ },
+ "Q76": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": "pin 1 mark 354.6 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.42 mm from pad 1",
+  "attribution": 2
+ },
+ "Q77": {
+  "side": "top",
+  "status": "mark",
+  "detail": "pin 1 mark 7.5 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.44 mm from pad 1",
+  "attribution": 2
+ },
+ "Q78": {
+  "side": "top",
+  "status": "mark",
+  "detail": "pin 1 mark 8.0 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.48 mm from pad 1",
+  "attribution": 2
+ },
+ "Q79": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": "pin 1 mark 352.5 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.46 mm from pad 1",
+  "attribution": 2
+ },
+ "Q80": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": "pin 1 mark 353.5 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.43 mm from pad 1",
+  "attribution": 2
+ },
+ "Q81": {
+  "side": "top",
+  "status": "mark",
+  "detail": "pin 1 mark 6.5 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.46 mm from pad 1",
+  "attribution": 2
+ },
+ "Q82": {
+  "side": "top",
+  "status": "mark",
+  "detail": "pin 1 mark 6.7 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.47 mm from pad 1",
+  "attribution": 2
+ },
+ "Q83": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": "pin 1 mark 353.9 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.46 mm from pad 1",
+  "attribution": 2
+ },
+ "Q84": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": "pin 1 mark 354.2 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.46 mm from pad 1",
+  "attribution": 2
+ },
+ "Q85": {
+  "side": "top",
+  "status": "mark",
+  "detail": "pin 1 mark 13.8 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.62 mm from pad 1",
+  "attribution": 2
+ },
+ "Q86": {
+  "side": "top",
+  "status": "mark",
+  "detail": "pin 1 mark 14.4 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.65 mm from pad 1",
+  "attribution": 2
+ },
+ "Q87": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": "pin 1 mark 346.0 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.65 mm from pad 1",
+  "attribution": 2
+ },
+ "Q88": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": "pin 1 mark 346.4 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.63 mm from pad 1",
+  "attribution": 2
+ },
+ "Q89": {
+  "side": "top",
+  "status": "mark",
+  "detail": "pin 1 mark 8.0 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.47 mm from pad 1",
+  "attribution": 2
+ },
+ "Q90": {
+  "side": "top",
+  "status": "mark",
+  "detail": "pin 1 mark 8.0 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.51 mm from pad 1",
+  "attribution": 2
+ },
+ "Q91": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": "pin 1 mark 353.1 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.43 mm from pad 1",
+  "attribution": 2
+ },
+ "Q92": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": "pin 1 mark 354.1 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.42 mm from pad 1",
+  "attribution": 2
+ },
+ "Q93": {
+  "side": "top",
+  "status": "manual review",
+  "detail": "drawn; pin 1 mark 280.3 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 1.99 mm from pad 1",
+  "attribution": 2
+ },
+ "Q94": {
+  "side": "top",
+  "status": "manual review",
+  "detail": "drawn; pin 1 mark 281.0 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 1.98 mm from pad 1",
+  "attribution": 2
+ },
+ "Q95": {
+  "side": "bottom",
+  "status": "manual review",
+  "detail": "drawn; pin 1 mark 80.5 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 2.03 mm from pad 1",
+  "attribution": 2
+ },
+ "Q96": {
+  "side": "bottom",
+  "status": "manual review",
+  "detail": "drawn; pin 1 mark 80.7 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 2.04 mm from pad 1",
+  "attribution": 2
+ },
+ "Q97": {
+  "side": "top",
+  "status": "mark",
+  "detail": "pin 1 mark 3.6 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.16 mm from pad 1",
+  "attribution": 2
+ },
+ "Q98": {
+  "side": "top",
+  "status": "mark",
+  "detail": "pin 1 mark 3.2 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.17 mm from pad 1",
+  "attribution": 2
+ },
+ "Q99": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": "pin 1 mark 358.2 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.11 mm from pad 1",
+  "attribution": 2
+ },
+ "Q100": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": "pin 1 mark 359.2 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.10 mm from pad 1",
+  "attribution": 2
+ },
+ "Q101": {
+  "side": "top",
+  "status": "mark",
+  "detail": "pin 1 mark 357.3 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.12 mm from pad 1",
+  "attribution": 2
+ },
+ "Q102": {
+  "side": "top",
+  "status": "mark",
+  "detail": "pin 1 mark 358.3 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.09 mm from pad 1",
+  "attribution": 2
+ },
+ "Q103": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": "pin 1 mark 1.6 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.07 mm from pad 1",
+  "attribution": 2
+ },
+ "Q104": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": "pin 1 mark 2.0 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.09 mm from pad 1",
+  "attribution": 2
+ },
+ "Q105": {
+  "side": "top",
+  "status": "mark",
+  "detail": "pin 1 mark 1.6 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.06 mm from pad 1",
+  "attribution": 2
+ },
+ "Q106": {
+  "side": "top",
+  "status": "mark",
+  "detail": "pin 1 mark 1.4 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.07 mm from pad 1",
+  "attribution": 2
+ },
+ "Q107": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": "pin 1 mark 359.5 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.04 mm from pad 1",
+  "attribution": 2
+ },
+ "Q108": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": "pin 1 mark 0.3 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.03 mm from pad 1",
+  "attribution": 2
+ },
+ "Q109": {
+  "side": "top",
+  "status": "mark",
+  "detail": "pin 1 mark 6.2 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.42 mm from pad 1",
+  "attribution": 2
+ },
+ "Q110": {
+  "side": "top",
+  "status": "mark",
+  "detail": "pin 1 mark 7.3 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.45 mm from pad 1",
+  "attribution": 2
+ },
+ "Q111": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": "pin 1 mark 352.7 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.49 mm from pad 1",
+  "attribution": 2
+ },
+ "Q112": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": "pin 1 mark 353.1 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.47 mm from pad 1",
+  "attribution": 2
+ },
+ "Q113": {
+  "side": "top",
+  "status": "mark",
+  "detail": "pin 1 mark 13.8 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.62 mm from pad 1",
+  "attribution": 2
+ },
+ "Q114": {
+  "side": "top",
+  "status": "mark",
+  "detail": "pin 1 mark 14.3 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.63 mm from pad 1",
+  "attribution": 2
+ },
+ "Q115": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": "pin 1 mark 345.7 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.66 mm from pad 1",
+  "attribution": 2
+ },
+ "Q116": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": "pin 1 mark 346.0 deg counter-clockwise from pad 1 about the origin, seen from the top (limit 20 either way), 0.64 mm from pad 1",
+  "attribution": 2
+ }
+}

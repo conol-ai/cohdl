@@ -1,0 +1,81 @@
+{
+ "schema_version": 1,
+ "method": "measure_preview.py marks (attribution 2): each copy's own pin 1 mark, placed with the row's candidate mapping in the supplier CPL, within 20 degrees of pad 1's direction from the footprint origin (mark_ok); four copies per part number (top 0 and 37 degrees, bottom 0 and 37 degrees)",
+ "parts": [
+  {
+   "pn": "C20069147",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "MMBTA56",
+   "part": "transistor::PNP_SOT23<80V, 500mA, 225mW>",
+   "designators": [
+    "Q9",
+    "Q10",
+    "Q11",
+    "Q12"
+   ],
+   "mapping": {
+    "dx_mm": 0,
+    "dy_mm": 0,
+    "rotate_deg": 90
+   },
+   "candidate_record": "tools/sourcing_data/jlc_previews/2026-11-23-board-15/README.md",
+   "deltas_ccw_from_top": [
+    10.5,
+    10.5,
+    -9.9,
+    -9.5
+   ],
+   "reading": "pin 1 at pad 1 with the candidate"
+  },
+  {
+   "pn": "C28646268",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "HL2302",
+   "part": "mosfet::NMOS_SOT23<20V, 3A>",
+   "designators": [
+    "Q1",
+    "Q2",
+    "Q3",
+    "Q4"
+   ],
+   "mapping": {
+    "dx_mm": 0,
+    "dy_mm": 0,
+    "rotate_deg": 90
+   },
+   "candidate_record": "tools/sourcing_data/jlc_previews/2026-11-23-board-16/README.md",
+   "deltas_ccw_from_top": [
+    10.0,
+    10.5,
+    -9.9,
+    -9.8
+   ],
+   "reading": "pin 1 at pad 1 with the candidate"
+  },
+  {
+   "pn": "C28646269",
+   "mfr": "Zhuhai Hongjiacheng Technology",
+   "mpn": "HL3407A",
+   "part": "mosfet::PMOS_SOT23<30V, 4.1A>",
+   "designators": [
+    "Q5",
+    "Q6",
+    "Q7",
+    "Q8"
+   ],
+   "mapping": {
+    "dx_mm": 0,
+    "dy_mm": 0,
+    "rotate_deg": 90
+   },
+   "candidate_record": "tools/sourcing_data/jlc_previews/2026-11-23-board-16/README.md",
+   "deltas_ccw_from_top": [
+    10.3,
+    10.5,
+    -10.0,
+    -9.6
+   ],
+   "reading": "pin 1 at pad 1 with the candidate"
+  }
+ ]
+}

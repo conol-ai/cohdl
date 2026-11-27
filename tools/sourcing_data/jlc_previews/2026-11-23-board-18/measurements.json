@@ -1,0 +1,218 @@
+[
+ {
+  "ref": "Q1",
+  "side": "top",
+  "kicad_angle": 0.0,
+  "pad1": [
+   1.0,
+   0.95
+  ],
+  "dots": [
+   [
+    1.42,
+    0.94
+   ]
+  ],
+  "attribution": 2,
+  "delta_ccw_from_top": 10.0,
+  "mark_ok": true
+ },
+ {
+  "ref": "Q2",
+  "side": "top",
+  "kicad_angle": 37.0,
+  "pad1": [
+   1.37,
+   0.157
+  ],
+  "dots": [
+   [
+    1.71,
+    -0.12
+   ]
+  ],
+  "attribution": 2,
+  "delta_ccw_from_top": 10.5,
+  "mark_ok": true
+ },
+ {
+  "ref": "Q3",
+  "side": "bottom",
+  "kicad_angle": 180.0,
+  "pad1": [
+   -1.0,
+   0.95
+  ],
+  "dots": [
+   [
+    -1.43,
+    0.95
+   ]
+  ],
+  "attribution": 2,
+  "delta_ccw_from_top": 350.1,
+  "mark_ok": true
+ },
+ {
+  "ref": "Q4",
+  "side": "bottom",
+  "kicad_angle": -143.0,
+  "pad1": [
+   -0.227,
+   1.361
+  ],
+  "dots": [
+   [
+    -0.57,
+    1.62
+   ]
+  ],
+  "attribution": 2,
+  "delta_ccw_from_top": 350.2,
+  "mark_ok": true
+ },
+ {
+  "ref": "Q5",
+  "side": "top",
+  "kicad_angle": 0.0,
+  "pad1": [
+   1.0,
+   0.95
+  ],
+  "dots": [
+   [
+    1.44,
+    0.94
+   ]
+  ],
+  "attribution": 2,
+  "delta_ccw_from_top": 10.3,
+  "mark_ok": true
+ },
+ {
+  "ref": "Q6",
+  "side": "top",
+  "kicad_angle": 37.0,
+  "pad1": [
+   1.37,
+   0.157
+  ],
+  "dots": [
+   [
+    1.72,
+    -0.12
+   ]
+  ],
+  "attribution": 2,
+  "delta_ccw_from_top": 10.5,
+  "mark_ok": true
+ },
+ {
+  "ref": "Q7",
+  "side": "bottom",
+  "kicad_angle": 180.0,
+  "pad1": [
+   -1.0,
+   0.95
+  ],
+  "dots": [
+   [
+    -1.43,
+    0.95
+   ]
+  ],
+  "attribution": 2,
+  "delta_ccw_from_top": 350.0,
+  "mark_ok": true
+ },
+ {
+  "ref": "Q8",
+  "side": "bottom",
+  "kicad_angle": -143.0,
+  "pad1": [
+   -0.227,
+   1.361
+  ],
+  "dots": [
+   [
+    -0.56,
+    1.63
+   ]
+  ],
+  "attribution": 2,
+  "delta_ccw_from_top": 350.4,
+  "mark_ok": true
+ },
+ {
+  "ref": "Q9",
+  "side": "top",
+  "kicad_angle": 0.0,
+  "pad1": [
+   1.0,
+   0.95
+  ],
+  "dots": [
+   [
+    1.45,
+    0.94
+   ]
+  ],
+  "attribution": 2,
+  "delta_ccw_from_top": 10.5,
+  "mark_ok": true
+ },
+ {
+  "ref": "Q10",
+  "side": "top",
+  "kicad_angle": 37.0,
+  "pad1": [
+   1.37,
+   0.157
+  ],
+  "dots": [
+   [
+    1.73,
+    -0.12
+   ]
+  ],
+  "attribution": 2,
+  "delta_ccw_from_top": 10.5,
+  "mark_ok": true
+ },
+ {
+  "ref": "Q11",
+  "side": "bottom",
+  "kicad_angle": 180.0,
+  "pad1": [
+   -1.0,
+   0.95
+  ],
+  "dots": [
+   [
+    -1.42,
+    0.95
+   ]
+  ],
+  "attribution": 2,
+  "delta_ccw_from_top": 350.1,
+  "mark_ok": true
+ },
+ {
+  "ref": "Q12",
+  "side": "bottom",
+  "kicad_angle": -143.0,
+  "pad1": [
+   -0.227,
+   1.361
+  ],
+  "dots": [
+   [
+    -0.56,
+    1.62
+   ]
+  ],
+  "attribution": 2,
+  "delta_ccw_from_top": 350.5,
+  "mark_ok": true
+ }
+]

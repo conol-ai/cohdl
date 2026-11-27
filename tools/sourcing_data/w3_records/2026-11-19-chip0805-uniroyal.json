@@ -24,8 +24,8 @@
  },
  "built_by": "tools/w3_record.py",
  "stock_source": {
-  "path": "tools/sourcing_data/lcsc_backfill/2026-11-18-uniroyal/confirmed.json",
-  "sha256": "cdd3614e23c3a8289d5d726f4ca40d3e95db77e19c9f8fc962af8eb33a4fffec"
+  "path": "tools/sourcing_data/lcsc_backfill/2026-11-26-merge-main/confirmed.json",
+  "sha256": "4829cece0d8d2db477067584071938ace3ab2e83dc6f348cf791156a9a77b3e4"
  },
  "groups": [
   {

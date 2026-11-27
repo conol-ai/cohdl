@@ -49,6 +49,8 @@ REGENERATE = {"lcsc-batch-1": "lcsc_batch_1.py", "lcsc-batch-2-passive": "lcsc_b
               "c2-board-3": "c2_board_3.py", "w3-pilot-0402": "w3_pilot_0402.py",
               "preview-board-4": "preview_board_4.py", "preview-board-5": "preview_board_5.py",
               "preview-board-6": "preview_board_6.py", "preview-board-7": "preview_board_7.py",
+              "preview-board-8": "preview_board_8.py", "preview-board-9": "preview_board_9.py",
+              "preview-board-10": "preview_board_10.py",
               "preview-board-11": "preview_board_11.py", "preview-board-12": "preview_board_12.py"}
 
 # The layers the assembler fabricates from; courtyard, fab and user layers stay out.

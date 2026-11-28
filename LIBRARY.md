@@ -133,7 +133,28 @@ distributor or manufacturer-branded mirror is an acceptable fallback only
 when `docs/README.md` records both URLs, explains the exception, and verifies
 the document identity, revision, page content, and checksum after download.
 
-Save unmodified PDFs under the manufacturer library's `docs/` directory.
+**PDFs.** Ship each datasheet PDF unmodified in the manufacturer library's
+`docs/` directory unless a condition in the table below holds; then keep only
+`docs/<basename>.evidence.md` with the URL, revision, SHA-256, page count,
+pages used and the condition met. Condition 1 applies only if the record names
+where the vendor prohibits it. Thresholds 3 and 4 are provisional
+(`docs/pdf-digest.md` sections 6.3 and 10.5).
+
+| # | The PDF stays out when | Threshold |
+|---|---|---|
+| 1 | The vendor explicitly prohibits redistribution | The prohibition is named in the record |
+| 2 | The PDF is too large | More than 8 MiB (8,388,608 B) |
+| 3 | The package's files would exceed the largest package shipped today | More than 27,288,503 B (`passive`, measured 2026-11-26) |
+| 4 | The package's files would grow too much | With the candidate PDFs ÷ without them > 20 |
+
+`python3 -I tools/datasheet_ship.py lib/<pkg> PDF…` applies conditions 2 to 4
+to the PDFs a change adds. A PDF already committed stays committed: the table
+applies when a PDF is added.
+
+The table is the default, not a mandate. The package's maintainer decides
+which documents their package ships; a choice that differs from the table is
+stated, with its reason, in the package's `docs/README.md`.
+
 Create `docs/README.md` containing, for every file:
 
 - local filename;
@@ -145,9 +166,10 @@ Create `docs/README.md` containing, for every file:
 - the CAD retrieval date and checksum when the vendor does not publish a
   versioned CAD artifact.
 
-For a catalog-scale generated package where duplicating hundreds of official
-PDFs would make the immutable registry archive operationally unusable, one
-deterministic local source-index document may replace the duplicate binaries.
+Separately from the table, for a catalog-scale generated package where
+duplicating hundreds of official PDFs would make the immutable registry archive
+operationally unusable, one deterministic local source-index document may
+replace the duplicate binaries.
 This exception does not weaken the evidence requirements: every exact part row
 must still record its official manufacturer document URL, exact device/pinout,
 concrete footprint, upstream artifact commits and licenses, retrieval date, and
@@ -179,7 +201,9 @@ device pin map, footprint pad numbers, exact purchasable MPN, provenance
 manifest, and downstream locks together; record the superseded mapping in the
 manifest so the change is auditable.
 
-Validate each downloaded PDF before treating it as source material:
+Validate each downloaded PDF before treating it as source material. `pdfinfo`
+and `pdftotext` come with poppler (`brew install poppler`,
+`apt-get install poppler-utils`); CI does not install it:
 
 ```sh
 file lib/@manufacturer/family/docs/*.pdf
@@ -482,8 +506,10 @@ or falsely report cross-library footprint references.
 
 - [ ] Every shipped MPN appears in the inventory and maps to an official
       datasheet.
-- [ ] Official PDFs are stored locally, readable, versioned in `docs/README.md`,
-      and checksum-recorded.
+- [ ] Each official PDF is readable, versioned in `docs/README.md` and
+      checksum-recorded; it ships in `docs/`, or its `.evidence.md` record names
+      the condition of section 2's table that keeps it out (for condition 1,
+      where the vendor prohibits redistribution).
 - [ ] Official CAD provenance includes its URL and enough retrieval identity
       to detect vendor-side replacement.
 - [ ] Devices and parts carry valid local `#[doc(...)]` references.

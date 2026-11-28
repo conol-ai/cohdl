@@ -23,7 +23,7 @@ This skill is the order of work and the gates between steps. Where it and those 
 
 - **Never** merge, publish, upload to the registry, touch the production database, add to the assembler's cart, quote, order or pay.
 - **Credentials:** never read, record or type them. Never capture the screen.
-- **Fetching** goes through `tools/sourcing/http.py` only: its user agent, at least 2 s between requests to a host, `robots.txt` obeyed, no `/api` path, no EasyEDA host, stop after two 403/429 in a row, no IP change, no proxy. Every run that sends requests needs a person's approval of its exact page list (step 5). Raw pages and PDFs are never committed.
+- **Fetching** goes through `tools/sourcing/http.py` only: its user agent, at least 2 s between requests to a host, `robots.txt` obeyed, no `/api` path, no EasyEDA host, stop after two 403/429 in a row, no IP change, no proxy. Every run that sends requests needs a person's approval of its exact page list (step 5). Raw supplier pages are never committed. A datasheet PDF is committed when the rule in step 2 says it ships, and only then.
 - **Downloaded data** goes in its own empty directory; Python that reads it runs with `-I`, and scripts you write live elsewhere.
 - **Fail closed:** a case a tool cannot decide (several candidates, an unreadable page, a conflicting manufacturer) goes to review. Nothing is guessed.
 - **Aliases** (`tools/sourcing_data/mfr_aliases.json`) change only after a person's review that cites an issue. A run may propose one; it never adds one.
@@ -47,7 +47,20 @@ This skill is the order of work and the gates between steps. Where it and those 
 ### 2. Part-number rule and evidence
 
 - Transcribe the manufacturer's ordering rule ("How to Order") and pin map from its own datasheet into `lib/<pkg>/docs/<mfr>-<family>.evidence.md`: the document's URL and SHA-256, the page, and what each field means. Follow an existing one, e.g. `lib/diode/docs/hongjiacheng-zener-sod323-sod523.evidence.md`.
-- **Ask** before fetching a datasheet. The manufacturer's site first; if it blocks retrieval, the manufacturer-authored copy LCSC serves (record both URLs).
+- **Ask** before fetching a datasheet. Take the first of these that can be had, and record which it is (`docs/pdf-digest.md` section 6.5):
+  1. the manufacturer's original PDF with a text layer;
+  2. the manufacturer's original without one;
+  3. the manufacturer-authored copy LCSC serves, only when the original cannot be obtained (no manufacturer-hosted copy found, or its site blocks retrieval). Record both URLs, or where you looked.
+- **Check the file** before reading it as a source, as `LIBRARY.md` section 2 lists: `file`, `pdfinfo`, `pdftotext` (is there a text layer?) and `shasum -a 256`. An HTML or error page with a `.pdf` name is not a document. `pdfinfo` and `pdftotext` come with poppler (`brew install poppler`, `apt-get install poppler-utils`), which neither CI nor a fresh machine has: if they are missing, install them or stop and say so. Do not record a text layer or a page count you did not measure.
+- **Ship the PDF or keep it out.** `python3 -I tools/datasheet_ship.py lib/<pkg> PDF…`, with every PDF the batch adds to that package, applies Rule B of `docs/pdf-digest.md` (section 6.3), the default `LIBRARY.md` section 2 states:
+  - "ships": save the file unmodified under `lib/<pkg>/docs/`, list it in `lib/<pkg>/docs/README.md` with what `LIBRARY.md` section 2 asks for, and attach it with `#[doc("docs/<file>.pdf")]` to the devices and parts it covers. Identical content is committed once.
+  - "already in the package, nothing to decide": the file is committed and stays committed. Rule B applies when a PDF is added; this line is not a verdict and removes nothing.
+  - "stays out (condition N)": do not add that PDF. The evidence record gives the URL, revision, SHA-256, size, page count, the pages used, the condition and the numbers the tool printed.
+  - The tool judges the package's candidates as one set and does not pick a subset that would fit. If shipping some of them is worth it, that is the choice of the package's maintainer, who decides which documents the package ships (`LIBRARY.md` section 2): say so in the PR, and a choice that differs from the tool's verdict is recorded with its reason in `lib/<pkg>/docs/README.md`.
+  - Condition 1 (the vendor prohibits redistribution) is yours to read from the vendor's terms; it applies only if the record names where the prohibition is stated. It does not keep an LCSC-served copy out (the owner's decision of 2026-11-27, section 6.5).
+  - A shipped PDF is content: it needs the new version step 3 describes, like any other change.
+  - Records written before 2026-11-27 say "the PDFs are not committed". Those documents are not moved by a later batch: applying Rule B to them is the measurement in `docs/pdf-digest.md` section 10.5, the maintainer's to run.
+- A digest of the document (`docs/pdf-digest.md` Rule A, section 7) is not a step of this skill yet: its checker does not exist. Do not write one by hand to this skill's steps.
 - The pin map is read from the datasheet's numbered drawing, per part: for SOT-23 the B/E/C or G/S/D order differs by series.
 - A sheet with no ordering rule (a table of type numbers, as the Zener sheets have) is recorded as that: the MPN is the table's type number, and the generator checks each against the series' numbering pattern. A sheet with no numbered drawing gets its polarity or pin order from what it does print (a "cathode band" note, a marked outline), with the page. Record a misprint as printed next to the MPN used (`BZT52B3VOS` for `BZT52B3V0S`).
 
@@ -164,7 +177,7 @@ sh tools/examples_golden.sh . <batch>               # every example must report 
 
 ### 10. Draft PR
 
-- Title the family and the counts ("173 SOD-323/523 Zeners, 35 bound"). The body: what was added, the evidence and where it is, the transcription check's rounds and findings, what stays unbound and why, devices left without a rating, decisions waiting on the maintainer, and the test results.
+- Title the family and the counts ("173 SOD-323/523 Zeners, 35 bound"). The body: what was added, the evidence and where it is, each datasheet with whether its PDF ships or which condition keeps it out, the transcription check's rounds and findings, what stays unbound and why, devices left without a rating, decisions waiting on the maintainer, and the test results.
 - Open it as a draft; a person marks it ready for review. The batch's record is the PR and the run READMEs: `docs/library-supplier-plan.md` keeps no per-batch log, so change it only when the batch changes a rule or a workstream's status.
 
 ## Stop and report

@@ -250,13 +250,55 @@ class DatasheetShipTests(unittest.TestCase):
             full = self.package(Path(d) / "full", datasheet_ship.MAX_PACKAGE)
             self.assertEqual(self.conditions(full, [self.pdf(d, "one.pdf", 1000, b"o")]), [3])
 
-    def test_a_candidate_already_in_the_package_is_not_counted_twice(self):
+    def test_a_pdf_already_in_the_package_gets_no_verdict(self):
+        # Section 6.3: committed PDFs stay committed; Rule B applies when one is added.
         with tempfile.TemporaryDirectory() as d:
             pkg = self.package(d, 1000)
             (pkg / "docs").mkdir()
-            held = self.pdf(pkg / "docs", "held.pdf", 19_000)
+            held = self.pdf(pkg / "docs", "held.pdf", 600_009)  # 600 times the rest of the package
             result = datasheet_ship.judge(pkg, [held])
-            self.assertEqual((result["base"], result["added"], sorted(result["verdicts"].values())), (1000, 19_000, [0]))
+            self.assertEqual((result["base"], result["added"], result["verdicts"]), (601_009, 0, {}))
+            self.assertEqual(len(result["held"]), 1)
+            with redirect_stdout(io.StringIO()) as out:
+                self.assertEqual(datasheet_ship.main([str(pkg), str(held)]), 0)
+            self.assertIn("already in the package, nothing to decide: held.pdf", out.getvalue())
+            self.assertNotIn("stays out", out.getvalue())
+            # The same bytes offered from outside the package are the same document.
+            copy = self.pdf(d, "copy.pdf", 600_009)
+            self.assertEqual(datasheet_ship.judge(pkg, [copy])["verdicts"], {})
+            # A new PDF is judged against the package as it stands, the committed PDF included.
+            new = self.pdf(d, "new.pdf", 1_000_000, b"n")
+            result = datasheet_ship.judge(pkg, [held, new])
+            self.assertEqual((result["base"], result["added"], list(result["verdicts"].values())), (601_009, 1_000_000, [0]))
+
+    def test_the_measure_is_the_packers_file_set(self):
+        # `collect_files` follows a link to a directory (`entry.is_dir()`); so must the measure.
+        with tempfile.TemporaryDirectory() as d:
+            pkg = self.package(d, 1000)
+            outside = Path(d) / "outside"
+            outside.mkdir()
+            (outside / "linked.bin").write_bytes(b"x" * 500)
+            (outside / ".hidden").write_bytes(b"x" * 7)
+            (pkg / "linked").symlink_to(outside, target_is_directory=True)
+            (pkg / "one.bin").symlink_to(outside / "linked.bin")
+            (pkg / ".dot.bin").write_bytes(b"x" * 9)
+            names = sorted(str(p.relative_to(pkg)) for p in datasheet_ship.packed_files(pkg))
+            self.assertEqual(names, ["cohdl.toml", "linked/linked.bin", "one.bin", "src/a.cohdl"])
+            self.assertEqual(datasheet_ship.judge(pkg, [self.pdf(d, "p.pdf", 100)])["base"], 2000)
+        # The rule this copies. If the packer's selection changes, change `packed_files` with it.
+        source = (ROOT / "src/registry.rs").read_text()
+        body = source.split("fn collect_files(", 1)[1].split("\n}\n", 1)[0]
+        for line in ("if name.starts_with('.') {", "if entry.is_dir() {", "} else if entry.is_file() {"):
+            self.assertIn(line, body)
+        self.assertEqual(body.count("continue;"), 1)
+
+    def test_library_md_states_rule_b_as_the_default(self):
+        text = (ROOT / "LIBRARY.md").read_text()
+        self.assertNotIn("Save unmodified PDFs under", text)
+        for needle in (f"{datasheet_ship.MAX_PDF:,} B", f"{datasheet_ship.MAX_PACKAGE:,} B", "> 20",
+                       "tools/datasheet_ship.py", "The table is the default, not a mandate", "poppler"):
+            self.assertIn(needle, text)
+        self.assertIn("poppler", SKILL.read_text())
 
     def test_the_exit_status_says_whether_everything_ships_and_a_non_pdf_is_refused(self):
         with tempfile.TemporaryDirectory() as d:

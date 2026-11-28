@@ -47,8 +47,8 @@ hash = "sha256:da15516c197fa7da074eb4e451babc020e544f7c50abcd50ef283732ac368595"
 
 [[package]]
 name = "osc"
-version = "0.2.0"
-hash = "sha256:4e981974b3df2f29478e12113746541f1efe6797534b3c16dd17e36a128f63de"
+version = "0.2.1"
+hash = "sha256:3cbdaa920ee511d24128549572240c340baeb4cb0f078a5f3672af5be6cbc9d2"
 
 [[package]]
 name = "passive"

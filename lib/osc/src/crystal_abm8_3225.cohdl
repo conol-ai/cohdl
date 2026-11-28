@@ -1,0 +1,51 @@
+// ABM8 3.2 x 2.5 mm four-pad crystals at the frequencies designs ask for.
+//
+// One device, three parts: the pin table is the four-pad crystal convention
+// already in this package (Crystal_4pad, crystal_12mhz.cohdl), the land is the
+// ABM8 family's recommended layout (FP_Crystal_3225, crystal.cohdl), and what
+// differs between the parts is the ordering code.
+//
+// The ordering code is read from the family sheet's option table
+// (abracon-abm8.pdf, "Options and part identification"):
+//
+//   ABM8 - <frequency>MHz - <load capacitance> - <operating temp> -
+//          <tolerance> - <stability> - <height> - <packaging>
+//
+// so ABM8-32.000MHZ-10-1-U-T is 32 MHz, 10 pF, temperature left blank
+// (-10 to +60 C), tolerance 1 (+/-10 ppm), stability U (+/-10 ppm), standard
+// 0.80 mm height, tape and reel. The sheet's note on U restricts it to the
+// blank, E and B temperature options, which this part takes.
+//
+// ABM8-25.000MHZ-B2-T does not use the load-capacitance field for its CL: B is
+// the -20 to +70 C temperature option and 2 is the +/-20 ppm tolerance, and
+// the 18 pF load is the family's standard value (the sheet's electrical table
+// gives 18.0 pF as "Standard"). Abracon's own parametric page for the part
+// states the same four numbers: 18 pF, +/-20 ppm tolerance, +/-50 ppm
+// stability, -20 to +70 C. The two agree, so the code is read that way.
+//
+// ESR from the sheet's table: 50 ohm at 20.000-29.999 MHz, 40 ohm at
+// 30.000-39.999 MHz, 35 ohm at 40.000-54.000 MHz. All three frequencies are
+// inside the family's 8.000-125.000 MHz range and in its fundamental band.
+//
+// The load capacitors are not part of this file: C_load = 2 * (CL - Cstray),
+// which is 31 pF for the 18 pF part and 15 pF for the 10 pF parts at the
+// package's usual 2.5 pF stray assumption. Size them against the confirmed
+// part and the oscillator's own guidance.
+
+#[doc("docs/abracon-abm8.pdf")]
+pub part XTAL_ABM8_25MHZ: Crystal_4pad {
+    primary { mfr: "Abracon", mpn: "ABM8-25.000MHZ-B2-T", footprint: FP_Crystal_3225 }
+}
+
+#[doc("docs/abracon-abm8.pdf")]
+pub part XTAL_ABM8_32MHZ: Crystal_4pad {
+    primary { mfr: "Abracon", mpn: "ABM8-32.000MHZ-10-1-U-T", footprint: FP_Crystal_3225 }
+}
+
+// The package already carries a 40 MHz crystal from Hosonic on a 2.0 x 1.6 mm
+// land (crystal_40mhz.cohdl). This is the same frequency in the ABM8 package,
+// so it shares the device and differs in maker, land and ordering code.
+#[doc("docs/abracon-abm8.pdf")]
+pub part XTAL_ABM8_40MHZ: Crystal_4pad {
+    primary { mfr: "Abracon", mpn: "ABM8-40.000MHZ-10-1-U-T", footprint: FP_Crystal_3225 }
+}
